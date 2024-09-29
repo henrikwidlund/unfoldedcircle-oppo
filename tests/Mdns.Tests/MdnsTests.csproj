@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <IsPackable>false</IsPackable>
+        <RootNamespace>Makaretu.Mdns</RootNamespace>
+        <LangVersion>latest</LangVersion>
+        <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    </PropertyGroup>
+    
+    <ItemGroup>
+        <PackageReference Include="Meziantou.Analyzer" Version="2.0.168">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.1" PrivateAssets="all" />
+        <PackageReference Include="MSTest.TestAdapter" Version="3.6.0" PrivateAssets="all" />
+        <PackageReference Include="MSTest.TestFramework" Version="3.6.0" PrivateAssets="all" />
+        <PackageReference Include="coverlet.msbuild" Version="6.0.2" PrivateAssets="all" />
+    </ItemGroup>
+    
+    <ItemGroup>
+        <ProjectReference Include="..\..\src\Mdns\Mdns.csproj" />
+    </ItemGroup>
+
+</Project>

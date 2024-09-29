@@ -1,0 +1,139 @@
+# Unfolded Circle Oppo Integration Driver
+
+[![Release](https://img.shields.io/github/actions/workflow/status/henrikwidlund/unfoldedcircle-oppo/github-release.yml?branch=main&label=Release&logo=github)](https://github.com/henrikwidlund/unfoldedcircle-oppo/actions/workflows/github-release.yml)
+[![CodeQL](https://img.shields.io/github/actions/workflow/status/henrikwidlund/unfoldedcircle-oppo/codeql-analysis.yml?branch=main&label=CodeQL&logo=github)](https://github.com/henrikwidlund/unfoldedcircle-oppo/actions/workflows/codeql-analysis.yml)
+[![Docker](https://img.shields.io/github/actions/workflow/status/henrikwidlund/unfoldedcircle-oppo/docker.yml?branch=main&label=Docker&logo=docker)](https://github.com/henrikwidlund/unfoldedcircle-oppo/actions/workflows/docker.yml)
+
+The program is a server for hosting a Oppo UDP-20X integration driver for the Unfolded Circle Remote Two/Three remotes.
+
+## Supported devices
+
+- Oppo UDP-203
+- Oppo UDP-205
+
+## Prerequisites
+
+### Running
+
+- The published binary is self-contained and doesn't require any additional software. It's compiled for Linux ARM64 and is meant to be running on the remote.
+- You can also run the program using Docker `docker run -it henrikwidlund/unfoldedcircle-oppo`
+
+### Network
+
+| Service      | Port  | Protocol     |
+|--------------|-------|--------------|
+| Server       | 9001* | HTTP (TCP)   |
+| Oppo UDP-20X | 23    | Telnet (TCP) |
+
+\* Server port can be adjusted by specifying the desired port with the `UC_INTEGRATION_HTTP_PORT` environment variable.
+
+### Development
+
+- [dotnet 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0).
+- or [Docker](https://www.docker.com/get-started).
+
+## Installing on the remote
+
+1. Download the latest release.
+2. Browse to your remote's IP address.
+3. Click on `Core-API REST`. 
+4. Find the POST endpoint `/intg/install`
+5. Click on `Try it out`
+6. Choose the file you downloaded (`oppo.tar.gz`)
+7. Click on `Execute` and wait for the integration to be uploaded and installed. 
+8. Go to the regular page in the web configurator for integrations and configure the integration.
+
+## Configuration
+
+The application can be configured using the `appsettings.json` file or environment variables.
+Additionally, the application saves configured entities to the `configured_entities.json` file, which will be saved to the directory specified by the `UC_CONFIG_HOME` environment variable.
+
+## Logging
+
+By default, the application logs to stdout. It can also be customized to send the logs over HTTP to a remote server. 
+You can customize the log levels by either modifying the `appsettings.json` file or by setting environment variables.
+
+### Log levels
+- `Trace`
+- `Debug`
+- `Information`
+- `Warning`
+- `Error`
+
+`Trace` log level will log the contents of all the incoming and outgoing requests and responses. This includes both Websockets and Telnet. 
+
+### `appsettings.json`
+
+```json
+{
+    "Logging": {
+        "LogLevel": {
+          "UnfoldedCircle.Server": "Information",
+          "OppoTelnet": "Information",
+          "Makaretu.Dns": "Warning"
+        }
+    }
+}
+```
+
+### Environment variables
+
+Same adjustments to log levels can be made by setting environment variables.
+- `Logging__LogLevel__UnfoldedCircle.Server` = `Information`
+- `Logging__LogLevel__OppoTelnet` = `Information`
+- `Logging__LogLevel__Makaretu.Dns` = `Warning`
+
+
+### HTTP logging
+
+Change `appsettings.json` to send logs over HTTP.
+
+```json
+{
+    "HttpLogger": {
+        "Enabled": true,
+        "Endpoint": "https://YOUR_HOST:PORT/OPTIONAL_PATH"
+    }
+}
+```
+
+Similarly you can configure it using environment variables:
+- `HttpLogger__Enabled` = `true`
+- `HttpLogger__Endpoint` = `https://YOUR_HOST:PORT/OPTIONAL_PATH`
+
+Note that when using HTTP logging the application will default to `Trace` log level.
+
+## Building from source code
+
+### Building for the remote
+
+Execute `publish.sh` script to build the application for the remote. This will produce a `tar.gz` file in the root of the repository.
+
+### Building for Docker
+
+Execute the following from the root of the repository:
+
+```sh
+docker build -f src/UnfoldedCircle.Server/Dockerfile -t oppo .
+```
+
+### dotnet CLI
+
+```sh
+dotnet publish ./src/UnfoldedCircle.Server/UnfoldedCircle.Server.csproj -c Release --self-contained -o ./publish
+```
+
+This will produce a self-contained binary in the `publish` directory in the root of the repository.
+
+## Limitations
+
+- Logs downloaded from the remote might not contain the logs from this integration driver. The reason for this is unknown as the application writes the logs to stdout.
+- The artist, album and track information might not always be available or accurate. This can't be helped as it's the information the player provides.
+- The album cover might be incorrect or missing. This is because the CDDB database no longer exists, as such, the application tries to get covers by matching the current artist and album. This is not always accurate enough.
+
+## Licenses / Copyright
+
+- [License](LICENSE)
+- [richardschneider/net-mdns](https://github.com/richardschneider/net-mdns/blob/master/LICENSE)
+- [jdomnitz/net-mdns](https://github.com/jdomnitz/net-mdns/blob/master/LICENSE)
+- [9swampy/Telnet](https://github.com/9swampy/Telnet/blob/develop/License.txt)

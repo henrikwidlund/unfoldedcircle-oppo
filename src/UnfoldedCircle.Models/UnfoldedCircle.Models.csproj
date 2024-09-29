@@ -1,0 +1,30 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <RuntimeIdentifier Condition="'$(BuildForLinuxArm)' == 'true'">linux-arm64</RuntimeIdentifier>
+        <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
+        <IsTrimmable>false</IsTrimmable>
+        <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\UnfoldedCircle.Generators.Attributes\UnfoldedCircle.Generators.Attributes.csproj" />
+        <ProjectReference Include="..\UnfoldedCircle.Generators\UnfoldedCircle.Generators.csproj"
+                          OutputItemType="Analyzer" ReferenceOutputAssembly="false"  />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Remove="UnfoldedCircle.Models.csproj.DotSettings" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Meziantou.Analyzer" Version="2.0.168">
+        <PrivateAssets>all</PrivateAssets>
+        <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      </PackageReference>
+    </ItemGroup>
+
+</Project>

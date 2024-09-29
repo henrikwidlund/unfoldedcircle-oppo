@@ -1,0 +1,73 @@
+{
+  "driver_id": "oppo-unfolded-circle",
+  "version": "0.0.1",
+  "min_core_api": "0.20.0",
+  "name": {
+    "en": "Oppo UDP-20x Blu-ray Player"
+  },
+  "icon": "custom:oppo.png",
+  "description": {
+    "en": "Integration with the Oppo UDP-20x series of Blu-ray players"
+  },
+  "developer": {
+    "name": "Henrik Widlund",
+    "email": "none@of-your.business",
+    "url": "https://github.com/henrikwidlund/unfoldedcircle-integration"
+  },
+  "setup_data_schema": {
+    "title": {
+      "en": "Enter Details"
+    },
+    "settings": [
+      {
+        "id": "ip_address",
+        "field": {
+          "text": {
+            "value": "",
+            "regex": "^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)|(([0-9a-fA-F]{1,4}:){7,7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,7}:|([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})|:((:[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(:[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]{1,}|::(ffff(:0{1,4}){0,1}:){0,1}((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])|([0-9a-fA-F]{1,4}:){1,4}:((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9]))$"
+          }
+        },
+        "label": {
+          "en": "Enter the IP address of the Oppo player"
+        }
+      },
+      {
+        "id": "use_media_events",
+        "field": {
+          "checkbox": {
+            "value": false
+          }
+        },
+        "label": {
+          "en": "Use Media Events? This enables playback information at the expense of updates every second"
+        }
+      },
+      {
+        "id": "chapter_or_movie_length",
+        "field": {
+          "dropdown": {
+            "value": "movie_length",
+            "items": [
+              {
+                "id": "movie_length",
+                "label": {
+                  "en": "Movie Length"
+                }
+              },
+              {
+                "id": "chapter_length",
+                "label": {
+                  "en": "Chapter Length"
+                }
+              }
+            ]
+          }
+        },
+        "label": {
+          "en": "Use chapter or movie length for progress bar (only applicable if Media Events is enabled)?"
+        }
+      }
+    ]
+  },
+  "release_date": "2024-09-16"
+}

@@ -1,0 +1,49 @@
+name: GitHub Release
+
+on:
+  release:
+    types: [ published ]
+  workflow_dispatch:
+
+jobs:
+  release:
+    name: Release
+    runs-on: 'ubuntu-latest'
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup dotnet
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Build
+        shell: bash
+        run: |
+          dotnet publish ./src/UnfoldedCircle.Server/UnfoldedCircle.Server.csproj -c Release -p:BuildForLinuxArm=true --self-contained -o ./publish
+          
+          mkdir driverdir && mkdir driverdir/bin && mkdir driverdir/config && mkdir driverdir/data
+          cp publish/driver.json driverdir/driver.json
+          cp ./oppo.png ./driverdir/oppo.png
+          cp publish/appsettings*.json driverdir/bin/
+          
+          cp publish/driver driverdir/bin/
+          
+          tar -czvf oppo.tar.gz -C ./driverdir .
+          
+          # Delete output directory
+          rm -r "./publish"
+          rm -r "./driverdir"
+
+      - name: Publish
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            oppo.tar.gz
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
