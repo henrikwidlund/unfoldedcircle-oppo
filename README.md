@@ -1,8 +1,8 @@
 # Unfolded Circle Oppo Integration Driver
 
-[![Release](https://img.shields.io/github/actions/workflow/status/henrikwidlund/unfoldedcircle-oppo/github-release.yml?branch=main&label=Release&logo=github)](https://github.com/henrikwidlund/unfoldedcircle-oppo/actions/workflows/github-release.yml)
+[![Release](https://img.shields.io/github/actions/workflow/status/henrikwidlund/unfoldedcircle-oppo/github-release.yml?label=Release&logo=github)](https://github.com/henrikwidlund/unfoldedcircle-oppo/actions/workflows/github-release.yml)
 [![CodeQL](https://img.shields.io/github/actions/workflow/status/henrikwidlund/unfoldedcircle-oppo/codeql-analysis.yml?branch=main&label=CodeQL&logo=github)](https://github.com/henrikwidlund/unfoldedcircle-oppo/actions/workflows/codeql-analysis.yml)
-[![Docker](https://img.shields.io/github/actions/workflow/status/henrikwidlund/unfoldedcircle-oppo/docker.yml?branch=main&label=Docker&logo=docker)](https://github.com/henrikwidlund/unfoldedcircle-oppo/actions/workflows/docker.yml)
+[![Docker](https://img.shields.io/github/actions/workflow/status/henrikwidlund/unfoldedcircle-oppo/docker.yml?label=Docker&logo=docker)](https://github.com/henrikwidlund/unfoldedcircle-oppo/actions/workflows/docker.yml)
 
 The program is a server for hosting a Oppo UDP-20X integration driver for the Unfolded Circle Remote Two/Three remotes.
 
