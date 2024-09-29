@@ -4,7 +4,7 @@
 [![CodeQL](https://img.shields.io/github/actions/workflow/status/henrikwidlund/unfoldedcircle-oppo/codeql-analysis.yml?branch=main&label=CodeQL&logo=github)](https://github.com/henrikwidlund/unfoldedcircle-oppo/actions/workflows/codeql-analysis.yml)
 [![Docker](https://img.shields.io/github/actions/workflow/status/henrikwidlund/unfoldedcircle-oppo/docker.yml?label=Docker&logo=docker)](https://github.com/henrikwidlund/unfoldedcircle-oppo/actions/workflows/docker.yml)
 
-The program is a server for hosting a Oppo UDP-20X integration driver for the Unfolded Circle Remote Two/Three remotes.
+This repository contains the server code for hosting an Oppo UDP-20X integration driver for the Unfolded Circle Remotes.
 
 ## Supported devices
 
