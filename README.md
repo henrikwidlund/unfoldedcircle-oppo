@@ -16,7 +16,7 @@ This repository contains the server code for hosting an Oppo UDP-20X integration
 ### Running
 
 - The published binary is self-contained and doesn't require any additional software. It's compiled for Linux ARM64 and is meant to be running on the remote.
-- You can also run the program using Docker `docker run -it henrikwidlund/unfoldedcircle-oppo`
+- Use the [Docker Image](https://hub.docker.com/r/henrikwidlund/unfoldedcircle-oppo) in the [Core Simulator](https://github.com/unfoldedcircle/core-simulator)
 
 ### Network
 
@@ -38,8 +38,8 @@ This repository contains the server code for hosting an Oppo UDP-20X integration
 2. Browse to your remote's IP address.
 3. Click on `Core-API REST`. 
 4. Find the POST endpoint `/intg/install`
-5. Click on `Try it out`
-6. Choose the file you downloaded (`oppo.tar.gz`)
+5. Click on `Try it out`.
+6. Choose the file you downloaded (`oppo.tar.gz`).
 7. Click on `Execute` and wait for the integration to be uploaded and installed. 
 8. Go to the regular page in the web configurator for integrations and configure the integration.
 
@@ -82,7 +82,6 @@ Same adjustments to log levels can be made by setting environment variables.
 - `Logging__LogLevel__UnfoldedCircle.Server` = `Information`
 - `Logging__LogLevel__OppoTelnet` = `Information`
 - `Logging__LogLevel__Makaretu.Dns` = `Warning`
-
 
 ### HTTP logging
 
