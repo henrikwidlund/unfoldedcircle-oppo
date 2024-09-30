@@ -12,6 +12,7 @@
         <Authors>Richard Schneider, jdomnitz</Authors>
         <Copyright>© 2018-2019 Richard Schneider, jdomnitz</Copyright>
         <Nullable>enable</Nullable>
+        <RuntimeIdentifier Condition="'$(BuildForLinuxArm)' == 'true'">linux-arm64</RuntimeIdentifier>
     </PropertyGroup>
     
     <ItemGroup>
