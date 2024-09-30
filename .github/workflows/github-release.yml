@@ -7,10 +7,23 @@ on:
 
 jobs:
   release:
-    name: Release
-    runs-on: 'ubuntu-latest'
+    name: Release native binaries
     permissions:
       contents: write
+    strategy:
+      matrix:
+        kind: [ 'linux', 'macos', 'windows' ]
+        include:
+          - kind: linux
+            os: ubuntu-latest
+            target: linux
+          - kind: macos
+            os: macos-latest
+            target: osx
+          - kind: windows
+            os: windows-latest
+            target: win
+    runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -25,25 +38,44 @@ jobs:
       - name: Build
         shell: bash
         run: |
-          dotnet publish ./src/UnfoldedCircle.Server/UnfoldedCircle.Server.csproj -c Release -p:BuildForLinuxArm=true --self-contained -o ./publish
+          tag=$(git describe --tags --abbrev=0)
+          # Build everything
+          ASSEMBLY_VERSION="${tag//v}"
+          for target_arch in "x64" "arm64"; do
+            target="${{ matrix.target }}-$target_arch"
+            release_name="unfolded-circle-oppo-$tag-$target"
           
-          mkdir driverdir && mkdir driverdir/bin && mkdir driverdir/config && mkdir driverdir/data
-          cp publish/driver.json driverdir/driver.json
-          cp ./oppo.png ./driverdir/oppo.png
-          cp publish/appsettings*.json driverdir/bin/
-          
-          cp publish/driver driverdir/bin/
-          
-          tar -czvf oppo.tar.gz -C ./driverdir .
-          
-          # Delete output directory
-          rm -r "./publish"
-          rm -r "./driverdir"
-
+            dotnet publish ./src/UnfoldedCircle.Server/UnfoldedCircle.Server.csproj -r $target -c Release --self-contained -o ./publish -p:Version="$ASSEMBLY_VERSION"
+            if [ "${{ matrix.kind }}" == "windows" ]; then
+              # Pack to zip for Windows
+              7z a -tzip "${release_name}.zip" "./publish/*"
+            else
+              # Pack tar.gz for non-Windows
+              tar -czvf "${release_name}.tar.gz" -C ./publish .
+            fi
+            
+            if [ "${{ matrix.kind }}" == "linux" ] && [ "$target_arch" == "arm64" ]; then
+              mkdir driverdir && mkdir driverdir/bin && mkdir driverdir/config && mkdir driverdir/data
+              cp publish/driver.json driverdir/driver.json
+              cp ./oppo.png ./driverdir/oppo.png
+              cp publish/appsettings*.json driverdir/bin/
+              
+              cp publish/driver driverdir/bin/
+              
+              tar -czvf oppo.tar.gz -C ./driverdir .
+              
+              # Delete output directory
+              rm -r "./driverdir"
+            fi
+            # Delete output directory
+            rm -r "./publish"
+          done
       - name: Publish
         uses: softprops/action-gh-release@v2
         with:
           files: |
+            unfolded-circle-oppo*.zip
+            unfolded-circle-oppo*.tar.gz
             oppo.tar.gz
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
