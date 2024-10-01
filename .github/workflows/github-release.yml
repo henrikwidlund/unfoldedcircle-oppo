@@ -62,7 +62,7 @@ jobs:
               
               cp publish/driver driverdir/bin/
               
-              tar -czvf oppo.tar.gz -C ./driverdir .
+              tar -czvf unfoldedcircle-oppo.tar.gz -C ./driverdir .
               
               # Delete output directory
               rm -r "./driverdir"
@@ -76,6 +76,6 @@ jobs:
           files: |
             unfolded-circle-oppo*.zip
             unfolded-circle-oppo*.tar.gz
-            oppo.tar.gz
+            unfoldedcircle-oppo.tar.gz
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

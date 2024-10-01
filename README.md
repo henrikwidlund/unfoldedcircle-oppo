@@ -39,7 +39,7 @@ This repository contains the server code for hosting an Oppo UDP-20X integration
 3. Click on `Core-API REST`. 
 4. Find the POST endpoint `/intg/install`
 5. Click on `Try it out`.
-6. Choose the file you downloaded (`oppo.tar.gz`).
+6. Choose the file you downloaded (`unfoldedcircle-oppo.tar.gz`).
 7. Click on `Execute` and wait for the integration to be uploaded and installed. 
 8. Go to the regular page in the web configurator for integrations and configure the integration.
 
