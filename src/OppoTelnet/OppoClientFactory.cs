@@ -9,7 +9,7 @@ public class OppoClientFactory(ILoggerFactory loggerFactory, ILogger<OppoClientF
     private readonly ILogger<OppoClientFactory> _logger = logger;
     private readonly ConcurrentDictionary<OppoClientKey, IOppoClient> _clients = new();
 
-    public IOppoClient? TryGetOrCreateClient(OppoClientKey oppoClientKey)
+    public IOppoClient? TryGetOrCreateClient(in OppoClientKey oppoClientKey)
     {
         try
         {
@@ -24,7 +24,7 @@ public class OppoClientFactory(ILoggerFactory loggerFactory, ILogger<OppoClientF
         }
     }
     
-    public void TryDisposeClient(OppoClientKey oppoClientKey)
+    public void TryDisposeClient(in OppoClientKey oppoClientKey)
     {
         try
         {

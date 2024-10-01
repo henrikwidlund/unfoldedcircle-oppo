@@ -2,7 +2,7 @@ namespace OppoTelnet;
 
 public interface IOppoClientFactory
 {
-    IOppoClient? TryGetOrCreateClient(OppoClientKey oppoClientKey);
-    void TryDisposeClient(OppoClientKey oppoClientKey);
+    IOppoClient? TryGetOrCreateClient(in OppoClientKey oppoClientKey);
+    void TryDisposeClient(in OppoClientKey oppoClientKey);
     public void TryDisposeAllClients();
 }
