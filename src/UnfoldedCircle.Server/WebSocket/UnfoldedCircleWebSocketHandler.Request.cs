@@ -60,7 +60,7 @@ internal partial class UnfoldedCircleWebSocketHandler
                 var oppoClientHolder = await TryGetOppoClientHolder(wsId, payload.MsgData.DeviceId, cancellationTokenWrapper.ApplicationStopping);
                 await SendAsync(socket,
                     ResponsePayloadHelpers.CreateGetDeviceStateResponsePayload(
-                        oppoClientHolder?.Client.GetDeviceState() ?? DeviceState.Error,
+                        await GetDeviceState(oppoClientHolder),
                         payload.MsgData.DeviceId ?? oppoClientHolder?.Client.GetHost(),
                         _unfoldedCircleJsonSerializerContext
                     ),
@@ -73,12 +73,25 @@ internal partial class UnfoldedCircleWebSocketHandler
             {
                 var payload = jsonDocument.Deserialize(_unfoldedCircleJsonSerializerContext.GetAvailableEntitiesMsg)!;
                 var oppoClientHolder = await TryGetOppoClientHolder(wsId, payload.MsgData.Filter?.DeviceId, cancellationTokenWrapper.ApplicationStopping);
+                bool isConnected;
+                string? host;
+                if (oppoClientHolder is not null)
+                {
+                    isConnected = await oppoClientHolder.Client.IsConnectedAsync();
+                    host = oppoClientHolder.Client.GetHost();
+                }
+                else
+                {
+                    isConnected = false;
+                    host = null;
+                }
+                
                 await SendAsync(socket,
                     ResponsePayloadHelpers.CreateGetAvailableEntitiesMsg(payload,
                         new AvailableEntitiesMsgData<MediaPlayerEntityFeature>
                         {
                             Filter = payload.MsgData.Filter,
-                            AvailableEntities = GetAvailableEntities(oppoClientHolder, payload)
+                            AvailableEntities = GetAvailableEntities(payload, isConnected, host)
                         },
                         _unfoldedCircleJsonSerializerContext),
                     wsId,
@@ -116,7 +129,7 @@ internal partial class UnfoldedCircleWebSocketHandler
                 var oppoClientHolder = await TryGetOppoClientHolder(wsId, payload.MsgData?.DeviceId, cancellationTokenWrapper.ApplicationStopping);
                 await SendAsync(socket,
                     ResponsePayloadHelpers.CreateGetEntityStatesResponsePayload(payload,
-                        oppoClientHolder is { Client.IsConnected: true },
+                        oppoClientHolder is not null && await oppoClientHolder.Client.IsConnectedAsync(),
                         payload.MsgData?.DeviceId,
                         _unfoldedCircleJsonSerializerContext),
                     wsId,
@@ -135,7 +148,7 @@ internal partial class UnfoldedCircleWebSocketHandler
                 var entity = await UpdateConfiguration(payload.MsgData.SetupData, cancellationTokenWrapper.ApplicationStopping);
                 var oppoClientHolder = await TryGetOppoClientHolder(wsId, entity.DeviceId, cancellationTokenWrapper.ApplicationStopping);
                 
-                var isConnected = oppoClientHolder is { Client.IsConnected: true };
+                var isConnected = oppoClientHolder is not null && await oppoClientHolder.Client.IsConnectedAsync();
                 
                 await Task.WhenAll(
                     SendAsync(socket,
@@ -147,7 +160,7 @@ internal partial class UnfoldedCircleWebSocketHandler
                         wsId,
                         cancellationTokenWrapper.ApplicationStopping),
                     SendAsync(socket,
-                        ResponsePayloadHelpers.CreateConnectEventResponsePayload(oppoClientHolder?.Client.GetDeviceState() ?? DeviceState.Error,
+                        ResponsePayloadHelpers.CreateConnectEventResponsePayload(await GetDeviceState(oppoClientHolder),
                             _unfoldedCircleJsonSerializerContext),
                         wsId,
                         cancellationTokenWrapper.ApplicationStopping)
@@ -183,10 +196,12 @@ internal partial class UnfoldedCircleWebSocketHandler
                 return;
         }
     }
-
-    private static AvailableEntity<MediaPlayerEntityFeature>[]? _availableEntities;
-    private static AvailableEntity<MediaPlayerEntityFeature>[] GetAvailableEntities(OppoClientHolder? oppoClientHolder, GetAvailableEntitiesMsg payload) =>
-        _availableEntities ??= oppoClientHolder is { Client.IsConnected: true } ? [
+    
+    private static AvailableEntity<MediaPlayerEntityFeature>[] GetAvailableEntities(
+        GetAvailableEntitiesMsg payload,
+        in bool isConnected,
+        string? host) => 
+        isConnected ? [
             new AvailableEntity<MediaPlayerEntityFeature>
             {
                 Name = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
@@ -200,7 +215,7 @@ internal partial class UnfoldedCircleWebSocketHandler
                 {
                     ["simple_commands"] = OppoEntitySettings.SimpleCommands
                 },
-                DeviceId = payload.MsgData.Filter?.DeviceId ?? oppoClientHolder.Client.GetHost()
+                DeviceId = payload.MsgData.Filter?.DeviceId ?? host
             }
         ] : [];
 

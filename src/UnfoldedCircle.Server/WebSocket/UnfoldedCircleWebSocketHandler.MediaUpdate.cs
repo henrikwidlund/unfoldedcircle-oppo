@@ -25,7 +25,7 @@ internal partial class UnfoldedCircleWebSocketHandler
             return;
         }
         
-        if (oppoClientHolder is not { Client.IsConnected: true } or { ClientKey.UseMediaEvents: false })
+        if (!await oppoClientHolder.Client.IsConnectedAsync() || oppoClientHolder is { ClientKey.UseMediaEvents: false })
         {
             _logger.LogDebug("{WSId} Client not connected or configured to not use media events. {@ClientKey}", wsId, oppoClientHolder.ClientKey);
             return;

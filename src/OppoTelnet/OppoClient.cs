@@ -1,9 +1,11 @@
+using System.Buffers;
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics.CodeAnalysis;
+using System.IO.Pipelines;
+using System.Net.Sockets;
 using System.Runtime.CompilerServices;
 using System.Text;
 using Microsoft.Extensions.Logging;
-using PrimS.Telnet;
 
 using static OppoTelnet.Command;
 using static OppoTelnet.AdvancedCommand;
@@ -11,22 +13,15 @@ using static OppoTelnet.QueryCommand;
 
 namespace OppoTelnet;
 
-public sealed class OppoClient : IOppoClient
+public sealed class OppoClient(string hostName, in OppoModel model, ILogger<OppoClient> logger) : IOppoClient
 {
-    private readonly TcpByteStream _byteStream;
-    private readonly Client _client;
-    private readonly string _hostName;
-    private readonly ILogger<OppoClient> _logger;
+    private readonly TcpClient _tcpClient = new();
+    private readonly string _hostName = hostName;
+    private readonly int _port = (ushort)model;
+    private readonly ILogger<OppoClient> _logger = logger;
     private readonly SemaphoreSlim _semaphore = new(1, 1);
     private readonly TimeSpan _timeout = TimeSpan.FromSeconds(1);
-
-    public OppoClient(string hostName, in OppoModel model, ILogger<OppoClient> logger)
-    {
-        _byteStream = new TcpByteStream(hostName, (ushort)model);
-        _client = new Client(_byteStream, TimeSpan.FromSeconds(10), CancellationToken.None);
-        _hostName = hostName;
-        _logger = logger;
-    }
+    private readonly StringBuilder _stringBuilder = new();
 
     public async ValueTask<OppoResult<PowerState>> PowerToggleAsync(CancellationToken cancellationToken = default)
     {
@@ -35,7 +30,7 @@ public sealed class OppoClient : IOppoClient
         
         try
         {
-            var result = await SendCommand(PowerToggle);
+            var result = await SendCommand(PowerToggle, cancellationToken);
             return result.Success switch
             {
                 false => new OppoResult<PowerState> { Success = false },
@@ -44,8 +39,8 @@ public sealed class OppoClient : IOppoClient
                     Success = true,
                     Result = result.Response switch
                     {
-                        "@OK ON\r" => PowerState.On,
-                        "@OK OFF\r" => PowerState.Off,
+                        "@OK ON" => PowerState.On,
+                        "@OK OFF" => PowerState.Off,
                         _ => LogError(result.Response, PowerState.Unknown)
                     }
                 }
@@ -64,7 +59,7 @@ public sealed class OppoClient : IOppoClient
 
         try
         {
-            var result = await SendCommand(PowerOn);
+            var result = await SendCommand(PowerOn, cancellationToken);
 
             return result.Success switch
             {
@@ -74,7 +69,7 @@ public sealed class OppoClient : IOppoClient
                     Success = true,
                     Result = result.Response switch
                     {
-                        "@OK ON\r" => PowerState.On,
+                        "@OK ON" => PowerState.On,
                         _ => LogError(result.Response, PowerState.Unknown)
                     }
                 }
@@ -93,7 +88,7 @@ public sealed class OppoClient : IOppoClient
         
         try
         {
-            var result = await SendCommand(PowerOff);
+            var result = await SendCommand(PowerOff, cancellationToken);
 
             return result.Success switch
             {
@@ -103,7 +98,7 @@ public sealed class OppoClient : IOppoClient
                     Success = true,
                     Result = result.Response switch
                     {
-                        "@OK OFF\r" => PowerState.Off,
+                        "@OK OFF" => PowerState.Off,
                         _ => LogError(result.Response, PowerState.Unknown)
                     }
                 }
@@ -122,7 +117,7 @@ public sealed class OppoClient : IOppoClient
         
         try
         {
-            var result = await SendCommand(EjectToggle);
+            var result = await SendCommand(EjectToggle, cancellationToken);
 
             return result.Success switch
             {
@@ -132,8 +127,8 @@ public sealed class OppoClient : IOppoClient
                     Success = true,
                     Result = result.Response switch
                     {
-                        "@OK OPEN\r" => TrayState.Open,
-                        "@OK CLOSE\r" => TrayState.Closed,
+                        "@OK OPEN" => TrayState.Open,
+                        "@OK CLOSE" => TrayState.Closed,
                         _ => LogError(result.Response, TrayState.Unknown)
                     }
                 }
@@ -152,7 +147,7 @@ public sealed class OppoClient : IOppoClient
 
         try
         {
-            var result = await SendCommand(Dimmer);
+            var result = await SendCommand(Dimmer, cancellationToken);
 
             return result.Success switch
             {
@@ -162,9 +157,9 @@ public sealed class OppoClient : IOppoClient
                     Success = true,
                     Result = result.Response switch
                     {
-                        "@OK ON\r" => DimmerState.On,
-                        "@OK DIM\r" => DimmerState.Dim,
-                        "@OK OFF\r" => DimmerState.Off,
+                        "@OK ON" => DimmerState.On,
+                        "@OK DIM" => DimmerState.Dim,
+                        "@OK OFF" => DimmerState.Off,
                         _ => LogError(result.Response, DimmerState.Unknown)
                     }
                 }
@@ -183,7 +178,7 @@ public sealed class OppoClient : IOppoClient
         
         try
         {
-            var result = await SendCommand(PureAudioToggle);
+            var result = await SendCommand(PureAudioToggle, cancellationToken);
 
             return result.Success switch
             {
@@ -193,8 +188,8 @@ public sealed class OppoClient : IOppoClient
                     Success = true,
                     Result = result.Response switch
                     {
-                        "@OK ON\r" => PureAudioState.On,
-                        "@OK OFF\r" => PureAudioState.Off,
+                        "@OK ON" => PureAudioState.On,
+                        "@OK OFF" => PureAudioState.Off,
                         _ => LogError(result.Response, PureAudioState.Unknown)
                     }
                 }
@@ -213,14 +208,14 @@ public sealed class OppoClient : IOppoClient
         
         try
         {
-            var result = await SendCommand(VolumeUp);
+            var result = await SendCommand(VolumeUp, cancellationToken);
 
             return result.Success switch
             {
                 false => new OppoResult<ushort?> { Success = false },
                 _ => new OppoResult<ushort?>
                 {
-                    Success = ushort.TryParse(result.Response.AsSpan()[4..^1], out var volume),
+                    Success = ushort.TryParse(result.Response.AsSpan()[4..], out var volume),
                     Result = volume
                 }
             };
@@ -238,14 +233,14 @@ public sealed class OppoClient : IOppoClient
         
         try
         {
-            var result = await SendCommand(VolumeDown);
+            var result = await SendCommand(VolumeDown, cancellationToken);
 
             return result.Success switch
             {
                 false => new OppoResult<ushort?> { Success = false },
                 _ => new OppoResult<ushort?>
                 {
-                    Success = ushort.TryParse(result.Response.AsSpan()[4..^1], out var volume),
+                    Success = ushort.TryParse(result.Response.AsSpan()[4..], out var volume),
                     Result = volume
                 }
             };
@@ -263,7 +258,7 @@ public sealed class OppoClient : IOppoClient
         
         try
         {
-            var result = await SendCommand(MuteToggle);
+            var result = await SendCommand(MuteToggle, cancellationToken);
 
             return result.Success switch
             {
@@ -273,8 +268,8 @@ public sealed class OppoClient : IOppoClient
                     Success = true,
                     Result = result.Response switch
                     {
-                        "@OK MUTE\r" => MuteState.On,
-                        "@OK UNMUTE\r" => MuteState.Off,
+                        "@OK MUTE" => MuteState.On,
+                        "@OK UNMUTE" => MuteState.Off,
                         _ => LogError(result.Response, MuteState.Unknown)
                     }
                 }
@@ -309,7 +304,7 @@ public sealed class OppoClient : IOppoClient
                 8 => NumericKey8,
                 9 => NumericKey9,
                 _ => throw new ArgumentOutOfRangeException(nameof(number))
-            });
+            }, cancellationToken);
             return result.Success;
         }
         finally
@@ -325,7 +320,7 @@ public sealed class OppoClient : IOppoClient
         
         try
         {
-            var result = await SendCommand(Clear);
+            var result = await SendCommand(Clear, cancellationToken);
             return result.Success;
         }
         finally
@@ -341,7 +336,7 @@ public sealed class OppoClient : IOppoClient
         
         try
         {
-            var result = await SendCommand(GoTo);
+            var result = await SendCommand(GoTo, cancellationToken);
             return result.Success;
         }
         finally
@@ -357,7 +352,7 @@ public sealed class OppoClient : IOppoClient
         
         try
         {
-            var result = await SendCommand(Home);
+            var result = await SendCommand(Home, cancellationToken);
             return result.Success;
         }
         finally
@@ -373,7 +368,7 @@ public sealed class OppoClient : IOppoClient
         
         try
         {
-            var result = await SendCommand(PageUp);
+            var result = await SendCommand(PageUp, cancellationToken);
             return result.Success;
         }
         finally
@@ -389,7 +384,7 @@ public sealed class OppoClient : IOppoClient
         
         try
         {
-            var result = await SendCommand(PageDown);
+            var result = await SendCommand(PageDown, cancellationToken);
             return result.Success;
         }
         finally
@@ -405,7 +400,7 @@ public sealed class OppoClient : IOppoClient
         
         try
         {
-            var result = await SendCommand(InfoToggle);
+            var result = await SendCommand(InfoToggle, cancellationToken);
             return result.Success;
         }
         finally
@@ -421,7 +416,7 @@ public sealed class OppoClient : IOppoClient
         
         try
         {
-            var result = await SendCommand(TopMenu);
+            var result = await SendCommand(TopMenu, cancellationToken);
             return result.Success;
         }
         finally
@@ -437,7 +432,7 @@ public sealed class OppoClient : IOppoClient
         
         try
         {
-            var result = await SendCommand(PopUpMenu);
+            var result = await SendCommand(PopUpMenu, cancellationToken);
             return result.Success;
         }
         finally
@@ -453,7 +448,7 @@ public sealed class OppoClient : IOppoClient
         
         try
         {
-            var result = await SendCommand(UpArrow);
+            var result = await SendCommand(UpArrow, cancellationToken);
             return result.Success;
         }
         finally
@@ -469,7 +464,7 @@ public sealed class OppoClient : IOppoClient
         
         try
         {
-            var result = await SendCommand(LeftArrow);
+            var result = await SendCommand(LeftArrow, cancellationToken);
             return result.Success;
         }
         finally
@@ -485,7 +480,7 @@ public sealed class OppoClient : IOppoClient
         
         try
         {
-            var result = await SendCommand(RightArrow);
+            var result = await SendCommand(RightArrow, cancellationToken);
             return result.Success;
         }
         finally
@@ -501,7 +496,7 @@ public sealed class OppoClient : IOppoClient
         
         try
         {
-            var result = await SendCommand(DownArrow);
+            var result = await SendCommand(DownArrow, cancellationToken);
             return result.Success;
         }
         finally
@@ -517,7 +512,7 @@ public sealed class OppoClient : IOppoClient
         
         try
         {
-            var result = await SendCommand(Enter);
+            var result = await SendCommand(Enter, cancellationToken);
             return result.Success;
         }
         finally
@@ -533,7 +528,7 @@ public sealed class OppoClient : IOppoClient
         
         try
         {
-            var result = await SendCommand(Setup);
+            var result = await SendCommand(Setup, cancellationToken);
             return result.Success;
         }
         finally
@@ -549,7 +544,7 @@ public sealed class OppoClient : IOppoClient
         
         try
         {
-            var result = await SendCommand(Return);
+            var result = await SendCommand(Return, cancellationToken);
             return result.Success;
         }
         finally
@@ -565,7 +560,7 @@ public sealed class OppoClient : IOppoClient
         
         try
         {
-            var result = await SendCommand(Red);
+            var result = await SendCommand(Red, cancellationToken);
             return result.Success;
         }
         finally
@@ -581,7 +576,7 @@ public sealed class OppoClient : IOppoClient
         
         try
         {
-            var result = await SendCommand(Green);
+            var result = await SendCommand(Green, cancellationToken);
             return result.Success;
         }
         finally
@@ -597,7 +592,7 @@ public sealed class OppoClient : IOppoClient
         
         try
         {
-            var result = await SendCommand(Blue);
+            var result = await SendCommand(Blue, cancellationToken);
             return result.Success;
         }
         finally
@@ -613,7 +608,7 @@ public sealed class OppoClient : IOppoClient
         
         try
         {
-            var result = await SendCommand(Yellow);
+            var result = await SendCommand(Yellow, cancellationToken);
             return result.Success;
         }
         finally
@@ -629,7 +624,7 @@ public sealed class OppoClient : IOppoClient
         
         try
         {
-            var result = await SendCommand(Stop);
+            var result = await SendCommand(Stop, cancellationToken);
             return result.Success;
         }
         finally
@@ -645,7 +640,7 @@ public sealed class OppoClient : IOppoClient
         
         try
         {
-            var result = await SendCommand(Play);
+            var result = await SendCommand(Play, cancellationToken);
             return result.Success;
         }
         finally
@@ -661,7 +656,7 @@ public sealed class OppoClient : IOppoClient
         
         try
         {
-            var result = await SendCommand(Pause);
+            var result = await SendCommand(Pause, cancellationToken);
             return result.Success;
         }
         finally
@@ -677,7 +672,7 @@ public sealed class OppoClient : IOppoClient
         
         try
         {
-            var result = await SendCommand(Previous);
+            var result = await SendCommand(Previous, cancellationToken);
             return result.Success;
         }
         finally
@@ -693,14 +688,14 @@ public sealed class OppoClient : IOppoClient
         
         try
         {
-            var result = await SendCommand(Reverse);
+            var result = await SendCommand(Reverse, cancellationToken);
         
             return result.Success switch
             {
                 false => new OppoResult<ushort?> { Success = false },
                 _ => new OppoResult<ushort?>
                 {
-                    Success = ushort.TryParse(result.Response.AsSpan()[4..^1], out var speed),
+                    Success = ushort.TryParse(result.Response.AsSpan()[4..], out var speed),
                     Result = speed
                 }
             };
@@ -718,14 +713,14 @@ public sealed class OppoClient : IOppoClient
         
         try
         {
-            var result = await SendCommand(Forward);
+            var result = await SendCommand(Forward, cancellationToken);
         
             return result.Success switch
             {
                 false => new OppoResult<ushort?> { Success = false },
                 _ => new OppoResult<ushort?>
                 {
-                    Success = ushort.TryParse(result.Response.AsSpan()[4..^1], out var speed),
+                    Success = ushort.TryParse(result.Response.AsSpan()[4..], out var speed),
                     Result = speed
                 }
             };
@@ -743,7 +738,7 @@ public sealed class OppoClient : IOppoClient
         
         try
         {
-            var result = await SendCommand(Next);
+            var result = await SendCommand(Next, cancellationToken);
             return result.Success;
         }
         finally
@@ -759,7 +754,7 @@ public sealed class OppoClient : IOppoClient
         
         try
         {
-            var result = await SendCommand(Audio);
+            var result = await SendCommand(Audio, cancellationToken);
             return result.Success;
         }
         finally
@@ -775,7 +770,7 @@ public sealed class OppoClient : IOppoClient
         
         try
         {
-            var result = await SendCommand(Subtitle);
+            var result = await SendCommand(Subtitle, cancellationToken);
             return result.Success;
         }
         finally
@@ -791,7 +786,7 @@ public sealed class OppoClient : IOppoClient
         
         try
         {
-            var result = await SendCommand(Angle);
+            var result = await SendCommand(Angle, cancellationToken);
         
             return result.Success switch
             {
@@ -816,7 +811,7 @@ public sealed class OppoClient : IOppoClient
         
         try
         {
-            var result = await SendCommand(Zoom);
+            var result = await SendCommand(Zoom, cancellationToken);
         
             return result.Success switch
             {
@@ -841,7 +836,7 @@ public sealed class OppoClient : IOppoClient
         
         try
         {
-            var result = await SendCommand(SecondaryAudioProgram);
+            var result = await SendCommand(SecondaryAudioProgram, cancellationToken);
         
             return result.Success switch
             {
@@ -866,7 +861,7 @@ public sealed class OppoClient : IOppoClient
         
         try
         {
-            var result = await SendCommand(ABReplay);
+            var result = await SendCommand(ABReplay, cancellationToken);
         
             return result.Success switch
             {
@@ -876,9 +871,9 @@ public sealed class OppoClient : IOppoClient
                     Success = true,
                     Result = result.Response switch
                     {
-                        "@OK A-\r" => ABReplayState.A,
-                        "@OK AB\r" => ABReplayState.AB,
-                        "@OK OFF\r" => ABReplayState.Off,
+                        "@OK A-" => ABReplayState.A,
+                        "@OK AB" => ABReplayState.AB,
+                        "@OK OFF" => ABReplayState.Off,
                         _ => LogError(result.Response, ABReplayState.Unknown)
                     }
                 }
@@ -897,7 +892,7 @@ public sealed class OppoClient : IOppoClient
         
         try
         {
-            var result = await SendCommand(Repeat);
+            var result = await SendCommand(Repeat, cancellationToken);
         
             return result.Success switch
             {
@@ -907,9 +902,9 @@ public sealed class OppoClient : IOppoClient
                     Success = true,
                     Result = result.Response switch
                     {
-                        "@OK Repeat Chapter-\r" => RepeatState.RepeatChapter,
-                        "@OK Repeat Title\r" => RepeatState.RepeatTitle,
-                        "@OK OFF\r" => RepeatState.Off,
+                        "@OK Repeat Chapter-" => RepeatState.RepeatChapter,
+                        "@OK Repeat Title" => RepeatState.RepeatTitle,
+                        "@OK OFF" => RepeatState.Off,
                         _ => LogError(result.Response, RepeatState.Unknown)
                     }
                 }
@@ -928,7 +923,7 @@ public sealed class OppoClient : IOppoClient
         
         try
         {
-            var result = await SendCommand(PictureInPicture);
+            var result = await SendCommand(PictureInPicture, cancellationToken);
         
             return result.Success switch
             {
@@ -953,7 +948,7 @@ public sealed class OppoClient : IOppoClient
         
         try
         {
-            var result = await SendCommand(Resolution);
+            var result = await SendCommand(Resolution, cancellationToken);
             return result.Success;
         }
         finally
@@ -969,7 +964,7 @@ public sealed class OppoClient : IOppoClient
         
         try
         {
-            var result = await SendCommand(SubtitleHold);
+            var result = await SendCommand(SubtitleHold, cancellationToken);
             return result.Success;
         }
         finally
@@ -985,7 +980,7 @@ public sealed class OppoClient : IOppoClient
         
         try
         {
-            var result = await SendCommand(Option);
+            var result = await SendCommand(Option, cancellationToken);
             return result.Success;
         }
         finally
@@ -1001,7 +996,7 @@ public sealed class OppoClient : IOppoClient
         
         try
         {
-            var result = await SendCommand(ThreeD);
+            var result = await SendCommand(ThreeD, cancellationToken);
             return result.Success;
         }
         finally
@@ -1017,7 +1012,7 @@ public sealed class OppoClient : IOppoClient
         
         try
         {
-            var result = await SendCommand(PictureAdjustment);
+            var result = await SendCommand(PictureAdjustment, cancellationToken);
             return result.Success;
         }
         finally
@@ -1033,7 +1028,7 @@ public sealed class OppoClient : IOppoClient
         
         try
         {
-            var result = await SendCommand(HDR);
+            var result = await SendCommand(HDR, cancellationToken);
             return result.Success;
         }
         finally
@@ -1049,7 +1044,7 @@ public sealed class OppoClient : IOppoClient
         
         try
         {
-            var result = await SendCommand(InfoHold);
+            var result = await SendCommand(InfoHold, cancellationToken);
             return result.Success;
         }
         finally
@@ -1065,7 +1060,7 @@ public sealed class OppoClient : IOppoClient
         
         try
         {
-            var result = await SendCommand(ResolutionHold);
+            var result = await SendCommand(ResolutionHold, cancellationToken);
             return result.Success;
         }
         finally
@@ -1081,7 +1076,7 @@ public sealed class OppoClient : IOppoClient
         
         try
         {
-            var result = await SendCommand(AVSync);
+            var result = await SendCommand(AVSync, cancellationToken);
             return result.Success;
         }
         finally
@@ -1097,7 +1092,7 @@ public sealed class OppoClient : IOppoClient
         
         try
         {
-            var result = await SendCommand(GaplessPlay);
+            var result = await SendCommand(GaplessPlay, cancellationToken);
             return result.Success;
         }
         finally
@@ -1113,7 +1108,7 @@ public sealed class OppoClient : IOppoClient
         
         try
         {
-            var result = await SendCommand(Noop);
+            var result = await SendCommand(Noop, cancellationToken);
             return result.Success;
         }
         finally
@@ -1129,7 +1124,7 @@ public sealed class OppoClient : IOppoClient
         
         try
         {
-            var result = await SendCommand(Input);
+            var result = await SendCommand(Input, cancellationToken);
             return result.Success;
         }
         finally
@@ -1157,7 +1152,7 @@ public sealed class OppoClient : IOppoClient
                 RepeatMode.Shuffle => SetRepeatModeShuffle,
                 RepeatMode.Random => SetRepeatModeRandom,
                 _ => throw new ArgumentOutOfRangeException(nameof(mode), mode, "Unknown repeat mode")
-            });
+            }, cancellationToken);
         
             return result.Success switch
             {
@@ -1167,12 +1162,12 @@ public sealed class OppoClient : IOppoClient
                     Success = true,
                     Result = result.Response switch
                     {
-                        "@OK CH\r" => RepeatMode.Chapter,
-                        "@OK TT\r" => RepeatMode.Title,
-                        "@OK ALL\r" => RepeatMode.All,
-                        "@OK OFF\r" => RepeatMode.Off,
-                        "@OK SHF\r" => RepeatMode.Shuffle,
-                        "@OK RND\r" => RepeatMode.Random,
+                        "@OK CH" => RepeatMode.Chapter,
+                        "@OK TT" => RepeatMode.Title,
+                        "@OK ALL" => RepeatMode.All,
+                        "@OK OFF" => RepeatMode.Off,
+                        "@OK SHF" => RepeatMode.Shuffle,
+                        "@OK RND" => RepeatMode.Random,
                         _ => LogError(result.Response, RepeatMode.Unknown)
                     }
                 }
@@ -1194,14 +1189,14 @@ public sealed class OppoClient : IOppoClient
 
         try
         {
-            var result = await SendCommand(Encoding.UTF8.GetBytes($"#SVL {volume}\r"));
+            var result = await SendCommand(Encoding.UTF8.GetBytes($"#SVL {volume}"), cancellationToken);
         
             return result.Success switch
             {
                 false => new OppoResult<ushort> { Success = false },
                 _ => new OppoResult<ushort>
                 {
-                    Success = ushort.TryParse(result.Response.AsSpan()[4..^1], out var newVolume),
+                    Success = ushort.TryParse(result.Response.AsSpan()[4..], out var newVolume),
                     Result = newVolume
                 }
             };
@@ -1219,7 +1214,7 @@ public sealed class OppoClient : IOppoClient
         
         try
         {
-            var result = await SendCommand(QueryPowerStatus);
+            var result = await SendCommand(QueryPowerStatus, cancellationToken);
         
             return result.Success switch
             {
@@ -1229,8 +1224,8 @@ public sealed class OppoClient : IOppoClient
                     Success = true,
                     Result = result.Response switch
                     {
-                        "@OK ON\r" => PowerState.On,
-                        "@OK OFF\r" => PowerState.Off,
+                        "@OK ON" => PowerState.On,
+                        "@OK OFF" => PowerState.Off,
                         _ => LogError(result.Response, PowerState.Unknown)
                     }
                 }
@@ -1249,7 +1244,7 @@ public sealed class OppoClient : IOppoClient
         
         try
         {
-            var result = await SendCommand(QueryPlaybackStatus);
+            var result = await SendCommand(QueryPlaybackStatus, cancellationToken);
         
             return result.Success switch
             {
@@ -1259,19 +1254,19 @@ public sealed class OppoClient : IOppoClient
                     Success = true,
                     Result = result.Response switch
                     {
-                        "@OK PLAY\r" => PlaybackStatus.Play,
-                        "@OK PAUSE\r" => PlaybackStatus.Pause,
-                        "@OK STOP\r" => PlaybackStatus.Stop,
-                        "@OK STEP\r" => PlaybackStatus.Step,
-                        "@OK FREV\r" => PlaybackStatus.FastRewind,
-                        "@OK FFWD\r" => PlaybackStatus.FastForward,
-                        "@OK SFWD\r" => PlaybackStatus.SlowForward,
-                        "@OK SREV\r" => PlaybackStatus.SlowRewind,
-                        "@OK SETUP\r" => PlaybackStatus.Setup,
-                        "@OK HOME MENU\r" => PlaybackStatus.HomeMenu,
-                        "@OK MEDIA CENTER\r" => PlaybackStatus.MediaCenter,
-                        "@OK SCREEN SAVER\r" => PlaybackStatus.ScreenSaver,
-                        "@OK DISC MENU\r" => PlaybackStatus.DiscMenu,
+                        "@OK PLAY" => PlaybackStatus.Play,
+                        "@OK PAUSE" => PlaybackStatus.Pause,
+                        "@OK STOP" => PlaybackStatus.Stop,
+                        "@OK STEP" => PlaybackStatus.Step,
+                        "@OK FREV" => PlaybackStatus.FastRewind,
+                        "@OK FFWD" => PlaybackStatus.FastForward,
+                        "@OK SFWD" => PlaybackStatus.SlowForward,
+                        "@OK SREV" => PlaybackStatus.SlowRewind,
+                        "@OK SETUP" => PlaybackStatus.Setup,
+                        "@OK HOME MENU" => PlaybackStatus.HomeMenu,
+                        "@OK MEDIA CENTER" => PlaybackStatus.MediaCenter,
+                        "@OK SCREEN SAVER" => PlaybackStatus.ScreenSaver,
+                        "@OK DISC MENU" => PlaybackStatus.DiscMenu,
                         _ => LogError(result.Response, PlaybackStatus.Unknown)
                     }
                 }
@@ -1308,7 +1303,7 @@ public sealed class OppoClient : IOppoClient
 
         try
         {
-            var result = await SendCommand(QueryDiscType);
+            var result = await SendCommand(QueryDiscType, cancellationToken);
         
             return result.Success switch
             {
@@ -1318,15 +1313,15 @@ public sealed class OppoClient : IOppoClient
                     Success = true,
                     Result = result.Response switch
                     {
-                        "@OK BD-MV\r" => DiscType.BlueRayMovie,
-                        "@OK DVD-AUDIO\r" => DiscType.DVDAudio,
-                        "@OK DVD-VIDEO\r" => DiscType.DVDVideo,
-                        "@OK SACD\r" => DiscType.SACD,
-                        "@OK CDDA\r" => DiscType.CDDiscAudio,
-                        "@OK DADA-DISC\r" => DiscType.DataDisc,
-                        "@OK UHBD\r" => DiscType.UltraHDBluRay,
-                        "@OK NO-DISC\r" => DiscType.NoDisc,
-                        "@OK UNKNOWN-DISC\r" => DiscType.UnknownDisc,
+                        "@OK BD-MV" => DiscType.BlueRayMovie,
+                        "@OK DVD-AUDIO" => DiscType.DVDAudio,
+                        "@OK DVD-VIDEO" => DiscType.DVDVideo,
+                        "@OK SACD" => DiscType.SACD,
+                        "@OK CDDA" => DiscType.CDDiscAudio,
+                        "@OK DADA-DISC" => DiscType.DataDisc,
+                        "@OK UHBD" => DiscType.UltraHDBluRay,
+                        "@OK NO-DISC" => DiscType.NoDisc,
+                        "@OK UNKNOWN-DISC" => DiscType.UnknownDisc,
                         _ => LogError(result.Response, DiscType.UnknownDisc)
                     }
                 }
@@ -1345,7 +1340,7 @@ public sealed class OppoClient : IOppoClient
 
         try
         {
-            var result = await SendCommand(QueryRepeatMode);
+            var result = await SendCommand(QueryRepeatMode, cancellationToken);
         
             return result.Success switch
             {
@@ -1355,13 +1350,13 @@ public sealed class OppoClient : IOppoClient
                     Success = true,
                     Result = result.Response switch
                     {
-                        "@OK 00 Off\r" => CurrentRepeatMode.Off,
-                        "@OK 01 Repeat One\r" => CurrentRepeatMode.RepeatOne,
-                        "@OK 02 Repeat Chapter\r" => CurrentRepeatMode.RepeatChapter,
-                        "@OK 03 Repeat All\r" => CurrentRepeatMode.RepeatAll,
-                        "@OK 04 Repeat Title\r" => CurrentRepeatMode.RepeatTitle,
-                        "@OK 05 Shuffle\r" => CurrentRepeatMode.Shuffle,
-                        "@OK 06 Random\r" => CurrentRepeatMode.Random,
+                        "@OK 00 Off" => CurrentRepeatMode.Off,
+                        "@OK 01 Repeat One" => CurrentRepeatMode.RepeatOne,
+                        "@OK 02 Repeat Chapter" => CurrentRepeatMode.RepeatChapter,
+                        "@OK 03 Repeat All" => CurrentRepeatMode.RepeatAll,
+                        "@OK 04 Repeat Title" => CurrentRepeatMode.RepeatTitle,
+                        "@OK 05 Shuffle" => CurrentRepeatMode.Shuffle,
+                        "@OK 06 Random" => CurrentRepeatMode.Random,
                         _ => LogError(result.Response, CurrentRepeatMode.Unknown)
                     }
                 }
@@ -1380,7 +1375,7 @@ public sealed class OppoClient : IOppoClient
         
         try
         {
-            var result = await SendCommand(QueryCDDBNumber);
+            var result = await SendCommand(QueryCDDBNumber, cancellationToken);
         
             return result.Success switch
             {
@@ -1388,7 +1383,7 @@ public sealed class OppoClient : IOppoClient
                 _ => new OppoResult<string>
                 {
                     Success = true,
-                    Result = result.Response[4..^1]
+                    Result = result.Response[4..]
                 }
             };
         }
@@ -1405,7 +1400,7 @@ public sealed class OppoClient : IOppoClient
         
         try
         {
-            var result = await SendCommand(QueryTrackName);
+            var result = await SendCommand(QueryTrackName, cancellationToken);
         
             return result.Success switch
             {
@@ -1413,7 +1408,7 @@ public sealed class OppoClient : IOppoClient
                 _ => new OppoResult<string>
                 {
                     Success = true,
-                    Result = result.Response[4..^1]
+                    Result = result.Response[4..]
                 }
             };
         }
@@ -1430,7 +1425,7 @@ public sealed class OppoClient : IOppoClient
         
         try
         {
-            var result = await SendCommand(QueryTrackAlbum);
+            var result = await SendCommand(QueryTrackAlbum, cancellationToken);
         
             return result.Success switch
             {
@@ -1438,7 +1433,7 @@ public sealed class OppoClient : IOppoClient
                 _ => new OppoResult<string>
                 {
                     Success = true,
-                    Result = result.Response[4..^1]
+                    Result = result.Response[4..]
                 }
             };
         }
@@ -1455,7 +1450,7 @@ public sealed class OppoClient : IOppoClient
         
         try
         {
-            var result = await SendCommand(QueryTrackPerformer);
+            var result = await SendCommand(QueryTrackPerformer, cancellationToken);
         
             return result.Success switch
             {
@@ -1463,7 +1458,7 @@ public sealed class OppoClient : IOppoClient
                 _ => new OppoResult<string>
                 {
                     Success = true,
-                    Result = result.Response[4..^1]
+                    Result = result.Response[4..]
                 }
             };
         }
@@ -1473,25 +1468,47 @@ public sealed class OppoClient : IOppoClient
         }
     }
 
-    public bool IsConnected => _client.IsConnected;
-    
+    public async ValueTask<bool> IsConnectedAsync(TimeSpan? timeout = null)
+    {
+        if (!_tcpClient.Connected)
+        {
+            if (await _semaphore.WaitAsync(timeout ?? TimeSpan.FromSeconds(9)) && !_tcpClient.Connected)
+            {
+                try
+                {
+                    using var cancellationTokenSource = new CancellationTokenSource(timeout ?? TimeSpan.FromSeconds(10));
+                    await _tcpClient.ConnectAsync(_hostName, _port, cancellationTokenSource.Token);
+                }
+                catch (OperationCanceledException)
+                {
+                
+                }
+                finally
+                {
+                    _semaphore.Release();
+                }
+            }
+        }
+        
+        return _tcpClient.Connected;
+    }
+
     public string GetHost() => _hostName;
 
-    private async ValueTask<OppoResultCore> SendCommand(byte[] command, [CallerMemberName] string? caller = null)
+    private async ValueTask<OppoResultCore> SendCommand(byte[] command, CancellationToken cancellationToken, [CallerMemberName] string? caller = null)
     {
         try
         {
             if (_logger.IsEnabled(LogLevel.Trace))
-            {
                 _logger.LogTrace("Sending command '{Command}'", Encoding.UTF8.GetString(command));
-            }
+
+            var networkStream = _tcpClient.GetStream();
+            await networkStream.WriteAsync(command, cancellationToken);
             
-            await _client.WriteAsync(command);
-            var response = await _client.ReadAsync();
+            var response = await ReadUntilCarriageReturnAsync(networkStream, cancellationToken);
+            
             if (_logger.IsEnabled(LogLevel.Trace))
-            {
                 _logger.LogTrace("Received response '{Response}'", response);
-            }
 
             if (response is { Length: >= 3 } && response.AsSpan()[..3] is "@OK")
                 return new OppoResultCore(true, response);
@@ -1511,6 +1528,68 @@ public sealed class OppoClient : IOppoClient
             _logger.LogError(e, "Failed to send command");
             return new OppoResultCore(false, null);
         }
+    }
+    
+    private async ValueTask<string> ReadUntilCarriageReturnAsync(NetworkStream networkStream,
+        CancellationToken cancellationToken = default)
+    {
+        _stringBuilder.Clear();
+        var pipeReader = PipeReader.Create(networkStream);
+        var charBuffer = ArrayPool<char>.Shared.Rent(1024);
+
+        try
+        {
+            while (true)
+            {
+                var result = await pipeReader.ReadAsync(cancellationToken);
+                var buffer = result.Buffer;
+                SequencePosition? position;
+
+                do
+                {
+                    position = buffer.PositionOf((byte)0x0d); // ASCII 0x0d (carriage return)
+
+                    if (position != null)
+                    {
+                        var slice = buffer.Slice(0, position.Value);
+                        if (slice.IsSingleSegment)
+                        {
+                            int charsDecoded = Encoding.UTF8.GetChars(slice.First.Span, charBuffer);
+                            _stringBuilder.Append(charBuffer, 0, charsDecoded);
+                        }
+                        else
+                        {
+                            foreach (var segment in slice)
+                            {
+                                int charsDecoded = Encoding.UTF8.GetChars(segment.Span, charBuffer);
+                                _stringBuilder.Append(charBuffer, 0, charsDecoded);
+                            }
+                        }
+
+                        pipeReader.AdvanceTo(slice.End);
+                        return _stringBuilder.ToString();
+                    }
+
+                    foreach (var segment in buffer)
+                    {
+                        int charsDecoded = Encoding.UTF8.GetChars(segment.Span, charBuffer);
+                        _stringBuilder.Append(charBuffer, 0, charsDecoded);
+                    }
+                    pipeReader.AdvanceTo(buffer.End);
+                } while (position == null && !result.IsCompleted);
+
+                if (result.IsCompleted)
+                {
+                    break;
+                }
+            }
+        }
+        finally
+        {
+            ArrayPool<char>.Shared.Return(charBuffer);
+        }
+
+        return _stringBuilder.ToString();
     }
 
     private readonly record struct OppoResultCore(
@@ -1537,7 +1616,7 @@ public sealed class OppoClient : IOppoClient
         
         try
         {
-            var result = await SendCommand(command);
+            var result = await SendCommand(command, cancellationToken);
         
             return result.Success switch
             {
@@ -1557,7 +1636,7 @@ public sealed class OppoClient : IOppoClient
     
     private static uint ParseTime(in ReadOnlySpan<char> response)
     {
-        var time = response[4..^1];
+        var time = response[4..];
         Span<Range> ranges = new Range[3];
         var parts = time.Split(ranges, ":", StringSplitOptions.TrimEntries);
         if (parts != 3)
@@ -1573,8 +1652,7 @@ public sealed class OppoClient : IOppoClient
 
     public void Dispose()
     {
-        _byteStream.Dispose();
-        _client.Dispose();
+        _tcpClient.Dispose();
         _semaphore.Dispose();
     }
 }

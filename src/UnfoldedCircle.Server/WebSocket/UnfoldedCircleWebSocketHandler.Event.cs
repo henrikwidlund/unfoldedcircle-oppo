@@ -20,15 +20,16 @@ internal partial class UnfoldedCircleWebSocketHandler
                 cancellationTokenWrapper.EnsureNonCancelledBroadcastCancellationTokenSource();
                 var payload = jsonDocument.Deserialize(_unfoldedCircleJsonSerializerContext.ConnectEvent)!;
                 var oppoClientHolder = await TryGetOppoClientHolder(wsId, payload.MsgData?.DeviceId, cancellationTokenWrapper.ApplicationStopping);
-                
+
+                var deviceState = await GetDeviceState(oppoClientHolder);
                 await SendAsync(socket,
-                    ResponsePayloadHelpers.CreateConnectEventResponsePayload(oppoClientHolder?.Client.GetDeviceState() ?? DeviceState.Error,
+                    ResponsePayloadHelpers.CreateConnectEventResponsePayload(deviceState,
                         _unfoldedCircleJsonSerializerContext),
                     wsId,
                     cancellationTokenWrapper.ApplicationStopping);
 
-                if (oppoClientHolder is { Client.IsConnected: true })
-                    _ = HandleMediaUpdates(socket, wsId, oppoClientHolder, cancellationTokenWrapper);
+                if (deviceState == DeviceState.Connected)
+                    _ = HandleMediaUpdates(socket, wsId, oppoClientHolder!, cancellationTokenWrapper);
                 
                 return;
             }
@@ -80,12 +81,14 @@ internal partial class UnfoldedCircleWebSocketHandler
                     _ = jsonDocument.Deserialize(_unfoldedCircleJsonSerializerContext.ExitStandbyEvent)!;
                     cancellationTokenWrapper.EnsureNonCancelledBroadcastCancellationTokenSource();
                     var oppoClientHolder = await TryGetOppoClientHolder(wsId, null, cancellationTokenWrapper.ApplicationStopping);
+                    var deviceState = await GetDeviceState(oppoClientHolder);
                     await SendAsync(socket,
-                        ResponsePayloadHelpers.CreateConnectEventResponsePayload(oppoClientHolder?.Client.GetDeviceState() ?? DeviceState.Error,
+                        ResponsePayloadHelpers.CreateConnectEventResponsePayload(deviceState,
                             _unfoldedCircleJsonSerializerContext),
                         wsId,
                         cancellationTokenWrapper.ApplicationStopping);
-                    if (oppoClientHolder is { Client.IsConnected: true })
+                    
+                    if (oppoClientHolder is not null && await oppoClientHolder.Client.IsConnectedAsync())
                         _ = HandleMediaUpdates(socket, wsId, oppoClientHolder, cancellationTokenWrapper);
                     return;
                 }

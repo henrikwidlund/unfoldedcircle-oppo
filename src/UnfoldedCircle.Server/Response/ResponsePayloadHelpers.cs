@@ -1,5 +1,3 @@
-using OppoTelnet;
-
 using UnfoldedCircle.Models.Events;
 using UnfoldedCircle.Models.Shared;
 using UnfoldedCircle.Models.Sync;
@@ -182,12 +180,4 @@ internal static class ResponsePayloadHelpers
                 Attributes = new StateChangedEventMessageDataAttributes { State = State.Off }
             }
         }, jsonSerializerContext.StateChangedEvent);
-
-    internal static DeviceState GetDeviceState(this IOppoClient oppoClient) =>
-        oppoClient switch
-        {
-            { IsConnected: true } => DeviceState.Connected,
-            { IsConnected: false } => DeviceState.Disconnected,
-            _ => DeviceState.Error
-        };
 }
