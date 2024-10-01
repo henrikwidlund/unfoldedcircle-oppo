@@ -373,11 +373,11 @@ public interface IOppoClient : IDisposable
     /// Query track performer
     /// </summary>
     ValueTask<OppoResult<string>> QueryTrackPerformerAsync(CancellationToken cancellationToken = default);
-    
+
     /// <summary>
     /// Check if the client is connected.
     /// </summary>
-    bool IsConnected { get; }
+    ValueTask<bool> IsConnectedAsync(TimeSpan? timeout = null);
     
     /// <summary>
     /// Get the host or IP address of the client.

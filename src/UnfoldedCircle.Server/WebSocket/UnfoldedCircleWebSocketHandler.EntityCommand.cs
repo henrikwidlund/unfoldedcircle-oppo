@@ -15,7 +15,7 @@ internal partial class UnfoldedCircleWebSocketHandler
         CancellationTokenWrapper cancellationTokenWrapper)
     {
         var oppoClientHolder = await TryGetOppoClientHolder(wsId, deviceId, cancellationTokenWrapper.ApplicationStopping);
-        if (oppoClientHolder is not { Client.IsConnected: true })
+        if (oppoClientHolder is null || !await oppoClientHolder.Client.IsConnectedAsync())
         {
             await SendAsync(socket,
                 ResponsePayloadHelpers.CreateValidationErrorResponsePayload(payload,

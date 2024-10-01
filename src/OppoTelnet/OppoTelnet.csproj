@@ -16,7 +16,7 @@
         <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       </PackageReference>
       <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.1" />
-      <PackageReference Include="Telnet" Version="0.13.0" />
+      <PackageReference Include="System.IO.Pipelines" Version="8.0.0" />
     </ItemGroup>
 
 </Project>

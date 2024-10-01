@@ -1,5 +1,6 @@
 using OppoTelnet;
 
+using UnfoldedCircle.Models.Shared;
 using UnfoldedCircle.Server.Configuration;
 using UnfoldedCircle.Server.Oppo;
 
@@ -44,7 +45,7 @@ internal partial class UnfoldedCircleWebSocketHandler
         if (oppoClient is null)
             return null;
         
-        if (!oppoClient.IsConnected)
+        if (!await oppoClient.IsConnectedAsync())
         {
             _oppoClientFactory.TryDisposeClient(oppoClientKey.Value);
             oppoClient = _oppoClientFactory.TryGetOrCreateClient(oppoClientKey.Value);
@@ -149,7 +150,26 @@ internal partial class UnfoldedCircleWebSocketHandler
         await _configurationService.UpdateConfigurationAsync(configuration, cancellationToken);
     }
     
-    private record struct RemoveInstruction(string? DeviceId, string[]? EntityIds, string? Host);
+    private async ValueTask<DeviceState> GetDeviceState(OppoClientHolder? oppoClientHolder)
+    {
+        if (oppoClientHolder is null)
+            return DeviceState.Disconnected;
+        
+        try
+        {
+            if (await oppoClientHolder.Client.IsConnectedAsync())
+                return DeviceState.Connected;
+
+            return DeviceState.Disconnected;
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Failed to get device state");
+            return DeviceState.Error;
+        }
+    }
     
+    private record struct RemoveInstruction(string? DeviceId, string[]? EntityIds, string? Host);
+
     private record OppoClientHolder(IOppoClient Client, in OppoClientKey ClientKey);
 }
