@@ -1,6 +1,7 @@
 using OppoTelnet;
 
 using UnfoldedCircle.Server.Configuration;
+using UnfoldedCircle.Server.Oppo;
 
 namespace UnfoldedCircle.Server.WebSocket;
 
@@ -27,7 +28,7 @@ internal partial class UnfoldedCircleWebSocketHandler
             return null;
         }
         
-        return new OppoClientKey(entity.Host, entity.Port, entity.UseMediaEvents, entity.UseChapterLengthForMovies);
+        return new OppoClientKey(entity.Host, entity.Model, entity.UseMediaEvents, entity.UseChapterLengthForMovies);
     }
     
     private async Task<OppoClientHolder?> TryGetOppoClientHolder(
@@ -70,14 +71,14 @@ internal partial class UnfoldedCircleWebSocketHandler
         CancellationToken cancellationToken)
     {
         var configuration = await _configurationService.GetConfigurationAsync(cancellationToken);
-        var host = msgDataSetupData["ip_address"];
-        var deviceId = msgDataSetupData.GetValueOrDefault("device_id", host);
-        bool? useMediaEvents = msgDataSetupData.TryGetValue("use_media_events", out var useMediaEventsValue)
+        var host = msgDataSetupData[OppoConstants.IpAddressKey];
+        var deviceId = msgDataSetupData.GetValueOrDefault(OppoConstants.DeviceIdKey, host);
+        bool? useMediaEvents = msgDataSetupData.TryGetValue(OppoConstants.UseMediaEventsKey, out var useMediaEventsValue)
             ? useMediaEventsValue.Equals(bool.TrueString, StringComparison.OrdinalIgnoreCase)
             : null;
 
-        bool? useChapterLengthForMovies = msgDataSetupData.TryGetValue("chapter_or_movie_length", out var chapterOrMovieLengthValue)
-                                        ? chapterOrMovieLengthValue.Equals("chapter_length", StringComparison.OrdinalIgnoreCase)
+        bool? useChapterLengthForMovies = msgDataSetupData.TryGetValue(OppoConstants.ChapterOrMovieLengthKey, out var chapterOrMovieLengthValue)
+                                        ? chapterOrMovieLengthValue.Equals(OppoConstants.ChapterLengthValue, StringComparison.OrdinalIgnoreCase)
                                         : null;
         
         var entity = configuration.Entities.Find(x => string.Equals(x.DeviceId, deviceId, StringComparison.Ordinal));
@@ -87,10 +88,10 @@ internal partial class UnfoldedCircleWebSocketHandler
             entity = new UnfoldedCircleConfigurationItem
             {
                 Host = host,
-                Port = 23,
+                Model = GetOppoModel(msgDataSetupData),
                 DeviceId = deviceId,
-                DeviceName = "Oppo UDP-20x Blu-ray Player",
-                EntityId = "0393caf1-c9d2-422e-88b5-cb716756334a",
+                DeviceName = OppoConstants.DeviceName,
+                EntityId = OppoConstants.EntityId,
                 UseMediaEvents = useMediaEvents ?? false,
                 UseChapterLengthForMovies = useChapterLengthForMovies ?? false
             };
@@ -111,6 +112,21 @@ internal partial class UnfoldedCircleWebSocketHandler
         await _configurationService.UpdateConfigurationAsync(configuration, cancellationToken);
 
         return entity;
+
+        static OppoModel GetOppoModel(Dictionary<string, string> msgDataSetupData)
+        {
+            if (msgDataSetupData.TryGetValue(OppoConstants.OppoModelKey, out var oppoModel))
+            {
+                return oppoModel switch
+                {
+                    _ when oppoModel.Equals(nameof(OppoModel.BDP83), StringComparison.OrdinalIgnoreCase) => OppoModel.BDP83,
+                    _ when oppoModel.Equals(nameof(OppoModel.BDP10X), StringComparison.OrdinalIgnoreCase) => OppoModel.BDP10X,
+                    _ => OppoModel.UDP20X
+                };
+            }
+
+            return OppoModel.UDP20X;
+        }
     }
     
     private async Task RemoveConfiguration(

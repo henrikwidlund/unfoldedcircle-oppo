@@ -14,7 +14,7 @@ public class OppoClientFactory(ILoggerFactory loggerFactory, ILogger<OppoClientF
         try
         {
             return _clients.GetOrAdd(oppoClientKey, static (oppoClientKey, localLoggerFactory)
-                    => new OppoClient(oppoClientKey.HostName, oppoClientKey.Port, localLoggerFactory.CreateLogger<OppoClient>()),
+                    => new OppoClient(oppoClientKey.HostName, oppoClientKey.Model, localLoggerFactory.CreateLogger<OppoClient>()),
                 _loggerFactory);
         }
         catch (Exception e)

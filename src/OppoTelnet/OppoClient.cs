@@ -20,9 +20,9 @@ public sealed class OppoClient : IOppoClient
     private readonly SemaphoreSlim _semaphore = new(1, 1);
     private readonly TimeSpan _timeout = TimeSpan.FromSeconds(1);
 
-    public OppoClient(string hostName, int port, ILogger<OppoClient> logger)
+    public OppoClient(string hostName, in OppoModel model, ILogger<OppoClient> logger)
     {
-        _byteStream = new TcpByteStream(hostName, port);
+        _byteStream = new TcpByteStream(hostName, (ushort)model);
         _client = new Client(_byteStream, TimeSpan.FromSeconds(10), CancellationToken.None);
         _hostName = hostName;
         _logger = logger;

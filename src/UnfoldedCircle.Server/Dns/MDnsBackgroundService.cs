@@ -1,5 +1,6 @@
 using Makaretu.Dns;
 using UnfoldedCircle.Server.Configuration;
+using UnfoldedCircle.Server.Oppo;
 
 namespace UnfoldedCircle.Server.Dns;
 
@@ -13,7 +14,7 @@ public sealed class MDnsBackgroundService : IHostedService, IDisposable
     {
         _loggerFactory = loggerFactory;
         // Get the local hostname
-        _serviceProfile = new ServiceProfile("oppo-unfolded-circle",
+        _serviceProfile = new ServiceProfile(OppoConstants.DriverId,
             "_uc-integration._tcp",
             configuration.GetOrDefault<ushort>("UC_INTEGRATION_HTTP_PORT", 9001))
         {
@@ -21,9 +22,9 @@ public sealed class MDnsBackgroundService : IHostedService, IDisposable
         };
 
         // Add TXT records
-        _serviceProfile.AddProperty("name", "Oppo UDP-20x Blu-ray Player");
-        _serviceProfile.AddProperty("ver", "0.0.1");
-        _serviceProfile.AddProperty("developer", "Henrik Widlund");
+        _serviceProfile.AddProperty("name", OppoConstants.DriverName);
+        _serviceProfile.AddProperty("ver", OppoConstants.DriverVersion);
+        _serviceProfile.AddProperty("developer", OppoConstants.DriverDeveloper);
     }
 
     public async Task StartAsync(CancellationToken cancellationToken)

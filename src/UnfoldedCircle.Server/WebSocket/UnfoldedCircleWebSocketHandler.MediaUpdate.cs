@@ -4,6 +4,7 @@ using OppoTelnet;
 
 using UnfoldedCircle.Models.Events;
 using UnfoldedCircle.Models.Shared;
+using UnfoldedCircle.Server.Oppo;
 using UnfoldedCircle.Server.Response;
 
 namespace UnfoldedCircle.Server.WebSocket;
@@ -135,7 +136,7 @@ internal partial class UnfoldedCircleWebSocketHandler
                         TimeStamp = DateTime.UtcNow,
                         MsgData = new StateChangedEventMessageData
                         {
-                            EntityId = "0393caf1-c9d2-422e-88b5-cb716756334a",
+                            EntityId = OppoConstants.EntityId,
                             EntityType = EntityType.MediaPlayer,
                             Attributes = new StateChangedEventMessageDataAttributes
                             {

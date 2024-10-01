@@ -4,6 +4,7 @@ using UnfoldedCircle.Models.Events;
 using UnfoldedCircle.Models.Shared;
 using UnfoldedCircle.Models.Sync;
 using UnfoldedCircle.Server.Json;
+using UnfoldedCircle.Server.Oppo;
 
 namespace UnfoldedCircle.Server.Response;
 
@@ -113,7 +114,7 @@ internal static class ResponsePayloadHelpers
                 [
                     new EntityStateChanged<MediaPlayerEntityAttribute>
                     {
-                        EntityId = "0393caf1-c9d2-422e-88b5-cb716756334a",
+                        EntityId = OppoConstants.EntityId,
                         EntityType = EntityType.MediaPlayer,
                         Attributes = [],
                         DeviceId = deviceId
@@ -176,7 +177,7 @@ internal static class ResponsePayloadHelpers
             TimeStamp = DateTime.UtcNow,
             MsgData = new StateChangedEventMessageData
             {
-                EntityId = "0393caf1-c9d2-422e-88b5-cb716756334a",
+                EntityId = OppoConstants.EntityId,
                 EntityType = EntityType.MediaPlayer,
                 Attributes = new StateChangedEventMessageDataAttributes { State = State.Off }
             }

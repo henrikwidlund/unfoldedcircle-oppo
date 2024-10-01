@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
-using System.Globalization;
+
+using OppoTelnet;
 
 using UnfoldedCircle.Models.Shared;
 using UnfoldedCircle.Models.Sync;
@@ -31,10 +32,10 @@ internal partial class UnfoldedCircleWebSocketHandler
                         payload,
                         new DriverVersion
                         {
-                            Name = "Oppo UDP-20x Blu-ray Player",
+                            Name = OppoConstants.DriverName,
                             Version = new DriverVersionInner
                             {
-                                Driver = "0.0.1"
+                                Driver = OppoConstants.DriverVersion
                             }
                         }, _unfoldedCircleJsonSerializerContext),
                     wsId,
@@ -127,8 +128,8 @@ internal partial class UnfoldedCircleWebSocketHandler
             {
                 var payload = jsonDocument.Deserialize(_unfoldedCircleJsonSerializerContext.SetupDriverMsg)!;
                 SocketIdEntityIpMap.AddOrUpdate(wsId,
-                    static (_, arg) => arg.MsgData.SetupData["ip_address"],
-                    static (_, _, arg) => arg.MsgData.SetupData["ip_address"], payload);
+                    static (_, arg) => arg.MsgData.SetupData[OppoConstants.IpAddressKey],
+                    static (_, _, arg) => arg.MsgData.SetupData[OppoConstants.IpAddressKey], payload);
                 SetupInProgressMap.AddOrUpdate(wsId, static _ => true, static (_, _) => true);
                 
                 var entity = await UpdateConfiguration(payload.MsgData.SetupData, cancellationTokenWrapper.ApplicationStopping);
@@ -158,8 +159,8 @@ internal partial class UnfoldedCircleWebSocketHandler
             {
                 var payload = jsonDocument.Deserialize(_unfoldedCircleJsonSerializerContext.SetDriverUserDataMsg)!;
                 SocketIdEntityIpMap.AddOrUpdate(wsId,
-                    static (_, arg) => arg.MsgData.SetupData["ip_address"],
-                    static (_, _, arg) => arg.MsgData.SetupData["ip_address"], payload);
+                    static (_, arg) => arg.MsgData.SetupData[OppoConstants.IpAddressKey],
+                    static (_, _, arg) => arg.MsgData.SetupData[OppoConstants.IpAddressKey], payload);
                 await SendAsync(socket,
                     ResponsePayloadHelpers.CreateCommonResponsePayload(payload, _unfoldedCircleJsonSerializerContext),
                     wsId,
@@ -190,9 +191,9 @@ internal partial class UnfoldedCircleWebSocketHandler
             {
                 Name = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
                 {
-                    ["en"] = "Oppo UDP-20x Blu-ray Player"
+                    ["en"] = OppoConstants.DeviceName
                 },
-                EntityId = "0393caf1-c9d2-422e-88b5-cb716756334a",
+                EntityId = OppoConstants.EntityId,
                 EntityType = EntityType.MediaPlayer,
                 Features = OppoEntitySettings.MediaPlayerEntityFeatures,
                 Options = new Dictionary<string, ISet<string>>(StringComparer.OrdinalIgnoreCase)
@@ -209,17 +210,16 @@ internal partial class UnfoldedCircleWebSocketHandler
         {
             Name = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
             {
-                ["en"] = "Oppo UDP-20x Blu-ray Player"
+                ["en"] = OppoConstants.DriverName
             },
             Description = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
             {
-                ["en"] = "Integration with the Oppo UDP-20x series of Blu-ray players"
+                ["en"] = OppoConstants.DriverDescription
             },
-            Version = "0.0.1",
-            DriverId = "oppo-unfolded-circle",
-            Developer =
-                new DriverDeveloper { Email = "none@of-your.business", Name = "Henrik Widlund", Url = new Uri("https://github.com/henrikwidlund/unfoldedcircle-integration") },
-            ReleaseDate = DateOnly.Parse("2024-09-16", DateTimeFormatInfo.InvariantInfo),
+            Version = OppoConstants.DriverVersion,
+            DriverId = OppoConstants.DriverId,
+            Developer = new DriverDeveloper { Email = OppoConstants.DriverEmail, Name = OppoConstants.DriverDeveloper, Url = OppoConstants.DriverUrl },
+            ReleaseDate = OppoConstants.DriverReleaseDate,
             SetupDataSchema = new SettingsPage
             {
                 Title = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
@@ -230,7 +230,7 @@ internal partial class UnfoldedCircleWebSocketHandler
                 [
                     new Setting
                     {
-                        Id = "ip_address",
+                        Id = OppoConstants.IpAddressKey,
                         Field = new SettingTypeText
                         {
                             Text = new ValueRegex
@@ -246,6 +246,47 @@ internal partial class UnfoldedCircleWebSocketHandler
                     },
                     new Setting
                     {
+                        Field = new SettingTypeDropdown
+                        {
+                            Dropdown = new SettingTypeDropdownInner
+                            {
+                                Items =
+                                [
+                                    new SettingTypeDropdownItem
+                                    {
+                                        Label = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+                                        {
+                                            ["en"] = nameof(OppoModel.BDP83)
+                                        },
+                                        Value = nameof(OppoModel.BDP83)
+                                    },
+                                    new SettingTypeDropdownItem
+                                    {
+                                        Label = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+                                        {
+                                            ["en"] = nameof(OppoModel.BDP10X)
+                                        },
+                                        Value = nameof(OppoModel.BDP10X)
+                                    },
+                                    new SettingTypeDropdownItem
+                                    {
+                                        Label = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+                                        {
+                                            ["en"] = nameof(OppoModel.UDP20X)
+                                        },
+                                        Value = nameof(OppoModel.UDP20X)
+                                    }
+                                ]
+                            }
+                        },
+                        Id = OppoConstants.OppoModelKey,
+                        Label = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+                        {
+                            ["en"] = "Select the model of your Oppo player"
+                        }
+                    },
+                    new Setting
+                    {
                         Field = new SettingTypeCheckbox
                         {
                             Checkbox = new SettingTypeCheckboxInner
@@ -253,7 +294,7 @@ internal partial class UnfoldedCircleWebSocketHandler
                                 Value = false
                             }
                         },
-                        Id = "use_media_events",
+                        Id = OppoConstants.UseMediaEventsKey,
                         Label = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
                         {
                             ["en"] = "Use Media Events? This enables playback information at the expense of updates every second"
@@ -273,7 +314,7 @@ internal partial class UnfoldedCircleWebSocketHandler
                                         {
                                             ["en"] = "Movie Length"
                                         },
-                                        Value = "movie_length"
+                                        Value = OppoConstants.MovieLengthValue
                                     },
                                     new SettingTypeDropdownItem
                                     {
@@ -281,13 +322,13 @@ internal partial class UnfoldedCircleWebSocketHandler
                                         {
                                             ["en"] = "Chapter Length"
                                         },
-                                        Value = "chapter_length"
+                                        Value = OppoConstants.ChapterLengthValue
                                     }
                                 ],
-                                Value = "movie_length"
+                                Value = OppoConstants.MovieLengthValue
                             }
                         },
-                        Id = "chapter_or_movie_length",
+                        Id = OppoConstants.ChapterOrMovieLengthKey,
                         Label = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
                         {
                             ["en"] = "Use chapter or movie length for progress bar (only applicable if Media Events is enabled)?"

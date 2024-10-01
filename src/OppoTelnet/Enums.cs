@@ -136,3 +136,12 @@ public enum CurrentRepeatMode
     Shuffle,
     Random
 }
+
+public enum OppoModel : ushort
+{
+    // ReSharper disable InconsistentNaming
+    BDP83 = 19999,
+    BDP10X = 48360,
+    UDP20X = 23
+    // ReSharper restore InconsistentNaming
+}

@@ -1,18 +1,18 @@
 {
   "driver_id": "oppo-unfolded-circle",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "min_core_api": "0.20.0",
   "name": {
-    "en": "Oppo UDP-20x Blu-ray Player"
+    "en": "Oppo Blu-ray Player"
   },
   "icon": "custom:oppo.png",
   "description": {
-    "en": "Integration with the Oppo UDP-20x series of Blu-ray players"
+    "en": "Integration for the Oppo Blu-ray players"
   },
   "developer": {
     "name": "Henrik Widlund",
     "email": "none@of-your.business",
-    "url": "https://github.com/henrikwidlund/unfoldedcircle-integration"
+    "url": "https://github.com/henrikwidlund/unfoldedcircle-oppo"
   },
   "setup_data_schema": {
     "title": {
@@ -29,6 +29,37 @@
         },
         "label": {
           "en": "Enter the IP address of the Oppo player"
+        }
+      },
+      {
+        "id": "oppo_model",
+        "field": {
+          "dropdown": {
+            "value": "movie_length",
+            "items": [
+              {
+                "id": "BDP83",
+                "label": {
+                  "en": "BDP83"
+                }
+              },
+              {
+                "id": "BDP10X",
+                "label": {
+                  "en": "BDP10X"
+                }
+              },
+              {
+                "id": "UDP20X",
+                "label": {
+                  "en": "UDP20X"
+                }
+              }
+            ]
+          }
+        },
+        "label": {
+          "en": "Select the model of your Oppo player"
         }
       },
       {
@@ -69,5 +100,5 @@
       }
     ]
   },
-  "release_date": "2024-09-16"
+  "release_date": "2024-10-01"
 }
