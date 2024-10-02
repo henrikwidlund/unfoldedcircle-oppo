@@ -1,6 +1,6 @@
 namespace OppoTelnet;
 
-internal static class Command
+internal static class Oppo20XCommand
 {
     /// <summary>
     /// Toggle power STANDBY and ON
@@ -334,7 +334,7 @@ internal static class Command
     public static readonly byte[] Input = "#SRC\r"u8.ToArray();
 }
 
-public static class QueryCommand
+internal static class Oppo20XQueryCommand
 {
     /// <summary>
     /// Query verbose mode
@@ -430,7 +430,7 @@ public static class QueryCommand
     public static readonly byte[] QueryTrackPerformer = "#QTP\r"u8.ToArray();
 }
 
-public static class AdvancedCommand
+internal static class Oppo20XAdvancedCommand
 {
     /// <summary>
     /// Set Verbose Mode to off
