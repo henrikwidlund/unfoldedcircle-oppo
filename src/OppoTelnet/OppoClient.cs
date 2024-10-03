@@ -1605,7 +1605,8 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         _stringBuilder.Clear();
         var pipeReader = PipeReader.Create(networkStream);
         var charBuffer = ArrayPool<char>.Shared.Rent(1024);
-
+        var firstWrite = true;
+        
         try
         {
             while (true)
@@ -1623,15 +1624,13 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
                         var slice = buffer.Slice(0, position.Value);
                         if (slice.IsSingleSegment)
                         {
-                            int charsDecoded = Encoding.ASCII.GetChars(slice.First.Span, charBuffer);
-                            _stringBuilder.Append(charBuffer, 0, charsDecoded);
+                            WriteSpan(slice.FirstSpan, charBuffer, ref firstWrite);
                         }
                         else
                         {
                             foreach (var segment in slice)
                             {
-                                int charsDecoded = Encoding.ASCII.GetChars(segment.Span, charBuffer);
-                                _stringBuilder.Append(charBuffer, 0, charsDecoded);
+                                WriteSpan(segment.Span, charBuffer, ref firstWrite);
                             }
                         }
 
@@ -1641,8 +1640,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
 
                     foreach (var segment in buffer)
                     {
-                        int charsDecoded = Encoding.ASCII.GetChars(segment.Span, charBuffer);
-                        _stringBuilder.Append(charBuffer, 0, charsDecoded);
+                        WriteSpan(segment.Span, charBuffer, ref firstWrite);
                     }
                     pipeReader.AdvanceTo(buffer.End);
                 } while (position == null && !result.IsCompleted);
@@ -1659,6 +1657,33 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         }
 
         return _stringBuilder.ToString();
+    }
+
+    private void WriteSpan(in ReadOnlySpan<byte> span, char[] charBuffer, ref bool isFirstWrite)
+    {
+        if (isFirstWrite)
+        {
+            // Models prior to UDP-20X can have different prefixes than @OK and @ER (e.g. @QPW, @VUP, @VDN)
+            // Check if second char is V or Q, remove the first five chars so we just write @OK or @ER
+            if (_model != OppoModel.UDP20X && span.Length > 5 && span[1] is 0x56 or 0x51)
+            {
+                _stringBuilder.Append('@');
+                int charsDecoded = Encoding.ASCII.GetChars(span[5..], charBuffer);
+                _stringBuilder.Append(charBuffer, 0, charsDecoded);
+            }
+            else
+            {
+                int charsDecoded = Encoding.ASCII.GetChars(span, charBuffer);
+                _stringBuilder.Append(charBuffer, 0, charsDecoded);
+            }
+
+            isFirstWrite = false;
+        }
+        else
+        {
+            int charsDecoded = Encoding.ASCII.GetChars(span, charBuffer);
+            _stringBuilder.Append(charBuffer, 0, charsDecoded);
+        }
     }
 
     private readonly record struct OppoResultCore(
