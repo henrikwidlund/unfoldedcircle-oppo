@@ -107,7 +107,11 @@ public enum PlaybackStatus
     HomeMenu,
     MediaCenter,
     ScreenSaver,
-    DiscMenu
+    DiscMenu,
+    
+    // Pre 20X models
+    Loading,
+    Close
 }
 
 public enum DiscType

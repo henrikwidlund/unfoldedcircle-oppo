@@ -106,10 +106,13 @@ internal partial class UnfoldedCircleWebSocketHandler
                                 if (elapsedResponse.Value)
                                 {
                                     remainingResponse = await oppoClientHolder.Client.QueryTrackOrTitleRemainingTimeAsync(cancellationTokenWrapper.ApplicationStopping);
-                                    
-                                    trackResponse = await oppoClientHolder.Client.QueryTrackNameAsync(cancellationTokenWrapper.ApplicationStopping);
-                                    album = (await oppoClientHolder.Client.QueryTrackAlbumAsync(cancellationTokenWrapper.ApplicationStopping)).Result;
-                                    performer = (await oppoClientHolder.Client.QueryTrackPerformerAsync(cancellationTokenWrapper.ApplicationStopping)).Result;   
+
+                                    if (oppoClientHolder.ClientKey.Model is OppoModel.UDP20X)
+                                    {
+                                        trackResponse = await oppoClientHolder.Client.QueryTrackNameAsync(cancellationTokenWrapper.ApplicationStopping);
+                                        album = (await oppoClientHolder.Client.QueryTrackAlbumAsync(cancellationTokenWrapper.ApplicationStopping)).Result;
+                                        performer = (await oppoClientHolder.Client.QueryTrackPerformerAsync(cancellationTokenWrapper.ApplicationStopping)).Result;                                        
+                                    }
                                 }
                             }
                             
