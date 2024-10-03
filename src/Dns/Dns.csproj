@@ -1,0 +1,30 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>true</ImplicitUsings>
+
+        <AssemblyName>Makaretu.Dns</AssemblyName>
+        <RootNamespace>Makaretu.Dns</RootNamespace>
+
+        <AssemblyVersion>3.1.1</AssemblyVersion>
+        <Version>3.1.1</Version>
+        
+        <!-- Nuget specs -->
+        <Authors>Richard Schneider</Authors>
+        <Copyright>© 2018-2019 Richard Schneider, 2023+ additions jdomnitz</Copyright>
+    </PropertyGroup>
+    
+    <ItemGroup>
+      <PackageReference Include="Meziantou.Analyzer" Version="2.0.169">
+        <PrivateAssets>all</PrivateAssets>
+        <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      </PackageReference>
+    </ItemGroup>
+
+    <ItemGroup>
+        <EmbeddedResource Include="Resolving/RootHints" />
+    </ItemGroup>
+</Project>
