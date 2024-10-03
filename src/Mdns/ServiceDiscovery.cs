@@ -261,10 +261,10 @@ public class ServiceDiscovery : IServiceDiscovery
         _profiles.Add(service);
 
         var catalog = NameServer.Catalog;
-        catalog.Add(
+        catalog?.Add(
             new PTRRecord { Name = ServiceName, DomainName = service.QualifiedServiceName },
             authoritative: true);
-        catalog.Add(
+        catalog?.Add(
             new PTRRecord { Name = service.QualifiedServiceName, DomainName = service.FullyQualifiedName },
             authoritative: true);
 
@@ -278,15 +278,15 @@ public class ServiceDiscovery : IServiceDiscovery
                     service.QualifiedServiceName),
                 DomainName = service.FullyQualifiedName
             };
-            catalog.Add(ptr, authoritative: true);
+            catalog?.Add(ptr, authoritative: true);
         }
 
         foreach (var r in service.Resources)
         {
-            catalog.Add(r, authoritative: true);
+            catalog?.Add(r, authoritative: true);
         }
 
-        catalog.IncludeReverseLookupRecords();
+        catalog?.IncludeReverseLookupRecords();
     }
 
     /// <summary>
@@ -328,7 +328,7 @@ public class ServiceDiscovery : IServiceDiscovery
         {
             foreach (ResourceRecord answer in e.Message.Answers)
             {
-                if ((DnsClass)((ushort)answer.Class & ~MulticastService.CacheFlushBit) == DnsClass.IN && answer.Name.Equals(profile.HostName))
+                if ((DnsClass)((ushort)answer.Class & ~MulticastService.CacheFlushBit) == DnsClass.IN && answer.Name?.Equals(profile.HostName) == true)
                 {
                     conflict = true;
                     return Task.CompletedTask;
@@ -376,7 +376,8 @@ public class ServiceDiscovery : IServiceDiscovery
                 newResource.Class = (DnsClass)((ushort)newResource.Class | MulticastService.CacheFlushBit);
             }
 
-            message.Answers.Add(newResource);
+            if (newResource is not null)
+                message.Answers.Add(newResource);
         });
 
         if (Mdns is null)
@@ -422,7 +423,7 @@ public class ServiceDiscovery : IServiceDiscovery
         if (Mdns is not null)
             await Mdns.SendAnswer(message);
 
-        NameServer.Catalog.TryRemove(profile.QualifiedServiceName, out Node? _);
+        NameServer.Catalog?.TryRemove(profile.QualifiedServiceName, out Node? _);
     }
 
     private async Task OnAnswer(MessageEventArgs e)
@@ -437,12 +438,12 @@ public class ServiceDiscovery : IServiceDiscovery
         // Any DNS-SD answers?
         var sd = msg.Answers
             .OfType<PTRRecord>()
-            .Where(static ptr => ptr.Name.IsSubdomainOf(LocalDomain));
+            .Where(static ptr => ptr.Name?.IsSubdomainOf(LocalDomain) is true);
         foreach (var ptr in sd)
         {
             if (ptr.Name == ServiceName)
             {
-                if (ServiceDiscovered is not null)
+                if (ServiceDiscovered is not null && ptr.DomainName is not null)
                     await ServiceDiscovered(ptr.DomainName);
             }
             else if (ptr.TTL == TimeSpan.Zero)

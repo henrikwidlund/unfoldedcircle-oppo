@@ -333,7 +333,7 @@ public class MulticastService : IMulticastService
 
             _knownNics = currentNics;
 
-            // Only create client if something has change.
+            // Only create client if something has changed.
             if (newNics.Count > 0 || oldNics.Count > 0)
             {
                 _client?.Dispose();

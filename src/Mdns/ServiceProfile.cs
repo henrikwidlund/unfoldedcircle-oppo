@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 
@@ -57,11 +58,11 @@ public class ServiceProfile
         SharedProfile = sharedProfile;
 
         var simpleServiceName = new DomainName(ServiceName!.ToString()
-            .Replace("._tcp", "", System.StringComparison.Ordinal)
-            .Replace("._udp", "", System.StringComparison.Ordinal)
+            .Replace("._tcp", "", StringComparison.Ordinal)
+            .Replace("._udp", "", StringComparison.Ordinal)
             .Trim('_')
             .Replace('_', '-'));
-        _hostName = DomainName.Join(InstanceName, simpleServiceName, Domain);
+        _hostName = DomainName.Join(InstanceName!, simpleServiceName, Domain);
         Resources.Add(new SRVRecord
         {
             Name = FullyQualifiedName,
@@ -115,11 +116,11 @@ public class ServiceProfile
             if (_instanceName != null && _serviceName != null)
             {
                 var simpleServiceName = new DomainName(_serviceName.ToString()
-                    .Replace("._tcp", "", System.StringComparison.Ordinal)
-                    .Replace("._udp", "", System.StringComparison.Ordinal)
+                    .Replace("._tcp", "", StringComparison.Ordinal)
+                    .Replace("._udp", "", StringComparison.Ordinal)
                     .Trim('_')
                     .Replace('_', '-'));
-                HostName = DomainName.Join(InstanceName, simpleServiceName, Domain);
+                HostName = DomainName.Join(_instanceName, simpleServiceName, Domain);
             }
             DomainName fqn = FullyQualifiedName;
             foreach (var srvRecord in Resources.OfType<SRVRecord>())
@@ -144,9 +145,11 @@ public class ServiceProfile
             _instanceName = value;
             if (_serviceName != null)
             {
+                if (_instanceName is null)
+                    throw new InvalidOperationException($"{nameof(InstanceName)} cannot be null when {nameof(ServiceName)} has a value.");
                 var simpleServiceName = new DomainName(_serviceName.ToString()
-                    .Replace("._tcp", "", System.StringComparison.Ordinal)
-                    .Replace("._udp", "", System.StringComparison.Ordinal)
+                    .Replace("._tcp", "", StringComparison.Ordinal)
+                    .Replace("._udp", "", StringComparison.Ordinal)
                     .Trim('_')
                     .Replace('_', '-'));
                 HostName = DomainName.Join(_instanceName, simpleServiceName, Domain);
@@ -166,7 +169,16 @@ public class ServiceProfile
     /// <value>
     ///   Typically of the form "_<i>service</i>._tcp.local".
     /// </value>
-    public DomainName QualifiedServiceName => DomainName.Join(ServiceName, Domain);
+    public DomainName QualifiedServiceName
+    {
+        get
+        {
+            if (_serviceName is null)
+                throw new InvalidOperationException($"{nameof(ServiceName)} is not set.");
+            
+            return DomainName.Join(_serviceName, Domain);
+        }
+    }
 
     /// <summary>
     ///   The fully qualified name of the instance's host.
@@ -195,8 +207,16 @@ public class ServiceProfile
     /// <value>
     ///   <see cref="InstanceName"/>.<see cref="ServiceName"/>.<see cref="Domain"/>
     /// </value>
-    public DomainName FullyQualifiedName => 
-        DomainName.Join(InstanceName, ServiceName, Domain);
+    public DomainName FullyQualifiedName
+    {
+        get
+        {
+            if (_instanceName is null || _serviceName is null)
+                throw new InvalidOperationException($"{nameof(InstanceName)} and {nameof(ServiceName)} must be set.");
+            
+            return DomainName.Join(_instanceName, _serviceName, Domain);
+        }
+    }
 
     /// <summary>
     ///   DNS resource records that are used to locate the service instance.
