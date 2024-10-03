@@ -1324,6 +1324,11 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
                         "@OK MEDIA CENTER" => PlaybackStatus.MediaCenter,
                         "@OK SCREEN SAVER" => PlaybackStatus.ScreenSaver,
                         "@OK DISC MENU" => PlaybackStatus.DiscMenu,
+                        
+                        // Pre 20X models
+                        "@OK LOADING" => PlaybackStatus.Loading,
+                        "OK CLOSE" => PlaybackStatus.Close,
+                        "@OK UNKNOW" => PlaybackStatus.Unknown,
                         _ => LogError(result.Response, PlaybackStatus.Unknown)
                     }
                 }
