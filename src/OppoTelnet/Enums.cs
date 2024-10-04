@@ -110,7 +110,9 @@ public enum PlaybackStatus
     DiscMenu,
     
     // Pre 20X models
+    NoDisc,
     Loading,
+    Open,
     Close
 }
 
@@ -125,7 +127,10 @@ public enum DiscType
     DataDisc,
     UltraHDBluRay,
     NoDisc,
-    UnknownDisc
+    UnknownDisc,
+    
+    // Pre 20X models
+    HDCD
     // ReSharper restore InconsistentNaming
 }
 

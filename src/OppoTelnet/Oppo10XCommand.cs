@@ -295,35 +295,6 @@ internal static class Oppo10XCommand
     public static readonly byte[] PictureAdjustment = "REMOTE SEH"u8.ToArray();
     
     /// <summary>
-    /// Display the HDR selection menu
-    /// </summary>
-    // ReSharper disable InconsistentNaming
-    public static readonly byte[] HDR = "REMOTE HDR"u8.ToArray();
-    // ReSharper restore InconsistentNaming
-    
-    /// <summary>
-    /// Show on-screen detailed information
-    /// </summary>
-    public static readonly byte[] InfoHold = "REMOTE INH"u8.ToArray();
-    
-    /// <summary>
-    /// Set resolution to Auto (default)
-    /// </summary>
-    public static readonly byte[] ResolutionHold = "REMOTE RLH"u8.ToArray();
-    
-    /// <summary>
-    /// Display the A/V Sync adjustment menu
-    /// </summary>
-    // ReSharper disable InconsistentNaming
-    public static readonly byte[] AVSync = "REMOTE AVS"u8.ToArray();
-    // ReSharper restore InconsistentNaming
-    
-    /// <summary>
-    /// Gapless Play. This functions the same as selecting Gapless Play in the Option Menu.
-    /// </summary>
-    public static readonly byte[] GaplessPlay = "REMOTE GPA"u8.ToArray();
-    
-    /// <summary>
     /// No operation.
     /// </summary>
     public static readonly byte[] Noop = "REMOTE NOP"u8.ToArray();
@@ -407,27 +378,6 @@ internal static class Oppo10XQueryCommand
     /// Query Repeat Mode
     /// </summary>
     public static readonly byte[] QueryRepeatMode = "REMOTE QRP"u8.ToArray();
-    
-    /// <summary>
-    /// Query CDDB number
-    /// </summary>
-    // ReSharper disable once InconsistentNaming
-    public static readonly byte[] QueryCDDBNumber = "REMOTE QCD"u8.ToArray();
-    
-    /// <summary>
-    /// Query track name
-    /// </summary>
-    public static readonly byte[] QueryTrackName = "REMOTE QTN"u8.ToArray();
-    
-    /// <summary>
-    /// Query track album
-    /// </summary>
-    public static readonly byte[] QueryTrackAlbum = "REMOTE QTA"u8.ToArray();
-    
-    /// <summary>
-    /// Query track performer
-    /// </summary>
-    public static readonly byte[] QueryTrackPerformer = "REMOTE QTP"u8.ToArray();
 }
 
 internal static class Oppo10XAdvancedCommand
@@ -447,20 +397,13 @@ internal static class Oppo10XAdvancedCommand
     /// </summary>
     public static readonly byte[] SetVerboseModeDetailedStatus = "REMOTE SVM 3"u8.ToArray();
     
-    public static readonly byte[] SetHDMIResolutionAuto = "REMOTE SHD AUTO"u8.ToArray();
+    public static readonly byte[] SetHDMIResolutionSDI = "REMOTE SHD SDI"u8.ToArray();
+    public static readonly byte[] SetHDMIResolutionSDP = "REMOTE SHD SDP"u8.ToArray();
+    public static readonly byte[] SetHDMIResolution720P = "REMOTE SHD 720P"u8.ToArray();
+    public static readonly byte[] SetHDMIResolution1080I = "REMOTE SHD 1080I"u8.ToArray();
+    public static readonly byte[] SetHDMIResolution1080P = "REMOTE SHD 1080P"u8.ToArray();
     public static readonly byte[] SetHDMIResolutionSource = "REMOTE SHD SRC"u8.ToArray();
-    public static readonly byte[] SetHDMIResolution1080PAuto = "REMOTE SHD 1080P_AUTO"u8.ToArray();
-    public static readonly byte[] SetHDMIResolution1080P24 = "REMOTE SHD 1080P24"u8.ToArray();
-    public static readonly byte[] SetHDMIResolution1080P50 = "REMOTE SHD 1080P50"u8.ToArray();
-    public static readonly byte[] SetHDMIResolution1080P60 = "REMOTE SHD 1080P60"u8.ToArray();
-    public static readonly byte[] SetHDMIResolution1080I50 = "REMOTE SHD 1080I50"u8.ToArray();
-    public static readonly byte[] SetHDMIResolution1080I60 = "REMOTE SHD 1080I60"u8.ToArray();
-    public static readonly byte[] SetHDMIResolution720P50 = "REMOTE SHD 720P50"u8.ToArray();
-    public static readonly byte[] SetHDMIResolution720P60 = "REMOTE SHD 720P60"u8.ToArray();
-    public static readonly byte[] SetHDMIResolution576P = "REMOTE SHD 576P"u8.ToArray();
-    public static readonly byte[] SetHDMIResolution576I = "REMOTE SHD 576I"u8.ToArray();
-    public static readonly byte[] SetHDMIResolution480P = "REMOTE SHD 480P"u8.ToArray();
-    public static readonly byte[] SetHDMIResolution480I = "REMOTE SHD 480I"u8.ToArray();
+    public static readonly byte[] SetHDMIResolutionAuto = "REMOTE SHD AUTO"u8.ToArray();
     
     /// <summary>
     /// Repeat chapter
