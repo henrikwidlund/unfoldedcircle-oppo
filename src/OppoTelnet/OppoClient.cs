@@ -725,7 +725,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
                 false => new OppoResult<ushort?> { Success = false },
                 _ => new OppoResult<ushort?>
                 {
-                    Success = ushort.TryParse(result.Response.AsSpan()[4..], out var speed),
+                    Success = ushort.TryParse(result.Response.AsSpan()[4..^1], out var speed),
                     Result = speed
                 }
             };
@@ -751,7 +751,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
                 false => new OppoResult<ushort?> { Success = false },
                 _ => new OppoResult<ushort?>
                 {
-                    Success = ushort.TryParse(result.Response.AsSpan()[4..], out var speed),
+                    Success = ushort.TryParse(result.Response.AsSpan()[4..^1], out var speed),
                     Result = speed
                 }
             };
@@ -941,7 +941,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
                     Success = true,
                     Result = result.Response switch
                     {
-                        "@OK Repeat Chapter-" => RepeatState.RepeatChapter,
+                        "@OK Repeat Chapter" => RepeatState.RepeatChapter,
                         "@OK Repeat Title" => RepeatState.RepeatTitle,
                         "@OK OFF" => RepeatState.Off,
                         _ => LogError(result.Response, RepeatState.Unknown)
@@ -1397,7 +1397,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
                         "@OK DVD-VIDEO" => DiscType.DVDVideo,
                         "@OK SACD" => DiscType.SACD,
                         "@OK CDDA" => DiscType.CDDiscAudio,
-                        "@OK DADA-DISC" => DiscType.DataDisc,
+                        "@OK DATA-DISC" => DiscType.DataDisc,
                         "@OK UHBD" => DiscType.UltraHDBluRay,
                         "@OK NO-DISC" => DiscType.NoDisc,
                         "@OK UNKNOWN-DISC" => DiscType.UnknownDisc,
