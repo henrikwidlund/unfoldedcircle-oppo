@@ -1087,13 +1087,15 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
     
     public async ValueTask<bool> InfoHoldAsync(CancellationToken cancellationToken = default)
     {
+        if (_model is not OppoModel.UDP20X)
+            return false;
+        
         if (!await _semaphore.WaitAsync(_timeout, cancellationToken))
             return false;
         
         try
         {
-            var command = _model == OppoModel.UDP20X ? Oppo20XCommand.InfoHold : Oppo10XCommand.InfoHold;
-            var result = await SendCommand(command, cancellationToken);
+            var result = await SendCommand(Oppo20XCommand.InfoHold, cancellationToken);
             return result.Success;
         }
         finally
@@ -1104,13 +1106,15 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
     
     public async ValueTask<bool> ResolutionHoldAsync(CancellationToken cancellationToken = default)
     {
+        if (_model is not OppoModel.UDP20X)
+            return false;
+        
         if (!await _semaphore.WaitAsync(_timeout, cancellationToken))
             return false;
         
         try
         {
-            var command = _model == OppoModel.UDP20X ? Oppo20XCommand.ResolutionHold : Oppo10XCommand.ResolutionHold;
-            var result = await SendCommand(command, cancellationToken);
+            var result = await SendCommand(Oppo20XCommand.ResolutionHold, cancellationToken);
             return result.Success;
         }
         finally
@@ -1121,13 +1125,15 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
     
     public async ValueTask<bool> AVSyncAsync(CancellationToken cancellationToken = default)
     {
+        if (_model is not OppoModel.UDP20X)
+            return false;
+        
         if (!await _semaphore.WaitAsync(_timeout, cancellationToken))
             return false;
         
         try
         {
-            var command = _model == OppoModel.UDP20X ? Oppo20XCommand.AVSync : Oppo10XCommand.AVSync;
-            var result = await SendCommand(command, cancellationToken);
+            var result = await SendCommand(Oppo20XCommand.AVSync, cancellationToken);
             return result.Success;
         }
         finally
@@ -1138,13 +1144,15 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
     
     public async ValueTask<bool> GaplessPlayAsync(CancellationToken cancellationToken = default)
     {
+        if (_model is not OppoModel.UDP20X)
+            return false;
+        
         if (!await _semaphore.WaitAsync(_timeout, cancellationToken))
             return false;
         
         try
         {
-            var command = _model == OppoModel.UDP20X ? Oppo20XCommand.GaplessPlay : Oppo10XCommand.GaplessPlay;
-            var result = await SendCommand(command, cancellationToken);
+            var result = await SendCommand(Oppo20XCommand.GaplessPlay, cancellationToken);
             return result.Success;
         }
         finally
@@ -1326,7 +1334,9 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
                         "@OK DISC MENU" => PlaybackStatus.DiscMenu,
                         
                         // Pre 20X models
+                        "@OK NO DISC" => PlaybackStatus.NoDisc,
                         "@OK LOADING" => PlaybackStatus.Loading,
+                        "@OK OPEN" => PlaybackStatus.Open,
                         "OK CLOSE" => PlaybackStatus.Close,
                         "@OK UNKNOW" => PlaybackStatus.Unknown,
                         _ => LogError(result.Response, PlaybackStatus.Unknown)
@@ -1391,6 +1401,9 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
                         "@OK UHBD" => DiscType.UltraHDBluRay,
                         "@OK NO-DISC" => DiscType.NoDisc,
                         "@OK UNKNOWN-DISC" => DiscType.UnknownDisc,
+                        
+                        // Pre 20X models
+                        "@OK HDCD" => DiscType.HDCD,
                         _ => LogError(result.Response, DiscType.UnknownDisc)
                     }
                 }
@@ -1440,13 +1453,15 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
     
     public async ValueTask<OppoResult<string>> QueryCDDBNumberAsync(CancellationToken cancellationToken = default)
     {
+        if (_model is not OppoModel.UDP20X)
+            return false;
+        
         if (!await _semaphore.WaitAsync(_timeout, cancellationToken))
             return false;
         
         try
         {
-            var command = _model == OppoModel.UDP20X ? Oppo20XQueryCommand.QueryCDDBNumber : Oppo10XQueryCommand.QueryCDDBNumber;
-            var result = await SendCommand(command, cancellationToken);
+            var result = await SendCommand(Oppo20XQueryCommand.QueryCDDBNumber, cancellationToken);
         
             return result.Success switch
             {
@@ -1466,13 +1481,15 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
 
     public async ValueTask<OppoResult<string>> QueryTrackNameAsync(CancellationToken cancellationToken = default)
     {
+        if (_model is not OppoModel.UDP20X)
+            return false;
+        
         if (!await _semaphore.WaitAsync(_timeout, cancellationToken))
             return false;
         
         try
         {
-            var command = _model == OppoModel.UDP20X ? Oppo20XQueryCommand.QueryTrackName : Oppo10XQueryCommand.QueryTrackName;
-            var result = await SendCommand(command, cancellationToken);
+            var result = await SendCommand(Oppo20XQueryCommand.QueryTrackName, cancellationToken);
         
             return result.Success switch
             {
@@ -1492,13 +1509,15 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
 
     public async ValueTask<OppoResult<string>> QueryTrackAlbumAsync(CancellationToken cancellationToken = default)
     {
+        if (_model is not OppoModel.UDP20X)
+            return false;
+        
         if (!await _semaphore.WaitAsync(_timeout, cancellationToken))
             return false;
         
         try
         {
-            var command = _model == OppoModel.UDP20X ? Oppo20XQueryCommand.QueryTrackAlbum : Oppo10XQueryCommand.QueryTrackAlbum;
-            var result = await SendCommand(command, cancellationToken);
+            var result = await SendCommand(Oppo20XQueryCommand.QueryTrackAlbum, cancellationToken);
         
             return result.Success switch
             {
@@ -1518,13 +1537,15 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
 
     public async ValueTask<OppoResult<string>> QueryTrackPerformerAsync(CancellationToken cancellationToken = default)
     {
+        if (_model is not OppoModel.UDP20X)
+            return false;
+        
         if (!await _semaphore.WaitAsync(_timeout, cancellationToken))
             return false;
         
         try
         {
-            var command = _model == OppoModel.UDP20X ? Oppo20XQueryCommand.QueryTrackPerformer : Oppo10XQueryCommand.QueryTrackPerformer;
-            var result = await SendCommand(command, cancellationToken);
+            var result = await SendCommand(Oppo20XQueryCommand.QueryTrackPerformer, cancellationToken);
         
             return result.Success switch
             {
@@ -1668,9 +1689,8 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
     {
         if (isFirstWrite)
         {
-            // Models prior to UDP-20X can have different prefixes than @OK and @ER (e.g. @QPW, @VUP, @VDN)
-            // Check if second char is V or Q, remove the first five chars so we just write @OK or @ER
-            if (_model != OppoModel.UDP20X && span.Length > 5 && span[1] is 0x56 or 0x51)
+            // Models prior to UDP-20X doesn't send back @OK or @ER, rather it's @(COMMAND_CODE) followed by OK|ER and then the response
+            if (_model != OppoModel.UDP20X && (!span.StartsWith("@OK "u8) || !span.StartsWith("@ER "u8)))
             {
                 _stringBuilder.Append('@');
                 int charsDecoded = Encoding.ASCII.GetChars(span[5..], charBuffer);
