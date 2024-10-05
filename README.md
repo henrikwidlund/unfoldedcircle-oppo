@@ -133,6 +133,7 @@ This will produce a self-contained binary in the `publish` directory in the root
 ## Licenses / Copyright
 
 - [License](LICENSE)
+- [richardschneider/net-dns](https://github.com/richardschneider/net-dns/blob/master/LICENSE)
 - [richardschneider/net-mdns](https://github.com/richardschneider/net-mdns/blob/master/LICENSE)
+- [jdomnitz/net-dns](https://github.com/jdomnitz/net-dns/blob/master/LICENSE)
 - [jdomnitz/net-mdns](https://github.com/jdomnitz/net-mdns/blob/master/LICENSE)
-- [9swampy/Telnet](https://github.com/9swampy/Telnet/blob/develop/License.txt)
