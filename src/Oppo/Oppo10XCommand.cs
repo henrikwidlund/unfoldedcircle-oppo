@@ -1,4 +1,4 @@
-namespace OppoTelnet;
+namespace Oppo;
 
 internal static class Oppo10XCommand
 {

@@ -1,7 +1,8 @@
 using System.Collections.Concurrent;
+
 using Microsoft.Extensions.Logging;
 
-namespace OppoTelnet;
+namespace Oppo;
 
 public class OppoClientFactory(ILoggerFactory loggerFactory, ILogger<OppoClientFactory> logger) : IOppoClientFactory
 {

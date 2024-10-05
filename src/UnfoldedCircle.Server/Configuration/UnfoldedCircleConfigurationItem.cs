@@ -1,4 +1,4 @@
-using OppoTelnet;
+using Oppo;
 
 namespace UnfoldedCircle.Server.Configuration;
 

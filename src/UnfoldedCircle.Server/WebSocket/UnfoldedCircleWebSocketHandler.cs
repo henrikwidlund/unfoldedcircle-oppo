@@ -2,7 +2,7 @@ using System.Buffers;
 using System.Net.WebSockets;
 using System.Text;
 
-using OppoTelnet;
+using Oppo;
 
 using UnfoldedCircle.Server.AlbumCover;
 using UnfoldedCircle.Server.Configuration;

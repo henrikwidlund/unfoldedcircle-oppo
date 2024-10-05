@@ -1,6 +1,6 @@
 using System.Collections.Concurrent;
 
-using OppoTelnet;
+using Oppo;
 
 using UnfoldedCircle.Models.Events;
 using UnfoldedCircle.Models.Shared;

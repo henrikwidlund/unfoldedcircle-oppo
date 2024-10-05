@@ -1,4 +1,4 @@
-namespace OppoTelnet;
+namespace Oppo;
 
 public enum PowerState
 {
