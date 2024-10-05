@@ -1,6 +1,7 @@
 # Unfolded Circle Oppo Integration Driver
 
 [![Release](https://img.shields.io/github/actions/workflow/status/henrikwidlund/unfoldedcircle-oppo/github-release.yml?label=Release&logo=github)](https://github.com/henrikwidlund/unfoldedcircle-oppo/actions/workflows/github-release.yml)
+[![CI](https://img.shields.io/github/actions/workflow/status/henrikwidlund/unfoldedcircle-oppo/ci.yml?label=CI&logo=github)](https://github.com/henrikwidlund/unfoldedcircle-oppo/actions/workflows/ci.yml)
 [![CodeQL](https://img.shields.io/github/actions/workflow/status/henrikwidlund/unfoldedcircle-oppo/codeql-analysis.yml?branch=main&label=CodeQL&logo=github)](https://github.com/henrikwidlund/unfoldedcircle-oppo/actions/workflows/codeql-analysis.yml)
 [![Docker](https://img.shields.io/github/actions/workflow/status/henrikwidlund/unfoldedcircle-oppo/docker.yml?label=Docker&logo=docker)](https://github.com/henrikwidlund/unfoldedcircle-oppo/actions/workflows/docker.yml)
 
