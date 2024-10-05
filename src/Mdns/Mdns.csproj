@@ -7,8 +7,7 @@
         <RootNamespace>Makaretu.Dns</RootNamespace>
         <LangVersion>latest</LangVersion>
         <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    
-        <!-- Nuget specs -->
+        
         <Authors>Richard Schneider, jdomnitz</Authors>
         <Copyright>© 2018-2019 Richard Schneider, jdomnitz</Copyright>
         <Nullable>enable</Nullable>
@@ -24,7 +23,7 @@
     </ItemGroup>
     
     <ItemGroup>
-      <ProjectReference Include="..\Dns\Dns.csproj" />
+        <ProjectReference Include="..\Dns\Dns.csproj" />
     </ItemGroup>
 
 </Project>
