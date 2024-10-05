@@ -1017,6 +1017,9 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
     
     public async ValueTask<bool> OptionAsync(CancellationToken cancellationToken = default)
     {
+        if (_model is OppoModel.BDP83)
+            return false;
+        
         if (!await _semaphore.WaitAsync(_timeout, cancellationToken))
             return false;
         
@@ -1034,6 +1037,9 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
     
     public async ValueTask<bool> ThreeDAsync(CancellationToken cancellationToken = default)
     {
+        if (_model is OppoModel.BDP83)
+            return false;
+        
         if (!await _semaphore.WaitAsync(_timeout, cancellationToken))
             return false;
         
@@ -1051,6 +1057,9 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
     
     public async ValueTask<bool> PictureAdjustmentAsync(CancellationToken cancellationToken = default)
     {
+        if (_model is OppoModel.BDP83)
+            return false;
+        
         if (!await _semaphore.WaitAsync(_timeout, cancellationToken))
             return false;
         
@@ -1068,7 +1077,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
     
     public async ValueTask<bool> HDRAsync(CancellationToken cancellationToken = default)
     {
-        if (_model != OppoModel.UDP20X)
+        if (_model is not OppoModel.UDP20X)
             return false;
         
         if (!await _semaphore.WaitAsync(_timeout, cancellationToken))
