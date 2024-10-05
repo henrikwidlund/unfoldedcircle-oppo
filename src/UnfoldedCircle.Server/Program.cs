@@ -1,4 +1,4 @@
-using OppoTelnet;
+using Oppo;
 
 using UnfoldedCircle.Server.AlbumCover;
 using UnfoldedCircle.Server.Configuration;

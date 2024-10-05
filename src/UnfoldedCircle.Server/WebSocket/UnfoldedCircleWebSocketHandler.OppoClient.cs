@@ -1,4 +1,4 @@
-using OppoTelnet;
+using Oppo;
 
 using UnfoldedCircle.Models.Shared;
 using UnfoldedCircle.Server.Configuration;

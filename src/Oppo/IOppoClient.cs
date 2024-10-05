@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace OppoTelnet;
+namespace Oppo;
 
 /// <summary>
 /// Interface for controlling an Oppo player.

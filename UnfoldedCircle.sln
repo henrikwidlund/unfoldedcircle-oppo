@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OppoTelnet", "src\OppoTelnet\OppoTelnet.csproj", "{20F98644-EB26-4C2C-B7ED-707F4BD7CDC3}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Oppo", "src\Oppo\Oppo.csproj", "{20F98644-EB26-4C2C-B7ED-707F4BD7CDC3}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnfoldedCircle.Server", "src\UnfoldedCircle.Server\UnfoldedCircle.Server.csproj", "{3C479BB9-1822-4BEB-9959-5D62C531EA6D}"
 EndProject

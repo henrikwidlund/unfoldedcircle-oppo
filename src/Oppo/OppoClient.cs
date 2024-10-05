@@ -5,9 +5,10 @@ using System.IO.Pipelines;
 using System.Net.Sockets;
 using System.Runtime.CompilerServices;
 using System.Text;
+
 using Microsoft.Extensions.Logging;
 
-namespace OppoTelnet;
+namespace Oppo;
 
 public sealed class OppoClient(string hostName, in OppoModel model, ILogger<OppoClient> logger) : IOppoClient
 {

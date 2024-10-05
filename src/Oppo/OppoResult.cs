@@ -1,7 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 
-namespace OppoTelnet;
+namespace Oppo;
 
 [StructLayout(LayoutKind.Auto)]
 public readonly record struct OppoResult<TResult>

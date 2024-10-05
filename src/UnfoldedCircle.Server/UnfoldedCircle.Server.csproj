@@ -36,7 +36,7 @@
 
     <ItemGroup>
         <ProjectReference Include="..\Mdns\Mdns.csproj" />
-        <ProjectReference Include="..\OppoTelnet\OppoTelnet.csproj" />
+        <ProjectReference Include="..\Oppo\Oppo.csproj" />
         <ProjectReference Include="..\UnfoldedCircle.Generators\UnfoldedCircle.Generators.csproj"
                           OutputItemType="Analyzer" ReferenceOutputAssembly="false"  />
         <ProjectReference Include="..\UnfoldedCircle.Models\UnfoldedCircle.Models.csproj" />

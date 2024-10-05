@@ -94,7 +94,7 @@ You can customize the log levels by either modifying the `appsettings.json` file
     "Logging": {
         "LogLevel": {
           "UnfoldedCircle.Server": "Information",
-          "OppoTelnet": "Information",
+          "Oppo": "Information",
           "Makaretu.Dns": "Warning"
         }
     }
@@ -105,7 +105,7 @@ You can customize the log levels by either modifying the `appsettings.json` file
 
 Same adjustments to log levels can be made by setting environment variables.
 - `Logging__LogLevel__UnfoldedCircle.Server` = `Information`
-- `Logging__LogLevel__OppoTelnet` = `Information`
+- `Logging__LogLevel__Oppo` = `Information`
 - `Logging__LogLevel__Makaretu.Dns` = `Warning`
 
 ### HTTP logging
