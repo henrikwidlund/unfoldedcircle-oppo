@@ -8,8 +8,30 @@ This repository contains the server code for hosting an Oppo UDP-20X integration
 
 ## Supported devices
 
+- Oppo BDP-83
+- Oppo BDP-103
+- Oppo BDP-105
 - Oppo UDP-203
 - Oppo UDP-205
+
+### Supported features limitations
+
+- All features are supported for the UDP-20X series.
+
+| Feature            | Oppo UDP-83 | Oppo UDP-10X |
+|--------------------|-------------|--------------|
+| Option Command     | ❌           | ✔️           |
+| 3D Switching       | ❌           | ✔️           |
+| Picture Adjustment | ❌           | ✔️           |
+| HDR Mode           | ❌           | ❌️           |
+| Info Hold          | ❌           | ❌️           |
+| Resolution Hold    | ❌           | ❌️           |
+| A/V Sync           | ❌           | ❌️           |
+| Gapless Playback   | ❌           | ❌️           |
+| Track Name         | ❌           | ❌️           |
+| Album Name         | ❌           | ❌️           |
+| Album Cover        | ❌           | ❌️           |
+| Artist Name        | ❌           | ❌️           |
 
 ## Prerequisites
 
@@ -20,10 +42,12 @@ This repository contains the server code for hosting an Oppo UDP-20X integration
 
 ### Network
 
-| Service      | Port  | Protocol     |
-|--------------|-------|--------------|
-| Server       | 9001* | HTTP (TCP)   |
-| Oppo UDP-20X | 23    | Telnet (TCP) |
+| Service      | Port  | Protocol   |
+|--------------|-------|------------|
+| Server       | 9001* | HTTP (TCP) |
+| Oppo UDP-83  | 19999 | TCP        |
+| Oppo UDP-10X | 48360 | TCP        |
+| Oppo UDP-20X | 23    | TCP        |
 
 \* Server port can be adjusted by specifying the desired port with the `UC_INTEGRATION_HTTP_PORT` environment variable.
 
