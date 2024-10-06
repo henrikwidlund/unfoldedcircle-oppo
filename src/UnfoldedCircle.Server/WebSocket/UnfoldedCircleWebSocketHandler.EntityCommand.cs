@@ -43,7 +43,7 @@ internal partial class UnfoldedCircleWebSocketHandler
 
                 if (powerStateResponse is { Result: PowerState.On })
                     // Run in background
-                    _ = HandleMediaUpdates(socket, wsId, oppoClientHolder, cancellationTokenWrapper);
+                    _ = HandleEventUpdates(socket, wsId, oppoClientHolder, cancellationTokenWrapper);
                 
                 break;
             case OppoCommandId.Off:
