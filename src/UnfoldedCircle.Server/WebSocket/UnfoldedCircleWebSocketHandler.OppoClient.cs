@@ -123,11 +123,12 @@ internal partial class UnfoldedCircleWebSocketHandler
                 {
                     _ when oppoModel.Equals(nameof(OppoModel.BDP83), StringComparison.OrdinalIgnoreCase) => OppoModel.BDP83,
                     _ when oppoModel.Equals(nameof(OppoModel.BDP10X), StringComparison.OrdinalIgnoreCase) => OppoModel.BDP10X,
-                    _ => OppoModel.UDP20X
+                    _ when oppoModel.Equals(nameof(OppoModel.UDP203), StringComparison.OrdinalIgnoreCase) => OppoModel.UDP203,
+                    _ => OppoModel.UDP205
                 };
             }
 
-            return OppoModel.UDP20X;
+            return OppoModel.UDP203;
         }
     }
     

@@ -146,11 +146,35 @@ public enum CurrentRepeatMode
     Random
 }
 
-public enum OppoModel : ushort
+public enum OppoModel
 {
     // ReSharper disable InconsistentNaming
-    BDP83 = 19999,
-    BDP10X = 48360,
-    UDP20X = 23
+    BDP83,
+    BDP10X,
+    UDP203,
+    UDP205
+    // ReSharper restore InconsistentNaming
+}
+
+public enum InputSource
+{
+    // ReSharper disable InconsistentNaming
+    Unknown,
+    BluRayPlayer,
+    
+    // 20x models,
+    HDMIIn,
+    ARCHDMIOut,
+    
+    // 10x and 205 models
+    Optical,
+    Coaxial,
+    USBAudio,
+    
+    // pre 20x models
+    HDMIFront,
+    HDMIBack,
+    ARCHDMIOut1,
+    ARCHDMIOut2,
     // ReSharper restore InconsistentNaming
 }

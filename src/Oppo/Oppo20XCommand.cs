@@ -409,6 +409,11 @@ internal static class Oppo20XQueryCommand
     public static readonly byte[] QueryRepeatMode = "#QRP\r"u8.ToArray();
     
     /// <summary>
+    /// Query Input Source (Return the current selected input source)
+    /// </summary>
+    public static readonly byte[] QueryInputSource = "#QIS\r"u8.ToArray();
+    
+    /// <summary>
     /// Query CDDB number
     /// </summary>
     // ReSharper disable once InconsistentNaming

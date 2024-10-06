@@ -18,4 +18,7 @@ public record EntityCommandParams
     
     [JsonPropertyName("mode")]
     public string? Mode { get; init; }
+    
+    [JsonPropertyName("source")]
+    public string? Source { get; init; }
 }

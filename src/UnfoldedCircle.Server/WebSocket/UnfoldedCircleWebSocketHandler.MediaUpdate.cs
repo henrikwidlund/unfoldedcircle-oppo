@@ -55,11 +55,13 @@ internal partial class UnfoldedCircleWebSocketHandler
                 var powerStatusResponse = await oppoClientHolder.Client.QueryPowerStatusAsync(cancellationTokenWrapper.ApplicationStopping);
                 var state = powerStatusResponse switch
                 {
-                    { Result: PowerState.On } => State.Playing,
+                    { Result: PowerState.On } => State.On,
                     { Result: PowerState.Off } => State.Off,
                     _ => State.Unknown
                 };
-                
+
+                OppoResult<VolumeInfo>? volumeResponse = null;
+                OppoResult<InputSource>? inputSourceResponse = null;
                 OppoResult<DiscType>? discTypeResponse = null;
                 OppoResult<uint>? elapsedResponse = null;
                 OppoResult<uint>? remainingResponse = null;
@@ -72,6 +74,9 @@ internal partial class UnfoldedCircleWebSocketHandler
 
                 if (powerStatusResponse is { Result: PowerState.On })
                 {
+                    volumeResponse = await oppoClientHolder.Client.QueryVolumeAsync(cancellationTokenWrapper.ApplicationStopping);
+                    inputSourceResponse = await oppoClientHolder.Client.QueryInputSourceAsync(cancellationTokenWrapper.ApplicationStopping);
+                    
                     var playbackStatusResponse = await oppoClientHolder.Client.QueryPlaybackStatusAsync(cancellationTokenWrapper.ApplicationStopping);
                     state = playbackStatusResponse switch
                     {
@@ -107,7 +112,7 @@ internal partial class UnfoldedCircleWebSocketHandler
                                 {
                                     remainingResponse = await oppoClientHolder.Client.QueryTrackOrTitleRemainingTimeAsync(cancellationTokenWrapper.ApplicationStopping);
 
-                                    if (oppoClientHolder.ClientKey.Model is OppoModel.UDP20X)
+                                    if (oppoClientHolder.ClientKey.Model is OppoModel.UDP203 or OppoModel.UDP205)
                                     {
                                         trackResponse = await oppoClientHolder.Client.QueryTrackNameAsync(cancellationTokenWrapper.ApplicationStopping);
                                         album = (await oppoClientHolder.Client.QueryTrackAlbumAsync(cancellationTokenWrapper.ApplicationStopping)).Result;
@@ -161,7 +166,10 @@ internal partial class UnfoldedCircleWebSocketHandler
                                 MediaArtist = ReplaceStarWithEllipsis(performer),
                                 MediaImageUrl = coverUri,
                                 Repeat = repeatMode,
-                                Shuffle = shuffle
+                                Shuffle = shuffle,
+                                Source = GetInputSource(inputSourceResponse),
+                                Volume = volumeResponse?.Result.Volume,
+                                Muted = volumeResponse?.Result.Muted
                             }
                         }
                     }, _unfoldedCircleJsonSerializerContext.StateChangedEvent),
@@ -172,7 +180,11 @@ internal partial class UnfoldedCircleWebSocketHandler
         finally
         {
             await SendAsync(socket,
-                ResponsePayloadHelpers.CreateStateChangedResponsePayload(_unfoldedCircleJsonSerializerContext),
+                ResponsePayloadHelpers.CreateStateChangedResponsePayload(new StateChangedEventMessageDataAttributes
+                {
+                    State = State.Off
+                },
+                _unfoldedCircleJsonSerializerContext),
                 wsId,
                 cancellationTokenWrapper.ApplicationStopping);
             
@@ -184,6 +196,28 @@ internal partial class UnfoldedCircleWebSocketHandler
 
         static string? ReplaceStarWithEllipsis(string? input) =>
             string.IsNullOrWhiteSpace(input) ? input : input.Replace('*', '…');
+
+        static string? GetInputSource(in OppoResult<InputSource>? inputSourceResponse)
+        {
+            if (inputSourceResponse is not { Success: true })
+                return null;
+
+            return inputSourceResponse.Value.Result switch
+            {
+                InputSource.Unknown => null,
+                InputSource.BluRayPlayer => OppoConstants.InputSource.BluRayPlayer,
+                InputSource.HDMIIn => OppoConstants.InputSource.HDMIIn,
+                InputSource.ARCHDMIOut => OppoConstants.InputSource.ARCHDMIOut,
+                InputSource.Optical => OppoConstants.InputSource.Optical,
+                InputSource.Coaxial => OppoConstants.InputSource.Coaxial,
+                InputSource.USBAudio => OppoConstants.InputSource.USBAudio,
+                InputSource.HDMIFront => OppoConstants.InputSource.HDMIFront,
+                InputSource.HDMIBack => OppoConstants.InputSource.HDMIBack,
+                InputSource.ARCHDMIOut1 => OppoConstants.InputSource.ARCHDMIOut1,
+                InputSource.ARCHDMIOut2 => OppoConstants.InputSource.ARCHDMIOut2,
+                _ => null
+            };
+        }
     }
     
     private static (Models.Shared.RepeatMode? RepeatMode, bool? shuffle) GetRepeatMode(OppoResult<CurrentRepeatMode> repeatModeResponse) =>

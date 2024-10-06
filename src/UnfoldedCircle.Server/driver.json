@@ -50,9 +50,15 @@
                 }
               },
               {
-                "id": "UDP20X",
+                "id": "UDP203",
                 "label": {
-                  "en": "UDP20X"
+                  "en": "UDP203"
+                }
+              },
+              {
+                "id": "UDP205",
+                "label": {
+                  "en": "UDP205"
                 }
               }
             ]

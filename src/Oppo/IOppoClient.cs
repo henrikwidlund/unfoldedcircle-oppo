@@ -304,6 +304,11 @@ public interface IOppoClient : IDisposable
     ValueTask<OppoResult<ushort>> SetVolumeAsync([Range(0, 100)] ushort volume, CancellationToken cancellationToken = default);
     
     /// <summary>
+    /// Query volume
+    /// </summary>
+    ValueTask<OppoResult<VolumeInfo>> QueryVolumeAsync(CancellationToken cancellationToken = default);
+    
+    /// <summary>
     /// Query power status
     /// </summary>
     ValueTask<OppoResult<PowerState>> QueryPowerStatusAsync(CancellationToken cancellationToken = default);
@@ -352,6 +357,16 @@ public interface IOppoClient : IDisposable
     /// Query Repeat Mode
     /// </summary>
     ValueTask<OppoResult<CurrentRepeatMode>> QueryRepeatModeAsync(CancellationToken cancellationToken = default);
+    
+    /// <summary>
+    /// Query Input Source (Return the current selected input source)
+    /// </summary>
+    ValueTask<OppoResult<InputSource>> QueryInputSourceAsync(CancellationToken cancellationToken = default);
+    
+    /// <summary>
+    /// Query Input Source (Return the current selected input source)
+    /// </summary>
+    ValueTask<OppoResult<InputSource>> SetInputSourceAsync(InputSource inputSource, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Query CDDB number

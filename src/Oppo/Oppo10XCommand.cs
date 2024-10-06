@@ -340,6 +340,11 @@ internal static class Oppo10XQueryCommand
     public static readonly byte[] QueryPlaybackStatus = "REMOTE QPL"u8.ToArray();
     
     /// <summary>
+    /// Query Input Source (Return the current selected input source)
+    /// </summary>
+    public static readonly byte[] QueryInputSource = "REMOTE QIS"u8.ToArray();
+    
+    /// <summary>
     /// Query Track/Title elapsed time
     /// </summary>
     public static readonly byte[] QueryTrackOrTitleElapsedTime = "REMOTE QTE"u8.ToArray();

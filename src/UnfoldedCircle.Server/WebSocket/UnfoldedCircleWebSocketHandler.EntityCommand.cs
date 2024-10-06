@@ -1,6 +1,7 @@
 using Oppo;
 
 using UnfoldedCircle.Models.Sync;
+using UnfoldedCircle.Server.Oppo;
 using UnfoldedCircle.Server.Response;
 
 namespace UnfoldedCircle.Server.WebSocket;
@@ -191,7 +192,15 @@ internal partial class UnfoldedCircleWebSocketHandler
                 await oppoClientHolder.Client.ReturnAsync(cancellationTokenWrapper.ApplicationStopping);
                 break;
             case OppoCommandId.SelectSource:
-                await oppoClientHolder.Client.InputAsync(cancellationTokenWrapper.ApplicationStopping);
+                if (payload.MsgData.Params is { Source: not null } && OppoEntitySettings.SourceMap.TryGetValue(payload.MsgData.Params.Source, out var source))
+                {
+                    // Sending input source is only allowed if the unit is on - avoid locking up the driver by only sending it when the unit is ready
+                    var powerState = await oppoClientHolder.Client.QueryPowerStatusAsync(cancellationTokenWrapper.ApplicationStopping);
+                    if (powerState is { Result: PowerState.On })
+                        await oppoClientHolder.Client.SetInputSourceAsync(source, cancellationTokenWrapper.ApplicationStopping);
+                }
+                else
+                    await oppoClientHolder.Client.InputAsync(cancellationTokenWrapper.ApplicationStopping);
                 break;
             case OppoCommandId.PureAudioToggle:
                 await oppoClientHolder.Client.PureAudioToggleAsync(cancellationTokenWrapper.ApplicationStopping);

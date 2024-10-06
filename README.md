@@ -151,7 +151,7 @@ This will produce a self-contained binary in the `publish` directory in the root
 
 ## Limitations
 
-- Logs downloaded from the remote might not contain the logs from this integration driver. The reason for this is unknown as the application writes the logs to stdout.
+- Selecting input on the player can only be done when the player reports that it is on, this means that you have to place a delay between the `Switch on` and `Input source` commands if you want to use this in the `On sequence`, or the remote will think the start sequence fails.
 - The artist, album and track information might not always be available or accurate. This can't be helped as it's the information the player provides.
 - The album cover might be incorrect or missing. This is because the CDDB database no longer exists, as such, the application tries to get covers by matching the current artist and album. This is not always accurate enough.
 
