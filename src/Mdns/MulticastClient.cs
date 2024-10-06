@@ -137,7 +137,7 @@ internal class MulticastClient : IDisposable
             }
             catch (Exception e)
             {
-                _logger?.LogError(e, "Sender {Key} failure.", sender.Key);
+                _logger?.LogInformation(e, "Sender {Key} failure.", sender.Key);
                 // eat it.
             }
         }
