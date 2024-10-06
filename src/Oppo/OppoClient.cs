@@ -14,12 +14,23 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
 {
     private readonly TcpClient _tcpClient = new();
     private readonly string _hostName = hostName;
-    private readonly int _port = (ushort)model;
     private readonly OppoModel _model = model;
     private readonly ILogger<OppoClient> _logger = logger;
     private readonly SemaphoreSlim _semaphore = new(1, 1);
     private readonly TimeSpan _timeout = TimeSpan.FromSeconds(1);
     private readonly StringBuilder _stringBuilder = new();
+    private ushort? _port;
+    private ushort Port => _port ??= _model switch
+    {
+        OppoModel.BDP83 => 19999,
+        OppoModel.BDP10X => 48360,
+        OppoModel.UDP203 => 23,
+        OppoModel.UDP205 => 23,
+        _ => throw new InvalidOperationException($"Model {_model} is not supported.")
+    };
+    
+    private bool? _is20XModel;
+    private bool Is20XModel => _is20XModel ??= _model is OppoModel.UDP203 or OppoModel.UDP205;
 
     public async ValueTask<OppoResult<PowerState>> PowerToggleAsync(CancellationToken cancellationToken = default)
     {
@@ -28,7 +39,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         
         try
         {
-            var command = _model == OppoModel.UDP20X ? Oppo20XCommand.PowerToggle : Oppo10XCommand.PowerToggle;
+            var command = Is20XModel ? Oppo20XCommand.PowerToggle : Oppo10XCommand.PowerToggle;
             var result = await SendCommand(command, cancellationToken);
             return result.Success switch
             {
@@ -58,7 +69,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
 
         try
         {
-            var command = _model == OppoModel.UDP20X ? Oppo20XCommand.PowerOn : Oppo10XCommand.PowerOn;
+            var command = Is20XModel ? Oppo20XCommand.PowerOn : Oppo10XCommand.PowerOn;
             var result = await SendCommand(command, cancellationToken);
 
             return result.Success switch
@@ -88,7 +99,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         
         try
         {
-            var command = _model == OppoModel.UDP20X ? Oppo20XCommand.PowerOff : Oppo10XCommand.PowerOff;
+            var command = Is20XModel ? Oppo20XCommand.PowerOff : Oppo10XCommand.PowerOff;
             var result = await SendCommand(command, cancellationToken);
 
             return result.Success switch
@@ -118,7 +129,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         
         try
         {
-            var command = _model == OppoModel.UDP20X ? Oppo20XCommand.EjectToggle : Oppo10XCommand.EjectToggle;
+            var command = Is20XModel ? Oppo20XCommand.EjectToggle : Oppo10XCommand.EjectToggle;
             var result = await SendCommand(command, cancellationToken);
 
             return result.Success switch
@@ -149,7 +160,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
 
         try
         {
-            var command = _model == OppoModel.UDP20X ? Oppo20XCommand.Dimmer : Oppo10XCommand.Dimmer;
+            var command = Is20XModel ? Oppo20XCommand.Dimmer : Oppo10XCommand.Dimmer;
             var result = await SendCommand(command, cancellationToken);
 
             return result.Success switch
@@ -181,7 +192,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         
         try
         {
-            var command = _model == OppoModel.UDP20X ? Oppo20XCommand.PureAudioToggle : Oppo10XCommand.PureAudioToggle;
+            var command = Is20XModel ? Oppo20XCommand.PureAudioToggle : Oppo10XCommand.PureAudioToggle;
             var result = await SendCommand(command, cancellationToken);
 
             return result.Success switch
@@ -212,7 +223,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         
         try
         {
-            var command = _model == OppoModel.UDP20X ? Oppo20XCommand.VolumeUp : Oppo10XCommand.VolumeUp;
+            var command = Is20XModel ? Oppo20XCommand.VolumeUp : Oppo10XCommand.VolumeUp;
             var result = await SendCommand(command, cancellationToken);
 
             return result.Success switch
@@ -238,7 +249,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         
         try
         {
-            var command = _model == OppoModel.UDP20X ? Oppo20XCommand.VolumeDown : Oppo10XCommand.VolumeDown;
+            var command = Is20XModel ? Oppo20XCommand.VolumeDown : Oppo10XCommand.VolumeDown;
             var result = await SendCommand(command, cancellationToken);
 
             return result.Success switch
@@ -264,7 +275,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         
         try
         {
-            var command = _model == OppoModel.UDP20X ? Oppo20XCommand.MuteToggle : Oppo10XCommand.MuteToggle;
+            var command = Is20XModel ? Oppo20XCommand.MuteToggle : Oppo10XCommand.MuteToggle;
             var result = await SendCommand(command, cancellationToken);
 
             return result.Success switch
@@ -300,16 +311,16 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         {
             var result = await SendCommand(number switch
             {
-                0 => _model == OppoModel.UDP20X ? Oppo20XCommand.NumericKey0 : Oppo10XCommand.NumericKey0,
-                1 => _model == OppoModel.UDP20X ? Oppo20XCommand.NumericKey1 : Oppo10XCommand.NumericKey1,
-                2 => _model == OppoModel.UDP20X ? Oppo20XCommand.NumericKey2 : Oppo10XCommand.NumericKey2,
-                3 => _model == OppoModel.UDP20X ? Oppo20XCommand.NumericKey3 : Oppo10XCommand.NumericKey3,
-                4 => _model == OppoModel.UDP20X ? Oppo20XCommand.NumericKey4 : Oppo10XCommand.NumericKey4,
-                5 => _model == OppoModel.UDP20X ? Oppo20XCommand.NumericKey5 : Oppo10XCommand.NumericKey5,
-                6 => _model == OppoModel.UDP20X ? Oppo20XCommand.NumericKey6 : Oppo10XCommand.NumericKey6,
-                7 => _model == OppoModel.UDP20X ? Oppo20XCommand.NumericKey7 : Oppo10XCommand.NumericKey7,
-                8 => _model == OppoModel.UDP20X ? Oppo20XCommand.NumericKey8 : Oppo10XCommand.NumericKey8,
-                9 => _model == OppoModel.UDP20X ? Oppo20XCommand.NumericKey9 : Oppo10XCommand.NumericKey9,
+                0 => Is20XModel ? Oppo20XCommand.NumericKey0 : Oppo10XCommand.NumericKey0,
+                1 => Is20XModel ? Oppo20XCommand.NumericKey1 : Oppo10XCommand.NumericKey1,
+                2 => Is20XModel ? Oppo20XCommand.NumericKey2 : Oppo10XCommand.NumericKey2,
+                3 => Is20XModel ? Oppo20XCommand.NumericKey3 : Oppo10XCommand.NumericKey3,
+                4 => Is20XModel ? Oppo20XCommand.NumericKey4 : Oppo10XCommand.NumericKey4,
+                5 => Is20XModel ? Oppo20XCommand.NumericKey5 : Oppo10XCommand.NumericKey5,
+                6 => Is20XModel ? Oppo20XCommand.NumericKey6 : Oppo10XCommand.NumericKey6,
+                7 => Is20XModel ? Oppo20XCommand.NumericKey7 : Oppo10XCommand.NumericKey7,
+                8 => Is20XModel ? Oppo20XCommand.NumericKey8 : Oppo10XCommand.NumericKey8,
+                9 => Is20XModel ? Oppo20XCommand.NumericKey9 : Oppo10XCommand.NumericKey9,
                 _ => throw new ArgumentOutOfRangeException(nameof(number))
             }, cancellationToken);
             return result.Success;
@@ -327,7 +338,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         
         try
         {
-            var command = _model == OppoModel.UDP20X ? Oppo20XCommand.Clear : Oppo10XCommand.Clear;
+            var command = Is20XModel ? Oppo20XCommand.Clear : Oppo10XCommand.Clear;
             var result = await SendCommand(command, cancellationToken);
             return result.Success;
         }
@@ -344,7 +355,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         
         try
         {
-            var command = _model == OppoModel.UDP20X ? Oppo20XCommand.GoTo : Oppo10XCommand.GoTo;
+            var command = Is20XModel ? Oppo20XCommand.GoTo : Oppo10XCommand.GoTo;
             var result = await SendCommand(command, cancellationToken);
             return result.Success;
         }
@@ -361,7 +372,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         
         try
         {
-            var command = _model == OppoModel.UDP20X ? Oppo20XCommand.Home : Oppo10XCommand.Home;
+            var command = Is20XModel ? Oppo20XCommand.Home : Oppo10XCommand.Home;
             var result = await SendCommand(command, cancellationToken);
             return result.Success;
         }
@@ -378,7 +389,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         
         try
         {
-            var command = _model == OppoModel.UDP20X ? Oppo20XCommand.PageUp : Oppo10XCommand.PageUp;
+            var command = Is20XModel ? Oppo20XCommand.PageUp : Oppo10XCommand.PageUp;
             var result = await SendCommand(command, cancellationToken);
             return result.Success;
         }
@@ -395,7 +406,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         
         try
         {
-            var command = _model == OppoModel.UDP20X ? Oppo20XCommand.PageDown : Oppo10XCommand.PageDown;
+            var command = Is20XModel ? Oppo20XCommand.PageDown : Oppo10XCommand.PageDown;
             var result = await SendCommand(command, cancellationToken);
             return result.Success;
         }
@@ -412,7 +423,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         
         try
         {
-            var command = _model == OppoModel.UDP20X ? Oppo20XCommand.InfoToggle : Oppo10XCommand.InfoToggle;
+            var command = Is20XModel ? Oppo20XCommand.InfoToggle : Oppo10XCommand.InfoToggle;
             var result = await SendCommand(command, cancellationToken);
             return result.Success;
         }
@@ -429,7 +440,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         
         try
         {
-            var command = _model == OppoModel.UDP20X ? Oppo20XCommand.TopMenu : Oppo10XCommand.TopMenu;
+            var command = Is20XModel ? Oppo20XCommand.TopMenu : Oppo10XCommand.TopMenu;
             var result = await SendCommand(command, cancellationToken);
             return result.Success;
         }
@@ -446,7 +457,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         
         try
         {
-            var command = _model == OppoModel.UDP20X ? Oppo20XCommand.PopUpMenu : Oppo10XCommand.PopUpMenu;
+            var command = Is20XModel ? Oppo20XCommand.PopUpMenu : Oppo10XCommand.PopUpMenu;
             var result = await SendCommand(command, cancellationToken);
             return result.Success;
         }
@@ -463,7 +474,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         
         try
         {
-            var command = _model == OppoModel.UDP20X ? Oppo20XCommand.UpArrow : Oppo10XCommand.UpArrow;
+            var command = Is20XModel ? Oppo20XCommand.UpArrow : Oppo10XCommand.UpArrow;
             var result = await SendCommand(command, cancellationToken);
             return result.Success;
         }
@@ -480,7 +491,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         
         try
         {
-            var command = _model == OppoModel.UDP20X ? Oppo20XCommand.LeftArrow : Oppo10XCommand.LeftArrow;
+            var command = Is20XModel ? Oppo20XCommand.LeftArrow : Oppo10XCommand.LeftArrow;
             var result = await SendCommand(command, cancellationToken);
             return result.Success;
         }
@@ -497,7 +508,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         
         try
         {
-            var command = _model == OppoModel.UDP20X ? Oppo20XCommand.RightArrow : Oppo10XCommand.RightArrow;
+            var command = Is20XModel ? Oppo20XCommand.RightArrow : Oppo10XCommand.RightArrow;
             var result = await SendCommand(command, cancellationToken);
             return result.Success;
         }
@@ -514,7 +525,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         
         try
         {
-            var command = _model == OppoModel.UDP20X ? Oppo20XCommand.DownArrow : Oppo10XCommand.DownArrow;
+            var command = Is20XModel ? Oppo20XCommand.DownArrow : Oppo10XCommand.DownArrow;
             var result = await SendCommand(command, cancellationToken);
             return result.Success;
         }
@@ -531,7 +542,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         
         try
         {
-            var command = _model == OppoModel.UDP20X ? Oppo20XCommand.Enter : Oppo10XCommand.Enter;
+            var command = Is20XModel ? Oppo20XCommand.Enter : Oppo10XCommand.Enter;
             var result = await SendCommand(command, cancellationToken);
             return result.Success;
         }
@@ -548,7 +559,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         
         try
         {
-            var command = _model == OppoModel.UDP20X ? Oppo20XCommand.Setup : Oppo10XCommand.Setup;
+            var command = Is20XModel ? Oppo20XCommand.Setup : Oppo10XCommand.Setup;
             var result = await SendCommand(command, cancellationToken);
             return result.Success;
         }
@@ -565,7 +576,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         
         try
         {
-            var command = _model == OppoModel.UDP20X ? Oppo20XCommand.Return : Oppo10XCommand.Return;
+            var command = Is20XModel ? Oppo20XCommand.Return : Oppo10XCommand.Return;
             var result = await SendCommand(command, cancellationToken);
             return result.Success;
         }
@@ -582,7 +593,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         
         try
         {
-            var command = _model == OppoModel.UDP20X ? Oppo20XCommand.Red : Oppo10XCommand.Red;
+            var command = Is20XModel ? Oppo20XCommand.Red : Oppo10XCommand.Red;
             var result = await SendCommand(command, cancellationToken);
             return result.Success;
         }
@@ -599,7 +610,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         
         try
         {
-            var command = _model == OppoModel.UDP20X ? Oppo20XCommand.Green : Oppo10XCommand.Green;
+            var command = Is20XModel ? Oppo20XCommand.Green : Oppo10XCommand.Green;
             var result = await SendCommand(command, cancellationToken);
             return result.Success;
         }
@@ -616,7 +627,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         
         try
         {
-            var command = _model == OppoModel.UDP20X ? Oppo20XCommand.Blue : Oppo10XCommand.Blue;
+            var command = Is20XModel ? Oppo20XCommand.Blue : Oppo10XCommand.Blue;
             var result = await SendCommand(command, cancellationToken);
             return result.Success;
         }
@@ -633,7 +644,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         
         try
         {
-            var command = _model == OppoModel.UDP20X ? Oppo20XCommand.Yellow : Oppo10XCommand.Yellow;
+            var command = Is20XModel ? Oppo20XCommand.Yellow : Oppo10XCommand.Yellow;
             var result = await SendCommand(command, cancellationToken);
             return result.Success;
         }
@@ -650,7 +661,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         
         try
         {
-            var command = _model == OppoModel.UDP20X ? Oppo20XCommand.Stop : Oppo10XCommand.Stop;
+            var command = Is20XModel ? Oppo20XCommand.Stop : Oppo10XCommand.Stop;
             var result = await SendCommand(command, cancellationToken);
             return result.Success;
         }
@@ -667,7 +678,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         
         try
         {
-            var command = _model == OppoModel.UDP20X ? Oppo20XCommand.Play : Oppo10XCommand.Play;
+            var command = Is20XModel ? Oppo20XCommand.Play : Oppo10XCommand.Play;
             var result = await SendCommand(command, cancellationToken);
             return result.Success;
         }
@@ -684,7 +695,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         
         try
         {
-            var command = _model == OppoModel.UDP20X ? Oppo20XCommand.Pause : Oppo10XCommand.Pause;
+            var command = Is20XModel ? Oppo20XCommand.Pause : Oppo10XCommand.Pause;
             var result = await SendCommand(command, cancellationToken);
             return result.Success;
         }
@@ -701,7 +712,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         
         try
         {
-            var command = _model == OppoModel.UDP20X ? Oppo20XCommand.Previous : Oppo10XCommand.Previous;
+            var command = Is20XModel ? Oppo20XCommand.Previous : Oppo10XCommand.Previous;
             var result = await SendCommand(command, cancellationToken);
             return result.Success;
         }
@@ -718,7 +729,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         
         try
         {
-            var command = _model == OppoModel.UDP20X ? Oppo20XCommand.Reverse : Oppo10XCommand.Reverse;
+            var command = Is20XModel ? Oppo20XCommand.Reverse : Oppo10XCommand.Reverse;
             var result = await SendCommand(command, cancellationToken);
         
             return result.Success switch
@@ -744,7 +755,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         
         try
         {
-            var command = _model == OppoModel.UDP20X ? Oppo20XCommand.Forward : Oppo10XCommand.Forward;
+            var command = Is20XModel ? Oppo20XCommand.Forward : Oppo10XCommand.Forward;
             var result = await SendCommand(command, cancellationToken);
         
             return result.Success switch
@@ -770,7 +781,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         
         try
         {
-            var command = _model == OppoModel.UDP20X ? Oppo20XCommand.Next : Oppo10XCommand.Next;
+            var command = Is20XModel ? Oppo20XCommand.Next : Oppo10XCommand.Next;
             var result = await SendCommand(command, cancellationToken);
             return result.Success;
         }
@@ -787,7 +798,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         
         try
         {
-            var command = _model == OppoModel.UDP20X ? Oppo20XCommand.Audio : Oppo10XCommand.Audio;
+            var command = Is20XModel ? Oppo20XCommand.Audio : Oppo10XCommand.Audio;
             var result = await SendCommand(command, cancellationToken);
             return result.Success;
         }
@@ -804,7 +815,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         
         try
         {
-            var command = _model == OppoModel.UDP20X ? Oppo20XCommand.Subtitle : Oppo10XCommand.Subtitle;
+            var command = Is20XModel ? Oppo20XCommand.Subtitle : Oppo10XCommand.Subtitle;
             var result = await SendCommand(command, cancellationToken);
             return result.Success;
         }
@@ -821,7 +832,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         
         try
         {
-            var command = _model == OppoModel.UDP20X ? Oppo20XCommand.Angle : Oppo10XCommand.Angle;
+            var command = Is20XModel ? Oppo20XCommand.Angle : Oppo10XCommand.Angle;
             var result = await SendCommand(command, cancellationToken);
         
             return result.Success switch
@@ -847,7 +858,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         
         try
         {
-            var command = _model == OppoModel.UDP20X ? Oppo20XCommand.Zoom : Oppo10XCommand.Zoom;
+            var command = Is20XModel ? Oppo20XCommand.Zoom : Oppo10XCommand.Zoom;
             var result = await SendCommand(command, cancellationToken);
         
             return result.Success switch
@@ -873,7 +884,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         
         try
         {
-            var command = _model == OppoModel.UDP20X ? Oppo20XCommand.SecondaryAudioProgram : Oppo10XCommand.SecondaryAudioProgram;
+            var command = Is20XModel ? Oppo20XCommand.SecondaryAudioProgram : Oppo10XCommand.SecondaryAudioProgram;
             var result = await SendCommand(command, cancellationToken);
         
             return result.Success switch
@@ -899,7 +910,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         
         try
         {
-            var command = _model == OppoModel.UDP20X ? Oppo20XCommand.ABReplay : Oppo10XCommand.ABReplay;
+            var command = Is20XModel ? Oppo20XCommand.ABReplay : Oppo10XCommand.ABReplay;
             var result = await SendCommand(command, cancellationToken);
         
             return result.Success switch
@@ -931,7 +942,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         
         try
         {
-            var command = _model == OppoModel.UDP20X ? Oppo20XCommand.Repeat : Oppo10XCommand.Repeat;
+            var command = Is20XModel ? Oppo20XCommand.Repeat : Oppo10XCommand.Repeat;
             var result = await SendCommand(command, cancellationToken);
         
             return result.Success switch
@@ -963,7 +974,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         
         try
         {
-            var command = _model == OppoModel.UDP20X ? Oppo20XCommand.PictureInPicture : Oppo10XCommand.PictureInPicture;
+            var command = Is20XModel ? Oppo20XCommand.PictureInPicture : Oppo10XCommand.PictureInPicture;
             var result = await SendCommand(command, cancellationToken);
         
             return result.Success switch
@@ -989,7 +1000,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         
         try
         {
-            var command = _model == OppoModel.UDP20X ? Oppo20XCommand.Resolution : Oppo10XCommand.Resolution;
+            var command = Is20XModel ? Oppo20XCommand.Resolution : Oppo10XCommand.Resolution;
             var result = await SendCommand(command, cancellationToken);
             return result.Success;
         }
@@ -1006,7 +1017,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         
         try
         {
-            var command = _model == OppoModel.UDP20X ? Oppo20XCommand.SubtitleHold : Oppo10XCommand.SubtitleHold;
+            var command = Is20XModel ? Oppo20XCommand.SubtitleHold : Oppo10XCommand.SubtitleHold;
             var result = await SendCommand(command, cancellationToken);
             return result.Success;
         }
@@ -1026,7 +1037,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         
         try
         {
-            var command = _model == OppoModel.UDP20X ? Oppo20XCommand.Option : Oppo10XCommand.Option;
+            var command = Is20XModel ? Oppo20XCommand.Option : Oppo10XCommand.Option;
             var result = await SendCommand(command, cancellationToken);
             return result.Success;
         }
@@ -1046,7 +1057,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         
         try
         {
-            var command = _model == OppoModel.UDP20X ? Oppo20XCommand.ThreeD : Oppo10XCommand.ThreeD;
+            var command = Is20XModel ? Oppo20XCommand.ThreeD : Oppo10XCommand.ThreeD;
             var result = await SendCommand(command, cancellationToken);
             return result.Success;
         }
@@ -1066,7 +1077,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         
         try
         {
-            var command = _model == OppoModel.UDP20X ? Oppo20XCommand.PictureAdjustment : Oppo10XCommand.PictureAdjustment;
+            var command = Is20XModel ? Oppo20XCommand.PictureAdjustment : Oppo10XCommand.PictureAdjustment;
             var result = await SendCommand(command, cancellationToken);
             return result.Success;
         }
@@ -1078,7 +1089,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
     
     public async ValueTask<bool> HDRAsync(CancellationToken cancellationToken = default)
     {
-        if (_model is not OppoModel.UDP20X)
+        if (!Is20XModel)
             return false;
         
         if (!await _semaphore.WaitAsync(_timeout, cancellationToken))
@@ -1097,7 +1108,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
     
     public async ValueTask<bool> InfoHoldAsync(CancellationToken cancellationToken = default)
     {
-        if (_model is not OppoModel.UDP20X)
+        if (!Is20XModel)
             return false;
         
         if (!await _semaphore.WaitAsync(_timeout, cancellationToken))
@@ -1116,7 +1127,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
     
     public async ValueTask<bool> ResolutionHoldAsync(CancellationToken cancellationToken = default)
     {
-        if (_model is not OppoModel.UDP20X)
+        if (!Is20XModel)
             return false;
         
         if (!await _semaphore.WaitAsync(_timeout, cancellationToken))
@@ -1135,7 +1146,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
     
     public async ValueTask<bool> AVSyncAsync(CancellationToken cancellationToken = default)
     {
-        if (_model is not OppoModel.UDP20X)
+        if (!Is20XModel)
             return false;
         
         if (!await _semaphore.WaitAsync(_timeout, cancellationToken))
@@ -1154,7 +1165,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
     
     public async ValueTask<bool> GaplessPlayAsync(CancellationToken cancellationToken = default)
     {
-        if (_model is not OppoModel.UDP20X)
+        if (!Is20XModel)
             return false;
         
         if (!await _semaphore.WaitAsync(_timeout, cancellationToken))
@@ -1178,7 +1189,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         
         try
         {
-            var command = _model == OppoModel.UDP20X ? Oppo20XCommand.Noop : Oppo10XCommand.Noop;
+            var command = Is20XModel ? Oppo20XCommand.Noop : Oppo10XCommand.Noop;
             var result = await SendCommand(command, cancellationToken);
             return result.Success;
         }
@@ -1195,7 +1206,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         
         try
         {
-            var command = _model == OppoModel.UDP20X ? Oppo20XCommand.Input : Oppo10XCommand.Input;
+            var command = Is20XModel ? Oppo20XCommand.Input : Oppo10XCommand.Input;
             var result = await SendCommand(command, cancellationToken);
             return result.Success;
         }
@@ -1217,12 +1228,12 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         {
             var result = await SendCommand(mode switch
             {
-                RepeatMode.Chapter => _model == OppoModel.UDP20X ? Oppo20XAdvancedCommand.SetRepeatModeChapter : Oppo10XAdvancedCommand.SetRepeatModeChapter,
-                RepeatMode.Title => _model == OppoModel.UDP20X ? Oppo20XAdvancedCommand.SetRepeatModeTitle : Oppo10XAdvancedCommand.SetRepeatModeTitle,
-                RepeatMode.All => _model == OppoModel.UDP20X ? Oppo20XAdvancedCommand.SetRepeatModeAll : Oppo10XAdvancedCommand.SetRepeatModeAll,
-                RepeatMode.Off => _model == OppoModel.UDP20X ? Oppo20XAdvancedCommand.SetRepeatModeOff : Oppo10XAdvancedCommand.SetRepeatModeOff,
-                RepeatMode.Shuffle => _model == OppoModel.UDP20X ? Oppo20XAdvancedCommand.SetRepeatModeShuffle : Oppo10XAdvancedCommand.SetRepeatModeShuffle,
-                RepeatMode.Random => _model == OppoModel.UDP20X ? Oppo20XAdvancedCommand.SetRepeatModeRandom : Oppo10XAdvancedCommand.SetRepeatModeRandom,
+                RepeatMode.Chapter => Is20XModel ? Oppo20XAdvancedCommand.SetRepeatModeChapter : Oppo10XAdvancedCommand.SetRepeatModeChapter,
+                RepeatMode.Title => Is20XModel ? Oppo20XAdvancedCommand.SetRepeatModeTitle : Oppo10XAdvancedCommand.SetRepeatModeTitle,
+                RepeatMode.All => Is20XModel ? Oppo20XAdvancedCommand.SetRepeatModeAll : Oppo10XAdvancedCommand.SetRepeatModeAll,
+                RepeatMode.Off => Is20XModel ? Oppo20XAdvancedCommand.SetRepeatModeOff : Oppo10XAdvancedCommand.SetRepeatModeOff,
+                RepeatMode.Shuffle => Is20XModel ? Oppo20XAdvancedCommand.SetRepeatModeShuffle : Oppo10XAdvancedCommand.SetRepeatModeShuffle,
+                RepeatMode.Random => Is20XModel ? Oppo20XAdvancedCommand.SetRepeatModeRandom : Oppo10XAdvancedCommand.SetRepeatModeRandom,
                 _ => throw new ArgumentOutOfRangeException(nameof(mode), mode, "Unknown repeat mode")
             }, cancellationToken);
         
@@ -1261,7 +1272,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
 
         try
         {
-            var command = Encoding.ASCII.GetBytes(_model == OppoModel.UDP20X ? $"#SVL {volume}\r" : $"REMOTE SVL {volume}");
+            var command = Encoding.ASCII.GetBytes(Is20XModel ? $"#SVL {volume}\r" : $"REMOTE SVL {volume}");
             var result = await SendCommand(command, cancellationToken);
         
             return result.Success switch
@@ -1280,6 +1291,43 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         }
     }
 
+    public async ValueTask<OppoResult<VolumeInfo>> QueryVolumeAsync(CancellationToken cancellationToken = default)
+    {
+        if (!await _semaphore.WaitAsync(_timeout, cancellationToken))
+            return false;
+
+        try
+        {
+            var result = await SendCommand(Is20XModel ? Oppo20XQueryCommand.QueryVolume : Oppo10XQueryCommand.QueryVolume, cancellationToken);
+
+            if (!result.Success)
+                return false;
+
+            bool muted;
+            ushort? volume;
+            if (result.Response.Equals("@OK MUTE", StringComparison.Ordinal))
+            {
+                muted = true;
+                volume = null;
+            }
+            else
+            {
+                muted = false;
+                volume = ushort.TryParse(result.Response.AsSpan()[4..], out var newVolume) ? newVolume : null;
+            }
+
+            return new OppoResult<VolumeInfo>
+            {
+                Success = true,
+                Result = new VolumeInfo(volume, muted)
+            };
+        }
+        finally
+        {
+            _semaphore.Release();
+        }
+    }
+
     public async ValueTask<OppoResult<PowerState>> QueryPowerStatusAsync(CancellationToken cancellationToken = default)
     {
         if (!await _semaphore.WaitAsync(_timeout, cancellationToken))
@@ -1287,7 +1335,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         
         try
         {
-            var command = _model == OppoModel.UDP20X ? Oppo20XQueryCommand.QueryPowerStatus : Oppo10XQueryCommand.QueryPowerStatus;
+            var command = Is20XModel ? Oppo20XQueryCommand.QueryPowerStatus : Oppo10XQueryCommand.QueryPowerStatus;
             var result = await SendCommand(command, cancellationToken);
         
             return result.Success switch
@@ -1318,7 +1366,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         
         try
         {
-            var command = _model == OppoModel.UDP20X ? Oppo20XQueryCommand.QueryPlaybackStatus : Oppo10XQueryCommand.QueryPlaybackStatus;
+            var command = Is20XModel ? Oppo20XQueryCommand.QueryPlaybackStatus : Oppo10XQueryCommand.QueryPlaybackStatus;
             var result = await SendCommand(command, cancellationToken);
         
             return result.Success switch
@@ -1361,27 +1409,27 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
     }
 
     public ValueTask<OppoResult<uint>> QueryTrackOrTitleElapsedTimeAsync(CancellationToken cancellationToken = default)
-        => QueryTimeAsync(_model == OppoModel.UDP20X ? Oppo20XQueryCommand.QueryTrackOrTitleElapsedTime : Oppo10XQueryCommand.QueryTrackOrTitleElapsedTime,
+        => QueryTimeAsync(Is20XModel ? Oppo20XQueryCommand.QueryTrackOrTitleElapsedTime : Oppo10XQueryCommand.QueryTrackOrTitleElapsedTime,
             cancellationToken);
 
     public ValueTask<OppoResult<uint>> QueryTrackOrTitleRemainingTimeAsync(CancellationToken cancellationToken = default)
-        => QueryTimeAsync(_model == OppoModel.UDP20X ? Oppo20XQueryCommand.QueryTrackOrTitleRemainingTime : Oppo10XQueryCommand.QueryTrackOrTitleRemainingTime,
+        => QueryTimeAsync(Is20XModel ? Oppo20XQueryCommand.QueryTrackOrTitleRemainingTime : Oppo10XQueryCommand.QueryTrackOrTitleRemainingTime,
             cancellationToken);
 
     public ValueTask<OppoResult<uint>> QueryChapterElapsedTimeAsync(CancellationToken cancellationToken = default)
-        => QueryTimeAsync(_model == OppoModel.UDP20X ? Oppo20XQueryCommand.QueryChapterElapsedTime : Oppo10XQueryCommand.QueryChapterElapsedTime,
+        => QueryTimeAsync(Is20XModel ? Oppo20XQueryCommand.QueryChapterElapsedTime : Oppo10XQueryCommand.QueryChapterElapsedTime,
             cancellationToken);
 
     public ValueTask<OppoResult<uint>> QueryChapterRemainingTimeAsync(CancellationToken cancellationToken = default)
-        => QueryTimeAsync(_model == OppoModel.UDP20X ? Oppo20XQueryCommand.QueryChapterRemainingTime : Oppo10XQueryCommand.QueryChapterRemainingTime,
+        => QueryTimeAsync(Is20XModel ? Oppo20XQueryCommand.QueryChapterRemainingTime : Oppo10XQueryCommand.QueryChapterRemainingTime,
             cancellationToken);
 
     public ValueTask<OppoResult<uint>> QueryTotalElapsedTimeAsync(CancellationToken cancellationToken = default)
-        => QueryTimeAsync(_model == OppoModel.UDP20X ? Oppo20XQueryCommand.QueryTotalElapsedTime : Oppo10XQueryCommand.QueryTotalElapsedTime,
+        => QueryTimeAsync(Is20XModel ? Oppo20XQueryCommand.QueryTotalElapsedTime : Oppo10XQueryCommand.QueryTotalElapsedTime,
             cancellationToken);
 
     public ValueTask<OppoResult<uint>> QueryTotalRemainingTimeAsync(CancellationToken cancellationToken = default)
-        => QueryTimeAsync(_model == OppoModel.UDP20X ? Oppo20XQueryCommand.QueryTotalRemainingTime : Oppo10XQueryCommand.QueryTotalRemainingTime,
+        => QueryTimeAsync(Is20XModel ? Oppo20XQueryCommand.QueryTotalRemainingTime : Oppo10XQueryCommand.QueryTotalRemainingTime,
             cancellationToken);
 
     public async ValueTask<OppoResult<DiscType>> QueryDiscTypeAsync(CancellationToken cancellationToken = default)
@@ -1391,7 +1439,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
 
         try
         {
-            var command = _model == OppoModel.UDP20X ? Oppo20XQueryCommand.QueryDiscType : Oppo10XQueryCommand.QueryDiscType;
+            var command = Is20XModel ? Oppo20XQueryCommand.QueryDiscType : Oppo10XQueryCommand.QueryDiscType;
             var result = await SendCommand(command, cancellationToken);
         
             return result.Success switch
@@ -1432,7 +1480,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
 
         try
         {
-            var command = _model == OppoModel.UDP20X ? Oppo20XQueryCommand.QueryRepeatMode : Oppo10XQueryCommand.QueryRepeatMode;
+            var command = Is20XModel ? Oppo20XQueryCommand.QueryRepeatMode : Oppo10XQueryCommand.QueryRepeatMode;
             var result = await SendCommand(command, cancellationToken);
         
             return result.Success switch
@@ -1460,10 +1508,151 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
             _semaphore.Release();
         }
     }
-    
+
+    public async ValueTask<OppoResult<InputSource>> QueryInputSourceAsync(CancellationToken cancellationToken = default)
+    {
+        if (_model is OppoModel.BDP83)
+            return false;
+        
+        if (!await _semaphore.WaitAsync(_timeout, cancellationToken))
+            return false;
+        
+        try
+        {
+            var command = Is20XModel ? Oppo20XQueryCommand.QueryInputSource : Oppo10XQueryCommand.QueryInputSource;
+            var result = await SendCommand(command, cancellationToken);
+        
+            return result.Success switch
+            {
+                false => false,
+                _ => new OppoResult<InputSource>
+                {
+                    Success = true,
+                    Result = result.Response switch
+                    {
+                        "@OK 0 BD-PLAYER" => InputSource.BluRayPlayer,
+                        "@OK 1 HDMI-IN" => InputSource.HDMIIn,
+                        "@OK 2 ARC-HDMI-OUT" => InputSource.ARCHDMIOut,
+                        "@OK 3 OPTICAL-IN" => InputSource.Optical,
+                        "@OK 4 COAXIAL-IN" => InputSource.Coaxial,
+                        "@OK 5 USB-AUDIO-IN" => InputSource.USBAudio,
+                        "@OK 1 HDMI-FRONT" => InputSource.HDMIFront,
+                        "@OK 2 HDMI-BACK" => InputSource.HDMIBack,
+                        "@OK 3 ARC-HDMI-OUT1" => InputSource.ARCHDMIOut1,
+                        "@OK 4 ARC-HDMI-OUT2" => InputSource.ARCHDMIOut2,
+                        "@OK 5 OPTICAL" => InputSource.Optical,
+                        "@OK 6 COAXIAL" => InputSource.Coaxial,
+                        "@OK 7 USB-AUDIO" => InputSource.USBAudio,
+                        _ => LogError(result.Response, InputSource.Unknown)
+                    }
+                }
+            };
+        }
+        finally
+        {
+            _semaphore.Release();
+        }
+    }
+
+    public async ValueTask<OppoResult<InputSource>> SetInputSourceAsync(InputSource inputSource, CancellationToken cancellationToken = default)
+    {
+        if (!IsValidCommand(_model, inputSource))
+            return false;
+        
+        if (!await _semaphore.WaitAsync(_timeout, cancellationToken))
+            return false;
+        
+        try
+        {
+            ushort commandDigit = inputSource switch
+            {
+                InputSource.BluRayPlayer => 0,
+                InputSource.HDMIIn => 1,
+                InputSource.ARCHDMIOut => 2,
+                InputSource.Optical => (ushort)(Is20XModel ? 3 : 5),
+                InputSource.Coaxial => (ushort)(Is20XModel ? 4 : 6),
+                InputSource.USBAudio => (ushort)(Is20XModel ? 5 : 7),
+                InputSource.HDMIFront => 1,
+                InputSource.HDMIBack => 2,
+                InputSource.ARCHDMIOut1 => 3,
+                InputSource.ARCHDMIOut2 => 4,
+                InputSource.Unknown => throw new ArgumentOutOfRangeException(nameof(inputSource), inputSource, null),
+                _ => throw new ArgumentOutOfRangeException(nameof(inputSource), inputSource, null)
+            };
+        
+            var command = Encoding.ASCII.GetBytes(Is20XModel ? $"#SIS {commandDigit}\r" : $"REMOTE SVL {commandDigit}");
+            var result = await SendCommand(command, cancellationToken);
+        
+            return result.Success switch
+            {
+                false => false,
+                _ => new OppoResult<InputSource>
+                {
+                    Success = true,
+                    Result = result.Response switch
+                    {
+                        "@OK 0 BD-PLAYER" => InputSource.BluRayPlayer,
+                        "@OK 1 HDMI-IN" => InputSource.HDMIIn,
+                        "@OK 2 ARC-HDMI-OUT" => InputSource.ARCHDMIOut,
+                        "@OK 3 OPTICAL-IN" => InputSource.Optical,
+                        "@OK 4 COAXIAL-IN" => InputSource.Coaxial,
+                        "@OK 5 USB-AUDIO-IN" => InputSource.USBAudio,
+                        "@OK 1 HDMI-FRONT" => InputSource.HDMIFront,
+                        "@OK 2 HDMI-BACK" => InputSource.HDMIBack,
+                        "@OK 3 ARC-HDMI-OUT1" => InputSource.ARCHDMIOut1,
+                        "@OK 4 ARC-HDMI-OUT2" => InputSource.ARCHDMIOut2,
+                        "@OK 5 OPTICAL" => InputSource.Optical,
+                        "@OK 6 COAXIAL" => InputSource.Coaxial,
+                        "@OK 7 USB-AUDIO" => InputSource.USBAudio,
+                        _ => LogError(result.Response, InputSource.Unknown)
+                    }
+                }
+            };
+        }
+        finally
+        {
+            _semaphore.Release();
+        }
+
+        static bool IsValidCommand(in OppoModel model, in InputSource inputSource)
+        {
+            return model switch
+            {
+                OppoModel.BDP10X => inputSource switch
+                {
+                    InputSource.BluRayPlayer => true,
+                    InputSource.HDMIFront => true,
+                    InputSource.HDMIBack => true,
+                    InputSource.ARCHDMIOut1 => true,
+                    InputSource.ARCHDMIOut2 => true,
+                    InputSource.Optical => true,
+                    InputSource.Coaxial => true,
+                    InputSource.USBAudio => true,
+                    _ => false
+                },
+                OppoModel.UDP203 => inputSource switch
+                {
+                    InputSource.BluRayPlayer => true,
+                    InputSource.HDMIIn => true,
+                    InputSource.ARCHDMIOut => true,
+                    _ => false
+                },
+                OppoModel.UDP205 => inputSource switch
+                {
+                    InputSource.BluRayPlayer => true,
+                    InputSource.HDMIIn => true,
+                    InputSource.Optical => true,
+                    InputSource.USBAudio => true,
+                    _ => false
+                },
+                _ => false
+            };
+        }
+    }
+
     public async ValueTask<OppoResult<string>> QueryCDDBNumberAsync(CancellationToken cancellationToken = default)
     {
-        if (_model is not OppoModel.UDP20X)
+        if (!Is20XModel)
             return false;
         
         if (!await _semaphore.WaitAsync(_timeout, cancellationToken))
@@ -1491,7 +1680,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
 
     public async ValueTask<OppoResult<string>> QueryTrackNameAsync(CancellationToken cancellationToken = default)
     {
-        if (_model is not OppoModel.UDP20X)
+        if (!Is20XModel)
             return false;
         
         if (!await _semaphore.WaitAsync(_timeout, cancellationToken))
@@ -1519,7 +1708,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
 
     public async ValueTask<OppoResult<string>> QueryTrackAlbumAsync(CancellationToken cancellationToken = default)
     {
-        if (_model is not OppoModel.UDP20X)
+        if (!Is20XModel)
             return false;
         
         if (!await _semaphore.WaitAsync(_timeout, cancellationToken))
@@ -1547,7 +1736,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
 
     public async ValueTask<OppoResult<string>> QueryTrackPerformerAsync(CancellationToken cancellationToken = default)
     {
-        if (_model is not OppoModel.UDP20X)
+        if (!Is20XModel)
             return false;
         
         if (!await _semaphore.WaitAsync(_timeout, cancellationToken))
@@ -1582,7 +1771,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
                 try
                 {
                     using var cancellationTokenSource = new CancellationTokenSource(timeout ?? TimeSpan.FromSeconds(10));
-                    await _tcpClient.ConnectAsync(_hostName, _port, cancellationTokenSource.Token);
+                    await _tcpClient.ConnectAsync(_hostName, Port, cancellationTokenSource.Token);
                 }
                 catch (OperationCanceledException)
                 {
@@ -1700,7 +1889,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         if (isFirstWrite)
         {
             // Models prior to UDP-20X doesn't send back @OK or @ER, rather it's @(COMMAND_CODE) followed by OK|ER and then the response
-            if (_model != OppoModel.UDP20X && (!span.StartsWith("@OK "u8) || !span.StartsWith("@ER "u8)))
+            if (!Is20XModel && (!span.StartsWith("@OK "u8) || !span.StartsWith("@ER "u8)))
             {
                 _stringBuilder.Append('@');
                 int charsDecoded = Encoding.ASCII.GetChars(span[5..], charBuffer);

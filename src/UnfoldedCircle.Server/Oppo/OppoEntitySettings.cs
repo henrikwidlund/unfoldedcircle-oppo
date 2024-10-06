@@ -1,4 +1,7 @@
 using System.Collections.Frozen;
+
+using Oppo;
+
 using UnfoldedCircle.Models.Sync;
 
 namespace UnfoldedCircle.Server.Oppo;
@@ -69,4 +72,48 @@ public static class OppoEntitySettings
         EntitySettingsConstants.AvSync,
         EntitySettingsConstants.GaplessPlay
     }.ToFrozenSet();
+
+    public static readonly Dictionary<OppoModel, string[]> SourceList = new()
+    {
+        [OppoModel.BDP10X] =
+        [
+            OppoConstants.InputSource.BluRayPlayer,
+            OppoConstants.InputSource.HDMIFront,
+            OppoConstants.InputSource.HDMIBack,
+            OppoConstants.InputSource.ARCHDMIOut1,
+            OppoConstants.InputSource.ARCHDMIOut2,
+            OppoConstants.InputSource.Optical,
+            OppoConstants.InputSource.Coaxial,
+            OppoConstants.InputSource.USBAudio
+        ],
+        [OppoModel.UDP203] =
+        [
+            OppoConstants.InputSource.BluRayPlayer,
+            OppoConstants.InputSource.HDMIIn,
+            OppoConstants.InputSource.ARCHDMIOut
+        ],
+        [OppoModel.UDP205] =
+        [
+            OppoConstants.InputSource.BluRayPlayer,
+            OppoConstants.InputSource.HDMIIn,
+            OppoConstants.InputSource.ARCHDMIOut,
+            OppoConstants.InputSource.Optical,
+            OppoConstants.InputSource.Coaxial,
+            OppoConstants.InputSource.USBAudio
+        ]
+    };
+    
+    public static readonly Dictionary<string, InputSource> SourceMap = new(StringComparer.OrdinalIgnoreCase)
+    {
+        [OppoConstants.InputSource.BluRayPlayer] = InputSource.BluRayPlayer,
+        [OppoConstants.InputSource.HDMIFront] = InputSource.HDMIIn,
+        [OppoConstants.InputSource.HDMIBack] = InputSource.HDMIIn,
+        [OppoConstants.InputSource.ARCHDMIOut1] = InputSource.ARCHDMIOut,
+        [OppoConstants.InputSource.ARCHDMIOut2] = InputSource.ARCHDMIOut,
+        [OppoConstants.InputSource.Optical] = InputSource.Optical,
+        [OppoConstants.InputSource.Coaxial] = InputSource.Coaxial,
+        [OppoConstants.InputSource.USBAudio] = InputSource.USBAudio,
+        [OppoConstants.InputSource.HDMIIn] = InputSource.HDMIIn,
+        [OppoConstants.InputSource.ARCHDMIOut] = InputSource.ARCHDMIOut
+    };
 }

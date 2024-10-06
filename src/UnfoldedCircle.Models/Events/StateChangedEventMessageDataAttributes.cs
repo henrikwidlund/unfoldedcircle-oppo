@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+
 using UnfoldedCircle.Models.Shared;
 
 namespace UnfoldedCircle.Models.Events;
@@ -5,12 +7,17 @@ namespace UnfoldedCircle.Models.Events;
 public record StateChangedEventMessageDataAttributes
 {
     [JsonPropertyName("state")]
-    [JsonIgnore(Condition = JsonIgnoreCondition.Never)]
-    public required State State { get; init; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public State? State { get; init; }
     
-    [JsonPropertyName("media_type")]
+    [JsonPropertyName("volume")]
     [JsonIgnore(Condition = JsonIgnoreCondition.Never)]
-    public MediaType? MediaType { get; init; }
+    [Range(0, 100)]
+    public ushort? Volume { get; init; }
+    
+    [JsonPropertyName("muted")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.Never)]
+    public bool? Muted { get; init; }
     
     [JsonPropertyName("media_position")]
     [JsonIgnore(Condition = JsonIgnoreCondition.Never)]
@@ -35,6 +42,10 @@ public record StateChangedEventMessageDataAttributes
     [JsonPropertyName("media_image_url")]
     [JsonIgnore(Condition = JsonIgnoreCondition.Never)]
     public Uri? MediaImageUrl { get; init; }
+    
+    [JsonPropertyName("media_type")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.Never)]
+    public MediaType? MediaType { get; init; }
 
     [JsonPropertyName("repeat")]
     [JsonIgnore(Condition = JsonIgnoreCondition.Never)]
@@ -43,4 +54,20 @@ public record StateChangedEventMessageDataAttributes
     [JsonPropertyName("shuffle")]
     [JsonIgnore(Condition = JsonIgnoreCondition.Never)]
     public bool? Shuffle { get; init; }
+    
+    [JsonPropertyName("source")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.Never)]
+    public string? Source { get; init; }
+    
+    [JsonPropertyName("source_list")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string[]? SourceList { get; init; }
+    
+    [JsonPropertyName("sound_mode")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.Never)]
+    public string? SoundMode { get; init; }
+    
+    [JsonPropertyName("sound_mode_list")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string[]? SoundModeList { get; init; }
 }

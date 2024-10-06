@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 
 using Oppo;
 
+using UnfoldedCircle.Models.Events;
 using UnfoldedCircle.Models.Shared;
 using UnfoldedCircle.Models.Sync;
 using UnfoldedCircle.Server.Event;
@@ -96,7 +97,7 @@ internal partial class UnfoldedCircleWebSocketHandler
                         _unfoldedCircleJsonSerializerContext),
                     wsId,
                     cancellationTokenWrapper.ApplicationStopping);
-                
+
                 return;
             }
             case MessageEvent.SubscribeEvents:
@@ -108,6 +109,20 @@ internal partial class UnfoldedCircleWebSocketHandler
                     cancellationTokenWrapper.ApplicationStopping);
 
                 SetupInProgressMap.TryRemove(wsId, out _);
+                
+                var oppoClientHolder = await TryGetOppoClientHolder(wsId, null, cancellationTokenWrapper.ApplicationStopping);
+                if (oppoClientHolder is not null
+                    && oppoClientHolder.ClientKey.Model is not OppoModel.BDP83
+                    && await oppoClientHolder.Client.IsConnectedAsync())
+                {
+                    await SendAsync(socket,
+                        ResponsePayloadHelpers.CreateStateChangedResponsePayload(new StateChangedEventMessageDataAttributes
+                        {
+                            SourceList = OppoEntitySettings.SourceList[oppoClientHolder.ClientKey.Model]
+                        }, _unfoldedCircleJsonSerializerContext),
+                        wsId,
+                        cancellationTokenWrapper.ApplicationStopping);
+                }
                 
                 return;
             }
@@ -131,6 +146,7 @@ internal partial class UnfoldedCircleWebSocketHandler
                     ResponsePayloadHelpers.CreateGetEntityStatesResponsePayload(payload,
                         oppoClientHolder is not null && await oppoClientHolder.Client.IsConnectedAsync(),
                         payload.MsgData?.DeviceId,
+                        oppoClientHolder?.ClientKey.Model,
                         _unfoldedCircleJsonSerializerContext),
                     wsId,
                     cancellationTokenWrapper.ApplicationStopping);
@@ -287,9 +303,17 @@ internal partial class UnfoldedCircleWebSocketHandler
                                     {
                                         Label = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
                                         {
-                                            ["en"] = nameof(OppoModel.UDP20X)
+                                            ["en"] = nameof(OppoModel.UDP203)
                                         },
-                                        Value = nameof(OppoModel.UDP20X)
+                                        Value = nameof(OppoModel.UDP203)
+                                    },
+                                    new SettingTypeDropdownItem
+                                    {
+                                        Label = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+                                        {
+                                            ["en"] = nameof(OppoModel.UDP205)
+                                        },
+                                        Value = nameof(OppoModel.UDP205)
                                     }
                                 ]
                             }

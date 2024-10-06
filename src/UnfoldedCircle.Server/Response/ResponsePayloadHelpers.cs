@@ -1,3 +1,5 @@
+using Oppo;
+
 using UnfoldedCircle.Models.Events;
 using UnfoldedCircle.Models.Shared;
 using UnfoldedCircle.Models.Sync;
@@ -100,6 +102,7 @@ internal static class ResponsePayloadHelpers
         CommonReq req,
         in bool isConnected,
         string? deviceId,
+        in OppoModel? model,
         UnfoldedCircleJsonSerializerContext jsonSerializerContext) =>
         JsonSerializer.SerializeToUtf8Bytes(new EntityStates<MediaPlayerEntityAttribute>
         {
@@ -114,13 +117,62 @@ internal static class ResponsePayloadHelpers
                     {
                         EntityId = OppoConstants.EntityId,
                         EntityType = EntityType.MediaPlayer,
-                        Attributes = [],
+                        Attributes = GetMediaPlayerAttributes(model!.Value),
                         DeviceId = deviceId
                     }
                 ]
                 : []
         }, jsonSerializerContext.EntityStatesMediaPlayerEntityAttribute);
 
+    private static MediaPlayerEntityAttribute[] GetMediaPlayerAttributes(OppoModel model)
+    {
+        return model switch
+        {
+            OppoModel.BDP83=>
+            [
+                MediaPlayerEntityAttribute.State,
+                MediaPlayerEntityAttribute.Volume,
+                MediaPlayerEntityAttribute.Muted,
+                MediaPlayerEntityAttribute.MediaPosition,
+                MediaPlayerEntityAttribute.MediaDuration,
+                MediaPlayerEntityAttribute.MediaType,
+                MediaPlayerEntityAttribute.Repeat,
+                MediaPlayerEntityAttribute.Shuffle
+            ],
+            OppoModel.BDP10X =>
+            [
+                MediaPlayerEntityAttribute.State,
+                MediaPlayerEntityAttribute.Volume,
+                MediaPlayerEntityAttribute.Muted,
+                MediaPlayerEntityAttribute.MediaPosition,
+                MediaPlayerEntityAttribute.MediaDuration,
+                MediaPlayerEntityAttribute.MediaType,
+                MediaPlayerEntityAttribute.Repeat,
+                MediaPlayerEntityAttribute.Shuffle,
+                MediaPlayerEntityAttribute.Source,
+                MediaPlayerEntityAttribute.SourceList
+            ],
+            OppoModel.UDP203 or OppoModel.UDP205 =>
+            [
+                MediaPlayerEntityAttribute.State,
+                MediaPlayerEntityAttribute.Volume,
+                MediaPlayerEntityAttribute.Muted,
+                MediaPlayerEntityAttribute.MediaPosition,
+                MediaPlayerEntityAttribute.MediaDuration,
+                MediaPlayerEntityAttribute.MediaTitle,
+                MediaPlayerEntityAttribute.MediaArtist,
+                MediaPlayerEntityAttribute.MediaAlbum,
+                MediaPlayerEntityAttribute.MediaImageUrl,
+                MediaPlayerEntityAttribute.MediaType,
+                MediaPlayerEntityAttribute.Repeat,
+                MediaPlayerEntityAttribute.Shuffle,
+                MediaPlayerEntityAttribute.Source,
+                MediaPlayerEntityAttribute.SourceList
+            ],
+            _ => throw new ArgumentOutOfRangeException(nameof(model), model, null)
+        };
+    }
+    
     public static byte[] CreateDeviceSetupChangeResponsePayload(
         in bool isConnected,
         UnfoldedCircleJsonSerializerContext jsonSerializerContext) =>
@@ -166,7 +218,9 @@ internal static class ResponsePayloadHelpers
             MsgData = validationError
         }, jsonSerializerContext.CommonRespRequiredValidationError);
 
-    internal static byte[] CreateStateChangedResponsePayload(UnfoldedCircleJsonSerializerContext jsonSerializerContext) =>
+    internal static byte[] CreateStateChangedResponsePayload(
+        StateChangedEventMessageDataAttributes attributes,
+        UnfoldedCircleJsonSerializerContext jsonSerializerContext) =>
         JsonSerializer.SerializeToUtf8Bytes(new StateChangedEvent
         {
             Kind = "event",
@@ -177,7 +231,7 @@ internal static class ResponsePayloadHelpers
             {
                 EntityId = OppoConstants.EntityId,
                 EntityType = EntityType.MediaPlayer,
-                Attributes = new StateChangedEventMessageDataAttributes { State = State.Off }
+                Attributes = attributes
             }
         }, jsonSerializerContext.StateChangedEvent);
 }
