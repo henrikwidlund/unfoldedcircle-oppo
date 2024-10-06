@@ -56,15 +56,15 @@ internal class ConfigurationService(IConfiguration configuration, UnfoldedCircle
         }
     }
     
-    public async Task<UnfoldedCircleConfiguration> UpdateConfigurationAsync(UnfoldedCircleConfiguration configurations, CancellationToken cancellationToken = default)
+    public async Task<UnfoldedCircleConfiguration> UpdateConfigurationAsync(UnfoldedCircleConfiguration configuration, CancellationToken cancellationToken = default)
     {
         await _unfoldedCircleConfigSemaphore.WaitAsync(cancellationToken);
         
         try
         {
             await using var configurationFileStream = File.OpenWrite(ConfigurationFilePath);
-            await JsonSerializer.SerializeAsync(configurationFileStream, configurations, _jsonSerializerContext.UnfoldedCircleConfiguration, cancellationToken);
-            _unfoldedCircleConfiguration = configurations;
+            await JsonSerializer.SerializeAsync(configurationFileStream, configuration, _jsonSerializerContext.UnfoldedCircleConfiguration, cancellationToken);
+            _unfoldedCircleConfiguration = configuration;
             return _unfoldedCircleConfiguration;
         }
         finally

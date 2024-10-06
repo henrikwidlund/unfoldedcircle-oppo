@@ -96,12 +96,11 @@ internal partial class UnfoldedCircleWebSocketHandler
                 UseMediaEvents = useMediaEvents ?? false,
                 UseChapterLengthForMovies = useChapterLengthForMovies ?? false
             };
-            
-            configuration.Entities.Add(entity);
         }
         else
         {
             _logger.LogInformation("Updating configuration for device ID '{DeviceId}'", deviceId);
+            configuration.Entities.Remove(entity);
             entity = entity with
             {
                 Host = host,
@@ -109,6 +108,8 @@ internal partial class UnfoldedCircleWebSocketHandler
                 UseMediaEvents = useMediaEvents ?? entity.UseMediaEvents
             };
         }
+        
+        configuration.Entities.Add(entity);
         
         await _configurationService.UpdateConfigurationAsync(configuration, cancellationToken);
 
