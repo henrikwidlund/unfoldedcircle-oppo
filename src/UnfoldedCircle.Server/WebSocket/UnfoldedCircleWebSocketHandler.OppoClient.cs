@@ -121,7 +121,7 @@ internal partial class UnfoldedCircleWebSocketHandler
             {
                 return oppoModel switch
                 {
-                    _ when oppoModel.Equals(nameof(OppoModel.BDP83), StringComparison.OrdinalIgnoreCase) => OppoModel.BDP83,
+                    _ when oppoModel.Equals(nameof(OppoModel.BDP8395), StringComparison.OrdinalIgnoreCase) => OppoModel.BDP8395,
                     _ when oppoModel.Equals(nameof(OppoModel.BDP10X), StringComparison.OrdinalIgnoreCase) => OppoModel.BDP10X,
                     _ when oppoModel.Equals(nameof(OppoModel.UDP203), StringComparison.OrdinalIgnoreCase) => OppoModel.UDP203,
                     _ => OppoModel.UDP205

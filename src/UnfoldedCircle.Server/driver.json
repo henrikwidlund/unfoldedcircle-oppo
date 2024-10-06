@@ -38,27 +38,27 @@
             "value": "movie_length",
             "items": [
               {
-                "id": "BDP83",
+                "id": "BDP8395",
                 "label": {
-                  "en": "BDP83"
+                  "en": "BDP-83, 93 and 95"
                 }
               },
               {
                 "id": "BDP10X",
                 "label": {
-                  "en": "BDP10X"
+                  "en": "BDP-103 and 105"
                 }
               },
               {
                 "id": "UDP203",
                 "label": {
-                  "en": "UDP203"
+                  "en": "UDP-203"
                 }
               },
               {
                 "id": "UDP205",
                 "label": {
-                  "en": "UDP205"
+                  "en": "UDP-205"
                 }
               }
             ]

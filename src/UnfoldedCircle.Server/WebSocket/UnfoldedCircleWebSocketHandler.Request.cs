@@ -112,7 +112,7 @@ internal partial class UnfoldedCircleWebSocketHandler
                 
                 var oppoClientHolder = await TryGetOppoClientHolder(wsId, null, cancellationTokenWrapper.ApplicationStopping);
                 if (oppoClientHolder is not null
-                    && oppoClientHolder.ClientKey.Model is not OppoModel.BDP83
+                    && oppoClientHolder.ClientKey.Model is not OppoModel.BDP8395
                     && await oppoClientHolder.Client.IsConnectedAsync())
                 {
                     await SendAsync(socket,
@@ -287,15 +287,15 @@ internal partial class UnfoldedCircleWebSocketHandler
                                     {
                                         Label = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
                                         {
-                                            ["en"] = nameof(OppoModel.BDP83)
+                                            ["en"] = "BDP-83, 93 and 95"
                                         },
-                                        Value = nameof(OppoModel.BDP83)
+                                        Value = nameof(OppoModel.BDP8395)
                                     },
                                     new SettingTypeDropdownItem
                                     {
                                         Label = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
                                         {
-                                            ["en"] = nameof(OppoModel.BDP10X)
+                                            ["en"] = "BDP-103 and 105"
                                         },
                                         Value = nameof(OppoModel.BDP10X)
                                     },
@@ -303,7 +303,7 @@ internal partial class UnfoldedCircleWebSocketHandler
                                     {
                                         Label = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
                                         {
-                                            ["en"] = nameof(OppoModel.UDP203)
+                                            ["en"] = "UDP-203"
                                         },
                                         Value = nameof(OppoModel.UDP203)
                                     },
@@ -311,7 +311,7 @@ internal partial class UnfoldedCircleWebSocketHandler
                                     {
                                         Label = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
                                         {
-                                            ["en"] = nameof(OppoModel.UDP205)
+                                            ["en"] = "UDP-205"
                                         },
                                         Value = nameof(OppoModel.UDP205)
                                     }

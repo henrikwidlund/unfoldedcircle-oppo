@@ -22,7 +22,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
     private ushort? _port;
     private ushort Port => _port ??= _model switch
     {
-        OppoModel.BDP83 => 19999,
+        OppoModel.BDP8395 => 19999,
         OppoModel.BDP10X => 48360,
         OppoModel.UDP203 => 23,
         OppoModel.UDP205 => 23,
@@ -1029,7 +1029,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
     
     public async ValueTask<bool> OptionAsync(CancellationToken cancellationToken = default)
     {
-        if (_model is OppoModel.BDP83)
+        if (_model is OppoModel.BDP8395)
             return false;
         
         if (!await _semaphore.WaitAsync(_timeout, cancellationToken))
@@ -1049,7 +1049,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
     
     public async ValueTask<bool> ThreeDAsync(CancellationToken cancellationToken = default)
     {
-        if (_model is OppoModel.BDP83)
+        if (_model is OppoModel.BDP8395)
             return false;
         
         if (!await _semaphore.WaitAsync(_timeout, cancellationToken))
@@ -1069,7 +1069,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
     
     public async ValueTask<bool> PictureAdjustmentAsync(CancellationToken cancellationToken = default)
     {
-        if (_model is OppoModel.BDP83)
+        if (_model is OppoModel.BDP8395)
             return false;
         
         if (!await _semaphore.WaitAsync(_timeout, cancellationToken))
@@ -1511,7 +1511,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
 
     public async ValueTask<OppoResult<InputSource>> QueryInputSourceAsync(CancellationToken cancellationToken = default)
     {
-        if (_model is OppoModel.BDP83)
+        if (_model is OppoModel.BDP8395)
             return false;
         
         if (!await _semaphore.WaitAsync(_timeout, cancellationToken))

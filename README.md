@@ -10,6 +10,8 @@ This repository contains the server code for hosting an Oppo UDP-20X integration
 ## Supported devices
 
 - Oppo BDP-83
+- Oppo BDP-93
+- Oppo BDP-95
 - Oppo BDP-103
 - Oppo BDP-105
 - Oppo UDP-203
@@ -19,20 +21,20 @@ This repository contains the server code for hosting an Oppo UDP-20X integration
 
 - All features are supported for the UDP-20X series.
 
-| Feature            | Oppo UDP-83 | Oppo UDP-10X |
-|--------------------|-------------|--------------|
-| Option Command     | ❌           | ✔️           |
-| 3D Switching       | ❌           | ✔️           |
-| Picture Adjustment | ❌           | ✔️           |
-| HDR Mode           | ❌           | ❌️           |
-| Info Hold          | ❌           | ❌️           |
-| Resolution Hold    | ❌           | ❌️           |
-| A/V Sync           | ❌           | ❌️           |
-| Gapless Playback   | ❌           | ❌️           |
-| Track Name         | ❌           | ❌️           |
-| Album Name         | ❌           | ❌️           |
-| Album Cover        | ❌           | ❌️           |
-| Artist Name        | ❌           | ❌️           |
+| Feature            | Oppo BDP-83/93/95 | Oppo UDP-10X |
+|--------------------|-------------------|--------------|
+| Option Command     | ❌                 | ✔️           |
+| 3D Switching       | ❌                 | ✔️           |
+| Picture Adjustment | ❌                 | ✔️           |
+| HDR Mode           | ❌                 | ❌️           |
+| Info Hold          | ❌                 | ❌️           |
+| Resolution Hold    | ❌                 | ❌️           |
+| A/V Sync           | ❌                 | ❌️           |
+| Gapless Playback   | ❌                 | ❌️           |
+| Track Name         | ❌                 | ❌️           |
+| Album Name         | ❌                 | ❌️           |
+| Album Cover        | ❌                 | ❌️           |
+| Artist Name        | ❌                 | ❌️           |
 
 ## Prerequisites
 
