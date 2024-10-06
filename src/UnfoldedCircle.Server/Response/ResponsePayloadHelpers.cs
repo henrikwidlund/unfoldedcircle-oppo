@@ -128,7 +128,7 @@ internal static class ResponsePayloadHelpers
     {
         return model switch
         {
-            OppoModel.BDP83=>
+            OppoModel.BDP8395=>
             [
                 MediaPlayerEntityAttribute.State,
                 MediaPlayerEntityAttribute.Volume,
