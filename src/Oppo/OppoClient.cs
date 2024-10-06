@@ -34,269 +34,179 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
 
     public async ValueTask<OppoResult<PowerState>> PowerToggleAsync(CancellationToken cancellationToken = default)
     {
-        if (!await _semaphore.WaitAsync(_timeout, cancellationToken))
-            return false;
-        
-        try
+        var command = Is20XModel ? Oppo20XCommand.PowerToggle : Oppo10XCommand.PowerToggle;
+        var result = await SendCommand(command, cancellationToken);
+        return result.Success switch
         {
-            var command = Is20XModel ? Oppo20XCommand.PowerToggle : Oppo10XCommand.PowerToggle;
-            var result = await SendCommand(command, cancellationToken);
-            return result.Success switch
+            false => new OppoResult<PowerState> { Success = false },
+            _ => new OppoResult<PowerState>
             {
-                false => new OppoResult<PowerState> { Success = false },
-                _ => new OppoResult<PowerState>
+                Success = true,
+                Result = result.Response switch
                 {
-                    Success = true,
-                    Result = result.Response switch
-                    {
-                        "@OK ON" => PowerState.On,
-                        "@OK OFF" => PowerState.Off,
-                        _ => LogError(result.Response, PowerState.Unknown)
-                    }
+                    "@OK ON" => PowerState.On,
+                    "@OK OFF" => PowerState.Off,
+                    _ => LogError(result.Response, PowerState.Unknown)
                 }
-            };
-        }
-        finally
-        {
-            _semaphore.Release();
-        }
+            }
+        };
     }
 
     public async ValueTask<OppoResult<PowerState>> PowerOnAsync(CancellationToken cancellationToken = default)
     {
-        if (!await _semaphore.WaitAsync(_timeout, cancellationToken))
-            return false;
+        var command = Is20XModel ? Oppo20XCommand.PowerOn : Oppo10XCommand.PowerOn;
+        var result = await SendCommand(command, cancellationToken);
 
-        try
+        return result.Success switch
         {
-            var command = Is20XModel ? Oppo20XCommand.PowerOn : Oppo10XCommand.PowerOn;
-            var result = await SendCommand(command, cancellationToken);
-
-            return result.Success switch
+            false => new OppoResult<PowerState> { Success = false },
+            _ => new OppoResult<PowerState>
             {
-                false => new OppoResult<PowerState> { Success = false },
-                _ => new OppoResult<PowerState>
+                Success = true,
+                Result = result.Response switch
                 {
-                    Success = true,
-                    Result = result.Response switch
-                    {
-                        "@OK ON" => PowerState.On,
-                        _ => LogError(result.Response, PowerState.Unknown)
-                    }
+                    "@OK ON" => PowerState.On,
+                    _ => LogError(result.Response, PowerState.Unknown)
                 }
-            };
-        }
-        finally
-        {
-            _semaphore.Release();
-        }
+            }
+        };
     }
 
     public async ValueTask<OppoResult<PowerState>> PowerOffAsync(CancellationToken cancellationToken = default)
     {
-        if (!await _semaphore.WaitAsync(_timeout, cancellationToken))
-            return false;
-        
-        try
-        {
-            var command = Is20XModel ? Oppo20XCommand.PowerOff : Oppo10XCommand.PowerOff;
-            var result = await SendCommand(command, cancellationToken);
+        var command = Is20XModel ? Oppo20XCommand.PowerOff : Oppo10XCommand.PowerOff;
+        var result = await SendCommand(command, cancellationToken);
 
-            return result.Success switch
-            {
-                false => new OppoResult<PowerState> { Success = false },
-                _ => new OppoResult<PowerState>
-                {
-                    Success = true,
-                    Result = result.Response switch
-                    {
-                        "@OK OFF" => PowerState.Off,
-                        _ => LogError(result.Response, PowerState.Unknown)
-                    }
-                }
-            };
-        }
-        finally
+        return result.Success switch
         {
-            _semaphore.Release();
-        }
+            false => new OppoResult<PowerState> { Success = false },
+            _ => new OppoResult<PowerState>
+            {
+                Success = true,
+                Result = result.Response switch
+                {
+                    "@OK OFF" => PowerState.Off,
+                    _ => LogError(result.Response, PowerState.Unknown)
+                }
+            }
+        };
     }
 
     public async ValueTask<OppoResult<TrayState>> EjectToggleAsync(CancellationToken cancellationToken = default)
     {
-        if (!await _semaphore.WaitAsync(_timeout, cancellationToken))
-            return false;
-        
-        try
-        {
-            var command = Is20XModel ? Oppo20XCommand.EjectToggle : Oppo10XCommand.EjectToggle;
-            var result = await SendCommand(command, cancellationToken);
+        var command = Is20XModel ? Oppo20XCommand.EjectToggle : Oppo10XCommand.EjectToggle;
+        var result = await SendCommand(command, cancellationToken);
 
-            return result.Success switch
-            {
-                false => new OppoResult<TrayState> { Success = false },
-                _ => new OppoResult<TrayState>
-                {
-                    Success = true,
-                    Result = result.Response switch
-                    {
-                        "@OK OPEN" => TrayState.Open,
-                        "@OK CLOSE" => TrayState.Closed,
-                        _ => LogError(result.Response, TrayState.Unknown)
-                    }
-                }
-            };
-        }
-        finally
+        return result.Success switch
         {
-            _semaphore.Release();
-        }
+            false => new OppoResult<TrayState> { Success = false },
+            _ => new OppoResult<TrayState>
+            {
+                Success = true,
+                Result = result.Response switch
+                {
+                    "@OK OPEN" => TrayState.Open,
+                    "@OK CLOSE" => TrayState.Closed,
+                    _ => LogError(result.Response, TrayState.Unknown)
+                }
+            }
+        };
     }
 
     public async ValueTask<OppoResult<DimmerState>> DimmerAsync(CancellationToken cancellationToken = default)
     {
-        if (!await _semaphore.WaitAsync(_timeout, cancellationToken))
-            return false;
+        var command = Is20XModel ? Oppo20XCommand.Dimmer : Oppo10XCommand.Dimmer;
+        var result = await SendCommand(command, cancellationToken);
 
-        try
+        return result.Success switch
         {
-            var command = Is20XModel ? Oppo20XCommand.Dimmer : Oppo10XCommand.Dimmer;
-            var result = await SendCommand(command, cancellationToken);
-
-            return result.Success switch
+            false => new OppoResult<DimmerState> { Success = false },
+            _ => new OppoResult<DimmerState>
             {
-                false => new OppoResult<DimmerState> { Success = false },
-                _ => new OppoResult<DimmerState>
+                Success = true,
+                Result = result.Response switch
                 {
-                    Success = true,
-                    Result = result.Response switch
-                    {
-                        "@OK ON" => DimmerState.On,
-                        "@OK DIM" => DimmerState.Dim,
-                        "@OK OFF" => DimmerState.Off,
-                        _ => LogError(result.Response, DimmerState.Unknown)
-                    }
+                    "@OK ON" => DimmerState.On,
+                    "@OK DIM" => DimmerState.Dim,
+                    "@OK OFF" => DimmerState.Off,
+                    _ => LogError(result.Response, DimmerState.Unknown)
                 }
-            };
-        }
-        finally
-        {
-            _semaphore.Release();
-        }
+            }
+        };
     }
 
     public async ValueTask<OppoResult<PureAudioState>> PureAudioToggleAsync(CancellationToken cancellationToken = default)
     {
-        if (!await _semaphore.WaitAsync(_timeout, cancellationToken))
-            return false;
-        
-        try
-        {
-            var command = Is20XModel ? Oppo20XCommand.PureAudioToggle : Oppo10XCommand.PureAudioToggle;
-            var result = await SendCommand(command, cancellationToken);
+        var command = Is20XModel ? Oppo20XCommand.PureAudioToggle : Oppo10XCommand.PureAudioToggle;
+        var result = await SendCommand(command, cancellationToken);
 
-            return result.Success switch
-            {
-                false => new OppoResult<PureAudioState> { Success = false },
-                _ => new OppoResult<PureAudioState>
-                {
-                    Success = true,
-                    Result = result.Response switch
-                    {
-                        "@OK ON" => PureAudioState.On,
-                        "@OK OFF" => PureAudioState.Off,
-                        _ => LogError(result.Response, PureAudioState.Unknown)
-                    }
-                }
-            };
-        }
-        finally
+        return result.Success switch
         {
-            _semaphore.Release();
-        }
+            false => new OppoResult<PureAudioState> { Success = false },
+            _ => new OppoResult<PureAudioState>
+            {
+                Success = true,
+                Result = result.Response switch
+                {
+                    "@OK ON" => PureAudioState.On,
+                    "@OK OFF" => PureAudioState.Off,
+                    _ => LogError(result.Response, PureAudioState.Unknown)
+                }
+            }
+        };
     }
 
     public async ValueTask<OppoResult<ushort?>> VolumeUpAsync(CancellationToken cancellationToken = default)
     {
-        if (!await _semaphore.WaitAsync(_timeout, cancellationToken))
-            return false;
-        
-        try
-        {
-            var command = Is20XModel ? Oppo20XCommand.VolumeUp : Oppo10XCommand.VolumeUp;
-            var result = await SendCommand(command, cancellationToken);
+        var command = Is20XModel ? Oppo20XCommand.VolumeUp : Oppo10XCommand.VolumeUp;
+        var result = await SendCommand(command, cancellationToken);
 
-            return result.Success switch
-            {
-                false => new OppoResult<ushort?> { Success = false },
-                _ => new OppoResult<ushort?>
-                {
-                    Success = ushort.TryParse(result.Response.AsSpan()[4..], out var volume),
-                    Result = volume
-                }
-            };
-        }
-        finally
+        return result.Success switch
         {
-            _semaphore.Release();
-        }
+            false => new OppoResult<ushort?> { Success = false },
+            _ => new OppoResult<ushort?>
+            {
+                Success = ushort.TryParse(result.Response.AsSpan()[4..], out var volume),
+                Result = volume
+            }
+        };
     }
     
     public async ValueTask<OppoResult<ushort?>> VolumeDownAsync(CancellationToken cancellationToken = default)
     {
-        if (!await _semaphore.WaitAsync(_timeout, cancellationToken))
-            return false;
-        
-        try
-        {
-            var command = Is20XModel ? Oppo20XCommand.VolumeDown : Oppo10XCommand.VolumeDown;
-            var result = await SendCommand(command, cancellationToken);
+        var command = Is20XModel ? Oppo20XCommand.VolumeDown : Oppo10XCommand.VolumeDown;
+        var result = await SendCommand(command, cancellationToken);
 
-            return result.Success switch
-            {
-                false => new OppoResult<ushort?> { Success = false },
-                _ => new OppoResult<ushort?>
-                {
-                    Success = ushort.TryParse(result.Response.AsSpan()[4..], out var volume),
-                    Result = volume
-                }
-            };
-        }
-        finally
+        return result.Success switch
         {
-            _semaphore.Release();
-        }
+            false => new OppoResult<ushort?> { Success = false },
+            _ => new OppoResult<ushort?>
+            {
+                Success = ushort.TryParse(result.Response.AsSpan()[4..], out var volume),
+                Result = volume
+            }
+        };
     }
     
     public async ValueTask<OppoResult<MuteState>> MuteToggleAsync(CancellationToken cancellationToken = default)
     {
-        if (!await _semaphore.WaitAsync(_timeout, cancellationToken))
-            return false;
-        
-        try
-        {
-            var command = Is20XModel ? Oppo20XCommand.MuteToggle : Oppo10XCommand.MuteToggle;
-            var result = await SendCommand(command, cancellationToken);
+        var command = Is20XModel ? Oppo20XCommand.MuteToggle : Oppo10XCommand.MuteToggle;
+        var result = await SendCommand(command, cancellationToken);
 
-            return result.Success switch
-            {
-                false => new OppoResult<MuteState> { Success = false },
-                _ => new OppoResult<MuteState>
-                {
-                    Success = true,
-                    Result = result.Response switch
-                    {
-                        "@OK MUTE" => MuteState.On,
-                        "@OK UNMUTE" => MuteState.Off,
-                        _ => LogError(result.Response, MuteState.Unknown)
-                    }
-                }
-            };
-        }
-        finally
+        return result.Success switch
         {
-            _semaphore.Release();
-        }
+            false => new OppoResult<MuteState> { Success = false },
+            _ => new OppoResult<MuteState>
+            {
+                Success = true,
+                Result = result.Response switch
+                {
+                    "@OK MUTE" => MuteState.On,
+                    "@OK UNMUTE" => MuteState.Off,
+                    _ => LogError(result.Response, MuteState.Unknown)
+                }
+            }
+        };
     }
     
     public async ValueTask<bool> NumericInput([Range(0, 9)] ushort number, CancellationToken cancellationToken = default)
@@ -304,727 +214,357 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         if (number > 9)
             return false;
         
-        if (!await _semaphore.WaitAsync(_timeout, cancellationToken))
-            return false;
-        
-        try
+        var result = await SendCommand(number switch
         {
-            var result = await SendCommand(number switch
-            {
-                0 => Is20XModel ? Oppo20XCommand.NumericKey0 : Oppo10XCommand.NumericKey0,
-                1 => Is20XModel ? Oppo20XCommand.NumericKey1 : Oppo10XCommand.NumericKey1,
-                2 => Is20XModel ? Oppo20XCommand.NumericKey2 : Oppo10XCommand.NumericKey2,
-                3 => Is20XModel ? Oppo20XCommand.NumericKey3 : Oppo10XCommand.NumericKey3,
-                4 => Is20XModel ? Oppo20XCommand.NumericKey4 : Oppo10XCommand.NumericKey4,
-                5 => Is20XModel ? Oppo20XCommand.NumericKey5 : Oppo10XCommand.NumericKey5,
-                6 => Is20XModel ? Oppo20XCommand.NumericKey6 : Oppo10XCommand.NumericKey6,
-                7 => Is20XModel ? Oppo20XCommand.NumericKey7 : Oppo10XCommand.NumericKey7,
-                8 => Is20XModel ? Oppo20XCommand.NumericKey8 : Oppo10XCommand.NumericKey8,
-                9 => Is20XModel ? Oppo20XCommand.NumericKey9 : Oppo10XCommand.NumericKey9,
-                _ => throw new ArgumentOutOfRangeException(nameof(number))
-            }, cancellationToken);
-            return result.Success;
-        }
-        finally
-        {
-            _semaphore.Release();
-        }
+            0 => Is20XModel ? Oppo20XCommand.NumericKey0 : Oppo10XCommand.NumericKey0,
+            1 => Is20XModel ? Oppo20XCommand.NumericKey1 : Oppo10XCommand.NumericKey1,
+            2 => Is20XModel ? Oppo20XCommand.NumericKey2 : Oppo10XCommand.NumericKey2,
+            3 => Is20XModel ? Oppo20XCommand.NumericKey3 : Oppo10XCommand.NumericKey3,
+            4 => Is20XModel ? Oppo20XCommand.NumericKey4 : Oppo10XCommand.NumericKey4,
+            5 => Is20XModel ? Oppo20XCommand.NumericKey5 : Oppo10XCommand.NumericKey5,
+            6 => Is20XModel ? Oppo20XCommand.NumericKey6 : Oppo10XCommand.NumericKey6,
+            7 => Is20XModel ? Oppo20XCommand.NumericKey7 : Oppo10XCommand.NumericKey7,
+            8 => Is20XModel ? Oppo20XCommand.NumericKey8 : Oppo10XCommand.NumericKey8,
+            9 => Is20XModel ? Oppo20XCommand.NumericKey9 : Oppo10XCommand.NumericKey9,
+            _ => throw new ArgumentOutOfRangeException(nameof(number))
+        }, cancellationToken);
+        return result.Success;
     }
 
     public async ValueTask<bool> ClearAsync(CancellationToken cancellationToken = default)
     {
-        if (!await _semaphore.WaitAsync(_timeout, cancellationToken))
-            return false;
-        
-        try
-        {
-            var command = Is20XModel ? Oppo20XCommand.Clear : Oppo10XCommand.Clear;
-            var result = await SendCommand(command, cancellationToken);
-            return result.Success;
-        }
-        finally
-        {
-            _semaphore.Release();
-        }
+        var command = Is20XModel ? Oppo20XCommand.Clear : Oppo10XCommand.Clear;
+        var result = await SendCommand(command, cancellationToken);
+        return result.Success;
     }
 
     public async ValueTask<bool> GoToAsync(CancellationToken cancellationToken = default)
     {
-        if (!await _semaphore.WaitAsync(_timeout, cancellationToken))
-            return false;
-        
-        try
-        {
-            var command = Is20XModel ? Oppo20XCommand.GoTo : Oppo10XCommand.GoTo;
-            var result = await SendCommand(command, cancellationToken);
-            return result.Success;
-        }
-        finally
-        {
-            _semaphore.Release();
-        }
+        var command = Is20XModel ? Oppo20XCommand.GoTo : Oppo10XCommand.GoTo;
+        var result = await SendCommand(command, cancellationToken);
+        return result.Success;
     }
     
     public async ValueTask<bool> HomeAsync(CancellationToken cancellationToken = default)
     {
-        if (!await _semaphore.WaitAsync(_timeout, cancellationToken))
-            return false;
-        
-        try
-        {
-            var command = Is20XModel ? Oppo20XCommand.Home : Oppo10XCommand.Home;
-            var result = await SendCommand(command, cancellationToken);
-            return result.Success;
-        }
-        finally
-        {
-            _semaphore.Release();
-        }
+        var command = Is20XModel ? Oppo20XCommand.Home : Oppo10XCommand.Home;
+        var result = await SendCommand(command, cancellationToken);
+        return result.Success;
     }
     
     public async ValueTask<bool> PageUpAsync(CancellationToken cancellationToken = default)
     {
-        if (!await _semaphore.WaitAsync(_timeout, cancellationToken))
-            return false;
-        
-        try
-        {
-            var command = Is20XModel ? Oppo20XCommand.PageUp : Oppo10XCommand.PageUp;
-            var result = await SendCommand(command, cancellationToken);
-            return result.Success;
-        }
-        finally
-        {
-            _semaphore.Release();
-        }
+        var command = Is20XModel ? Oppo20XCommand.PageUp : Oppo10XCommand.PageUp;
+        var result = await SendCommand(command, cancellationToken);
+        return result.Success;
     }
     
     public async ValueTask<bool> PageDownAsync(CancellationToken cancellationToken = default)
     {
-        if (!await _semaphore.WaitAsync(_timeout, cancellationToken))
-            return false;
-        
-        try
-        {
-            var command = Is20XModel ? Oppo20XCommand.PageDown : Oppo10XCommand.PageDown;
-            var result = await SendCommand(command, cancellationToken);
-            return result.Success;
-        }
-        finally
-        {
-            _semaphore.Release();
-        }
+        var command = Is20XModel ? Oppo20XCommand.PageDown : Oppo10XCommand.PageDown;
+        var result = await SendCommand(command, cancellationToken);
+        return result.Success;
     }
     
     public async ValueTask<bool> InfoToggleAsync(CancellationToken cancellationToken = default)
     {
-        if (!await _semaphore.WaitAsync(_timeout, cancellationToken))
-            return false;
-        
-        try
-        {
-            var command = Is20XModel ? Oppo20XCommand.InfoToggle : Oppo10XCommand.InfoToggle;
-            var result = await SendCommand(command, cancellationToken);
-            return result.Success;
-        }
-        finally
-        {
-            _semaphore.Release();
-        }
+        var command = Is20XModel ? Oppo20XCommand.InfoToggle : Oppo10XCommand.InfoToggle;
+        var result = await SendCommand(command, cancellationToken);
+        return result.Success;
     }
     
     public async ValueTask<bool> TopMenuAsync(CancellationToken cancellationToken = default)
     {
-        if (!await _semaphore.WaitAsync(_timeout, cancellationToken))
-            return false;
-        
-        try
-        {
-            var command = Is20XModel ? Oppo20XCommand.TopMenu : Oppo10XCommand.TopMenu;
-            var result = await SendCommand(command, cancellationToken);
-            return result.Success;
-        }
-        finally
-        {
-            _semaphore.Release();
-        }
+        var command = Is20XModel ? Oppo20XCommand.TopMenu : Oppo10XCommand.TopMenu;
+        var result = await SendCommand(command, cancellationToken);
+        return result.Success;
     }
     
     public async ValueTask<bool> PopUpMenuAsync(CancellationToken cancellationToken = default)
     {
-        if (!await _semaphore.WaitAsync(_timeout, cancellationToken))
-            return false;
-        
-        try
-        {
-            var command = Is20XModel ? Oppo20XCommand.PopUpMenu : Oppo10XCommand.PopUpMenu;
-            var result = await SendCommand(command, cancellationToken);
-            return result.Success;
-        }
-        finally
-        {
-            _semaphore.Release();
-        }
+        var command = Is20XModel ? Oppo20XCommand.PopUpMenu : Oppo10XCommand.PopUpMenu;
+        var result = await SendCommand(command, cancellationToken);
+        return result.Success;
     }
     
     public async ValueTask<bool> UpArrowAsync(CancellationToken cancellationToken = default)
     {
-        if (!await _semaphore.WaitAsync(_timeout, cancellationToken))
-            return false;
-        
-        try
-        {
-            var command = Is20XModel ? Oppo20XCommand.UpArrow : Oppo10XCommand.UpArrow;
-            var result = await SendCommand(command, cancellationToken);
-            return result.Success;
-        }
-        finally
-        {
-            _semaphore.Release();
-        }
+        var command = Is20XModel ? Oppo20XCommand.UpArrow : Oppo10XCommand.UpArrow;
+        var result = await SendCommand(command, cancellationToken);
+        return result.Success;
     }
     
     public async ValueTask<bool> LeftArrowAsync(CancellationToken cancellationToken = default)
     {
-        if (!await _semaphore.WaitAsync(_timeout, cancellationToken))
-            return false;
-        
-        try
-        {
-            var command = Is20XModel ? Oppo20XCommand.LeftArrow : Oppo10XCommand.LeftArrow;
-            var result = await SendCommand(command, cancellationToken);
-            return result.Success;
-        }
-        finally
-        {
-            _semaphore.Release();
-        }
+        var command = Is20XModel ? Oppo20XCommand.LeftArrow : Oppo10XCommand.LeftArrow;
+        var result = await SendCommand(command, cancellationToken);
+        return result.Success;
     }
     
     public async ValueTask<bool> RightArrowAsync(CancellationToken cancellationToken = default)
     {
-        if (!await _semaphore.WaitAsync(_timeout, cancellationToken))
-            return false;
-        
-        try
-        {
-            var command = Is20XModel ? Oppo20XCommand.RightArrow : Oppo10XCommand.RightArrow;
-            var result = await SendCommand(command, cancellationToken);
-            return result.Success;
-        }
-        finally
-        {
-            _semaphore.Release();
-        }
+        var command = Is20XModel ? Oppo20XCommand.RightArrow : Oppo10XCommand.RightArrow;
+        var result = await SendCommand(command, cancellationToken);
+        return result.Success;
     }
     
     public async ValueTask<bool> DownArrowAsync(CancellationToken cancellationToken = default)
     {
-        if (!await _semaphore.WaitAsync(_timeout, cancellationToken))
-            return false;
-        
-        try
-        {
-            var command = Is20XModel ? Oppo20XCommand.DownArrow : Oppo10XCommand.DownArrow;
-            var result = await SendCommand(command, cancellationToken);
-            return result.Success;
-        }
-        finally
-        {
-            _semaphore.Release();
-        }
+        var command = Is20XModel ? Oppo20XCommand.DownArrow : Oppo10XCommand.DownArrow;
+        var result = await SendCommand(command, cancellationToken);
+        return result.Success;
     }
     
     public async ValueTask<bool> EnterAsync(CancellationToken cancellationToken = default)
     {
-        if (!await _semaphore.WaitAsync(_timeout, cancellationToken))
-            return false;
-        
-        try
-        {
-            var command = Is20XModel ? Oppo20XCommand.Enter : Oppo10XCommand.Enter;
-            var result = await SendCommand(command, cancellationToken);
-            return result.Success;
-        }
-        finally
-        {
-            _semaphore.Release();
-        }
+        var command = Is20XModel ? Oppo20XCommand.Enter : Oppo10XCommand.Enter;
+        var result = await SendCommand(command, cancellationToken);
+        return result.Success;
     }
     
     public async ValueTask<bool> SetupAsync(CancellationToken cancellationToken = default)
     {
-        if (!await _semaphore.WaitAsync(_timeout, cancellationToken))
-            return false;
-        
-        try
-        {
-            var command = Is20XModel ? Oppo20XCommand.Setup : Oppo10XCommand.Setup;
-            var result = await SendCommand(command, cancellationToken);
-            return result.Success;
-        }
-        finally
-        {
-            _semaphore.Release();
-        }
+        var command = Is20XModel ? Oppo20XCommand.Setup : Oppo10XCommand.Setup;
+        var result = await SendCommand(command, cancellationToken);
+        return result.Success;
     }
     
     public async ValueTask<bool> ReturnAsync(CancellationToken cancellationToken = default)
     {
-        if (!await _semaphore.WaitAsync(_timeout, cancellationToken))
-            return false;
-        
-        try
-        {
-            var command = Is20XModel ? Oppo20XCommand.Return : Oppo10XCommand.Return;
-            var result = await SendCommand(command, cancellationToken);
-            return result.Success;
-        }
-        finally
-        {
-            _semaphore.Release();
-        }
+        var command = Is20XModel ? Oppo20XCommand.Return : Oppo10XCommand.Return;
+        var result = await SendCommand(command, cancellationToken);
+        return result.Success;
     }
     
     public async ValueTask<bool> RedAsync(CancellationToken cancellationToken = default)
     {
-        if (!await _semaphore.WaitAsync(_timeout, cancellationToken))
-            return false;
-        
-        try
-        {
-            var command = Is20XModel ? Oppo20XCommand.Red : Oppo10XCommand.Red;
-            var result = await SendCommand(command, cancellationToken);
-            return result.Success;
-        }
-        finally
-        {
-            _semaphore.Release();
-        }
+        var command = Is20XModel ? Oppo20XCommand.Red : Oppo10XCommand.Red;
+        var result = await SendCommand(command, cancellationToken);
+        return result.Success;
     }
     
     public async ValueTask<bool> GreenAsync(CancellationToken cancellationToken = default)
     {
-        if (!await _semaphore.WaitAsync(_timeout, cancellationToken))
-            return false;
-        
-        try
-        {
-            var command = Is20XModel ? Oppo20XCommand.Green : Oppo10XCommand.Green;
-            var result = await SendCommand(command, cancellationToken);
-            return result.Success;
-        }
-        finally
-        {
-            _semaphore.Release();
-        }
+        var command = Is20XModel ? Oppo20XCommand.Green : Oppo10XCommand.Green;
+        var result = await SendCommand(command, cancellationToken);
+        return result.Success;
     }
     
     public async ValueTask<bool> BlueAsync(CancellationToken cancellationToken = default)
     {
-        if (!await _semaphore.WaitAsync(_timeout, cancellationToken))
-            return false;
-        
-        try
-        {
-            var command = Is20XModel ? Oppo20XCommand.Blue : Oppo10XCommand.Blue;
-            var result = await SendCommand(command, cancellationToken);
-            return result.Success;
-        }
-        finally
-        {
-            _semaphore.Release();
-        }
+        var command = Is20XModel ? Oppo20XCommand.Blue : Oppo10XCommand.Blue;
+        var result = await SendCommand(command, cancellationToken);
+        return result.Success;
     }
     
     public async ValueTask<bool> YellowAsync(CancellationToken cancellationToken = default)
     {
-        if (!await _semaphore.WaitAsync(_timeout, cancellationToken))
-            return false;
-        
-        try
-        {
-            var command = Is20XModel ? Oppo20XCommand.Yellow : Oppo10XCommand.Yellow;
-            var result = await SendCommand(command, cancellationToken);
-            return result.Success;
-        }
-        finally
-        {
-            _semaphore.Release();
-        }
+        var command = Is20XModel ? Oppo20XCommand.Yellow : Oppo10XCommand.Yellow;
+        var result = await SendCommand(command, cancellationToken);
+        return result.Success;
     }
     
     public async ValueTask<bool> StopAsync(CancellationToken cancellationToken = default)
     {
-        if (!await _semaphore.WaitAsync(_timeout, cancellationToken))
-            return false;
-        
-        try
-        {
-            var command = Is20XModel ? Oppo20XCommand.Stop : Oppo10XCommand.Stop;
-            var result = await SendCommand(command, cancellationToken);
-            return result.Success;
-        }
-        finally
-        {
-            _semaphore.Release();
-        }
+        var command = Is20XModel ? Oppo20XCommand.Stop : Oppo10XCommand.Stop;
+        var result = await SendCommand(command, cancellationToken);
+        return result.Success;
     }
     
     public async ValueTask<bool> PlayAsync(CancellationToken cancellationToken = default)
     {
-        if (!await _semaphore.WaitAsync(_timeout, cancellationToken))
-            return false;
-        
-        try
-        {
-            var command = Is20XModel ? Oppo20XCommand.Play : Oppo10XCommand.Play;
-            var result = await SendCommand(command, cancellationToken);
-            return result.Success;
-        }
-        finally
-        {
-            _semaphore.Release();
-        }
+        var command = Is20XModel ? Oppo20XCommand.Play : Oppo10XCommand.Play;
+        var result = await SendCommand(command, cancellationToken);
+        return result.Success;
     }
     
     public async ValueTask<bool> PauseAsync(CancellationToken cancellationToken = default)
     {
-        if (!await _semaphore.WaitAsync(_timeout, cancellationToken))
-            return false;
-        
-        try
-        {
-            var command = Is20XModel ? Oppo20XCommand.Pause : Oppo10XCommand.Pause;
-            var result = await SendCommand(command, cancellationToken);
-            return result.Success;
-        }
-        finally
-        {
-            _semaphore.Release();
-        }
+        var command = Is20XModel ? Oppo20XCommand.Pause : Oppo10XCommand.Pause;
+        var result = await SendCommand(command, cancellationToken);
+        return result.Success;
     }
     
     public async ValueTask<bool> PreviousAsync(CancellationToken cancellationToken = default)
     {
-        if (!await _semaphore.WaitAsync(_timeout, cancellationToken))
-            return false;
-        
-        try
-        {
-            var command = Is20XModel ? Oppo20XCommand.Previous : Oppo10XCommand.Previous;
-            var result = await SendCommand(command, cancellationToken);
-            return result.Success;
-        }
-        finally
-        {
-            _semaphore.Release();
-        }
+        var command = Is20XModel ? Oppo20XCommand.Previous : Oppo10XCommand.Previous;
+        var result = await SendCommand(command, cancellationToken);
+        return result.Success;
     }
     
     public async ValueTask<OppoResult<ushort?>> ReverseAsync(CancellationToken cancellationToken = default)
     {
-        if (!await _semaphore.WaitAsync(_timeout, cancellationToken))
-            return false;
+        var command = Is20XModel ? Oppo20XCommand.Reverse : Oppo10XCommand.Reverse;
+        var result = await SendCommand(command, cancellationToken);
         
-        try
+        return result.Success switch
         {
-            var command = Is20XModel ? Oppo20XCommand.Reverse : Oppo10XCommand.Reverse;
-            var result = await SendCommand(command, cancellationToken);
-        
-            return result.Success switch
+            false => new OppoResult<ushort?> { Success = false },
+            _ => new OppoResult<ushort?>
             {
-                false => new OppoResult<ushort?> { Success = false },
-                _ => new OppoResult<ushort?>
-                {
-                    Success = ushort.TryParse(result.Response.AsSpan()[4..^1], out var speed),
-                    Result = speed
-                }
-            };
-        }
-        finally
-        {
-            _semaphore.Release();
-        }
+                Success = ushort.TryParse(result.Response.AsSpan()[4..^1], out var speed),
+                Result = speed
+            }
+        };
     }
     
     public async ValueTask<OppoResult<ushort?>> ForwardAsync(CancellationToken cancellationToken = default)
     {
-        if (!await _semaphore.WaitAsync(_timeout, cancellationToken))
-            return false;
+        var command = Is20XModel ? Oppo20XCommand.Forward : Oppo10XCommand.Forward;
+        var result = await SendCommand(command, cancellationToken);
         
-        try
+        return result.Success switch
         {
-            var command = Is20XModel ? Oppo20XCommand.Forward : Oppo10XCommand.Forward;
-            var result = await SendCommand(command, cancellationToken);
-        
-            return result.Success switch
+            false => new OppoResult<ushort?> { Success = false },
+            _ => new OppoResult<ushort?>
             {
-                false => new OppoResult<ushort?> { Success = false },
-                _ => new OppoResult<ushort?>
-                {
-                    Success = ushort.TryParse(result.Response.AsSpan()[4..^1], out var speed),
-                    Result = speed
-                }
-            };
-        }
-        finally
-        {
-            _semaphore.Release();
-        }
+                Success = ushort.TryParse(result.Response.AsSpan()[4..^1], out var speed),
+                Result = speed
+            }
+        };
     }
     
     public async ValueTask<bool> NextAsync(CancellationToken cancellationToken = default)
     {
-        if (!await _semaphore.WaitAsync(_timeout, cancellationToken))
-            return false;
-        
-        try
-        {
-            var command = Is20XModel ? Oppo20XCommand.Next : Oppo10XCommand.Next;
-            var result = await SendCommand(command, cancellationToken);
-            return result.Success;
-        }
-        finally
-        {
-            _semaphore.Release();
-        }
+        var command = Is20XModel ? Oppo20XCommand.Next : Oppo10XCommand.Next;
+        var result = await SendCommand(command, cancellationToken);
+        return result.Success;
     }
     
     public async ValueTask<bool> AudioAsync(CancellationToken cancellationToken = default)
     {
-        if (!await _semaphore.WaitAsync(_timeout, cancellationToken))
-            return false;
-        
-        try
-        {
-            var command = Is20XModel ? Oppo20XCommand.Audio : Oppo10XCommand.Audio;
-            var result = await SendCommand(command, cancellationToken);
-            return result.Success;
-        }
-        finally
-        {
-            _semaphore.Release();
-        }
+        var command = Is20XModel ? Oppo20XCommand.Audio : Oppo10XCommand.Audio;
+        var result = await SendCommand(command, cancellationToken);
+        return result.Success;
     }
     
     public async ValueTask<bool> SubtitleAsync(CancellationToken cancellationToken = default)
     {
-        if (!await _semaphore.WaitAsync(_timeout, cancellationToken))
-            return false;
-        
-        try
-        {
-            var command = Is20XModel ? Oppo20XCommand.Subtitle : Oppo10XCommand.Subtitle;
-            var result = await SendCommand(command, cancellationToken);
-            return result.Success;
-        }
-        finally
-        {
-            _semaphore.Release();
-        }
+        var command = Is20XModel ? Oppo20XCommand.Subtitle : Oppo10XCommand.Subtitle;
+        var result = await SendCommand(command, cancellationToken);
+        return result.Success;
     }
     
     public async ValueTask<OppoResult<string>> AngleAsync(CancellationToken cancellationToken = default)
     {
-        if (!await _semaphore.WaitAsync(_timeout, cancellationToken))
-            return false;
+        var command = Is20XModel ? Oppo20XCommand.Angle : Oppo10XCommand.Angle;
+        var result = await SendCommand(command, cancellationToken);
         
-        try
+        return result.Success switch
         {
-            var command = Is20XModel ? Oppo20XCommand.Angle : Oppo10XCommand.Angle;
-            var result = await SendCommand(command, cancellationToken);
-        
-            return result.Success switch
+            false => new OppoResult<string> { Success = false },
+            _ => new OppoResult<string>
             {
-                false => new OppoResult<string> { Success = false },
-                _ => new OppoResult<string>
-                {
-                    Success = true,
-                    Result = result.Response[4..]
-                }
-            };
-        }
-        finally
-        {
-            _semaphore.Release();
-        }
+                Success = true,
+                Result = result.Response[4..]
+            }
+        };
     }
     
     public async ValueTask<OppoResult<string>> ZoomAsync(CancellationToken cancellationToken = default)
     {
-        if (!await _semaphore.WaitAsync(_timeout, cancellationToken))
-            return false;
+        var command = Is20XModel ? Oppo20XCommand.Zoom : Oppo10XCommand.Zoom;
+        var result = await SendCommand(command, cancellationToken);
         
-        try
+        return result.Success switch
         {
-            var command = Is20XModel ? Oppo20XCommand.Zoom : Oppo10XCommand.Zoom;
-            var result = await SendCommand(command, cancellationToken);
-        
-            return result.Success switch
+            false => new OppoResult<string> { Success = false },
+            _ => new OppoResult<string>
             {
-                false => new OppoResult<string> { Success = false },
-                _ => new OppoResult<string>
-                {
-                    Success = true,
-                    Result = result.Response[4..]
-                }
-            };
-        }
-        finally
-        {
-            _semaphore.Release();
-        }
+                Success = true,
+                Result = result.Response[4..]
+            }
+        };
     }
     
     public async ValueTask<OppoResult<string>> SecondaryAudioProgramAsync(CancellationToken cancellationToken = default)
     {
-        if (!await _semaphore.WaitAsync(_timeout, cancellationToken))
-            return false;
+        var command = Is20XModel ? Oppo20XCommand.SecondaryAudioProgram : Oppo10XCommand.SecondaryAudioProgram;
+        var result = await SendCommand(command, cancellationToken);
         
-        try
+        return result.Success switch
         {
-            var command = Is20XModel ? Oppo20XCommand.SecondaryAudioProgram : Oppo10XCommand.SecondaryAudioProgram;
-            var result = await SendCommand(command, cancellationToken);
-        
-            return result.Success switch
+            false => new OppoResult<string> { Success = false },
+            _ => new OppoResult<string>
             {
-                false => new OppoResult<string> { Success = false },
-                _ => new OppoResult<string>
-                {
-                    Success = true,
-                    Result = result.Response[4..]
-                }
-            };
-        }
-        finally
-        {
-            _semaphore.Release();
-        }
+                Success = true,
+                Result = result.Response[4..]
+            }
+        };
     }
     
     public async ValueTask<OppoResult<ABReplayState>> ABReplayAsync(CancellationToken cancellationToken = default)
     {
-        if (!await _semaphore.WaitAsync(_timeout, cancellationToken))
-            return false;
+        var command = Is20XModel ? Oppo20XCommand.ABReplay : Oppo10XCommand.ABReplay;
+        var result = await SendCommand(command, cancellationToken);
         
-        try
+        return result.Success switch
         {
-            var command = Is20XModel ? Oppo20XCommand.ABReplay : Oppo10XCommand.ABReplay;
-            var result = await SendCommand(command, cancellationToken);
-        
-            return result.Success switch
+            false => new OppoResult<ABReplayState> { Success = false },
+            _ => new OppoResult<ABReplayState>
             {
-                false => new OppoResult<ABReplayState> { Success = false },
-                _ => new OppoResult<ABReplayState>
+                Success = true,
+                Result = result.Response switch
                 {
-                    Success = true,
-                    Result = result.Response switch
-                    {
-                        "@OK A-" => ABReplayState.A,
-                        "@OK AB" => ABReplayState.AB,
-                        "@OK OFF" => ABReplayState.Off,
-                        _ => LogError(result.Response, ABReplayState.Unknown)
-                    }
+                    "@OK A-" => ABReplayState.A,
+                    "@OK AB" => ABReplayState.AB,
+                    "@OK OFF" => ABReplayState.Off,
+                    _ => LogError(result.Response, ABReplayState.Unknown)
                 }
-            };
-        }
-        finally
-        {
-            _semaphore.Release();
-        }
+            }
+        };
     }
     
     public async ValueTask<OppoResult<RepeatState>> RepeatAsync(CancellationToken cancellationToken = default)
     {
-        if (!await _semaphore.WaitAsync(_timeout, cancellationToken))
-            return false;
+        var command = Is20XModel ? Oppo20XCommand.Repeat : Oppo10XCommand.Repeat;
+        var result = await SendCommand(command, cancellationToken);
         
-        try
+        return result.Success switch
         {
-            var command = Is20XModel ? Oppo20XCommand.Repeat : Oppo10XCommand.Repeat;
-            var result = await SendCommand(command, cancellationToken);
-        
-            return result.Success switch
+            false => new OppoResult<RepeatState> { Success = false },
+            _ => new OppoResult<RepeatState>
             {
-                false => new OppoResult<RepeatState> { Success = false },
-                _ => new OppoResult<RepeatState>
+                Success = true,
+                Result = result.Response switch
                 {
-                    Success = true,
-                    Result = result.Response switch
-                    {
-                        "@OK Repeat Chapter" => RepeatState.RepeatChapter,
-                        "@OK Repeat Title" => RepeatState.RepeatTitle,
-                        "@OK OFF" => RepeatState.Off,
-                        _ => LogError(result.Response, RepeatState.Unknown)
-                    }
+                    "@OK Repeat Chapter" => RepeatState.RepeatChapter,
+                    "@OK Repeat Title" => RepeatState.RepeatTitle,
+                    "@OK OFF" => RepeatState.Off,
+                    _ => LogError(result.Response, RepeatState.Unknown)
                 }
-            };
-        }
-        finally
-        {
-            _semaphore.Release();
-        }
+            }
+        };
     }
     
     public async ValueTask<OppoResult<string>> PictureInPictureAsync(CancellationToken cancellationToken = default)
     {
-        if (!await _semaphore.WaitAsync(_timeout, cancellationToken))
-            return false;
+        var command = Is20XModel ? Oppo20XCommand.PictureInPicture : Oppo10XCommand.PictureInPicture;
+        var result = await SendCommand(command, cancellationToken);
         
-        try
+        return result.Success switch
         {
-            var command = Is20XModel ? Oppo20XCommand.PictureInPicture : Oppo10XCommand.PictureInPicture;
-            var result = await SendCommand(command, cancellationToken);
-        
-            return result.Success switch
+            false => new OppoResult<string> { Success = false },
+            _ => new OppoResult<string>
             {
-                false => new OppoResult<string> { Success = false },
-                _ => new OppoResult<string>
-                {
-                    Success = true,
-                    Result = result.Response[4..]
-                }
-            };
-        }
-        finally
-        {
-            _semaphore.Release();
-        }
+                Success = true,
+                Result = result.Response[4..]
+            }
+        };
     }
     
     public async ValueTask<bool> ResolutionAsync(CancellationToken cancellationToken = default)
     {
-        if (!await _semaphore.WaitAsync(_timeout, cancellationToken))
-            return false;
-        
-        try
-        {
-            var command = Is20XModel ? Oppo20XCommand.Resolution : Oppo10XCommand.Resolution;
-            var result = await SendCommand(command, cancellationToken);
-            return result.Success;
-        }
-        finally
-        {
-            _semaphore.Release();
-        }
+        var command = Is20XModel ? Oppo20XCommand.Resolution : Oppo10XCommand.Resolution;
+        var result = await SendCommand(command, cancellationToken);
+        return result.Success;
     }
     
     public async ValueTask<bool> SubtitleHoldAsync(CancellationToken cancellationToken = default)
     {
-        if (!await _semaphore.WaitAsync(_timeout, cancellationToken))
-            return false;
-        
-        try
-        {
-            var command = Is20XModel ? Oppo20XCommand.SubtitleHold : Oppo10XCommand.SubtitleHold;
-            var result = await SendCommand(command, cancellationToken);
-            return result.Success;
-        }
-        finally
-        {
-            _semaphore.Release();
-        }
+        var command = Is20XModel ? Oppo20XCommand.SubtitleHold : Oppo10XCommand.SubtitleHold;
+        var result = await SendCommand(command, cancellationToken);
+        return result.Success;
     }
     
     public async ValueTask<bool> OptionAsync(CancellationToken cancellationToken = default)
@@ -1032,19 +572,9 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         if (_model is OppoModel.BDP8395)
             return false;
         
-        if (!await _semaphore.WaitAsync(_timeout, cancellationToken))
-            return false;
-        
-        try
-        {
-            var command = Is20XModel ? Oppo20XCommand.Option : Oppo10XCommand.Option;
-            var result = await SendCommand(command, cancellationToken);
-            return result.Success;
-        }
-        finally
-        {
-            _semaphore.Release();
-        }
+        var command = Is20XModel ? Oppo20XCommand.Option : Oppo10XCommand.Option;
+        var result = await SendCommand(command, cancellationToken);
+        return result.Success;
     }
     
     public async ValueTask<bool> ThreeDAsync(CancellationToken cancellationToken = default)
@@ -1052,19 +582,9 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         if (_model is OppoModel.BDP8395)
             return false;
         
-        if (!await _semaphore.WaitAsync(_timeout, cancellationToken))
-            return false;
-        
-        try
-        {
-            var command = Is20XModel ? Oppo20XCommand.ThreeD : Oppo10XCommand.ThreeD;
-            var result = await SendCommand(command, cancellationToken);
-            return result.Success;
-        }
-        finally
-        {
-            _semaphore.Release();
-        }
+        var command = Is20XModel ? Oppo20XCommand.ThreeD : Oppo10XCommand.ThreeD;
+        var result = await SendCommand(command, cancellationToken);
+        return result.Success;
     }
     
     public async ValueTask<bool> PictureAdjustmentAsync(CancellationToken cancellationToken = default)
@@ -1072,19 +592,9 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         if (_model is OppoModel.BDP8395)
             return false;
         
-        if (!await _semaphore.WaitAsync(_timeout, cancellationToken))
-            return false;
-        
-        try
-        {
-            var command = Is20XModel ? Oppo20XCommand.PictureAdjustment : Oppo10XCommand.PictureAdjustment;
-            var result = await SendCommand(command, cancellationToken);
-            return result.Success;
-        }
-        finally
-        {
-            _semaphore.Release();
-        }
+        var command = Is20XModel ? Oppo20XCommand.PictureAdjustment : Oppo10XCommand.PictureAdjustment;
+        var result = await SendCommand(command, cancellationToken);
+        return result.Success;
     }
     
     public async ValueTask<bool> HDRAsync(CancellationToken cancellationToken = default)
@@ -1092,18 +602,8 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         if (!Is20XModel)
             return false;
         
-        if (!await _semaphore.WaitAsync(_timeout, cancellationToken))
-            return false;
-        
-        try
-        {
-            var result = await SendCommand(Oppo20XCommand.HDR, cancellationToken);
-            return result.Success;
-        }
-        finally
-        {
-            _semaphore.Release();
-        }
+        var result = await SendCommand(Oppo20XCommand.HDR, cancellationToken);
+        return result.Success;
     }
     
     public async ValueTask<bool> InfoHoldAsync(CancellationToken cancellationToken = default)
@@ -1111,18 +611,8 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         if (!Is20XModel)
             return false;
         
-        if (!await _semaphore.WaitAsync(_timeout, cancellationToken))
-            return false;
-        
-        try
-        {
-            var result = await SendCommand(Oppo20XCommand.InfoHold, cancellationToken);
-            return result.Success;
-        }
-        finally
-        {
-            _semaphore.Release();
-        }
+        var result = await SendCommand(Oppo20XCommand.InfoHold, cancellationToken);
+        return result.Success;
     }
     
     public async ValueTask<bool> ResolutionHoldAsync(CancellationToken cancellationToken = default)
@@ -1130,18 +620,8 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         if (!Is20XModel)
             return false;
         
-        if (!await _semaphore.WaitAsync(_timeout, cancellationToken))
-            return false;
-        
-        try
-        {
-            var result = await SendCommand(Oppo20XCommand.ResolutionHold, cancellationToken);
-            return result.Success;
-        }
-        finally
-        {
-            _semaphore.Release();
-        }
+        var result = await SendCommand(Oppo20XCommand.ResolutionHold, cancellationToken);
+        return result.Success;
     }
     
     public async ValueTask<bool> AVSyncAsync(CancellationToken cancellationToken = default)
@@ -1149,18 +629,8 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         if (!Is20XModel)
             return false;
         
-        if (!await _semaphore.WaitAsync(_timeout, cancellationToken))
-            return false;
-        
-        try
-        {
-            var result = await SendCommand(Oppo20XCommand.AVSync, cancellationToken);
-            return result.Success;
-        }
-        finally
-        {
-            _semaphore.Release();
-        }
+        var result = await SendCommand(Oppo20XCommand.AVSync, cancellationToken);
+        return result.Success;
     }
     
     public async ValueTask<bool> GaplessPlayAsync(CancellationToken cancellationToken = default)
@@ -1168,52 +638,22 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         if (!Is20XModel)
             return false;
         
-        if (!await _semaphore.WaitAsync(_timeout, cancellationToken))
-            return false;
-        
-        try
-        {
-            var result = await SendCommand(Oppo20XCommand.GaplessPlay, cancellationToken);
-            return result.Success;
-        }
-        finally
-        {
-            _semaphore.Release();
-        }
+        var result = await SendCommand(Oppo20XCommand.GaplessPlay, cancellationToken);
+        return result.Success;
     }
     
     public async ValueTask<bool> NoopAsync(CancellationToken cancellationToken = default)
     {
-        if (!await _semaphore.WaitAsync(_timeout, cancellationToken))
-            return false;
-        
-        try
-        {
-            var command = Is20XModel ? Oppo20XCommand.Noop : Oppo10XCommand.Noop;
-            var result = await SendCommand(command, cancellationToken);
-            return result.Success;
-        }
-        finally
-        {
-            _semaphore.Release();
-        }
+        var command = Is20XModel ? Oppo20XCommand.Noop : Oppo10XCommand.Noop;
+        var result = await SendCommand(command, cancellationToken);
+        return result.Success;
     }
     
     public async ValueTask<bool> InputAsync(CancellationToken cancellationToken = default)
     {
-        if (!await _semaphore.WaitAsync(_timeout, cancellationToken))
-            return false;
-        
-        try
-        {
-            var command = Is20XModel ? Oppo20XCommand.Input : Oppo10XCommand.Input;
-            var result = await SendCommand(command, cancellationToken);
-            return result.Success;
-        }
-        finally
-        {
-            _semaphore.Release();
-        }
+        var command = Is20XModel ? Oppo20XCommand.Input : Oppo10XCommand.Input;
+        var result = await SendCommand(command, cancellationToken);
+        return result.Success;
     }
     
     public async ValueTask<OppoResult<RepeatMode>> SetRepeatAsync(RepeatMode mode, CancellationToken cancellationToken = default)
@@ -1221,45 +661,35 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         if (mode == RepeatMode.Unknown)
             return false;
         
-        if (!await _semaphore.WaitAsync(_timeout, cancellationToken))
-            return false;
-        
-        try
+        var result = await SendCommand(mode switch
         {
-            var result = await SendCommand(mode switch
-            {
-                RepeatMode.Chapter => Is20XModel ? Oppo20XAdvancedCommand.SetRepeatModeChapter : Oppo10XAdvancedCommand.SetRepeatModeChapter,
-                RepeatMode.Title => Is20XModel ? Oppo20XAdvancedCommand.SetRepeatModeTitle : Oppo10XAdvancedCommand.SetRepeatModeTitle,
-                RepeatMode.All => Is20XModel ? Oppo20XAdvancedCommand.SetRepeatModeAll : Oppo10XAdvancedCommand.SetRepeatModeAll,
-                RepeatMode.Off => Is20XModel ? Oppo20XAdvancedCommand.SetRepeatModeOff : Oppo10XAdvancedCommand.SetRepeatModeOff,
-                RepeatMode.Shuffle => Is20XModel ? Oppo20XAdvancedCommand.SetRepeatModeShuffle : Oppo10XAdvancedCommand.SetRepeatModeShuffle,
-                RepeatMode.Random => Is20XModel ? Oppo20XAdvancedCommand.SetRepeatModeRandom : Oppo10XAdvancedCommand.SetRepeatModeRandom,
-                _ => throw new ArgumentOutOfRangeException(nameof(mode), mode, "Unknown repeat mode")
-            }, cancellationToken);
+            RepeatMode.Chapter => Is20XModel ? Oppo20XAdvancedCommand.SetRepeatModeChapter : Oppo10XAdvancedCommand.SetRepeatModeChapter,
+            RepeatMode.Title => Is20XModel ? Oppo20XAdvancedCommand.SetRepeatModeTitle : Oppo10XAdvancedCommand.SetRepeatModeTitle,
+            RepeatMode.All => Is20XModel ? Oppo20XAdvancedCommand.SetRepeatModeAll : Oppo10XAdvancedCommand.SetRepeatModeAll,
+            RepeatMode.Off => Is20XModel ? Oppo20XAdvancedCommand.SetRepeatModeOff : Oppo10XAdvancedCommand.SetRepeatModeOff,
+            RepeatMode.Shuffle => Is20XModel ? Oppo20XAdvancedCommand.SetRepeatModeShuffle : Oppo10XAdvancedCommand.SetRepeatModeShuffle,
+            RepeatMode.Random => Is20XModel ? Oppo20XAdvancedCommand.SetRepeatModeRandom : Oppo10XAdvancedCommand.SetRepeatModeRandom,
+            _ => throw new ArgumentOutOfRangeException(nameof(mode), mode, "Unknown repeat mode")
+        }, cancellationToken);
         
-            return result.Success switch
+        return result.Success switch
+        {
+            false => new OppoResult<RepeatMode> { Success = false },
+            _ => new OppoResult<RepeatMode>
             {
-                false => new OppoResult<RepeatMode> { Success = false },
-                _ => new OppoResult<RepeatMode>
+                Success = true,
+                Result = result.Response switch
                 {
-                    Success = true,
-                    Result = result.Response switch
-                    {
-                        "@OK CH" => RepeatMode.Chapter,
-                        "@OK TT" => RepeatMode.Title,
-                        "@OK ALL" => RepeatMode.All,
-                        "@OK OFF" => RepeatMode.Off,
-                        "@OK SHF" => RepeatMode.Shuffle,
-                        "@OK RND" => RepeatMode.Random,
-                        _ => LogError(result.Response, RepeatMode.Unknown)
-                    }
+                    "@OK CH" => RepeatMode.Chapter,
+                    "@OK TT" => RepeatMode.Title,
+                    "@OK ALL" => RepeatMode.All,
+                    "@OK OFF" => RepeatMode.Off,
+                    "@OK SHF" => RepeatMode.Shuffle,
+                    "@OK RND" => RepeatMode.Random,
+                    _ => LogError(result.Response, RepeatMode.Unknown)
                 }
-            };
-        }
-        finally
-        {
-            _semaphore.Release();
-        }
+            }
+        };
     }
 
     public async ValueTask<OppoResult<ushort>> SetVolumeAsync([Range(0, 100)] ushort volume, CancellationToken cancellationToken = default)
@@ -1267,145 +697,105 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         if (volume > 100)
             return false;
         
-        if (!await _semaphore.WaitAsync(_timeout, cancellationToken))
-            return false;
-
-        try
-        {
-            var command = Encoding.ASCII.GetBytes(Is20XModel ? $"#SVL {volume}\r" : $"REMOTE SVL {volume}");
-            var result = await SendCommand(command, cancellationToken);
+        var command = Encoding.ASCII.GetBytes(Is20XModel ? $"#SVL {volume}\r" : $"REMOTE SVL {volume}");
+        var result = await SendCommand(command, cancellationToken);
         
-            return result.Success switch
-            {
-                false => new OppoResult<ushort> { Success = false },
-                _ => new OppoResult<ushort>
-                {
-                    Success = ushort.TryParse(result.Response.AsSpan()[4..], out var newVolume),
-                    Result = newVolume
-                }
-            };
-        }
-        finally
+        return result.Success switch
         {
-            _semaphore.Release();
-        }
+            false => new OppoResult<ushort> { Success = false },
+            _ => new OppoResult<ushort>
+            {
+                Success = ushort.TryParse(result.Response.AsSpan()[4..], out var newVolume),
+                Result = newVolume
+            }
+        };
     }
 
     public async ValueTask<OppoResult<VolumeInfo>> QueryVolumeAsync(CancellationToken cancellationToken = default)
     {
-        if (!await _semaphore.WaitAsync(_timeout, cancellationToken))
+        var result = await SendCommand(Is20XModel ? Oppo20XQueryCommand.QueryVolume : Oppo10XQueryCommand.QueryVolume, cancellationToken);
+
+        if (!result.Success)
             return false;
 
-        try
+        bool muted;
+        ushort? volume;
+        if (result.Response.Equals("@OK MUTE", StringComparison.Ordinal))
         {
-            var result = await SendCommand(Is20XModel ? Oppo20XQueryCommand.QueryVolume : Oppo10XQueryCommand.QueryVolume, cancellationToken);
-
-            if (!result.Success)
-                return false;
-
-            bool muted;
-            ushort? volume;
-            if (result.Response.Equals("@OK MUTE", StringComparison.Ordinal))
-            {
-                muted = true;
-                volume = null;
-            }
-            else
-            {
-                muted = false;
-                volume = ushort.TryParse(result.Response.AsSpan()[4..], out var newVolume) ? newVolume : null;
-            }
-
-            return new OppoResult<VolumeInfo>
-            {
-                Success = true,
-                Result = new VolumeInfo(volume, muted)
-            };
+            muted = true;
+            volume = null;
         }
-        finally
+        else
         {
-            _semaphore.Release();
+            muted = false;
+            volume = ushort.TryParse(result.Response.AsSpan()[4..], out var newVolume) ? newVolume : null;
         }
+
+        return new OppoResult<VolumeInfo>
+        {
+            Success = true,
+            Result = new VolumeInfo(volume, muted)
+        };
     }
 
     public async ValueTask<OppoResult<PowerState>> QueryPowerStatusAsync(CancellationToken cancellationToken = default)
     {
-        if (!await _semaphore.WaitAsync(_timeout, cancellationToken))
-            return false;
+        var command = Is20XModel ? Oppo20XQueryCommand.QueryPowerStatus : Oppo10XQueryCommand.QueryPowerStatus;
+        var result = await SendCommand(command, cancellationToken);
         
-        try
+        return result.Success switch
         {
-            var command = Is20XModel ? Oppo20XQueryCommand.QueryPowerStatus : Oppo10XQueryCommand.QueryPowerStatus;
-            var result = await SendCommand(command, cancellationToken);
-        
-            return result.Success switch
+            false => false,
+            _ => new OppoResult<PowerState>
             {
-                false => false,
-                _ => new OppoResult<PowerState>
+                Success = true,
+                Result = result.Response switch
                 {
-                    Success = true,
-                    Result = result.Response switch
-                    {
-                        "@OK ON" => PowerState.On,
-                        "@OK OFF" => PowerState.Off,
-                        _ => LogError(result.Response, PowerState.Unknown)
-                    }
+                    "@OK ON" => PowerState.On,
+                    "@OK OFF" => PowerState.Off,
+                    _ => LogError(result.Response, PowerState.Unknown)
                 }
-            };
-        }
-        finally
-        {
-            _semaphore.Release();
-        }
+            }
+        };
     }
 
     public async ValueTask<OppoResult<PlaybackStatus>> QueryPlaybackStatusAsync(CancellationToken cancellationToken = default)
     {
-        if (!await _semaphore.WaitAsync(_timeout, cancellationToken))
-            return false;
+        var command = Is20XModel ? Oppo20XQueryCommand.QueryPlaybackStatus : Oppo10XQueryCommand.QueryPlaybackStatus;
+        var result = await SendCommand(command, cancellationToken);
         
-        try
+        return result.Success switch
         {
-            var command = Is20XModel ? Oppo20XQueryCommand.QueryPlaybackStatus : Oppo10XQueryCommand.QueryPlaybackStatus;
-            var result = await SendCommand(command, cancellationToken);
-        
-            return result.Success switch
+            false => false,
+            _ => new OppoResult<PlaybackStatus>
             {
-                false => false,
-                _ => new OppoResult<PlaybackStatus>
+                Success = true,
+                Result = result.Response switch
                 {
-                    Success = true,
-                    Result = result.Response switch
-                    {
-                        "@OK PLAY" => PlaybackStatus.Play,
-                        "@OK PAUSE" => PlaybackStatus.Pause,
-                        "@OK STOP" => PlaybackStatus.Stop,
-                        "@OK STEP" => PlaybackStatus.Step,
-                        "@OK FREV" => PlaybackStatus.FastRewind,
-                        "@OK FFWD" => PlaybackStatus.FastForward,
-                        "@OK SFWD" => PlaybackStatus.SlowForward,
-                        "@OK SREV" => PlaybackStatus.SlowRewind,
-                        "@OK SETUP" => PlaybackStatus.Setup,
-                        "@OK HOME MENU" => PlaybackStatus.HomeMenu,
-                        "@OK MEDIA CENTER" => PlaybackStatus.MediaCenter,
-                        "@OK SCREEN SAVER" => PlaybackStatus.ScreenSaver,
-                        "@OK DISC MENU" => PlaybackStatus.DiscMenu,
+                    "@OK PLAY" => PlaybackStatus.Play,
+                    "@OK PAUSE" => PlaybackStatus.Pause,
+                    "@OK STOP" => PlaybackStatus.Stop,
+                    "@OK STEP" => PlaybackStatus.Step,
+                    "@OK FREV" => PlaybackStatus.FastRewind,
+                    "@OK FFWD" => PlaybackStatus.FastForward,
+                    "@OK SFWD" => PlaybackStatus.SlowForward,
+                    "@OK SREV" => PlaybackStatus.SlowRewind,
+                    "@OK SETUP" => PlaybackStatus.Setup,
+                    "@OK HOME MENU" => PlaybackStatus.HomeMenu,
+                    "@OK MEDIA CENTER" => PlaybackStatus.MediaCenter,
+                    "@OK SCREEN SAVER" => PlaybackStatus.ScreenSaver,
+                    "@OK DISC MENU" => PlaybackStatus.DiscMenu,
                         
-                        // Pre 20X models
-                        "@OK NO DISC" => PlaybackStatus.NoDisc,
-                        "@OK LOADING" => PlaybackStatus.Loading,
-                        "@OK OPEN" => PlaybackStatus.Open,
-                        "OK CLOSE" => PlaybackStatus.Close,
-                        "@OK UNKNOW" => PlaybackStatus.Unknown,
-                        _ => LogError(result.Response, PlaybackStatus.Unknown)
-                    }
+                    // Pre 20X models
+                    "@OK NO DISC" => PlaybackStatus.NoDisc,
+                    "@OK LOADING" => PlaybackStatus.Loading,
+                    "@OK OPEN" => PlaybackStatus.Open,
+                    "OK CLOSE" => PlaybackStatus.Close,
+                    "@OK UNKNOW" => PlaybackStatus.Unknown,
+                    _ => LogError(result.Response, PlaybackStatus.Unknown)
                 }
-            };
-        }
-        finally
-        {
-            _semaphore.Release();
-        }
+            }
+        };
     }
 
     public ValueTask<OppoResult<uint>> QueryTrackOrTitleElapsedTimeAsync(CancellationToken cancellationToken = default)
@@ -1434,79 +824,59 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
 
     public async ValueTask<OppoResult<DiscType>> QueryDiscTypeAsync(CancellationToken cancellationToken = default)
     {
-        if (!await _semaphore.WaitAsync(_timeout, cancellationToken))
-            return false;
-
-        try
-        {
-            var command = Is20XModel ? Oppo20XQueryCommand.QueryDiscType : Oppo10XQueryCommand.QueryDiscType;
-            var result = await SendCommand(command, cancellationToken);
+        var command = Is20XModel ? Oppo20XQueryCommand.QueryDiscType : Oppo10XQueryCommand.QueryDiscType;
+        var result = await SendCommand(command, cancellationToken);
         
-            return result.Success switch
-            {
-                false => false,
-                _ => new OppoResult<DiscType>
-                {
-                    Success = true,
-                    Result = result.Response switch
-                    {
-                        "@OK BD-MV" => DiscType.BlueRayMovie,
-                        "@OK DVD-AUDIO" => DiscType.DVDAudio,
-                        "@OK DVD-VIDEO" => DiscType.DVDVideo,
-                        "@OK SACD" => DiscType.SACD,
-                        "@OK CDDA" => DiscType.CDDiscAudio,
-                        "@OK DATA-DISC" => DiscType.DataDisc,
-                        "@OK UHBD" => DiscType.UltraHDBluRay,
-                        "@OK NO-DISC" => DiscType.NoDisc,
-                        "@OK UNKNOWN-DISC" => DiscType.UnknownDisc,
-                        
-                        // Pre 20X models
-                        "@OK HDCD" => DiscType.HDCD,
-                        _ => LogError(result.Response, DiscType.UnknownDisc)
-                    }
-                }
-            };
-        }
-        finally
+        return result.Success switch
         {
-            _semaphore.Release();
-        }
+            false => false,
+            _ => new OppoResult<DiscType>
+            {
+                Success = true,
+                Result = result.Response switch
+                {
+                    "@OK BD-MV" => DiscType.BlueRayMovie,
+                    "@OK DVD-AUDIO" => DiscType.DVDAudio,
+                    "@OK DVD-VIDEO" => DiscType.DVDVideo,
+                    "@OK SACD" => DiscType.SACD,
+                    "@OK CDDA" => DiscType.CDDiscAudio,
+                    "@OK DATA-DISC" => DiscType.DataDisc,
+                    "@OK UHBD" => DiscType.UltraHDBluRay,
+                    "@OK NO-DISC" => DiscType.NoDisc,
+                    "@OK UNKNOWN-DISC" => DiscType.UnknownDisc,
+                        
+                    // Pre 20X models
+                    "@OK HDCD" => DiscType.HDCD,
+                    _ => LogError(result.Response, DiscType.UnknownDisc)
+                }
+            }
+        };
     }
 
     public async ValueTask<OppoResult<CurrentRepeatMode>> QueryRepeatModeAsync(CancellationToken cancellationToken = default)
     {
-        if (!await _semaphore.WaitAsync(_timeout, cancellationToken))
-            return false;
-
-        try
-        {
-            var command = Is20XModel ? Oppo20XQueryCommand.QueryRepeatMode : Oppo10XQueryCommand.QueryRepeatMode;
-            var result = await SendCommand(command, cancellationToken);
+        var command = Is20XModel ? Oppo20XQueryCommand.QueryRepeatMode : Oppo10XQueryCommand.QueryRepeatMode;
+        var result = await SendCommand(command, cancellationToken);
         
-            return result.Success switch
-            {
-                false => false,
-                _ => new OppoResult<CurrentRepeatMode>
-                {
-                    Success = true,
-                    Result = result.Response switch
-                    {
-                        "@OK 00 Off" => CurrentRepeatMode.Off,
-                        "@OK 01 Repeat One" => CurrentRepeatMode.RepeatOne,
-                        "@OK 02 Repeat Chapter" => CurrentRepeatMode.RepeatChapter,
-                        "@OK 03 Repeat All" => CurrentRepeatMode.RepeatAll,
-                        "@OK 04 Repeat Title" => CurrentRepeatMode.RepeatTitle,
-                        "@OK 05 Shuffle" => CurrentRepeatMode.Shuffle,
-                        "@OK 06 Random" => CurrentRepeatMode.Random,
-                        _ => LogError(result.Response, CurrentRepeatMode.Unknown)
-                    }
-                }
-            };
-        }
-        finally
+        return result.Success switch
         {
-            _semaphore.Release();
-        }
+            false => false,
+            _ => new OppoResult<CurrentRepeatMode>
+            {
+                Success = true,
+                Result = result.Response switch
+                {
+                    "@OK 00 Off" => CurrentRepeatMode.Off,
+                    "@OK 01 Repeat One" => CurrentRepeatMode.RepeatOne,
+                    "@OK 02 Repeat Chapter" => CurrentRepeatMode.RepeatChapter,
+                    "@OK 03 Repeat All" => CurrentRepeatMode.RepeatAll,
+                    "@OK 04 Repeat Title" => CurrentRepeatMode.RepeatTitle,
+                    "@OK 05 Shuffle" => CurrentRepeatMode.Shuffle,
+                    "@OK 06 Random" => CurrentRepeatMode.Random,
+                    _ => LogError(result.Response, CurrentRepeatMode.Unknown)
+                }
+            }
+        };
     }
 
     public async ValueTask<OppoResult<InputSource>> QueryInputSourceAsync(CancellationToken cancellationToken = default)
@@ -1514,44 +884,34 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         if (_model is OppoModel.BDP8395)
             return false;
         
-        if (!await _semaphore.WaitAsync(_timeout, cancellationToken))
-            return false;
+        var command = Is20XModel ? Oppo20XQueryCommand.QueryInputSource : Oppo10XQueryCommand.QueryInputSource;
+        var result = await SendCommand(command, cancellationToken);
         
-        try
+        return result.Success switch
         {
-            var command = Is20XModel ? Oppo20XQueryCommand.QueryInputSource : Oppo10XQueryCommand.QueryInputSource;
-            var result = await SendCommand(command, cancellationToken);
-        
-            return result.Success switch
+            false => false,
+            _ => new OppoResult<InputSource>
             {
-                false => false,
-                _ => new OppoResult<InputSource>
+                Success = true,
+                Result = result.Response switch
                 {
-                    Success = true,
-                    Result = result.Response switch
-                    {
-                        "@OK 0 BD-PLAYER" => InputSource.BluRayPlayer,
-                        "@OK 1 HDMI-IN" => InputSource.HDMIIn,
-                        "@OK 2 ARC-HDMI-OUT" => InputSource.ARCHDMIOut,
-                        "@OK 3 OPTICAL-IN" => InputSource.Optical,
-                        "@OK 4 COAXIAL-IN" => InputSource.Coaxial,
-                        "@OK 5 USB-AUDIO-IN" => InputSource.USBAudio,
-                        "@OK 1 HDMI-FRONT" => InputSource.HDMIFront,
-                        "@OK 2 HDMI-BACK" => InputSource.HDMIBack,
-                        "@OK 3 ARC-HDMI-OUT1" => InputSource.ARCHDMIOut1,
-                        "@OK 4 ARC-HDMI-OUT2" => InputSource.ARCHDMIOut2,
-                        "@OK 5 OPTICAL" => InputSource.Optical,
-                        "@OK 6 COAXIAL" => InputSource.Coaxial,
-                        "@OK 7 USB-AUDIO" => InputSource.USBAudio,
-                        _ => LogError(result.Response, InputSource.Unknown)
-                    }
+                    "@OK 0 BD-PLAYER" => InputSource.BluRayPlayer,
+                    "@OK 1 HDMI-IN" => InputSource.HDMIIn,
+                    "@OK 2 ARC-HDMI-OUT" => InputSource.ARCHDMIOut,
+                    "@OK 3 OPTICAL-IN" => InputSource.Optical,
+                    "@OK 4 COAXIAL-IN" => InputSource.Coaxial,
+                    "@OK 5 USB-AUDIO-IN" => InputSource.USBAudio,
+                    "@OK 1 HDMI-FRONT" => InputSource.HDMIFront,
+                    "@OK 2 HDMI-BACK" => InputSource.HDMIBack,
+                    "@OK 3 ARC-HDMI-OUT1" => InputSource.ARCHDMIOut1,
+                    "@OK 4 ARC-HDMI-OUT2" => InputSource.ARCHDMIOut2,
+                    "@OK 5 OPTICAL" => InputSource.Optical,
+                    "@OK 6 COAXIAL" => InputSource.Coaxial,
+                    "@OK 7 USB-AUDIO" => InputSource.USBAudio,
+                    _ => LogError(result.Response, InputSource.Unknown)
                 }
-            };
-        }
-        finally
-        {
-            _semaphore.Release();
-        }
+            }
+        };
     }
 
     public async ValueTask<OppoResult<InputSource>> SetInputSourceAsync(InputSource inputSource, CancellationToken cancellationToken = default)
@@ -1559,60 +919,50 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         if (!IsValidCommand(_model, inputSource))
             return false;
         
-        if (!await _semaphore.WaitAsync(_timeout, cancellationToken))
-            return false;
-        
-        try
+        ushort commandDigit = inputSource switch
         {
-            ushort commandDigit = inputSource switch
+            InputSource.BluRayPlayer => 0,
+            InputSource.HDMIIn => 1,
+            InputSource.ARCHDMIOut => 2,
+            InputSource.Optical => (ushort)(Is20XModel ? 3 : 5),
+            InputSource.Coaxial => (ushort)(Is20XModel ? 4 : 6),
+            InputSource.USBAudio => (ushort)(Is20XModel ? 5 : 7),
+            InputSource.HDMIFront => 1,
+            InputSource.HDMIBack => 2,
+            InputSource.ARCHDMIOut1 => 3,
+            InputSource.ARCHDMIOut2 => 4,
+            InputSource.Unknown => throw new ArgumentOutOfRangeException(nameof(inputSource), inputSource, null),
+            _ => throw new ArgumentOutOfRangeException(nameof(inputSource), inputSource, null)
+        };
+    
+        var command = Encoding.ASCII.GetBytes(Is20XModel ? $"#SIS {commandDigit}\r" : $"REMOTE SVL {commandDigit}");
+        var result = await SendCommand(command, cancellationToken);
+    
+        return result.Success switch
+        {
+            false => false,
+            _ => new OppoResult<InputSource>
             {
-                InputSource.BluRayPlayer => 0,
-                InputSource.HDMIIn => 1,
-                InputSource.ARCHDMIOut => 2,
-                InputSource.Optical => (ushort)(Is20XModel ? 3 : 5),
-                InputSource.Coaxial => (ushort)(Is20XModel ? 4 : 6),
-                InputSource.USBAudio => (ushort)(Is20XModel ? 5 : 7),
-                InputSource.HDMIFront => 1,
-                InputSource.HDMIBack => 2,
-                InputSource.ARCHDMIOut1 => 3,
-                InputSource.ARCHDMIOut2 => 4,
-                InputSource.Unknown => throw new ArgumentOutOfRangeException(nameof(inputSource), inputSource, null),
-                _ => throw new ArgumentOutOfRangeException(nameof(inputSource), inputSource, null)
-            };
-        
-            var command = Encoding.ASCII.GetBytes(Is20XModel ? $"#SIS {commandDigit}\r" : $"REMOTE SVL {commandDigit}");
-            var result = await SendCommand(command, cancellationToken);
-        
-            return result.Success switch
-            {
-                false => false,
-                _ => new OppoResult<InputSource>
+                Success = true,
+                Result = result.Response switch
                 {
-                    Success = true,
-                    Result = result.Response switch
-                    {
-                        "@OK 0 BD-PLAYER" => InputSource.BluRayPlayer,
-                        "@OK 1 HDMI-IN" => InputSource.HDMIIn,
-                        "@OK 2 ARC-HDMI-OUT" => InputSource.ARCHDMIOut,
-                        "@OK 3 OPTICAL-IN" => InputSource.Optical,
-                        "@OK 4 COAXIAL-IN" => InputSource.Coaxial,
-                        "@OK 5 USB-AUDIO-IN" => InputSource.USBAudio,
-                        "@OK 1 HDMI-FRONT" => InputSource.HDMIFront,
-                        "@OK 2 HDMI-BACK" => InputSource.HDMIBack,
-                        "@OK 3 ARC-HDMI-OUT1" => InputSource.ARCHDMIOut1,
-                        "@OK 4 ARC-HDMI-OUT2" => InputSource.ARCHDMIOut2,
-                        "@OK 5 OPTICAL" => InputSource.Optical,
-                        "@OK 6 COAXIAL" => InputSource.Coaxial,
-                        "@OK 7 USB-AUDIO" => InputSource.USBAudio,
-                        _ => LogError(result.Response, InputSource.Unknown)
-                    }
+                    "@OK 0 BD-PLAYER" => InputSource.BluRayPlayer,
+                    "@OK 1 HDMI-IN" => InputSource.HDMIIn,
+                    "@OK 2 ARC-HDMI-OUT" => InputSource.ARCHDMIOut,
+                    "@OK 3 OPTICAL-IN" => InputSource.Optical,
+                    "@OK 4 COAXIAL-IN" => InputSource.Coaxial,
+                    "@OK 5 USB-AUDIO-IN" => InputSource.USBAudio,
+                    "@OK 1 HDMI-FRONT" => InputSource.HDMIFront,
+                    "@OK 2 HDMI-BACK" => InputSource.HDMIBack,
+                    "@OK 3 ARC-HDMI-OUT1" => InputSource.ARCHDMIOut1,
+                    "@OK 4 ARC-HDMI-OUT2" => InputSource.ARCHDMIOut2,
+                    "@OK 5 OPTICAL" => InputSource.Optical,
+                    "@OK 6 COAXIAL" => InputSource.Coaxial,
+                    "@OK 7 USB-AUDIO" => InputSource.USBAudio,
+                    _ => LogError(result.Response, InputSource.Unknown)
                 }
-            };
-        }
-        finally
-        {
-            _semaphore.Release();
-        }
+            }
+        };
 
         static bool IsValidCommand(in OppoModel model, in InputSource inputSource)
         {
@@ -1655,27 +1005,17 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         if (!Is20XModel)
             return false;
         
-        if (!await _semaphore.WaitAsync(_timeout, cancellationToken))
-            return false;
+        var result = await SendCommand(Oppo20XQueryCommand.QueryCDDBNumber, cancellationToken);
         
-        try
+        return result.Success switch
         {
-            var result = await SendCommand(Oppo20XQueryCommand.QueryCDDBNumber, cancellationToken);
-        
-            return result.Success switch
+            false => false,
+            _ => new OppoResult<string>
             {
-                false => false,
-                _ => new OppoResult<string>
-                {
-                    Success = true,
-                    Result = result.Response[4..]
-                }
-            };
-        }
-        finally
-        {
-            _semaphore.Release();
-        }
+                Success = true,
+                Result = result.Response[4..]
+            }
+        };
     }
 
     public async ValueTask<OppoResult<string>> QueryTrackNameAsync(CancellationToken cancellationToken = default)
@@ -1683,27 +1023,17 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         if (!Is20XModel)
             return false;
         
-        if (!await _semaphore.WaitAsync(_timeout, cancellationToken))
-            return false;
+        var result = await SendCommand(Oppo20XQueryCommand.QueryTrackName, cancellationToken);
         
-        try
+        return result.Success switch
         {
-            var result = await SendCommand(Oppo20XQueryCommand.QueryTrackName, cancellationToken);
-        
-            return result.Success switch
+            false => false,
+            _ => new OppoResult<string>
             {
-                false => false,
-                _ => new OppoResult<string>
-                {
-                    Success = true,
-                    Result = result.Response[4..]
-                }
-            };
-        }
-        finally
-        {
-            _semaphore.Release();
-        }
+                Success = true,
+                Result = result.Response[4..]
+            }
+        };
     }
 
     public async ValueTask<OppoResult<string>> QueryTrackAlbumAsync(CancellationToken cancellationToken = default)
@@ -1711,27 +1041,17 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         if (!Is20XModel)
             return false;
         
-        if (!await _semaphore.WaitAsync(_timeout, cancellationToken))
-            return false;
+        var result = await SendCommand(Oppo20XQueryCommand.QueryTrackAlbum, cancellationToken);
         
-        try
+        return result.Success switch
         {
-            var result = await SendCommand(Oppo20XQueryCommand.QueryTrackAlbum, cancellationToken);
-        
-            return result.Success switch
+            false => false,
+            _ => new OppoResult<string>
             {
-                false => false,
-                _ => new OppoResult<string>
-                {
-                    Success = true,
-                    Result = result.Response[4..]
-                }
-            };
-        }
-        finally
-        {
-            _semaphore.Release();
-        }
+                Success = true,
+                Result = result.Response[4..]
+            }
+        };
     }
 
     public async ValueTask<OppoResult<string>> QueryTrackPerformerAsync(CancellationToken cancellationToken = default)
@@ -1739,27 +1059,17 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         if (!Is20XModel)
             return false;
         
-        if (!await _semaphore.WaitAsync(_timeout, cancellationToken))
-            return false;
+        var result = await SendCommand(Oppo20XQueryCommand.QueryTrackPerformer, cancellationToken);
         
-        try
+        return result.Success switch
         {
-            var result = await SendCommand(Oppo20XQueryCommand.QueryTrackPerformer, cancellationToken);
-        
-            return result.Success switch
+            false => false,
+            _ => new OppoResult<string>
             {
-                false => false,
-                _ => new OppoResult<string>
-                {
-                    Success = true,
-                    Result = result.Response[4..]
-                }
-            };
-        }
-        finally
-        {
-            _semaphore.Release();
-        }
+                Success = true,
+                Result = result.Response[4..]
+            }
+        };
     }
 
     public async ValueTask<bool> IsConnectedAsync(TimeSpan? timeout = null)
@@ -1789,8 +1099,13 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
 
     public string GetHost() => _hostName;
 
+    private static readonly OppoResultCore FalseResult = new(false, null);
+    
     private async ValueTask<OppoResultCore> SendCommand(byte[] command, CancellationToken cancellationToken, [CallerMemberName] string? caller = null)
     {
+        if (!await _semaphore.WaitAsync(_timeout, cancellationToken))
+            return FalseResult;
+
         try
         {
             if (_logger.IsEnabled(LogLevel.Trace))
@@ -1798,9 +1113,9 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
 
             var networkStream = _tcpClient.GetStream();
             await networkStream.WriteAsync(command, cancellationToken);
-            
+
             var response = await ReadUntilCarriageReturnAsync(networkStream, cancellationToken);
-            
+
             if (_logger.IsEnabled(LogLevel.Trace))
                 _logger.LogTrace("Received response '{Response}'", response);
 
@@ -1810,17 +1125,21 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
             if (response is { Length: 0 })
             {
                 _logger.LogDebug("{Caller} - Command not valid at this time", caller);
-                return new OppoResultCore(false, null);
+                return FalseResult;
             }
-            
+
             _logger.LogError("{Caller} - Failed to send command. Response was '{Response}'", caller, response);
-            
-            return new OppoResultCore(false, response);
+
+            return FalseResult;
         }
         catch (Exception e)
         {
             _logger.LogError(e, "Failed to send command");
-            return new OppoResultCore(false, null);
+            return FalseResult;
+        }
+        finally
+        {
+            _semaphore.Release();
         }
     }
     
@@ -1929,27 +1248,17 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
     
     private async ValueTask<OppoResult<uint>> QueryTimeAsync(byte[] command, CancellationToken cancellationToken)
     {
-        if (!await _semaphore.WaitAsync(_timeout, cancellationToken))
-            return false;
+        var result = await SendCommand(command, cancellationToken);
         
-        try
+        return result.Success switch
         {
-            var result = await SendCommand(command, cancellationToken);
-        
-            return result.Success switch
+            false => false,
+            _ => new OppoResult<uint>
             {
-                false => false,
-                _ => new OppoResult<uint>
-                {
-                    Success = true,
-                    Result = ParseTime(result.Response)
-                }
-            };
-        }
-        finally
-        {
-            _semaphore.Release();
-        }
+                Success = true,
+                Result = ParseTime(result.Response)
+            }
+        };
     }
     
     private static uint ParseTime(in ReadOnlySpan<char> response)
