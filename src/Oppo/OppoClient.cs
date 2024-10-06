@@ -712,7 +712,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
                     "@OK DATA-DISC" => DiscType.DataDisc,
                     "@OK UHBD" => DiscType.UltraHDBluRay,
                     "@OK NO-DISC" => DiscType.NoDisc,
-                    "@OK UNKNOWN-DISC" => DiscType.UnknownDisc,
+                    "@OK UNKNOW-DISC" => DiscType.UnknownDisc,
                         
                     // Pre 20X models
                     "@OK HDCD" => DiscType.HDCD,
