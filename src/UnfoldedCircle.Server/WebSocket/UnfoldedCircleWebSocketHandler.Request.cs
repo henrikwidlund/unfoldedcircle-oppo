@@ -14,7 +14,7 @@ namespace UnfoldedCircle.Server.WebSocket;
 internal partial class UnfoldedCircleWebSocketHandler
 {
     private static readonly ConcurrentDictionary<string, string> SocketIdEntityIpMap = new(StringComparer.Ordinal);
-    private static readonly ConcurrentDictionary<string, bool> SetupInProgressMap = new(StringComparer.Ordinal);
+    private static readonly ConcurrentDictionary<string, bool> SubscribeEvents = new(StringComparer.Ordinal);
     
     private async Task HandleRequestMessage(
         System.Net.WebSockets.WebSocket socket,
@@ -108,9 +108,11 @@ internal partial class UnfoldedCircleWebSocketHandler
                     wsId,
                     cancellationTokenWrapper.ApplicationStopping);
 
-                SetupInProgressMap.TryRemove(wsId, out _);
-                
+                SubscribeEvents.AddOrUpdate(wsId, static _ => true, static (_, _) => true);
                 var oppoClientHolder = await TryGetOppoClientHolder(wsId, null, cancellationTokenWrapper.ApplicationStopping);
+                if (oppoClientHolder is not null && await oppoClientHolder.Client.IsConnectedAsync())
+                    _ = HandleEventUpdates(socket, wsId, oppoClientHolder, cancellationTokenWrapper);
+                
                 if (oppoClientHolder is not null
                     && oppoClientHolder.ClientKey.Model is not OppoModel.BDP8395
                     && await oppoClientHolder.Client.IsConnectedAsync())
@@ -159,7 +161,7 @@ internal partial class UnfoldedCircleWebSocketHandler
                 SocketIdEntityIpMap.AddOrUpdate(wsId,
                     static (_, arg) => arg.MsgData.SetupData[OppoConstants.IpAddressKey],
                     static (_, _, arg) => arg.MsgData.SetupData[OppoConstants.IpAddressKey], payload);
-                SetupInProgressMap.AddOrUpdate(wsId, static _ => true, static (_, _) => true);
+                SubscribeEvents.AddOrUpdate(wsId, static _ => false, static (_, _) => false);
                 
                 var entity = await UpdateConfiguration(payload.MsgData.SetupData, cancellationTokenWrapper.ApplicationStopping);
                 var oppoClientHolder = await TryGetOppoClientHolder(wsId, entity.DeviceId, cancellationTokenWrapper.ApplicationStopping);

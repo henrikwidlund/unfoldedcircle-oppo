@@ -11,23 +11,23 @@ namespace UnfoldedCircle.Server.WebSocket;
 
 internal partial class UnfoldedCircleWebSocketHandler
 {
-    private static readonly ConcurrentDictionary<string, bool> BroadcastingMediaEvents = new(StringComparer.Ordinal);
+    private static readonly ConcurrentDictionary<string, bool> BroadcastingEvents = new(StringComparer.Ordinal);
     
-    private async Task HandleMediaUpdates(
+    private async Task HandleEventUpdates(
         System.Net.WebSockets.WebSocket socket,
         string wsId,
         OppoClientHolder oppoClientHolder,
         CancellationTokenWrapper cancellationTokenWrapper)
     {
-        if (SetupInProgressMap.TryGetValue(wsId, out var setupInProgress) && setupInProgress)
+        if (SubscribeEvents.TryGetValue(wsId, out var subscribeEvents) && !subscribeEvents)
         {
-            _logger.LogDebug("{WSId} Setup in progress, skipping media updates", wsId);
+            _logger.LogDebug("{WSId} Subscribe events not called", wsId);
             return;
         }
         
         if (!await oppoClientHolder.Client.IsConnectedAsync() || oppoClientHolder is { ClientKey.UseMediaEvents: false })
         {
-            _logger.LogDebug("{WSId} Client not connected or configured to not use media events. {@ClientKey}", wsId, oppoClientHolder.ClientKey);
+            _logger.LogDebug("{WSId} Client not connected or configured to not use events. {@ClientKey}", wsId, oppoClientHolder.ClientKey);
             return;
         }
         
@@ -38,27 +38,49 @@ internal partial class UnfoldedCircleWebSocketHandler
             return;
         }
         
-        if (BroadcastingMediaEvents.TryGetValue(wsId, out var broadcastingMediaEvents) && broadcastingMediaEvents)
+        if (BroadcastingEvents.TryGetValue(wsId, out var broadcastingEvents) && broadcastingEvents)
         {
             _logger.LogDebug("{WSId} Media updates already running for {DeviceId}", wsId, oppoClientHolder.Client.GetHost());
             return;
         }
         
-        BroadcastingMediaEvents.AddOrUpdate(wsId, true, static (_, _) => true);
+        BroadcastingEvents.AddOrUpdate(wsId, true, static (_, _) => true);
         
-        _logger.LogDebug("{WSId} Starting media updates for {DeviceId}", wsId, oppoClientHolder.Client.GetHost());
+        _logger.LogDebug("{WSId} Starting events for {DeviceId}", wsId, oppoClientHolder.Client.GetHost());
         using var periodicTimer = new PeriodicTimer(TimeSpan.FromSeconds(1));
         try
         {
             while (await periodicTimer.WaitForNextTickAsync(cancellationTokenSource.Token))
             {
-                var powerStatusResponse = await oppoClientHolder.Client.QueryPowerStatusAsync(cancellationTokenWrapper.ApplicationStopping);
+                var connected = await oppoClientHolder.Client.IsConnectedAsync();
+                if (!connected)
+                    _logger.LogDebug("{WSId} Client not connected. {@ClientKey}", wsId, oppoClientHolder.ClientKey);
+                
+                OppoResult<PowerState>? powerStatusResponse;
+                if (connected)
+                    powerStatusResponse = await oppoClientHolder.Client.QueryPowerStatusAsync(cancellationTokenWrapper.ApplicationStopping);
+                else
+                    powerStatusResponse = null;
+                
                 var state = powerStatusResponse switch
                 {
                     { Result: PowerState.On } => State.On,
                     { Result: PowerState.Off } => State.Off,
                     _ => State.Unknown
                 };
+                
+                // Only send power state if not using media events
+                if (oppoClientHolder is { ClientKey.UseMediaEvents: false })
+                {
+                    await SendAsync(socket,
+                        ResponsePayloadHelpers.CreateStateChangedResponsePayload(
+                            new StateChangedEventMessageDataAttributes { State = state },
+                            _unfoldedCircleJsonSerializerContext),
+                        wsId,
+                        cancellationTokenWrapper.ApplicationStopping);
+                    
+                    continue;
+                }
 
                 OppoResult<VolumeInfo>? volumeResponse = null;
                 OppoResult<InputSource>? inputSourceResponse = null;
@@ -180,15 +202,13 @@ internal partial class UnfoldedCircleWebSocketHandler
         finally
         {
             await SendAsync(socket,
-                ResponsePayloadHelpers.CreateStateChangedResponsePayload(new StateChangedEventMessageDataAttributes
-                {
-                    State = State.Off
-                },
-                _unfoldedCircleJsonSerializerContext),
+                ResponsePayloadHelpers.CreateStateChangedResponsePayload(
+                    new StateChangedEventMessageDataAttributes { State = State.Off },
+                    _unfoldedCircleJsonSerializerContext),
                 wsId,
                 cancellationTokenWrapper.ApplicationStopping);
             
-            BroadcastingMediaEvents.TryRemove(wsId, out _);
+            BroadcastingEvents.TryRemove(wsId, out _);
         }
         
         _logger.LogDebug("{WSId} Stopping media updates for {DeviceId}", wsId, oppoClientHolder.Client.GetHost());
