@@ -16,7 +16,9 @@ public class AFSDBRecordTest
             Subtype = 1,
             Target = "afs.emanon.org"
         };
+        
         var b = (AFSDBRecord)new ResourceRecord().Read(a.ToByteArray());
+        
         Assert.AreEqual(a.Name, b.Name);
         Assert.AreEqual(a.Class, b.Class);
         Assert.AreEqual(a.Type, b.Type);
@@ -34,7 +36,9 @@ public class AFSDBRecordTest
             Subtype = 1,
             Target = "afs.emanon.org"
         };
+        
         var b = (AFSDBRecord)new ResourceRecord().Read(a.ToString());
+        
         Assert.IsNotNull(b);
         Assert.AreEqual(a.Name, b.Name);
         Assert.AreEqual(a.Class, b.Class);
@@ -53,12 +57,14 @@ public class AFSDBRecordTest
             Subtype = 1,
             Target = "afs.emanon.org"
         };
+        
         var b = new AFSDBRecord
         {
             Name = "emanon.org",
             Subtype = 2,
             Target = "afs.emanon.org"
         };
+        
         // ReSharper disable once EqualExpressionComparison
         Assert.IsTrue(a.Equals(a));
         Assert.IsFalse(a.Equals(b));

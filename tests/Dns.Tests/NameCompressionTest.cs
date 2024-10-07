@@ -12,25 +12,27 @@ public class NameCompressionTest
     [TestMethod]
     public void Writing()
     {
-        var ms = new MemoryStream();
+        using var ms = new MemoryStream();
         var writer = new WireWriter(ms);
         writer.WriteDomainName("a");
         writer.WriteDomainName("b");
         writer.WriteDomainName("b");
         var bytes = ms.ToArray();
+        
         var expected = new byte[]
         {
             0x01, (byte)'a', 0,
             0x01, (byte)'b', 0,
             0XC0, 3
         };
+        
         CollectionAssert.AreEqual(expected, bytes);
     }
 
     [TestMethod]
     public void Writing_Labels()
     {
-        var ms = new MemoryStream();
+        using var ms = new MemoryStream();
         var writer = new WireWriter(ms);
         writer.WriteDomainName("a.b.c");
         writer.WriteDomainName("a.b.c");
@@ -38,6 +40,7 @@ public class NameCompressionTest
         writer.WriteDomainName("c");
         writer.WriteDomainName("x.b.c");
         var bytes = ms.ToArray();
+        
         var expected = new byte[]
         {
             0x01, (byte)'a', 0x01, (byte)'b', 0x01, (byte)'c', 00,
@@ -52,7 +55,7 @@ public class NameCompressionTest
     [TestMethod]
     public void Writing_Past_MaxPointer()
     {
-        var ms = new MemoryStream();
+        using var ms = new MemoryStream();
         var writer = new WireWriter(ms);
         writer.WriteBytes(new byte[0x4000]);
         writer.WriteDomainName("a");
@@ -78,7 +81,8 @@ public class NameCompressionTest
             0xC0, 0x04,
             0x01, (byte)'x', 0xC0, 0x02
         };
-        var ms = new MemoryStream(bytes);
+        
+        using var ms = new MemoryStream(bytes);
         var reader = new WireReader(ms);
         Assert.AreEqual("a.b.c", reader.ReadDomainName());
         Assert.AreEqual("a.b.c", reader.ReadDomainName());
@@ -96,7 +100,8 @@ public class NameCompressionTest
             0x01, (byte)'b', 0,
             0XC0, 3
         };
-        var ms = new MemoryStream(bytes);
+        
+        using var ms = new MemoryStream(bytes);
         var reader = new WireReader(ms);
         Assert.AreEqual("a", reader.ReadDomainName());
         Assert.AreEqual("b", reader.ReadDomainName());

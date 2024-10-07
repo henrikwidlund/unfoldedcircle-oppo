@@ -13,9 +13,8 @@ public partial class NameServer
     {
         // If requestor doesn't do DNSSEC, then nothing more to do.
         if (!request.DO)
-        {
             return response;
-        }
+        
         response.DO = true;
 
         await AddSecurityResourcesAsync(response.Answers);
@@ -42,14 +41,14 @@ public partial class NameServer
             .Where(static r => r.CanonicalName != string.Empty) // ignore pseudo records as
             .GroupBy(static r => new { r.CanonicalName, r.Type, r.Class })
             .Select(static g => g.First());
+        
         foreach (var need in neededSignatures)
         {
             var signatures = new Message();
             var question = new Question { Name = need.Name, Class = need.Class, Type = DnsType.RRSIG };
             if (!await FindAnswerAsync(question, signatures, CancellationToken.None))
-            {
                 continue;
-            }
+            
             rrset.AddRange(signatures.Answers
                 .OfType<RRSIGRecord>()
                 .Where(r => r.TypeCovered == need.Type)

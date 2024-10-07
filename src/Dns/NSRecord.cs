@@ -29,27 +29,14 @@ public class NSRecord : ResourceRecord
     public DomainName? Authority { get; set; }
     
     /// <inheritdoc />
-    public override void ReadData(WireReader reader, int length)
-    {
-        Authority = reader.ReadDomainName();
-    }
+    public override void ReadData(WireReader reader, int length) => Authority = reader.ReadDomainName();
 
     /// <inheritdoc />
-    public override void ReadData(PresentationReader reader)
-    {
-        Authority = reader.ReadDomainName();
-    }
+    public override void ReadData(PresentationReader reader) => Authority = reader.ReadDomainName();
 
     /// <inheritdoc />
-    public override void WriteData(WireWriter writer)
-    {
-        writer.WriteDomainName(Authority);
-    }
+    public override void WriteData(WireWriter writer) => writer.WriteDomainName(Authority);
 
     /// <inheritdoc />
-    public override void WriteData(PresentationWriter writer)
-    {
-        writer.WriteDomainName(Authority, appendSpace: false);
-    }
-
+    public override void WriteData(PresentationWriter writer) => writer.WriteDomainName(Authority, appendSpace: false);
 }

@@ -8,8 +8,5 @@ namespace DnsTests;
 public class DigestRegistryTest
 {
     [TestMethod]
-    public void Exists()
-    {
-        Assert.AreNotEqual(0, DigestRegistry.Digests.Count);
-    }
+    public void Exists() => Assert.AreNotEqual(0, DigestRegistry.Digests.Count);
 }

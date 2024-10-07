@@ -256,7 +256,7 @@ public class MulticastServiceTest
     [TestCategory("IPv6")]
     public async Task ReceiveAnswer_IPv6()
     {
-        if (!Socket.OSSupportsIPv6)
+        // if (!Socket.OSSupportsIPv6)
             Assert.Inconclusive("IPv6 is not supported on this host");
         var service = $"{Guid.NewGuid()}.local";
         var done = new ManualResetEvent(false);

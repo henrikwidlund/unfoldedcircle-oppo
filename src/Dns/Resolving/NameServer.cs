@@ -43,19 +43,14 @@ public partial class NameServer : IResolver
         }
 
         if (response.Answers.Count > 0)
-        {
             response.Status = MessageStatus.NoError;
-        }
 
         // Remove duplicate records.
         if (response.Answers.Count > 1)
-        {
             response.Answers = response.Answers.Distinct().ToList();
-        }
+        
         if (response.AuthorityRecords.Count > 1)
-        {
             response.AuthorityRecords = response.AuthorityRecords.Distinct().ToList();
-        }
 
         // Remove additional records that are also answers.
         if (response.AdditionalRecords.Count > 0)
@@ -97,12 +92,10 @@ public partial class NameServer : IResolver
         var found = await FindAnswerAsync(question, response, cancel);
         var soa = FindAuthority(question.Name);
         if (!found && response.Status == MessageStatus.NoError)
-        {
             response.Status = MessageStatus.NameError;
-        }
 
         // Add the NS records for the answered domain into the
-        // the authority section.
+        // authority section.
         if (found && soa is not null)
         {
             var res = new Message();
@@ -115,9 +108,7 @@ public partial class NameServer : IResolver
         if (response.Status == MessageStatus.NameError)
         {
             if (soa is not null)
-            {
                 response.AuthorityRecords.Add(soa);
-            }
         }
 
         // Add additional records.
@@ -155,9 +146,7 @@ public partial class NameServer : IResolver
         
         // Find a node for the question name.
         if (Catalog is null || !Catalog.TryGetValue(question.Name, out var node))
-        {
             return Task.FromResult(false);
-        }
 
         // https://tools.ietf.org/html/rfc1034#section-3.7.1
         response.AA |= node.Authoritative && question.Class != DnsClass.ANY;
@@ -199,6 +188,7 @@ public partial class NameServer : IResolver
                 var soa = node.Resources.OfType<SOARecord>().FirstOrDefault();
                 if (soa is not null) return soa;
             }
+            
             name = name.Parent();
         }
 
@@ -211,6 +201,7 @@ public partial class NameServer : IResolver
         var resources = response.Answers
             .Concat(response.AdditionalRecords)
             .Concat(response.AuthorityRecords);
+        
         var question = new Question();
         foreach (var resource in resources)
         {
@@ -273,17 +264,14 @@ public partial class NameServer : IResolver
 
         // Add extras with no duplication.
         extras.Answers = extras.Answers
-            .Where(a => !response.Answers.Contains(a))
-            .Where(a => !response.AdditionalRecords.Contains(a))
-            .Distinct()
+            .Where(a => !response.Answers.Contains(a) && !response.AdditionalRecords.Contains(a)).Distinct()
             .ToList();
+        
         response.AdditionalRecords.AddRange(extras.Answers);
 
         // Add additionals for any extras.
         if (extras.Answers.Count > 0)
-        {
             await AddAdditionalRecords(response, cancellationToken);
-        }
     }
 
     private async Task FindAddresses(DomainName name, DnsClass dnsClass, Message response, CancellationToken cancel)

@@ -27,7 +27,9 @@ public class RRSIGRecordTest
             SignerName = "example.com",
             Signature = [1, 2, 3]
         };
+        
         var b = (RRSIGRecord)new ResourceRecord().Read(a.ToByteArray());
+        
         Assert.AreEqual(a.Name, b.Name);
         Assert.AreEqual(a.Class, b.Class);
         Assert.AreEqual(a.Type, b.Type);
@@ -61,7 +63,9 @@ public class RRSIGRecordTest
             SignerName = "example.com",
             Signature = [1, 2, 3]
         };
+        
         var b = (RRSIGRecord)new ResourceRecord().Read(a.ToString());
+        
         Assert.IsNotNull(b);
         Assert.AreEqual(a.Name, b.Name);
         Assert.AreEqual(a.Class, b.Class);

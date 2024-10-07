@@ -8,7 +8,7 @@
 ///   resource records. When reading, if the registry does not contain
 ///   the record, then an <see cref="UnknownRecord"/> is used.
 /// </remarks>
-public class ResourceRecord : DnsObject, IPresentationSerialiser
+public class ResourceRecord : DnsObject, IPresentationSerializer
 {
     /// <summary>
     ///   The default time interval that a resource record maybe cached.
@@ -127,7 +127,7 @@ public class ResourceRecord : DnsObject, IPresentationSerialiser
     }
 
     /// <inheritdoc />
-    public override IWireSerialiser Read(WireReader reader)
+    public override IWireSerializer Read(WireReader reader)
     {
         // Read standard properties of a resource record.
         Name = reader.ReadDomainName();
@@ -147,10 +147,9 @@ public class ResourceRecord : DnsObject, IPresentationSerialiser
         // Read the specific properties of the resource record.
         var end = reader.Position + length;
         specific.ReadData(reader, length);
+        
         if (reader.Position != end)
-        {
             throw new InvalidDataException("Found extra data while decoding RDATA.");
-        }
 
         return specific;
     }
@@ -167,9 +166,7 @@ public class ResourceRecord : DnsObject, IPresentationSerialiser
     /// <remarks>
     ///   Derived classes must implement this method.
     /// </remarks>
-    public virtual void ReadData(WireReader reader, int length)
-    {
-    }
+    public virtual void ReadData(WireReader reader, int length) { }
 
     /// <inheritdoc />
     public override void Write(WireWriter writer)
@@ -193,9 +190,7 @@ public class ResourceRecord : DnsObject, IPresentationSerialiser
     /// <remarks>
     ///   Derived classes must implement this method.
     /// </remarks>
-    public virtual void WriteData(WireWriter writer)
-    {
-    }
+    public virtual void WriteData(WireWriter writer) { }
 
     /// <summary>
     ///   Determines if the specified object is equal to the current object.
@@ -289,9 +284,7 @@ public class ResourceRecord : DnsObject, IPresentationSerialiser
         // Trim trailing whitespaces (tab, space, cr, lf, ...)
         var sb = s.GetStringBuilder();
         while (sb.Length > 0 && char.IsWhiteSpace(sb[^1]))
-        {
             --sb.Length;
-        }
 
         return sb.ToString();
     }
@@ -301,9 +294,8 @@ public class ResourceRecord : DnsObject, IPresentationSerialiser
     {
         writer.WriteDomainName(Name);
         if (TTL != DefaultTTL)
-        {
             writer.WriteTimeSpan32(TTL);
-        }
+        
         writer.WriteDnsClass(Class);
         writer.WriteDnsType(Type);
 
@@ -330,8 +322,10 @@ public class ResourceRecord : DnsObject, IPresentationSerialiser
     {
         var rdata = GetData();
         var hasData = rdata.Length > 0;
+        
         writer.WriteStringUnencoded("\\#");
         writer.WriteUInt32((uint)rdata.Length, appendSpace: hasData);
+        
         if (hasData)
             writer.WriteBase16String(rdata, appendSpace: false);
     }
@@ -343,16 +337,10 @@ public class ResourceRecord : DnsObject, IPresentationSerialiser
     /// <param name="text">
     ///   The presentation format.
     /// </param>
-    public ResourceRecord? Read(string text)
-    {
-        return Read(new PresentationReader(new StringReader(text)));
-    }
+    public ResourceRecord? Read(string text) => Read(new PresentationReader(new StringReader(text)));
 
     /// <inheritdoc />
-    public ResourceRecord? Read(PresentationReader reader)
-    {
-        return reader.ReadResourceRecord();
-    }
+    public ResourceRecord? Read(PresentationReader reader) => reader.ReadResourceRecord();
 
     /// <summary>
     ///   Read the textual representation of the data that is specific to 
@@ -364,7 +352,5 @@ public class ResourceRecord : DnsObject, IPresentationSerialiser
     /// <remarks>
     ///   Derived classes must implement this method.
     /// </remarks>
-    public virtual void ReadData(PresentationReader reader)
-    {
-    }
+    public virtual void ReadData(PresentationReader reader) { }
 }

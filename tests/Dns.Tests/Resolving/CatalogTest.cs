@@ -53,8 +53,7 @@ public class CatalogTest
                                                 mail3         IN  A     192.0.2.5             ; IPv4 address for mail3.example.com
 
                                                 """;
-
-
+    
     [TestMethod]
     public void IncludeZone()
     {
@@ -98,7 +97,7 @@ public class CatalogTest
     [TestMethod]
     public void IncludeZone_MissingSOA()
     {
-        var text = "foo.org A 127.0.0.1";
+        const string text = "foo.org A 127.0.0.1";
         var catalog = new Catalog();
         var reader = new PresentationReader(new StringReader(text));
         ExceptionAssert.Throws<InvalidDataException>(() => catalog.IncludeZone(reader));
@@ -108,7 +107,7 @@ public class CatalogTest
     public void IncludeZone_InvalidName()
     {
         // Missing a new line
-        var text = ExampleDotOrgZoneText + " not.in.zone. A 127.0.0.1 ; bad";
+        const string text = ExampleDotOrgZoneText + " not.in.zone. A 127.0.0.1 ; bad";
         var catalog = new Catalog();
         var reader = new PresentationReader(new StringReader(text));
         ExceptionAssert.Throws<InvalidDataException>(() => catalog.IncludeZone(reader));
@@ -132,7 +131,7 @@ public class CatalogTest
     public void RemoveZone()
     {
         var catalog = new Catalog();
-
+        
         var reader = new PresentationReader(new StringReader(ExampleDotComZoneText));
         var zone = catalog.IncludeZone(reader);
         Assert.AreEqual("example.com", zone.Name);
@@ -172,7 +171,6 @@ public class CatalogTest
         var a = AddressRecord.Create("foo", IPAddress.Loopback);
         var aaaa = AddressRecord.Create("foo", IPAddress.IPv6Loopback);
         var catalog = new Catalog();
-
         var n1 = catalog.Add(a, true);
         Assert.IsTrue(n1.Authoritative);
         Assert.IsTrue(n1.Resources.Contains(a));
@@ -189,7 +187,6 @@ public class CatalogTest
     {
         var a = AddressRecord.Create("foo", IPAddress.Loopback);
         var catalog = new Catalog();
-
         var n1 = catalog.Add(a);
         Assert.IsTrue(n1.Resources.Contains(a));
 
@@ -205,8 +202,8 @@ public class CatalogTest
         var a = AddressRecord.Create("foo", IPAddress.Loopback);
         var b = AddressRecord.Create("foo", IPAddress.Loopback);
         Assert.AreEqual(a, b);
+        
         var catalog = new Catalog();
-
         var n1 = catalog.Add(a);
         Assert.IsTrue(n1.Resources.Contains(a));
 
@@ -226,8 +223,8 @@ public class CatalogTest
         b.CreationTime = a.CreationTime + TimeSpan.FromHours(1);
         b.TTL = TimeSpan.FromHours(3);
         Assert.AreEqual(a, b);
+        
         var catalog = new Catalog();
-
         var n1 = catalog.Add(a);
         Assert.IsTrue(n1.Resources.Contains(a));
 
@@ -306,10 +303,12 @@ public class CatalogTest
                            ;; MSG SIZE  rcvd: 743
 
                            """;
+        
         var catalog = new Catalog();
         var reader = new PresentationReader(new StringReader(dig));
         catalog.Include(reader);
         Assert.IsTrue(catalog.ContainsKey("com"));
+        
         var node = catalog["COM"];
         Assert.AreEqual(3, node.Resources.Count);
     }

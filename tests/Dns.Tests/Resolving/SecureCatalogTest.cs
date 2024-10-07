@@ -11,8 +11,7 @@ namespace DnsTests.Resolving;
 public class SecureCatalogTest
 {
     // From RFC 4035 Appendix A
-    public const string ExamplZoneText = """
-
+    public const string ExampleZoneText = """
                                          example.       3600 IN SOA ns1.example. bugs.x.w.example. (
                                                                        1081539377
                                                                        3600
@@ -258,16 +257,13 @@ public class SecureCatalogTest
                                                                        mvHgEa/HzbDB4PIYY79W+VHrgOxzdQGGCZzi
                                                                        asXrpSGOWwSOElghPnMIi8xdF7qtCntr382W
                                                                        GghLahumFIpg4MO3LS/prgzVVWo= )
-
-
                                          """;
-
-
+    
     [TestMethod]
     public void IncludeZone()
     {
         var catalog = new Catalog();
-        var reader = new PresentationReader(new StringReader(ExamplZoneText));
+        var reader = new PresentationReader(new StringReader(ExampleZoneText));
         var zone = catalog.IncludeZone(reader);
         Assert.AreEqual("example", zone.Name);
         Assert.IsTrue(zone.Authoritative);

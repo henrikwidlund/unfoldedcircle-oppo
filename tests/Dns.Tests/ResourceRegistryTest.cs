@@ -8,10 +8,7 @@ namespace DnsTests;
 public class ResourceRegistryTest
 {
     [TestMethod]
-    public void Exists()
-    {
-        Assert.AreNotEqual(0, ResourceRegistry.Records.Count);
-    }
+    public void Exists() => Assert.AreNotEqual(0, ResourceRegistry.Records.Count);
 
     [TestMethod]
     public void Create()

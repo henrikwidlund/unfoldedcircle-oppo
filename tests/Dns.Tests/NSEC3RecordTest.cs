@@ -25,7 +25,9 @@ public class NSEC3RecordTest
             NextHashedOwnerName = Base32.ExtendedHex.Decode("2vptu5timamqttgl4luu9kg21e0aor3s"),
             Types = { DnsType.A, DnsType.RRSIG }
         };
+        
         var b = (NSEC3Record)new ResourceRecord().Read(a.ToByteArray());
+        
         Assert.AreEqual(a.Name, b.Name);
         Assert.AreEqual(a.Class, b.Class);
         Assert.AreEqual(a.Type, b.Type);
@@ -52,7 +54,9 @@ public class NSEC3RecordTest
             NextHashedOwnerName = Base32.ExtendedHex.Decode("2vptu5timamqttgl4luu9kg21e0aor3s"),
             Types = { DnsType.A, DnsType.RRSIG }
         };
+        
         var b = (NSEC3Record)new ResourceRecord().Read(a.ToString());
+        
         Assert.IsNotNull(b);
         Assert.AreEqual(a.Name, b.Name);
         Assert.AreEqual(a.Class, b.Class);
@@ -65,5 +69,4 @@ public class NSEC3RecordTest
         CollectionAssert.AreEqual(a.NextHashedOwnerName, b.NextHashedOwnerName);
         CollectionAssert.AreEqual(a.Types, b.Types);
     }
-
 }

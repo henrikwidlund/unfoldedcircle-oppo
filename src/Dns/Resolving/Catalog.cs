@@ -34,17 +34,18 @@ public class Catalog : ConcurrentDictionary<DomainName, Node>
         {
             var r = reader.ReadResourceRecord();
             if (r is null)
-            {
                 break;
-            }
+            
             resources.Add(r);
         }
 
         // Validation
         if (resources.Count == 0)
             throw new InvalidDataException("No resources.");
+        
         if (resources[0].Type != DnsType.SOA)
             throw new InvalidDataException("First resource record must be a SOA.");
+        
         var soa = (SOARecord)resources[0];
         if (soa.Name is null)
             throw new InvalidDataException("SOA name is missing.");
@@ -61,6 +62,7 @@ public class Catalog : ConcurrentDictionary<DomainName, Node>
                 Resources = new ConcurrentSet<ResourceRecord>(results)
             }
         );
+        
         foreach (var node in nodes)
         {
             if (!TryAdd(node.Name, node))
@@ -80,9 +82,7 @@ public class Catalog : ConcurrentDictionary<DomainName, Node>
     {
         var keys = Keys.Where(k => k.BelongsTo(name));
         foreach (var key in keys)
-        {
             TryRemove(key, out _);
-        }
     }
 
     /// <summary>
@@ -144,9 +144,7 @@ public class Catalog : ConcurrentDictionary<DomainName, Node>
             
             var reader = new PresentationReader(new StreamReader(hints));
             while (reader.ReadResourceRecord() is { } r)
-            {
                 Add(r);
-            }
         }
 
         var root = this[new DomainName("")];
@@ -170,9 +168,8 @@ public class Catalog : ConcurrentDictionary<DomainName, Node>
         {
             var r = reader.ReadResourceRecord();
             if (r is null)
-            {
                 break;
-            }
+            
             Add(r, authoritative);
         }
     }
@@ -187,16 +184,14 @@ public class Catalog : ConcurrentDictionary<DomainName, Node>
     ///   Node names are converted to US-ASCII lowercase and
     ///   then sorted by their reversed labels.
     /// </remarks>
-    public IEnumerable<Node> NodesInCanonicalOrder()
-    {
-        return Values
+    public IEnumerable<Node> NodesInCanonicalOrder() =>
+        Values
             .OrderBy(static node =>
             {
                 var co = node.Name.ToCanonical().Labels.Reverse().ToArray();
                 var coname = new DomainName(co);
                 return coname.ToString();
             }, StringComparer.Ordinal);
-    }
 
     /// <summary>
     ///   Add PTR records for each authoritative A/AAAA record.
@@ -210,6 +205,7 @@ public class Catalog : ConcurrentDictionary<DomainName, Node>
             .Where(static node => node.Authoritative)
             .SelectMany(static node => node.Resources.OfType<AddressRecord>())
             .Where(static a => a.Address is not null);
+        
         foreach (var a in addressRecords)
         {
             var ptr = new PTRRecord

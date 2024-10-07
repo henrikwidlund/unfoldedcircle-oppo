@@ -31,8 +31,7 @@ public class MXRecord : ResourceRecord
     ///   The name of an mail exchange.
     /// </value>
     public DomainName? Exchange { get; set; }
-
-
+    
     /// <inheritdoc />
     public override void ReadData(WireReader reader, int length)
     {

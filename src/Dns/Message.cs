@@ -68,8 +68,7 @@ public class Message : DnsObject
     ///   <b>false</b> for a query; otherwise, <b>true</b> for a response.
     /// </value>
     public bool IsResponse => QR;
-
-
+    
     /// <summary>
     ///   The requested operation. 
     /// </summary>
@@ -94,9 +93,9 @@ public class Message : DnsObject
         get
         {
             var opt = AdditionalRecords.OfType<OPTRecord>().FirstOrDefault();
-            if (opt is null)
-                return (MessageOperation)_opcode4;
-            return (MessageOperation)((opt.Opcode8 << 4) | _opcode4);
+            return opt is null
+                ? (MessageOperation)_opcode4
+                : (MessageOperation)((opt.Opcode8 << 4) | _opcode4);
         }
         set
         {
@@ -109,6 +108,7 @@ public class Message : DnsObject
                 _opcode4 = (byte)extendedOpcode;
                 if (opt is not null)
                     opt.Opcode8 = 0;
+                
                 return;
             }
 
@@ -118,6 +118,7 @@ public class Message : DnsObject
                 opt = new OPTRecord();
                 AdditionalRecords.Add(opt);
             }
+            
             _opcode4 = (byte)(extendedOpcode & 0xf);
             opt.Opcode8 = (byte)((extendedOpcode >> 4) & 0xff);
         }
@@ -220,11 +221,7 @@ public class Message : DnsObject
     /// <seealso href="https://tools.ietf.org/html/rfc3225"/>
     public bool DO
     {
-        get
-        {
-            var opt = AdditionalRecords.OfType<OPTRecord>().FirstOrDefault();
-            return opt?.DO ?? false;
-        }
+        get => AdditionalRecords.OfType<OPTRecord>().FirstOrDefault()?.DO ?? false;
         set
         {
             OPTRecord? opt = AdditionalRecords.OfType<OPTRecord>().FirstOrDefault();
@@ -233,6 +230,7 @@ public class Message : DnsObject
                 opt = new OPTRecord();
                 AdditionalRecords.Add(opt);
             }
+            
             opt.DO = value;
         }
     }
@@ -291,6 +289,7 @@ public class Message : DnsObject
             Opcode = Opcode,
             QR = true
         };
+        
         response.Questions.AddRange(Questions);
         return response;
     }
@@ -314,13 +313,9 @@ public class Message : DnsObject
         {
             // Remove records.
             if (AdditionalRecords.Count > 0)
-            {
                 AdditionalRecords.RemoveAt(AdditionalRecords.Count - 1);
-            }
             else if (AuthorityRecords.Count > 0)
-            {
                 AuthorityRecords.RemoveAt(AuthorityRecords.Count - 1);
-            }
             else
             {
                 // Nothing more can be done to reduce the message length.
@@ -348,9 +343,10 @@ public class Message : DnsObject
     }
 
     /// <inheritdoc />
-    public override IWireSerialiser Read(WireReader reader)
+    public override IWireSerializer Read(WireReader reader)
     {
         Id = reader.ReadUInt16();
+        
         var flags = reader.ReadUInt16();
         QR = (flags & 0x8000) == 0x8000;
         AA = (flags & 0x0400) == 0x0400;
@@ -362,25 +358,30 @@ public class Message : DnsObject
         AD = (flags & 0x0020) == 0x0020;
         CD = (flags & 0x0010) == 0x0010;
         Status = (MessageStatus)(flags & 0x000F);
+        
         var qdcount = reader.ReadUInt16();
         var ancount = reader.ReadUInt16();
         var nscount = reader.ReadUInt16();
         var arcount = reader.ReadUInt16();
+        
         for (var i = 0; i < qdcount; ++i)
         {
             var question = (Question) new Question().Read(reader);
             Questions.Add(question);
         }
+        
         for (var i = 0; i < ancount; ++i)
         {
             var rr = (ResourceRecord) new ResourceRecord().Read(reader);
             Answers.Add(rr);
         }
+        
         for (var i = 0; i < nscount; ++i)
         {
             var rr = (ResourceRecord)new ResourceRecord().Read(reader);
             AuthorityRecords.Add(rr);
         }
+        
         for (var i = 0; i < arcount; ++i)
         {
             var rr = (ResourceRecord)new ResourceRecord().Read(reader);
@@ -405,11 +406,13 @@ public class Message : DnsObject
             (Convert.ToInt32(AD) << 5) |
             (Convert.ToInt32(CD) << 4) |
             ((ushort)Status & 0xf);
+        
         writer.WriteUInt16((ushort)flags);
         writer.WriteUInt16((ushort)Questions.Count);
         writer.WriteUInt16((ushort)Answers.Count);
         writer.WriteUInt16((ushort)AuthorityRecords.Count);
         writer.WriteUInt16((ushort)AdditionalRecords.Count);
+        
         foreach (var r in Questions) r.Write(writer);
         foreach (var r in Answers) r.Write(writer);
         foreach (var r in AuthorityRecords) r.Write(writer);
@@ -428,21 +431,17 @@ public class Message : DnsObject
         if (AD) s.Write(" AD");
         if (CD) s.Write(" CD");
         s.Write(" RCODE=");
-        s.Write(Status);
+        s.Write(Status.ToStringFast());
         s.WriteLine();
 
         s.WriteLine();
         s.WriteLine(";; Question");
         if (Questions.Count == 0)
-        {
             s.WriteLine(";;  (empty)");
-        }
         else
         {
             foreach (var q in Questions)
-            {
                 s.WriteLine(q.ToString());
-            }
         }
 
         Stringify(s, "Answer", Answers);
@@ -452,21 +451,17 @@ public class Message : DnsObject
         return s.ToString();
     }
 
-    private void Stringify(StringWriter s, string title, List<ResourceRecord> records)
+    private static void Stringify(StringWriter s, string title, List<ResourceRecord> records)
     {
         s.WriteLine();
         s.Write(";; ");
         s.WriteLine(title);
         if (records.Count == 0)
-        {
             s.WriteLine(";;  (empty)");
-        }
         else
         {
             foreach (var r in records)
-            {
                 s.WriteLine(r.ToString());
-            }
         }
     }
 }

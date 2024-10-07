@@ -14,6 +14,7 @@ public class UpdateMessageTest
     public void Defaults()
     {
         var m = new UpdateMessage();
+        
         Assert.AreEqual(0, m.AdditionalResources.Count);
         Assert.AreEqual(0, m.Id);
         Assert.AreEqual(false, m.IsResponse);
@@ -40,8 +41,10 @@ public class UpdateMessageTest
             Z = 0x7F,
             Status = MessageStatus.NotImplemented
         };
+        
         var actual = new UpdateMessage();
         actual.Read(expected.ToByteArray());
+        
         Assert.AreEqual(expected.Id, actual.Id);
         Assert.AreEqual(expected.QR, actual.QR);
         Assert.AreEqual(expected.Opcode, actual.Opcode);
@@ -57,6 +60,7 @@ public class UpdateMessageTest
     {
         var update = new UpdateMessage { Id = 1234 };
         var response = update.CreateResponse();
+        
         Assert.IsTrue(response.IsResponse);
         Assert.AreEqual(update.Id, response.Id);
         Assert.AreEqual(update.Opcode, response.Opcode);
@@ -73,13 +77,17 @@ public class UpdateMessageTest
                 Name = "emanon.org"
             }
         };
+        
         expected.Prerequisites
             .MustExist("foo.emanon.org")
             .MustNotExist("bar.emanon.org");
+        
         expected.Updates
             .AddResource(new ARecord { Name = "bar.emanon.org", Address = IPAddress.Parse("127.0.0.1") })
             .DeleteResource("foo.emanon.org");
+        
         var actual = (UpdateMessage)new UpdateMessage().Read(expected.ToByteArray());
+        
         Assert.AreEqual(expected.Id, actual.Id);
         Assert.AreEqual(expected.IsUpdate, actual.IsUpdate);
         Assert.AreEqual(expected.IsResponse, actual.IsResponse);

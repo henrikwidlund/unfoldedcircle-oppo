@@ -17,7 +17,9 @@ public class ARecordTest
             Name = "emanon.org",
             Address = IPAddress.Parse("127.0.0.1")
         };
+        
         var b = (ARecord)new ResourceRecord().Read(a.ToByteArray());
+        
         Assert.AreEqual(a.Name, b.Name);
         Assert.AreEqual(a.Class, b.Class);
         Assert.AreEqual(a.Type, b.Type);
@@ -33,7 +35,9 @@ public class ARecordTest
             Name = "emanon.org",
             Address = IPAddress.Parse("127.0.0.1")
         };
+        
         var b = (ARecord)new ResourceRecord().Read(a.ToString());
+        
         Assert.IsNotNull(b);
         Assert.AreEqual(a.Name, b.Name);
         Assert.AreEqual(a.Class, b.Class);
@@ -50,11 +54,13 @@ public class ARecordTest
             Name = "emanon.org",
             Address = IPAddress.Parse("127.0.0.1")
         };
+        
         var b = new ARecord
         {
             Name = "emanon.org",
             Address = IPAddress.Parse("127.0.0.2")
         };
+        
         // ReSharper disable once EqualExpressionComparison
         Assert.IsTrue(a.Equals(a));
         Assert.IsFalse(a.Equals(b));

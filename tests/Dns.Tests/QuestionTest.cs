@@ -16,7 +16,9 @@ public class QuestionTest
             Class = DnsClass.CH,
             Type = DnsType.MX
         };
+        
         var b = (Question)new Question().Read(a.ToByteArray());
+        
         Assert.AreEqual(a.Name, b.Name);
         Assert.AreEqual(a.Class, b.Class);
         Assert.AreEqual(a.Type, b.Type);

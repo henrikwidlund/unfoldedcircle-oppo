@@ -13,6 +13,7 @@ public class TSIGRecordTest
     public void Defaults()
     {
         var tsig = new TSIGRecord();
+        
         Assert.AreEqual(DnsType.TSIG, tsig.Type);
         Assert.AreEqual(DnsClass.ANY, tsig.Class);
         Assert.AreEqual(TimeSpan.Zero, tsig.TTL);
@@ -35,7 +36,9 @@ public class TSIGRecordTest
             Error = MessageStatus.BadTime,
             OtherData = [5, 6]
         };
+        
         var b = (TSIGRecord)new ResourceRecord().Read(a.ToByteArray());
+        
         Assert.AreEqual(a.Name, b.Name);
         Assert.AreEqual(a.Class, b.Class);
         Assert.AreEqual(a.Type, b.Type);
@@ -62,7 +65,9 @@ public class TSIGRecordTest
             OriginalMessageId = 0xfbad,
             Error = MessageStatus.BadTime
         };
+        
         var b = (TSIGRecord)new ResourceRecord().Read(a.ToString());
+        
         Assert.IsNotNull(b);
         Assert.AreEqual(a.Name, b.Name);
         Assert.AreEqual(a.Class, b.Class);

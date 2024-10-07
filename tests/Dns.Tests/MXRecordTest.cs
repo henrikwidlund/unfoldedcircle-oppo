@@ -16,7 +16,9 @@ public class MXRecordTest
             Preference = 10,
             Exchange = "mail.emanon.org"
         };
+        
         var b = (MXRecord)new ResourceRecord().Read(a.ToByteArray());
+        
         Assert.AreEqual(a.Name, b.Name);
         Assert.AreEqual(a.Class, b.Class);
         Assert.AreEqual(a.Type, b.Type);
@@ -34,7 +36,9 @@ public class MXRecordTest
             Preference = 10,
             Exchange = "mail.emanon.org"
         };
+        
         var b = (MXRecord)new ResourceRecord().Read(a.ToString());
+        
         Assert.IsNotNull(b);
         Assert.AreEqual(a.Name, b.Name);
         Assert.AreEqual(a.Class, b.Class);
@@ -53,12 +57,14 @@ public class MXRecordTest
             Preference = 10,
             Exchange = "mail.emanon.org"
         };
+        
         var b = new MXRecord
         {
             Name = "emanon.org",
             Preference = 11,
             Exchange = "mailx.emanon.org"
         };
+        
         // ReSharper disable once EqualExpressionComparison
         Assert.IsTrue(a.Equals(a));
         Assert.IsFalse(a.Equals(b));

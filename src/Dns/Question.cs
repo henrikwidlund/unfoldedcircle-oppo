@@ -32,7 +32,7 @@ public class Question : DnsObject
     public DnsClass Class { get; set; } = DnsClass.IN;
 
     /// <inheritdoc />
-    public override IWireSerialiser Read(WireReader reader)
+    public override IWireSerializer Read(WireReader reader)
     {
         Name = reader.ReadDomainName();
         Type = (DnsType)reader.ReadUInt16();

@@ -95,12 +95,8 @@ public class NSEC3PARAMRecord : ResourceRecord
         writer.WriteUInt16(Iterations.Value);
 
         if (Salt == null || Salt.Length == 0)
-        {
             writer.WriteString("-");
-        }
         else
-        {
             writer.WriteBase16String(Salt, appendSpace: false);
-        }
     }
 }

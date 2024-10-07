@@ -35,18 +35,15 @@ public static class BaseConvert
     {
         var sb = new StringBuilder();
         foreach (var b in bytes)
-        {
             sb.Append(b.ToString("x2"));
-        }
+        
         return sb.ToString();
     }
 
-    private static int GetHexVal(int val)
-    {
-        if (val is < 48 or > 57 and < 65 or > 70 and < 97 or > 102)
-            throw new FormatException("Invalid hex character");
-        return val - (val < 58 ? 48 : val < 97 ? 55 : 87);
-    }
+    private static int GetHexVal(int val) =>
+        val is < 48 or > 57 and < 65 or > 70 and < 97 or > 102
+            ? throw new FormatException("Invalid hex character")
+            : val - (val < 58 ? 48 : val < 97 ? 55 : 87);
 
     /// <summary>
     /// Converts a byte array to a base32 hex string
@@ -56,9 +53,7 @@ public static class BaseConvert
     public static string ToBase32Hex(byte[] bytes)
     {
         if (bytes == null || bytes.Length == 0)
-        {
             throw new ArgumentNullException(nameof(bytes));
-        }
 
         var charCount = (int)Math.Ceiling(bytes.Length / 5d) * 8;
         
@@ -115,12 +110,13 @@ public static class BaseConvert
         var returnArray = new byte[byteCount];
 
         byte curByte = 0, bitsRemaining = 8;
-        int mask, arrayIndex = 0;
+        int arrayIndex = 0;
 
         foreach (var c in base32Span)
         {
             var cValue = CharToValue(c);
 
+            int mask;
             if (bitsRemaining > 5)
             {
                 mask = cValue << (bitsRemaining - 5);
@@ -138,9 +134,7 @@ public static class BaseConvert
         }
 
         if (arrayIndex != byteCount)
-        {
             returnArray[arrayIndex] = curByte;
-        }
 
         return returnArray;
     }
@@ -149,32 +143,23 @@ public static class BaseConvert
     {
         int value = c;
 
-        //uppercase letters
-        if (value is < 87 and > 64)
+        return value switch
         {
-            return value - 55;
-        }
-        //numbers 0-9
-        if (value is < 58 and > 47)
-        {
-            return value - 48;
-        }
-        //lowercase letters
-        if (value is < 119 and > 96)
-        {
-            return value - 87;
-        }
-
-        throw new ArgumentException("Character is not a Base32 character.", nameof(c));
+            //uppercase letters
+            < 87 and > 64 => value - 55,
+            //numbers 0-9
+            < 58 and > 47 => value - 48,
+            //lowercase letters
+            < 119 and > 96 => value - 87,
+            _ => throw new ArgumentException("Character is not a Base32 character.", nameof(c))
+        };
     }
 
-    private static char ValueToChar(byte b)
-    {
-        return b switch
+    private static char ValueToChar(byte b) =>
+        b switch
         {
             < 10 => (char)(b + 48),
             < 32 => (char)(b + 55),
             _ => throw new ArgumentException("Byte is not a value Base32 value.", nameof(b))
         };
-    }
 }

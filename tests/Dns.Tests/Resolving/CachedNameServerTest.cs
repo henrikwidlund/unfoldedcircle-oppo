@@ -14,7 +14,6 @@ namespace DnsTests.Resolving;
 [TestClass]
 public class CachedNameServerTest
 {
-
     [TestMethod]
     public async Task Pruning()
     {
@@ -66,7 +65,9 @@ public class CachedNameServerTest
                 new Question { Name = "foo.org", Type = DnsType.AAAA }
             }
         };
+        
         var res = await cache.ResolveAsync(query);
+        
         Assert.IsTrue(res.Answers.Any(static a => a.Name == "foo.org" && a.Type == DnsType.A));
         Assert.IsTrue(res.Answers.Any(static a => a.Name == "foo.org" && a.Type == DnsType.AAAA));
     }
@@ -92,7 +93,9 @@ public class CachedNameServerTest
                 new Question { Name = "foo.org", Type = DnsType.AAAA }
             }
         };
+        
         var res = await cache.ResolveAsync(query);
+        
         Assert.IsFalse(res.Answers.Any(static a => a.Name == "foo.org" && a.Type == DnsType.A));
         Assert.IsTrue(res.Answers.Any(static a => a.Name == "foo.org" && a.Type == DnsType.AAAA));
     }
@@ -115,6 +118,7 @@ public class CachedNameServerTest
                 new Question { Name = "a.foo.org", Type = DnsType.A }
             }
         };
+        
         var res = await cache.ResolveAsync(query);
         Assert.AreEqual(1, res.Answers.Count);
 

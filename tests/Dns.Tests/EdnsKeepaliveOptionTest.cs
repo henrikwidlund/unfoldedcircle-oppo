@@ -17,13 +17,15 @@ public class EdnsKeepaliveOptionTest
         {
             Timeout = TimeSpan.FromSeconds(3)
         };
+        
         Assert.AreEqual(EdnsOptionType.Keepalive, expected.Type);
+        
         opt1.Options.Add(expected);
-
         var opt2 = (OPTRecord)new ResourceRecord().Read(opt1.ToByteArray());
         var actual = (EdnsKeepaliveOption)opt2.Options[0];
+        
         Assert.AreEqual(expected.Type, actual.Type);
-        Assert.IsNotNull(actual.Timeout);
+        Assert.IsTrue(actual.Timeout.HasValue);
         Assert.AreEqual(expected.Timeout.Value, actual.Timeout.Value);
     }
 
@@ -32,12 +34,14 @@ public class EdnsKeepaliveOptionTest
     {
         var opt1 = new OPTRecord();
         var expected = new EdnsKeepaliveOption();
+        
         Assert.AreEqual(EdnsOptionType.Keepalive, expected.Type);
         Assert.AreEqual(false, expected.Timeout.HasValue);
+        
         opt1.Options.Add(expected);
-
         var opt2 = (OPTRecord)new ResourceRecord().Read(opt1.ToByteArray());
         var actual = (EdnsKeepaliveOption)opt2.Options[0];
+        
         Assert.AreEqual(expected.Type, actual.Type);
         Assert.AreEqual(expected.Timeout.HasValue, actual.Timeout.HasValue);
     }

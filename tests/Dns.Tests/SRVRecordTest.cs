@@ -18,7 +18,9 @@ public class SRVRecordTest
             Port = 9,
             Target = "foobar.example.com"
         };
+        
         var b = (SRVRecord)new ResourceRecord().Read(a.ToByteArray());
+        
         Assert.AreEqual(a.Name, b.Name);
         Assert.AreEqual(a.Class, b.Class);
         Assert.AreEqual(a.Type, b.Type);
@@ -40,7 +42,9 @@ public class SRVRecordTest
             Port = 9,
             Target = "foobar.example.com"
         };
+        
         var b = (SRVRecord)new ResourceRecord().Read(a.ToString());
+        
         Assert.IsNotNull(b);
         Assert.AreEqual(a.Name, b.Name);
         Assert.AreEqual(a.Class, b.Class);
@@ -63,6 +67,7 @@ public class SRVRecordTest
             Port = 9,
             Target = "foobar.example.com"
         };
+        
         var b = new SRVRecord
         {
             Name = "_foobar._tcp",
@@ -71,6 +76,7 @@ public class SRVRecordTest
             Port = 9,
             Target = "foobar-x.example.com"
         };
+        
         // ReSharper disable once EqualExpressionComparison
         Assert.IsTrue(a.Equals(a));
         Assert.IsFalse(a.Equals(b));

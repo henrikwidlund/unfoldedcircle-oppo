@@ -15,6 +15,7 @@ public class PresentationReaderTest
     public void ReadString()
     {
         var reader = new PresentationReader(new StringReader("  alpha   beta   omega"));
+        
         Assert.AreEqual("alpha", reader.ReadString());
         Assert.AreEqual("beta", reader.ReadString());
         Assert.AreEqual("omega", reader.ReadString());
@@ -24,6 +25,7 @@ public class PresentationReaderTest
     public void ReadQuotedStrings()
     {
         var reader = new PresentationReader(new StringReader("  \"a b c\"  \"x y z\""));
+        
         Assert.AreEqual("a b c", reader.ReadString());
         Assert.AreEqual("x y z", reader.ReadString());
     }
@@ -32,6 +34,7 @@ public class PresentationReaderTest
     public void ReadEscapedStrings()
     {
         var reader = new PresentationReader(new StringReader("  alpha\\ beta   omega"));
+        
         Assert.AreEqual("alpha beta", reader.ReadString());
         Assert.AreEqual("omega", reader.ReadString());
     }
@@ -40,6 +43,7 @@ public class PresentationReaderTest
     public void ReadDecimalEscapedString()
     {
         var reader = new PresentationReader(new StringReader("a\\098c"));
+        
         Assert.AreEqual("abc", reader.ReadString());
     }
 
@@ -47,6 +51,7 @@ public class PresentationReaderTest
     public void ReadInvalidDecimalEscapedString()
     {
         var reader = new PresentationReader(new StringReader("a\\256c"));
+        
         ExceptionAssert.Throws<FormatException>(() => reader.ReadString());
     }
 
@@ -55,6 +60,7 @@ public class PresentationReaderTest
     {
         var reader = new PresentationReader(new StringReader("me A 127.0.0.1"));
         var resource = reader.ReadResourceRecord();
+        
         Assert.IsNotNull(resource);
         Assert.AreEqual("me", resource.Name);
         Assert.AreEqual(DnsClass.IN, resource.Class);
@@ -68,6 +74,7 @@ public class PresentationReaderTest
     {
         var reader = new PresentationReader(new StringReader("A A 127.0.0.1"));
         var resource = reader.ReadResourceRecord();
+        
         Assert.IsNotNull(resource);
         Assert.AreEqual("A", resource.Name);
         Assert.AreEqual(DnsClass.IN, resource.Class);
@@ -81,6 +88,7 @@ public class PresentationReaderTest
     {
         var reader = new PresentationReader(new StringReader("CH A 127.0.0.1"));
         var resource = reader.ReadResourceRecord();
+        
         Assert.IsNotNull(resource);
         Assert.AreEqual("CH", resource.Name);
         Assert.AreEqual(DnsClass.IN, resource.Class);
@@ -94,6 +102,7 @@ public class PresentationReaderTest
     {
         var reader = new PresentationReader(new StringReader("me CH 63 A 127.0.0.1"));
         var resource = reader.ReadResourceRecord();
+        
         Assert.IsNotNull(resource);
         Assert.AreEqual("me", resource.Name);
         Assert.AreEqual(DnsClass.CH, resource.Class);
@@ -107,6 +116,7 @@ public class PresentationReaderTest
     {
         var reader = new PresentationReader(new StringReader("me CLASS1234 A 127.0.0.1"));
         var resource = reader.ReadResourceRecord();
+        
         Assert.IsNotNull(resource);
         Assert.AreEqual("me", resource.Name);
         Assert.AreEqual(1234, (int)resource.Class);
@@ -119,6 +129,7 @@ public class PresentationReaderTest
     {
         var reader = new PresentationReader(new StringReader("me CH TYPE1234 \\# 0"));
         var resource = reader.ReadResourceRecord();
+        
         Assert.IsNotNull(resource);
         Assert.AreEqual("me", resource.Name);
         Assert.AreEqual(DnsClass.CH, resource.Class);
@@ -138,6 +149,7 @@ public class PresentationReaderTest
     {
         var reader = new PresentationReader(new StringReader("; comment\r\nme A 127.0.0.1"));
         var resource = reader.ReadResourceRecord();
+        
         Assert.IsNotNull(resource);
         Assert.AreEqual("me", resource.Name);
         Assert.AreEqual(DnsClass.IN, resource.Class);
@@ -150,13 +162,12 @@ public class PresentationReaderTest
     public void ReadResourceWithOrigin()
     {
         const string text = """
-
                             $ORIGIN emanon.org. ; no such place\r\n
                             @ PTR localhost
-
                             """;
         var reader = new PresentationReader(new StringReader(text));
         var resource = reader.ReadResourceRecord();
+        
         Assert.IsNotNull(resource);
         Assert.AreEqual("emanon.org", resource.Name);
         Assert.AreEqual(DnsClass.IN, resource.Class);
@@ -169,13 +180,12 @@ public class PresentationReaderTest
     public void ReadResourceWithEscapedOrigin()
     {
         const string text = """
-
                             $ORIGIN emanon\.org. ; no such place\r\n
                             @ PTR localhost
-
                             """;
         var reader = new PresentationReader(new StringReader(text));
         var resource = reader.ReadResourceRecord();
+        
         Assert.IsNotNull(resource);
         Assert.AreEqual(@"emanon\.org", resource.Name);
         Assert.AreEqual(DnsClass.IN, resource.Class);
@@ -190,13 +200,12 @@ public class PresentationReaderTest
     public void ReadResourceWithTTL()
     {
         const string text = """
-
                             $TTL 120 ; 2 minutes\r\n
                             emanon.org PTR localhost
-
                             """;
         var reader = new PresentationReader(new StringReader(text));
         var resource = reader.ReadResourceRecord();
+        
         Assert.IsNotNull(resource);
         Assert.AreEqual("emanon.org", resource.Name);
         Assert.AreEqual(DnsClass.IN, resource.Class);
@@ -209,13 +218,12 @@ public class PresentationReaderTest
     public void ReadResourceWithPreviousDomain()
     {
         const string text = """
-
                             emanon.org A 127.0.0.1
                                        AAAA ::1
-
                             """;
         var reader = new PresentationReader(new StringReader(text));
         var a = reader.ReadResourceRecord();
+        
         Assert.IsNotNull(a);
         Assert.AreEqual("emanon.org", a.Name);
         Assert.AreEqual(DnsClass.IN, a.Class);
@@ -236,13 +244,12 @@ public class PresentationReaderTest
     public void ReadResourceWithPreviousEscapedDomain()
     {
         const string text = """
-
                             emanon\126.org A 127.0.0.1
                                        AAAA ::1
-
                             """;
         var reader = new PresentationReader(new StringReader(text));
         var a = reader.ReadResourceRecord();
+        
         Assert.IsNotNull(a);
         Assert.AreEqual("emanon~.org", a.Name);
         Assert.AreEqual(DnsClass.IN, a.Class);
@@ -265,9 +272,10 @@ public class PresentationReaderTest
     [TestMethod]
     public void ReadResourceWithLeadingEscapedDomainName()
     {
-        var text = @"\126emanon.org A 127.0.0.1";
+        const string text = @"\126emanon.org A 127.0.0.1";
         var reader = new PresentationReader(new StringReader(text));
         var a = reader.ReadResourceRecord();
+        
         Assert.IsNotNull(a);
         Assert.AreEqual("~emanon.org", a.Name);
         Assert.AreEqual(DnsClass.IN, a.Class);
@@ -282,7 +290,6 @@ public class PresentationReaderTest
     public void ReadZoneFile()
     {
         const string text = """
-
                             $ORIGIN example.com.     ; designates the start of this zone file in the namespace
                             $TTL 3600                  ; default expiration time of all resource records without their own TTL value
                             ; example.com.  IN  SOA   ns.example.com. username.example.com. ( 2007120710 1d 2h 4w 1h )
@@ -301,19 +308,19 @@ public class PresentationReaderTest
                             mail          IN  A     192.0.2.3             ; IPv4 address for mail.example.com
                             mail2         IN  A     192.0.2.4             ; IPv4 address for mail2.example.com
                             mail3         IN  A     192.0.2.5             ; IPv4 address for mail3.example.com
-
                             """;
+        
         var reader = new PresentationReader(new StringReader(text));
         var resources = new List<ResourceRecord>();
+        
         while (true)
         {
             var r = reader.ReadResourceRecord();
             if (r == null)
-            {
                 break;
-            }
             resources.Add(r);
         }
+        
         Assert.AreEqual(15, resources.Count);
     }
 
@@ -401,9 +408,8 @@ public class PresentationReaderTest
         var reader = new PresentationReader(new StringReader("abc def (\r\nghi)\r\n"));
         var actual = new List<string>();
         while (!reader.IsEndOfLine())
-        {
             actual.Add(reader.ReadString());
-        }
+        
         CollectionAssert.AreEqual(expected, actual);
     }
 
@@ -414,9 +420,8 @@ public class PresentationReaderTest
         var reader = new PresentationReader(new StringReader("abc def (\r\nghi) jkl   \r\n"));
         var actual = new List<string>();
         while (!reader.IsEndOfLine())
-        {
             actual.Add(reader.ReadString());
-        }
+        
         CollectionAssert.AreEqual(expected, actual);
     }
 
@@ -427,9 +432,8 @@ public class PresentationReaderTest
         var reader = new PresentationReader(new StringReader("abc def (\rghi)\r"));
         var actual = new List<string>();
         while (!reader.IsEndOfLine())
-        {
             actual.Add(reader.ReadString());
-        }
+        
         CollectionAssert.AreEqual(expected, actual);
     }
 
@@ -440,9 +444,8 @@ public class PresentationReaderTest
         var reader = new PresentationReader(new StringReader("abc def\rghi"));
         var actual = new List<string>();
         while (!reader.IsEndOfLine())
-        {
             actual.Add(reader.ReadString());
-        }
+        
         CollectionAssert.AreEqual(expected, actual);
     }
 
@@ -453,9 +456,8 @@ public class PresentationReaderTest
         var reader = new PresentationReader(new StringReader("abc def\r\nghi"));
         var actual = new List<string>();
         while (!reader.IsEndOfLine())
-        {
             actual.Add(reader.ReadString());
-        }
+        
         CollectionAssert.AreEqual(expected, actual);
     }
 
@@ -478,8 +480,8 @@ public class PresentationReaderTest
     public void ReadDateTime()
     {
         DateTime expected = new(2004, 9, 16);
-
         var reader = new PresentationReader(new StringReader("1095292800 20040916000000"));
+        
         Assert.AreEqual(expected, reader.ReadDateTime());
         Assert.AreEqual(expected, reader.ReadDateTime());
     }
@@ -490,6 +492,7 @@ public class PresentationReaderTest
         var foo = new DomainName("foo.com");
         var drSmith = new DomainName(@"dr\. smith.com");
         var reader = new PresentationReader(new StringReader(@"dr\.\032smith.com foo.com"));
+        
         Assert.AreEqual(drSmith, reader.ReadDomainName());
         Assert.AreEqual(foo, reader.ReadDomainName());
     }

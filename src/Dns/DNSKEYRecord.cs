@@ -24,18 +24,13 @@ public class DNSKEYRecord : ResourceRecord
     /// </param>
     public DNSKEYRecord(RSA key, SecurityAlgorithm algorithm)
     {
-        switch (algorithm)
-        {
-            case SecurityAlgorithm.RSAMD5:
-            case SecurityAlgorithm.RSASHA1:
-            case SecurityAlgorithm.RSASHA1NSEC3SHA1:
-            case SecurityAlgorithm.RSASHA256:
-            case SecurityAlgorithm.RSASHA512:
-                break;
-
-            default:
-                throw new ArgumentException($"Security algorithm '{algorithm}' is not allowed for a RSA key.", nameof(algorithm));
-        }
+        if (algorithm is not SecurityAlgorithm.RSAMD5 and
+            not SecurityAlgorithm.RSASHA1 and
+            not SecurityAlgorithm.RSASHA1NSEC3SHA1 and
+            not SecurityAlgorithm.RSASHA256 and
+            not SecurityAlgorithm.RSASHA512)
+            throw new ArgumentException($"Security algorithm '{algorithm}' is not allowed for a RSA key.", nameof(algorithm));
+        
         Algorithm = algorithm;
 
         using var ms = new MemoryStream();
@@ -91,9 +86,7 @@ public class DNSKEYRecord : ResourceRecord
             .FirstOrDefault();
         
         if (Algorithm == 0)
-        {
             throw new ArgumentException($"ECDSA curve '{p.Curve.Oid.FriendlyName} is not known'.", nameof(key));
-        }
 
         // ECDSA public keys consist of a single value, called "Q" in FIPS 186-3.
         // In DNSSEC keys, Q is a simple bit string that represents the
@@ -153,9 +146,8 @@ public class DNSKEYRecord : ResourceRecord
         var ac = 0;
 
         for (var i = 0; i < length; ++i)
-        {
             ac += (i & 1) == 1 ? key[i] : key[i] << 8;
-        }
+        
         ac += (ac >> 16) & 0xFFFF;
         return (ushort) (ac & 0xFFFF);
     }

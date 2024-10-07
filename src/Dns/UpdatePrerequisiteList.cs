@@ -61,10 +61,7 @@ public class UpdatePrerequisiteList : List<ResourceRecord>
     ///   must be specified as ANY to differentiate this case from that of an
     ///   RRset existence test. TTL is specified as zero (0).
     /// </remarks>
-    public UpdatePrerequisiteList MustExist(DomainName name)
-    {
-        return MustExist(name, DnsType.ANY);
-    }
+    public UpdatePrerequisiteList MustExist(DomainName name) => MustExist(name, DnsType.ANY);
 
     /// <summary>
     ///   At least one resource record with the specified name and type must exist
@@ -87,10 +84,8 @@ public class UpdatePrerequisiteList : List<ResourceRecord>
     ///   RRset existence test. TTL is specified as zero (0).
     /// </remarks>
     public UpdatePrerequisiteList MustExist<T>(DomainName name)
-        where T : ResourceRecord, new()
-    {
-        return MustExist(name, new T().Type);
-    }
+        where T : ResourceRecord, new() =>
+        MustExist(name, new T().Type);
 
     /// <summary>
     ///   A resource record exists with the specified NAME, TYPE and RDATA.
@@ -159,10 +154,7 @@ public class UpdatePrerequisiteList : List<ResourceRecord>
     ///   must be specified as NONE. TYPE must be specified as ANY. TTL must
     ///   be specified as zero (0).
     /// </remarks>
-    public UpdatePrerequisiteList MustNotExist(DomainName name)
-    {
-        return MustNotExist(name, DnsType.ANY);
-    }
+    public UpdatePrerequisiteList MustNotExist(DomainName name) => MustNotExist(name, DnsType.ANY);
 
     /// <summary>
     ///   No resource record with the specified name and type can exist
@@ -185,8 +177,6 @@ public class UpdatePrerequisiteList : List<ResourceRecord>
     ///   as zero(0).
     /// </remarks>
     public UpdatePrerequisiteList MustNotExist<T>(DomainName name)
-        where T : ResourceRecord, new()
-    {
-        return MustNotExist(name, new T().Type);
-    }
+        where T : ResourceRecord, new() =>
+        MustNotExist(name, new T().Type);
 }

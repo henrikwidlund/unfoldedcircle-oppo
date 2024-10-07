@@ -20,9 +20,11 @@ public class UpdateResourceListTest
             Class = DnsClass.IN,
             Address = IPAddress.Parse("127.0.0.0")
         };
+        
         var updates = new UpdateResourceList()
             .AddResource(rr);
         var p = updates[0];
+        
         Assert.IsNotNull(p);
         Assert.AreEqual(rr.Class, p.Class);
         Assert.AreEqual(rr.Name, p.Name);
@@ -38,6 +40,7 @@ public class UpdateResourceListTest
         var updates = new UpdateResourceList()
             .DeleteResource("www.example.org");
         var p = updates[0];
+        
         Assert.IsNotNull(p);
         Assert.AreEqual(DnsClass.ANY, p.Class);
         Assert.AreEqual("www.example.org", p.Name);
@@ -52,6 +55,7 @@ public class UpdateResourceListTest
         var updates = new UpdateResourceList()
             .DeleteResource("www.example.org", DnsType.A);
         var p = updates[0];
+        
         Assert.IsNotNull(p);
         Assert.AreEqual(DnsClass.ANY, p.Class);
         Assert.AreEqual("www.example.org", p.Name);
@@ -66,6 +70,7 @@ public class UpdateResourceListTest
         var updates = new UpdateResourceList()
             .DeleteResource<ARecord>("www.example.org");
         var p = updates[0];
+        
         Assert.IsNotNull(p);
         Assert.AreEqual(DnsClass.ANY, p.Class);
         Assert.AreEqual("www.example.org", p.Name);
@@ -83,9 +88,11 @@ public class UpdateResourceListTest
             Class = DnsClass.IN,
             Address = IPAddress.Parse("127.0.0.0")
         };
+        
         var updates = new UpdateResourceList()
             .DeleteResource(rr);
         var p = updates[0];
+        
         Assert.IsNotNull(p);
         Assert.AreEqual(DnsClass.None, p.Class);
         Assert.AreEqual(rr.Name, p.Name);
@@ -94,5 +101,4 @@ public class UpdateResourceListTest
         Assert.AreEqual(rr.GetDataLength(), p.GetDataLength());
         Assert.IsTrue(rr.GetData().SequenceEqual(p.GetData()));
     }
-
 }

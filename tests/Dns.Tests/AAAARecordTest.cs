@@ -18,6 +18,7 @@ public class AAAARecordTest
             Address = IPAddress.Parse("2406:e001:13c7:1:7173:ef8:852f:25cb")
         };
         var b = (AAAARecord)new ResourceRecord().Read(a.ToByteArray());
+        
         Assert.AreEqual(a.Name, b.Name);
         Assert.AreEqual(a.Class, b.Class);
         Assert.AreEqual(a.Type, b.Type);
@@ -34,6 +35,7 @@ public class AAAARecordTest
             Address = IPAddress.Parse("fe80::7573:b0a8:46b0:bfea%17")
         };
         var b = (AAAARecord)new ResourceRecord().Read(a.ToByteArray());
+        
         Assert.AreEqual(a.Name, b.Name);
         Assert.AreEqual(a.Class, b.Class);
         Assert.AreEqual(a.Type, b.Type);
@@ -50,6 +52,7 @@ public class AAAARecordTest
             Address = IPAddress.Parse("2406:e001:13c7:1:7173:ef8:852f:25cb")
         };
         var b = (AAAARecord)new ResourceRecord().Read(a.ToString());
+        
         Assert.IsNotNull(b);
         Assert.AreEqual(a.Name, b.Name);
         Assert.AreEqual(a.Class, b.Class);

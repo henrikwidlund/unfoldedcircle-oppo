@@ -93,9 +93,8 @@ public static class SecurityAlgorithmRegistry
     public static Metadata GetMetadata(SecurityAlgorithm algorithm)
     {
         if (Algorithms.TryGetValue(algorithm, out var metadata))
-        {
             return metadata;
-        }
+        
         throw new NotImplementedException($"The security algorithm '{algorithm}' is not defined.");
     }
 }

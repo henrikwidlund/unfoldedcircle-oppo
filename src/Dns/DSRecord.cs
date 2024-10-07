@@ -56,6 +56,7 @@ public class DSRecord : ResourceRecord
             ms.Position = 0;
             digest = DigestRegistry.HashData(key.Algorithm.Value, ms);
         }
+        
         Algorithm = key.Algorithm;
         Class = key.Class;
         KeyTag = key.KeyTag();
@@ -131,9 +132,8 @@ public class DSRecord : ResourceRecord
         // Whitespace is allowed within the hexadecimal text.
         var sb = new StringBuilder();
         while (!reader.IsEndOfLine())
-        {
             sb.Append(reader.ReadString());
-        }
+        
         Digest = BaseConvert.FromBase16(sb.ToString());
     }
 

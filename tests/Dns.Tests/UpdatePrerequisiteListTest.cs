@@ -17,6 +17,7 @@ public class UpdatePrerequisiteListTest
         var prerequisites = new UpdatePrerequisiteList()
             .MustExist("www.example.org");
         var p = prerequisites[0];
+        
         Assert.IsNotNull(p);
         Assert.AreEqual(DnsClass.ANY, p.Class);
         Assert.AreEqual("www.example.org", p.Name);
@@ -31,6 +32,7 @@ public class UpdatePrerequisiteListTest
         var prerequisites = new UpdatePrerequisiteList()
             .MustExist("www.example.org", DnsType.A);
         var p = prerequisites[0];
+        
         Assert.IsNotNull(p);
         Assert.AreEqual(DnsClass.ANY, p.Class);
         Assert.AreEqual("www.example.org", p.Name);
@@ -45,6 +47,7 @@ public class UpdatePrerequisiteListTest
         var prerequisites = new UpdatePrerequisiteList()
             .MustExist<ARecord>("www.example.org");
         var p = prerequisites[0];
+        
         Assert.IsNotNull(p);
         Assert.AreEqual(DnsClass.ANY, p.Class);
         Assert.AreEqual("www.example.org", p.Name);
@@ -62,9 +65,11 @@ public class UpdatePrerequisiteListTest
             Class = DnsClass.IN,
             Address = IPAddress.Parse("127.0.0.0")
         };
+        
         var prerequisites = new UpdatePrerequisiteList()
             .MustExist(rr);
         var p = prerequisites[0];
+        
         Assert.IsNotNull(p);
         Assert.AreEqual(rr.Class, p.Class);
         Assert.AreEqual(rr.Name, p.Name);
@@ -80,6 +85,7 @@ public class UpdatePrerequisiteListTest
         var prerequisites = new UpdatePrerequisiteList()
             .MustNotExist("www.example.org");
         var p = prerequisites[0];
+        
         Assert.IsNotNull(p);
         Assert.AreEqual(DnsClass.None, p.Class);
         Assert.AreEqual("www.example.org", p.Name);
@@ -94,6 +100,7 @@ public class UpdatePrerequisiteListTest
         var prerequisites = new UpdatePrerequisiteList()
             .MustNotExist("www.example.org", DnsType.A);
         var p = prerequisites[0];
+        
         Assert.IsNotNull(p);
         Assert.AreEqual(DnsClass.None, p.Class);
         Assert.AreEqual("www.example.org", p.Name);
@@ -108,6 +115,7 @@ public class UpdatePrerequisiteListTest
         var prerequisites = new UpdatePrerequisiteList()
             .MustNotExist<ARecord>("www.example.org");
         var p = prerequisites[0];
+        
         Assert.IsNotNull(p);
         Assert.AreEqual(DnsClass.None, p.Class);
         Assert.AreEqual("www.example.org", p.Name);

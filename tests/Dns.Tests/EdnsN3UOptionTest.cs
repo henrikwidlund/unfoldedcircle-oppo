@@ -17,11 +17,13 @@ public class EdnsN3UOptionTest
         {
             Algorithms = { DigestType.GostR34_11_94, DigestType.Sha512 }
         };
+        
         Assert.AreEqual(EdnsOptionType.N3U, expected.Type);
+        
         opt1.Options.Add(expected);
-
         var opt2 = (OPTRecord)new ResourceRecord().Read(opt1.ToByteArray());
         var actual = (EdnsN3UOption)opt2.Options[0];
+        
         Assert.AreEqual(expected.Type, actual.Type);
         CollectionAssert.AreEqual(expected.Algorithms, actual.Algorithms);
     }
@@ -30,6 +32,7 @@ public class EdnsN3UOptionTest
     public void Create()
     {
         var option = EdnsN3UOption.Create();
+        
         Assert.AreEqual(EdnsOptionType.N3U, option.Type);
         CollectionAssert.AreEqual(DigestRegistry.Digests.ToArray(), option.Algorithms);
     }

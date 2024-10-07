@@ -10,10 +10,7 @@ namespace DnsTests;
 public class SecurityAlgorithmRegistryTest
 {
     [TestMethod]
-    public void Exists()
-    {
-        Assert.AreNotEqual(0, SecurityAlgorithmRegistry.Algorithms.Count);
-    }
+    public void Exists() => Assert.AreNotEqual(0, SecurityAlgorithmRegistry.Algorithms.Count);
 
     [TestMethod]
     public void RSASHA1()
@@ -24,8 +21,5 @@ public class SecurityAlgorithmRegistryTest
 
     [TestMethod]
     [ExpectedException(typeof(NotImplementedException))]
-    public void UnknownAlgorithm()
-    {
-        SecurityAlgorithmRegistry.GetMetadata((SecurityAlgorithm)0xBA);
-    }
+    public void UnknownAlgorithm() => SecurityAlgorithmRegistry.GetMetadata((SecurityAlgorithm)0xBA);
 }

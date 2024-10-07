@@ -31,13 +31,16 @@ public class MessageTest
             0x00, 0x01,             // Type (A record)
             0x00, 0x01              // Class
         };
+        
         var msg = new Message();
         msg.Read(bytes, 0, bytes.Length);
+        
         Assert.AreEqual(0, msg.Id);
         Assert.AreEqual(1, msg.Questions.Count);
         Assert.AreEqual(0, msg.Answers.Count);
         Assert.AreEqual(0, msg.AuthorityRecords.Count);
         Assert.AreEqual(0, msg.AdditionalRecords.Count);
+        
         var question = msg.Questions.First();
         Assert.AreEqual("appletv.local", question.Name);
         Assert.AreEqual(DnsType.A, question.Type);
@@ -107,8 +110,10 @@ public class MessageTest
             CD = true,
             Status = MessageStatus.Refused
         };
+        
         var actual = new Message();
         actual.Read(expected.ToByteArray());
+        
         Assert.AreEqual(expected.QR, actual.QR);
         Assert.AreEqual(expected.Opcode, actual.Opcode);
         Assert.AreEqual(expected.AA, actual.AA);
@@ -127,6 +132,7 @@ public class MessageTest
         var query = new Message { Id = 1234, Opcode = MessageOperation.InverseQuery };
         query.Questions.Add(new Question { Name = "foo.org", Type = DnsType.A });
         var response = query.CreateResponse();
+        
         Assert.IsTrue(response.IsResponse);
         Assert.AreEqual(query.Id, response.Id);
         Assert.AreEqual(query.Opcode, response.Opcode);
@@ -143,6 +149,7 @@ public class MessageTest
             QR = true,
             Id = 1234
         };
+        
         expected.Questions.Add(new Question { Name = "emanon.org" });
         expected.Answers.Add(new ARecord { Name = "emanon.org", Address = IPAddress.Parse("127.0.0.1") });
         expected.AuthorityRecords.Add(new SOARecord
@@ -151,8 +158,10 @@ public class MessageTest
             PrimaryName = "erehwon",
             Mailbox = "hostmaster.emanon.org"
         });
+        
         expected.AdditionalRecords.Add(new ARecord { Name = "erehwon", Address = IPAddress.Parse("127.0.0.1") });
         var actual = (Message)new Message().Read(expected.ToByteArray());
+        
         Assert.AreEqual(expected.AA, actual.AA);
         Assert.AreEqual(expected.Id, actual.Id);
         Assert.AreEqual(expected.IsQuery, actual.IsQuery);
@@ -194,6 +203,7 @@ public class MessageTest
         var msg = new Message();
         var originalLength = msg.Length();
         msg.Truncate(int.MaxValue);
+        
         Assert.AreEqual(originalLength, msg.Length());
         Assert.IsFalse(msg.TC);
     }
@@ -204,6 +214,7 @@ public class MessageTest
         var msg = new Message();
         var originalLength = msg.Length();
         msg.Truncate(originalLength - 1);
+        
         Assert.AreEqual(originalLength, msg.Length());
         Assert.IsTrue(msg.TC);
     }
@@ -220,6 +231,7 @@ public class MessageTest
         msg.AdditionalRecords.Add(AddressRecord.Create("foo", IPAddress.Loopback));
 
         msg.Truncate(originalLength);
+        
         Assert.AreEqual(originalLength, msg.Length());
         Assert.AreEqual(1, msg.AdditionalRecords.Count);
         Assert.AreEqual(1, msg.AuthorityRecords.Count);
@@ -237,6 +249,7 @@ public class MessageTest
         msg.AdditionalRecords.Add(AddressRecord.Create("foo", IPAddress.Loopback));
 
         msg.Truncate(originalLength);
+        
         Assert.AreEqual(originalLength, msg.Length());
         Assert.AreEqual(0, msg.AdditionalRecords.Count);
         Assert.AreEqual(1, msg.AuthorityRecords.Count);
@@ -248,6 +261,7 @@ public class MessageTest
     {
         var expected = new Message().UseDnsSecurity();
         var opt = expected.AdditionalRecords.OfType<OPTRecord>().Single();
+        
         Assert.IsTrue(opt.DO, "dnssec ok");
     }
 
@@ -258,6 +272,7 @@ public class MessageTest
         expected.AdditionalRecords.Add(new OPTRecord());
         expected.UseDnsSecurity();
         var opt = expected.AdditionalRecords.OfType<OPTRecord>().Single();
+        
         Assert.IsTrue(opt.DO, "dnssec ok");
     }
 
@@ -286,6 +301,7 @@ public class MessageTest
             QR = true,
             Id = 1234
         };
+        
         m.Questions.Add(new Question { Name = "emanon.org", Type = DnsType.A });
         m.Answers.Add(new ARecord { Name = "emanon.org", Address = IPAddress.Parse("127.0.0.1") });
         m.AuthorityRecords.Add(new SOARecord

@@ -145,8 +145,6 @@ public class UpdateResourceList : List<ResourceRecord>
     /// </remarks>
     /// <seealso cref="DeleteResource(DomainName, DnsType)"/>
     public UpdateResourceList DeleteResource<T>(DomainName name)
-        where T : ResourceRecord, new()
-    {
-        return DeleteResource(name, new T().Type);
-    }
+        where T : ResourceRecord, new() =>
+        DeleteResource(name, new T().Type);
 }

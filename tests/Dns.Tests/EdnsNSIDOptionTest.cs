@@ -15,11 +15,13 @@ public class EdnsNSIDOptionTest
         {
             Id = [1, 2, 3, 4]
         };
+        
         Assert.AreEqual(EdnsOptionType.NSID, expected.Type);
+        
         opt1.Options.Add(expected);
-
         var opt2 = (OPTRecord)new ResourceRecord().Read(opt1.ToByteArray());
         var actual = (EdnsNSIDOption)opt2.Options[0];
+        
         Assert.AreEqual(expected.Type, actual.Type);
         CollectionAssert.AreEqual(expected.Id, actual.Id);
     }

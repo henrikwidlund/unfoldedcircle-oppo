@@ -23,28 +23,15 @@ public class PTRRecord : ResourceRecord
     /// </summary>
     public DomainName? DomainName { get; set; }
 
+    /// <inheritdoc />
+    public override void ReadData(WireReader reader, int length) => DomainName = reader.ReadDomainName();
 
     /// <inheritdoc />
-    public override void ReadData(WireReader reader, int length)
-    {
-        DomainName = reader.ReadDomainName();
-    }
+    public override void ReadData(PresentationReader reader) => DomainName = reader.ReadDomainName();
 
     /// <inheritdoc />
-    public override void ReadData(PresentationReader reader)
-    {
-        DomainName = reader.ReadDomainName();
-    }
+    public override void WriteData(WireWriter writer) => writer.WriteDomainName(DomainName);
 
     /// <inheritdoc />
-    public override void WriteData(WireWriter writer)
-    {
-        writer.WriteDomainName(DomainName);
-    }
-
-    /// <inheritdoc />
-    public override void WriteData(PresentationWriter writer)
-    {
-        writer.WriteDomainName(DomainName, appendSpace: false);
-    }
+    public override void WriteData(PresentationWriter writer) => writer.WriteDomainName(DomainName, appendSpace: false);
 }
