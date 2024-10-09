@@ -17,15 +17,11 @@ public class ServiceDiscoveryTest
     public async Task Disposable()
     {
         using (var sd = await ServiceDiscovery.CreateInstance())
-        {
             Assert.IsNotNull(sd);
-        }
 
         var mdns = new MulticastService();
         using (var sd = await ServiceDiscovery.CreateInstance(mdns))
-        {
             Assert.IsNotNull(sd);
-        }
     }
 
     [TestMethod]
@@ -37,25 +33,25 @@ public class ServiceDiscoveryTest
         var mdns = new MulticastService();
         mdns.NetworkInterfaceDiscovered += _ =>
             mdns.SendQuery(ServiceDiscovery.ServiceName, DnsClass.IN, DnsType.PTR);
+        
         mdns.AnswerReceived += e =>
         {
             var msg = e.Message;
             if (msg.Answers.OfType<PTRRecord>().Any(p => p.DomainName == service.QualifiedServiceName && ((int)p.Class & MulticastService.CacheFlushBit) != 0))
-            {
                 Assert.Fail("shared PTR records should not have cache-flush set");
-            }
+            
             if (msg.Answers.OfType<PTRRecord>().Any(p => p.DomainName == service.QualifiedServiceName))
-            {
                 done.Set();
-            }
             
             return Task.CompletedTask;
         };
+        
         try
         {
             using var sd = await ServiceDiscovery.CreateInstance(mdns);
             sd.Advertise(service);
             await mdns.Start(CancellationToken.None);
+            
             Assert.IsTrue(done.WaitOne(TimeSpan.FromSeconds(1)), "query timeout");
         }
         finally
@@ -69,29 +65,29 @@ public class ServiceDiscoveryTest
     {
         var service = new ServiceProfile("x", "_sdtest-1._udp", 1024, [IPAddress.Loopback], true);
         var done = new ManualResetEvent(false);
+        
         Assert.IsTrue(service.SharedProfile, "Shared Profile was not set");
-        var mdns = new MulticastService();
-        mdns.NetworkInterfaceDiscovered += _ =>
-            mdns.SendQuery(service.QualifiedServiceName);
+        
+        using var mdns = new MulticastService();
+        mdns.NetworkInterfaceDiscovered += _ => mdns.SendQuery(service.QualifiedServiceName);
         mdns.AnswerReceived += e =>
         {
             var msg = e.Message;
             if (msg.Answers.OfType<PTRRecord>().Any(p => p.DomainName == service.QualifiedServiceName && ((int)p.Class & MulticastService.CacheFlushBit) != 0))
-            {
                 Assert.Fail("shared PTR records should not have cache-flush set");
-            }
+            
             if (msg.AdditionalRecords.OfType<SRVRecord>().Any(s => (s.Name == service.FullyQualifiedName && ((int)s.Class & MulticastService.CacheFlushBit) == 0)))
-            {
                 done.Set();
-            }
             
             return Task.CompletedTask;
         };
+        
         try
         {
             using var sd = await ServiceDiscovery.CreateInstance(mdns);
             sd.Advertise(service);
             await mdns.Start(CancellationToken.None);
+            
             Assert.IsTrue(done.WaitOne(TimeSpan.FromSeconds(1)), "query timeout");
         }
         finally
@@ -106,17 +102,19 @@ public class ServiceDiscoveryTest
         var service = new ServiceProfile("z", "_sdtest-11._udp", 1024, [IPAddress.Loopback]);
         var done = new ManualResetEvent(false);
 
-        var mdns = new MulticastService();
+        using var mdns = new MulticastService();
         using var sd = await ServiceDiscovery.CreateInstance(mdns);
         mdns.NetworkInterfaceDiscovered += async _ =>
             {
                 if (await sd.Probe(service))
                     done.Set();
             };
+        
         try
         {
             sd.Advertise(service);
             await mdns.Start(CancellationToken.None);
+            
             Assert.IsTrue(done.WaitOne(TimeSpan.FromSeconds(3)), "Probe timeout");
         }
         finally
@@ -130,28 +128,25 @@ public class ServiceDiscoveryTest
     {
         var service = new ServiceProfile("z", "_sdtest-11._udp", 1024, [IPAddress.Loopback]);
 
-        var sd = await ServiceDiscovery.CreateInstance();
+        using var sd = await ServiceDiscovery.CreateInstance();
         sd.Advertise(service);
         await sd.Mdns!.Start(CancellationToken.None);
-
-
+        
         var mdns = new MulticastService();
-        using (var sd2 = await ServiceDiscovery.CreateInstance(mdns))
+        using var sd2 = await ServiceDiscovery.CreateInstance(mdns);
+        mdns.NetworkInterfaceDiscovered += async _ =>
         {
-            mdns.NetworkInterfaceDiscovered += async _ =>
-            {
-                Assert.IsTrue(await sd2.Probe(service));
-            };
-            try
-            {
-                await mdns.Start(CancellationToken.None);
-            }
-            finally
-            {
-                mdns.Stop();
-            }
+            Assert.IsTrue(await sd2.Probe(service));
+        };
+        
+        try
+        {
+            await mdns.Start(CancellationToken.None);
         }
-        sd.Dispose();
+        finally
+        {
+            mdns.Stop();
+        }
     }
 
     [TestMethod]
@@ -160,13 +155,12 @@ public class ServiceDiscoveryTest
         var service = new ServiceProfile("z", "_sdtest-11._udp", 1024, [IPAddress.Loopback]);
 
         var mdns = new MulticastService();
-        using (var sd = await ServiceDiscovery.CreateInstance(mdns))
+        using var sd = await ServiceDiscovery.CreateInstance(mdns);
+        mdns.NetworkInterfaceDiscovered += async _ =>
         {
-            mdns.NetworkInterfaceDiscovered += async _ =>
-            {
-                Assert.IsFalse(await sd.Probe(service));
-            };
-        }
+            Assert.IsFalse(await sd.Probe(service));
+        };
+        
         try
         {
             await mdns.Start(CancellationToken.None);
@@ -183,24 +177,23 @@ public class ServiceDiscoveryTest
         var service = new ServiceProfile("x", "_sdtest-1._udp", 1024, [IPAddress.Loopback]);
         var done = new ManualResetEvent(false);
 
-        var mdns = new MulticastService();
-        mdns.NetworkInterfaceDiscovered += _ =>
-            mdns.SendQuery(service.QualifiedServiceName, DnsClass.IN, DnsType.PTR);
+        using var mdns = new MulticastService();
+        mdns.NetworkInterfaceDiscovered += _ => mdns.SendQuery(service.QualifiedServiceName, DnsClass.IN, DnsType.PTR);
         mdns.AnswerReceived += e =>
         {
             var msg = e.Message;
             if (msg.Answers.OfType<PTRRecord>().Any(p => p.DomainName == service.FullyQualifiedName))
-            {
                 done.Set();
-            }
             
             return Task.CompletedTask;
         };
+        
         try
         {
             using var sd = await ServiceDiscovery.CreateInstance(mdns);
             sd.Advertise(service);
             await mdns.Start(CancellationToken.None);
+            
             Assert.IsTrue(done.WaitOne(TimeSpan.FromSeconds(1)), "query timeout");
         }
         finally
@@ -215,16 +208,13 @@ public class ServiceDiscoveryTest
         var service = new ServiceProfile("x2", "_sdtest-1._udp", 1024, [IPAddress.Loopback]);
         var done = new ManualResetEvent(false);
 
-        var mdns = new MulticastService();
-        mdns.NetworkInterfaceDiscovered += _ =>
-            mdns.SendQuery(service.HostName, DnsClass.IN, DnsType.A);
+        using var mdns = new MulticastService();
+        mdns.NetworkInterfaceDiscovered += _ => mdns.SendQuery(service.HostName, DnsClass.IN, DnsType.A);
         mdns.AnswerReceived += e =>
         {
             var msg = e.Message;
             if (msg.Answers.OfType<ARecord>().Any(p => p.Name == service.HostName))
-            {
                 done.Set();
-            }
             
             return Task.CompletedTask;
         };
@@ -233,6 +223,7 @@ public class ServiceDiscoveryTest
             using var sd = await ServiceDiscovery.CreateInstance(mdns);
             sd.Advertise(service);
             await mdns.Start(CancellationToken.None);
+            
             Assert.IsTrue(done.WaitOne(TimeSpan.FromSeconds(1)), "query timeout");
         }
         finally
@@ -248,24 +239,23 @@ public class ServiceDiscoveryTest
         service.Subtypes.Add("_example");
         var done = new ManualResetEvent(false);
 
-        var mdns = new MulticastService();
-        mdns.NetworkInterfaceDiscovered += _ =>
-            mdns.SendQuery("_example._sub._sdtest-1._udp.local", DnsClass.IN, DnsType.PTR);
+        using var mdns = new MulticastService();
+        mdns.NetworkInterfaceDiscovered += _ => mdns.SendQuery("_example._sub._sdtest-1._udp.local", DnsClass.IN, DnsType.PTR);
         mdns.AnswerReceived += e =>
         {
             var msg = e.Message;
             if (msg.Answers.OfType<PTRRecord>().Any(p => p.DomainName == service.FullyQualifiedName))
-            {
                 done.Set();
-            }
             
             return Task.CompletedTask;
         };
+        
         try
         {
             using var sd = await ServiceDiscovery.CreateInstance(mdns);
             sd.Advertise(service);
             await mdns.Start(CancellationToken.None);
+            
             Assert.IsTrue(done.WaitOne(TimeSpan.FromSeconds(1)), "query timeout");
         }
         finally
@@ -279,28 +269,27 @@ public class ServiceDiscoveryTest
     {
         var service = new ServiceProfile("x", "_sdtest-2._udp", 1024);
         var done = new ManualResetEvent(false);
-        var mdns = new MulticastService();
-        var sd = await ServiceDiscovery.CreateInstance(mdns);
+        using var mdns = new MulticastService();
+        using var sd = await ServiceDiscovery.CreateInstance(mdns);
 
         mdns.NetworkInterfaceDiscovered += _ => sd.QueryAllServices();
         sd.ServiceDiscovered += serviceName =>
         {
             if (serviceName == service.QualifiedServiceName)
-            {
                 done.Set();
-            }
             
             return Task.CompletedTask;
         };
+        
         try
         {
             sd.Advertise(service);
             await mdns.Start(CancellationToken.None);
+            
             Assert.IsTrue(done.WaitOne(TimeSpan.FromSeconds(1)), "DNS-SD query timeout");
         }
         finally
         {
-            sd.Dispose();
             mdns.Stop();
         }
     }
@@ -310,16 +299,14 @@ public class ServiceDiscoveryTest
     {
         var service = new ServiceProfile("x", "_sdtest-5._udp", 1024);
         var done = new ManualResetEvent(false);
-        var mdns = new MulticastService();
-        var sd = await ServiceDiscovery.CreateInstance(mdns);
+        using var mdns = new MulticastService();
+        using var sd = await ServiceDiscovery.CreateInstance(mdns);
 
         mdns.NetworkInterfaceDiscovered += _ => sd.QueryUnicastAllServices();
         sd.ServiceDiscovered += serviceName =>
         {
             if (serviceName == service.QualifiedServiceName)
-            {
                 done.Set();
-            }
             
             return Task.CompletedTask;
         };
@@ -327,11 +314,11 @@ public class ServiceDiscoveryTest
         {
             sd.Advertise(service);
             await mdns.Start(CancellationToken.None);
+            
             Assert.IsTrue(done.WaitOne(TimeSpan.FromSeconds(1)), "DNS-SD query timeout");
         }
         finally
         {
-            sd.Dispose();
             mdns.Stop();
         }
     }
@@ -341,8 +328,8 @@ public class ServiceDiscoveryTest
     {
         var service = new ServiceProfile("y", "_sdtest-2._udp", 1024);
         var done = new ManualResetEvent(false);
-        var mdns = new MulticastService();
-        var sd = await ServiceDiscovery.CreateInstance(mdns);
+        using var mdns = new MulticastService();
+        using var sd = await ServiceDiscovery.CreateInstance(mdns);
 
         mdns.NetworkInterfaceDiscovered += async _ =>
         {
@@ -359,15 +346,16 @@ public class ServiceDiscoveryTest
             
             return Task.CompletedTask;
         };
+        
         try
         {
             sd.Advertise(service);
             await mdns.Start(CancellationToken.None);
+            
             Assert.IsTrue(done.WaitOne(TimeSpan.FromSeconds(1)), "instance not found");
         }
         finally
         {
-            sd.Dispose();
             mdns.Stop();
         }
     }
@@ -379,8 +367,8 @@ public class ServiceDiscoveryTest
         var service2 = new ServiceProfile("y", "_sdtest-2._udp", 1024);
         service2.Subtypes.Add("apiv2");
         var done = new ManualResetEvent(false);
-        var mdns = new MulticastService();
-        var sd = await ServiceDiscovery.CreateInstance(mdns);
+        using var mdns = new MulticastService();
+        using var sd = await ServiceDiscovery.CreateInstance(mdns);
 
         mdns.NetworkInterfaceDiscovered += async _ =>
         {
@@ -397,16 +385,17 @@ public class ServiceDiscoveryTest
             
             return Task.CompletedTask;
         };
+        
         try
         {
             sd.Advertise(service1);
             sd.Advertise(service2);
             await mdns.Start(CancellationToken.None);
+            
             Assert.IsTrue(done.WaitOne(TimeSpan.FromSeconds(1)), "instance not found");
         }
         finally
         {
-            sd.Dispose();
             mdns.Stop();
         }
     }
@@ -416,8 +405,8 @@ public class ServiceDiscoveryTest
     {
         var service = new ServiceProfile("y", "_sdtest-5._udp", 1024);
         var done = new ManualResetEvent(false);
-        var mdns = new MulticastService();
-        var sd = await ServiceDiscovery.CreateInstance(mdns);
+        using var mdns = new MulticastService();
+        using var sd = await ServiceDiscovery.CreateInstance(mdns);
 
         mdns.NetworkInterfaceDiscovered += async _ =>
         {
@@ -434,15 +423,16 @@ public class ServiceDiscoveryTest
             
             return Task.CompletedTask;
         };
+        
         try
         {
             sd.Advertise(service);
             await mdns.Start(CancellationToken.None);
+            
             Assert.IsTrue(done.WaitOne(TimeSpan.FromSeconds(1)), "instance not found");
         }
         finally
         {
-            sd.Dispose();
             mdns.Stop();
         }
     }
@@ -498,19 +488,18 @@ public class ServiceDiscoveryTest
     {
         var service = new ServiceProfile("z", "_sdtest-7._udp", 1024);
         var done = new ManualResetEvent(false);
-        var mdns = new MulticastService();
-        var sd = await ServiceDiscovery.CreateInstance(mdns);
+        using var mdns = new MulticastService();
+        using var sd = await ServiceDiscovery.CreateInstance(mdns);
 
         mdns.NetworkInterfaceDiscovered += _ => sd.QueryAllServices();
         sd.ServiceInstanceShutdown += e =>
         {
             if (e.ServiceInstanceName == service.FullyQualifiedName)
-            {
                 done.Set();
-            }
             
             return Task.CompletedTask;
         };
+        
         try
         {
             sd.Advertise(service);
@@ -520,10 +509,10 @@ public class ServiceDiscoveryTest
         }
         finally
         {
-            sd.Dispose();
             mdns.Stop();
         }
     }
+    
     [TestMethod]
     public async Task ReverseAddressMapping()
     {
@@ -531,7 +520,7 @@ public class ServiceDiscoveryTest
         var arpaAddress = IPAddress.Loopback.GetArpaName();
         var done = new ManualResetEvent(false);
 
-        var mdns = new MulticastService();
+        using var mdns = new MulticastService();
         Message response = null;
         mdns.NetworkInterfaceDiscovered += _ => mdns.SendQuery(arpaAddress, DnsClass.IN, DnsType.PTR);
         mdns.AnswerReceived += e =>
@@ -551,10 +540,13 @@ public class ServiceDiscoveryTest
             using var sd = await ServiceDiscovery.CreateInstance(mdns);
             sd.Advertise(service);
             await mdns.Start(CancellationToken.None);
+            
             Assert.IsTrue(done.WaitOne(TimeSpan.FromSeconds(1)), "query timeout");
+            
             var answers = response.Answers
                 .OfType<PTRRecord>()
                 .Where(ptr => service.HostName == ptr.DomainName);
+            
             foreach (var answer in answers)
             {
                 Assert.AreEqual(arpaAddress, answer.Name);
@@ -578,11 +570,11 @@ public class ServiceDiscoveryTest
         using var sd = await ServiceDiscovery.CreateInstance();
         sd.Advertise(profile);
 
+        Assert.IsNotNull(sd.NameServer.Catalog);
+        
         var resourceRecords = sd.NameServer.Catalog.Values.SelectMany(static node => node.Resources);
         foreach (var r in resourceRecords)
-        {
             Console.WriteLine(r.ToString());
-        }
     }
 
     [TestMethod]
@@ -591,17 +583,16 @@ public class ServiceDiscoveryTest
         var service = new ServiceProfile("z", "_sdtest-4._udp", 1024, [IPAddress.Loopback]);
         var done = new ManualResetEvent(false);
 
-        var mdns = new MulticastService();
+        using var mdns = new MulticastService();
         mdns.AnswerReceived += e =>
         {
             var msg = e.Message;
             if (msg.Answers.OfType<PTRRecord>().Any(p => p.DomainName == service.FullyQualifiedName))
-            {
                 done.Set();
-            }
             
             return Task.CompletedTask;
         };
+        
         try
         {
             using var sd = await ServiceDiscovery.CreateInstance(mdns);
@@ -610,7 +601,9 @@ public class ServiceDiscoveryTest
                 Assert.IsFalse(await sd.Probe(service));
                 await sd.Announce(service);
             };
+            
             await mdns.Start(CancellationToken.None);
+            
             Assert.IsTrue(done.WaitOne(TimeSpan.FromSeconds(3)), "announce timeout");
         }
         finally
@@ -625,23 +618,25 @@ public class ServiceDiscoveryTest
         var service = new ServiceProfile("z", "_sdtest-4._udp", 1024, [IPAddress.Loopback]);
         var done = new ManualResetEvent(false);
 
-        var mdns = new MulticastService();
+        using var mdns = new MulticastService();
         mdns.AnswerReceived += e =>
         {
             var msg = e.Message;
             //Remove Cache-Flush bit
             foreach (var answer in e.Message.Answers)
                 answer.Class = (DnsClass)((ushort)answer.Class & ~MulticastService.CacheFlushBit);
+            
             foreach (var r in service.Resources)
             {
                 if (!msg.Answers.Contains(r))
-                {
                     return Task.CompletedTask;
-                }
             }
+            
             done.Set();
+            
             return Task.CompletedTask;
         };
+        
         try
         {
             using var sd = await ServiceDiscovery.CreateInstance(mdns);
@@ -650,7 +645,9 @@ public class ServiceDiscoveryTest
                     Assert.IsFalse(await sd.Probe(service));
                     await sd.Announce(service);
                 };
+            
             await mdns.Start(CancellationToken.None);
+            
             Assert.IsTrue(done.WaitOne(TimeSpan.FromSeconds(3)), "announce timeout");
         }
         finally
@@ -666,23 +663,24 @@ public class ServiceDiscoveryTest
         var done = new ManualResetEvent(false);
         var nanswers = 0;
         DateTime start = DateTime.Now;
-        var mdns = new MulticastService
+        
+        using var mdns = new MulticastService
         {
             IgnoreDuplicateMessages = false
         };
+        
         mdns.AnswerReceived += e =>
         {
             var msg = e.Message;
             if (msg.Answers.OfType<PTRRecord>().Any(p => p.DomainName == service.FullyQualifiedName))
             {
                 if (++nanswers == 3)
-                {
                     done.Set();
-                }
             }
             
             return Task.CompletedTask;
         };
+        
         try
         {
             using var sd = await ServiceDiscovery.CreateInstance(mdns);
@@ -692,7 +690,9 @@ public class ServiceDiscoveryTest
                 start = DateTime.Now;
                 await sd.Announce(service, 3);
             };
+            
             await mdns.Start(CancellationToken.None);
+            
             Assert.IsTrue(done.WaitOne(TimeSpan.FromSeconds(4)), "announce timeout");
             if ((DateTime.Now - start).TotalMilliseconds < 3000)
                 Assert.Fail("Announcing too fast");
