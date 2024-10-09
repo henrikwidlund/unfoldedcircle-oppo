@@ -11,6 +11,7 @@ public class OPTRecordTest
     public void Defaults()
     {
         var opt = new OPTRecord();
+        
         Assert.AreEqual("", opt.Name);
         Assert.AreEqual(1280, opt.RequestorPayloadSize);
         Assert.AreEqual((ushort)opt.Class, opt.RequestorPayloadSize);
@@ -30,7 +31,9 @@ public class OPTRecordTest
             Version = 3,
             DO = true
         };
+        
         var b = (OPTRecord)new ResourceRecord().Read(a.ToByteArray());
+        
         Assert.AreEqual(a.Name, b.Name);
         Assert.AreEqual(a.Class, b.Class);
         Assert.AreEqual(a.Type, b.Type);
@@ -46,6 +49,7 @@ public class OPTRecordTest
     {
         var a = new OPTRecord();
         var b = (OPTRecord)new ResourceRecord().Read(a.ToByteArray());
+        
         Assert.AreEqual(a.Name, b.Name);
         Assert.AreEqual(a.Class, b.Class);
         Assert.AreEqual(a.Type, b.Type);
@@ -56,10 +60,12 @@ public class OPTRecordTest
     public void Equality()
     {
         var a = new OPTRecord();
+        
         var b = new OPTRecord
         {
             RequestorPayloadSize = 512
         };
+        
         // ReSharper disable once EqualExpressionComparison
         Assert.IsTrue(a.Equals(a));
         Assert.IsFalse(a.Equals(b));

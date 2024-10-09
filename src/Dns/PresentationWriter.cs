@@ -17,26 +17,17 @@ public class PresentationWriter
     /// <param name="text">
     ///   The source for data items.
     /// </param>
-    public PresentationWriter(TextWriter text)
-    {
-        _text = text;
-    }
+    public PresentationWriter(TextWriter text) => _text = text;
 
     /// <summary>
     ///   Writes a space.
     /// </summary>
-    public void WriteSpace()
-    {
-        _text.Write(' ');
-    }
+    public void WriteSpace() => _text.Write(' ');
 
     /// <summary>
     ///   Writes a CRLF.
     /// </summary>
-    public void WriteEndOfLine()
-    {
-        _text.Write("\r\n");
-    }
+    public void WriteEndOfLine() => _text.Write("\r\n");
 
     /// <summary>
     ///   Write an byte.
@@ -50,6 +41,7 @@ public class PresentationWriter
     public void WriteByte(byte value, bool appendSpace = true)
     {
         _text.Write(value);
+        
         if (appendSpace)
             WriteSpace();
     }
@@ -68,7 +60,8 @@ public class PresentationWriter
         if (value is null)
             return;
         
-        _text.Write(value);
+        _text.Write(value.ToString());
+        
         if (appendSpace)
             WriteSpace();
     }
@@ -85,6 +78,7 @@ public class PresentationWriter
     public void WriteUInt32(uint value, bool appendSpace = true)
     {
         _text.Write(value);
+        
         if (appendSpace)
             WriteSpace();
     }
@@ -105,18 +99,23 @@ public class PresentationWriter
     {
         bool needQuote = false;
 
-        if (value == null)
-            value = string.Empty;
+        value ??= string.Empty;
+        
         if (value == string.Empty)
             needQuote = true;
-        value = value.Replace("\\", "\\\\").Replace("\"", "\\\"");
-        if (value.Contains(' '))
+        
+        value = value.Replace("\\", @"\\", StringComparison.Ordinal).Replace("\"", "\\\"", StringComparison.Ordinal);
+        if (value.Contains(' ', StringComparison.Ordinal))
             needQuote = true;
+        
         if (needQuote)
             _text.Write('"');
+        
         _text.Write(value);
+        
         if (needQuote)
             _text.Write('"');
+        
         if (appendSpace)
             WriteSpace();
     }
@@ -136,6 +135,7 @@ public class PresentationWriter
     public void WriteStringUnencoded(string value, bool appendSpace = true)
     {
         _text.Write(value);
+        
         if (appendSpace)
             WriteSpace();
     }
@@ -164,10 +164,7 @@ public class PresentationWriter
     /// <param name="appendSpace">
     ///   Write a space after the value.
     /// </param>
-    public void WriteBase16String(byte[] value, bool appendSpace = true)
-    {
-        WriteString(BaseConvert.ToBase16Lower(value), appendSpace);
-    }
+    public void WriteBase16String(byte[] value, bool appendSpace = true) => WriteString(BaseConvert.ToBase16Lower(value), appendSpace);
 
     /// <summary>
     ///   Write bytes encoded in base-64.
@@ -195,10 +192,7 @@ public class PresentationWriter
     /// <param name="appendSpace">
     ///   Write a space after the value.
     /// </param>
-    public void WriteTimeSpan16(TimeSpan value, bool appendSpace = true)
-    {
-        WriteUInt16((ushort)value.TotalSeconds, appendSpace);
-    }
+    public void WriteTimeSpan16(TimeSpan value, bool appendSpace = true) => WriteUInt16((ushort)value.TotalSeconds, appendSpace);
 
     /// <summary>
     ///   Write a time span (interval) in 32-bit seconds.
@@ -209,10 +203,7 @@ public class PresentationWriter
     /// <param name="appendSpace">
     ///   Write a space after the value.
     /// </param>
-    public void WriteTimeSpan32(TimeSpan value, bool appendSpace = true)
-    {
-        WriteUInt32((uint)value.TotalSeconds, appendSpace);
-    }
+    public void WriteTimeSpan32(TimeSpan value, bool appendSpace = true) => WriteUInt32((uint)value.TotalSeconds, appendSpace);
 
     /// <summary>
     ///   Write a date/time.
@@ -223,10 +214,8 @@ public class PresentationWriter
     /// <param name="appendSpace">
     ///   Write a space after the value.
     /// </param>
-    public void WriteDateTime(DateTime value, bool appendSpace = true)
-    {
+    public void WriteDateTime(DateTime value, bool appendSpace = true) =>
         WriteString(value.ToUniversalTime().ToString("yyyyMMddHHmmss", CultureInfo.InvariantCulture), appendSpace);
-    }
 
     /// <summary>
     ///   Write an Internet address.
@@ -237,10 +226,7 @@ public class PresentationWriter
     /// <param name="appendSpace">
     ///   Write a space after the value.
     /// </param>
-    public void WriteIPAddress(IPAddress value, bool appendSpace = true)
-    {
-        WriteString(value.ToString(), appendSpace);
-    }
+    public void WriteIPAddress(IPAddress value, bool appendSpace = true) => WriteString(value.ToString(), appendSpace);
 
     /// <summary>
     ///   Write a DNS Type.
@@ -257,11 +243,11 @@ public class PresentationWriter
     /// </remarks>
     public void WriteDnsType(DnsType value, bool appendSpace = true)
     {
-        if (!Enum.IsDefined(typeof(DnsType), value))
-        {
+        if (!DnsTypeExtensions.IsDefined(value))
             _text.Write("TYPE");
-        }
-        _text.Write(value);
+        
+        _text.Write(value.ToStringFast());
+        
         if (appendSpace)
             WriteSpace();
     }
@@ -281,11 +267,11 @@ public class PresentationWriter
     /// </remarks>
     public void WriteDnsClass(DnsClass value, bool appendSpace = true)
     {
-        if (!Enum.IsDefined(typeof(DnsClass), value))
-        {
+        if (!DnsClassExtensions.IsDefined(value))
             _text.Write("CLASS");
-        }
-        _text.Write(value);
+        
+        _text.Write(value.ToStringFast());
+        
         if (appendSpace)
             WriteSpace();
     }

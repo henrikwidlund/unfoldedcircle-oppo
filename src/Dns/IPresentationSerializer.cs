@@ -1,7 +1,7 @@
 ﻿namespace Makaretu.Dns;
 
 /// <summary>
-///   Presentation format serialisation of a resource record.
+///   Presentation format serialization of a resource record.
 /// </summary>
 /// <remarks>
 ///   The text representation of a <see cref="ResourceRecord"/>.
@@ -14,7 +14,7 @@
 ///   deal with a <see cref="String"/>.
 ///   </para>
 /// </remarks>
-public interface IPresentationSerialiser
+public interface IPresentationSerializer
 {
     /// <summary>
     ///   Reads the text representation of a resource record.

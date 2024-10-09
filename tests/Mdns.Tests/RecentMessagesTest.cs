@@ -18,6 +18,7 @@ public class RecentMessagesTest
         messages.Messages.TryAdd("a", now.AddSeconds(-2));
         messages.Messages.TryAdd("b", now.AddSeconds(-3));
         messages.Messages.TryAdd("c", now);
+        
         Assert.AreEqual(2, messages.Prune());
         Assert.AreEqual(1, messages.Messages.Count);
         Assert.IsTrue(messages.Messages.ContainsKey("c"));
@@ -26,10 +27,10 @@ public class RecentMessagesTest
     [TestMethod]
     public void MessageId()
     {
-        var r = new RecentMessages();
         var a0 = RecentMessages.GetId([1]);
         var a1 = RecentMessages.GetId([1]);
         var b = RecentMessages.GetId([2]);
+        
         Assert.AreEqual(a0, a1);
         Assert.AreNotEqual(b, a0);
     }

@@ -73,7 +73,7 @@ public enum MessageStatus : byte
     /// <summary>
     ///   Invalid signature (TSIG).
     /// </summary>
-    BadSignature = 16,
+    BadSignature = BadVersion,
 
     /// <summary>
     ///   Invalid key (TSIG).
@@ -99,4 +99,30 @@ public enum MessageStatus : byte
     ///   Algorithm not supported (TKEY).
     /// </summary>
     BADALG = 21
+}
+
+public static class MessageStatusExtensions
+{
+    public static string ToStringFast(this MessageStatus value)
+        => value switch
+        {
+            MessageStatus.NoError => nameof(MessageStatus.NoError),
+            MessageStatus.FormatError => nameof(MessageStatus.FormatError),
+            MessageStatus.ServerFailure => nameof(MessageStatus.ServerFailure),
+            MessageStatus.NameError => nameof(MessageStatus.NameError),
+            MessageStatus.NotImplemented => nameof(MessageStatus.NotImplemented),
+            MessageStatus.Refused => nameof(MessageStatus.Refused),
+            MessageStatus.YXDomain => nameof(MessageStatus.YXDomain),
+            MessageStatus.YXRRSet => nameof(MessageStatus.YXRRSet),
+            MessageStatus.NXRRSet => nameof(MessageStatus.NXRRSet),
+            MessageStatus.NotAuthoritative => nameof(MessageStatus.NotAuthoritative),
+            MessageStatus.NotZone => nameof(MessageStatus.NotZone),
+            MessageStatus.BadVersion => nameof(MessageStatus.BadVersion),
+            MessageStatus.BadKey => nameof(MessageStatus.BadKey),
+            MessageStatus.BadTime => nameof(MessageStatus.BadTime),
+            MessageStatus.BADMODE => nameof(MessageStatus.BADMODE),
+            MessageStatus.BADNAME => nameof(MessageStatus.BADNAME),
+            MessageStatus.BADALG => nameof(MessageStatus.BADALG),
+            _ => value.ToString()
+        };
 }

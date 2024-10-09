@@ -36,18 +36,14 @@ public class TXTRecord : ResourceRecord
     public override void ReadData(PresentationReader reader)
     {
         while (!reader.IsEndOfLine())
-        {
             Strings.Add(reader.ReadString());
-        }
     }
     
     /// <inheritdoc />
     public override void WriteData(WireWriter writer)
     {
         foreach (var s in Strings)
-        {
             writer.WriteString(s);
-        }
     }
 
     /// <inheritdoc />
@@ -57,9 +53,8 @@ public class TXTRecord : ResourceRecord
         foreach (var s in Strings)
         {
             if (next)
-            {
                 writer.WriteSpace();
-            }
+            
             writer.WriteString(s, appendSpace: false);
             next = true;
         }

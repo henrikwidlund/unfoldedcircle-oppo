@@ -45,8 +45,5 @@ public class EdnsErrorOption : EdnsOption
     }
 
     /// <inheritdoc />
-    public override string ToString()
-    {
-        return $";   Error = {Error} ({Text})";
-    }
+    public override string ToString() => $";   Error = {Error} ({Text})";
 }

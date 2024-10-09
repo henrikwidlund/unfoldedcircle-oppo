@@ -55,10 +55,9 @@ public static class ResourceRegistry
     public static void Register<T>() where T : ResourceRecord, new()
     {
         var rr = new T();
-        if (rr.Type < DnsType.A)
-        {
+        if (!DnsTypeExtensions.IsDefined(rr.Type))
             throw new InvalidOperationException($"The RR TYPE {rr.Type} is not defined.");
-        }
+        
         Records.Add(rr.Type, static () => new T());
     }
 

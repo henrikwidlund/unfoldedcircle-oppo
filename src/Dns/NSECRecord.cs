@@ -33,27 +33,25 @@ public class NSECRecord : ResourceRecord
     {
         var end = reader.Position + length;
         NextOwnerName = reader.ReadDomainName();
+        
         while (reader.Position < end)
-        {
-            Types.AddRange(reader.ReadBitmap().Select(static t => (DnsType)t));
-        }
+            Types.AddRange(reader.ReadBitmap().Cast<DnsType>());
     }
 
     /// <inheritdoc />
     public override void WriteData(WireWriter writer)
     {
         writer.WriteDomainName(NextOwnerName, uncompressed: true);
-        writer.WriteBitmap(Types.Select(static t => (ushort)t));
+        writer.WriteBitmap(Types.Cast<ushort>());
     }
 
     /// <inheritdoc />
     public override void ReadData(PresentationReader reader)
     {
         NextOwnerName = reader.ReadDomainName();
+        
         while (!reader.IsEndOfLine())
-        {
             Types.Add(reader.ReadDnsType());
-        }
     }
 
     /// <inheritdoc />
@@ -65,9 +63,8 @@ public class NSECRecord : ResourceRecord
         foreach (var type in Types)
         {
             if (next)
-            {
                 writer.WriteSpace();
-            }
+            
             writer.WriteDnsType(type, appendSpace: false);
             next = true;
         }

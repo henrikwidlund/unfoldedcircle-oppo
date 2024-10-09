@@ -23,10 +23,7 @@ public class WireReader
     /// <param name="stream">
     ///   The source for data items.
     /// </param>
-    public WireReader(Stream stream)
-    {
-        _stream = stream;
-    }
+    public WireReader(Stream stream) => _stream = stream;
 
     /// <summary>
     ///   Read a byte.
@@ -40,8 +37,10 @@ public class WireReader
     public byte ReadByte()
     {
         var value = _stream.ReadByte();
+        
         if (value < 0)
             throw new EndOfStreamException();
+        
         ++Position;
         return (byte)value;
     }
@@ -64,13 +63,15 @@ public class WireReader
         for (var offset = 0; length > 0; )
         {
             var n = _stream.Read(buffer, offset, length);
+            
             if (n == 0)
                 throw new EndOfStreamException();
+            
             offset += n;
             length -= n;
             Position += n;
         }
-            
+
         return buffer;
     }
 
@@ -197,9 +198,7 @@ public class WireReader
         var labels = new List<string>();
         // End of labels?
         if (length == 0)
-        {
             return labels;
-        }
 
         // Read current label and remaining labels.
         labels.Add(ReadUTF8String(length));
@@ -230,9 +229,8 @@ public class WireReader
     {
         var bytes = ReadByteLengthPrefixedBytes();
         if (bytes.Any(static c => c > 0x7F))
-        {
             throw new InvalidDataException("Only ASCII characters are allowed.");
-        }
+        
         return Encoding.ASCII.GetString(bytes);
     }
 
@@ -248,10 +246,7 @@ public class WireReader
     /// <exception cref="EndOfStreamException">
     ///   When no more data is available.
     /// </exception>
-    public string ReadUTF8String()
-    {
-        return Encoding.UTF8.GetString(ReadByteLengthPrefixedBytes());
-    }
+    public string ReadUTF8String() => Encoding.UTF8.GetString(ReadByteLengthPrefixedBytes());
 
     /// <summary>
     ///   Read a string of a given length.
@@ -265,10 +260,7 @@ public class WireReader
     /// <exception cref="EndOfStreamException">
     ///   When no more data is available.
     /// </exception>
-    public string ReadUTF8String(int length)
-    {
-        return length == 0 ? string.Empty : Encoding.UTF8.GetString(ReadBytes(length));
-    }
+    public string ReadUTF8String(int length) => length == 0 ? string.Empty : Encoding.UTF8.GetString(ReadBytes(length));
 
     /// <summary>
     ///   Read a time span (interval) with 16-bits.
@@ -282,10 +274,7 @@ public class WireReader
     /// <remarks>
     ///   The interval is represented as the number of seconds in two bytes.
     /// </remarks>
-    public TimeSpan ReadTimeSpan16()
-    {
-        return TimeSpan.FromSeconds(ReadUInt16());
-    }
+    public TimeSpan ReadTimeSpan16() => TimeSpan.FromSeconds(ReadUInt16());
 
     /// <summary>
     ///   Read a time span (interval) with 32-bits.
@@ -299,10 +288,7 @@ public class WireReader
     /// <remarks>
     ///   The interval is represented as the number of seconds in four bytes.
     /// </remarks>
-    public TimeSpan ReadTimeSpan32()
-    {
-        return TimeSpan.FromSeconds(ReadUInt32());
-    }
+    public TimeSpan ReadTimeSpan32() => TimeSpan.FromSeconds(ReadUInt32());
 
     /// <summary>
     ///   Read an Internet address.
@@ -339,17 +325,17 @@ public class WireReader
         var block = ReadByte();
         var length = ReadByte();
         var offset = block * 256;
+        
         for (var i = 0; i < length; ++i, offset += 8)
         {
             var bits = ReadByte();
             for (var bit = 0; bit < 8; ++bit)
             {
                 if ((bits & (1 << Math.Abs(bit - 7))) != 0)
-                {
                     values.Add((ushort)(offset + bit));
-                }
             }
         }
+        
         return values;
     }
 

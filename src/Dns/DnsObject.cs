@@ -4,10 +4,10 @@
 ///   Base class for all DNS objects.
 /// </summary>
 /// <remarks>
-///   Provides helper methods for <see cref="IWireSerialiser">wire serialisation</see>,
+///   Provides helper methods for <see cref="IWireSerializer">wire serialisation</see>,
 ///   cloning and caching.
 /// </remarks>
-public abstract class DnsObject : IWireSerialiser, ICloneable
+public abstract class DnsObject : IWireSerializer, ICloneable
 {
     /// <summary>
     ///   When the object was created.
@@ -65,10 +65,7 @@ public abstract class DnsObject : IWireSerialiser, ICloneable
     /// <remarks>
     ///   Use serialisation to make a copy.
     /// </remarks>
-    public T Clone<T>() where T : DnsObject
-    {
-        return (T)Clone();
-    }
+    public T Clone<T>() where T : DnsObject => (T)Clone();
 
     /// <summary>
     ///   Reads the DNS object from a byte array.
@@ -76,10 +73,7 @@ public abstract class DnsObject : IWireSerialiser, ICloneable
     /// <param name="buffer">
     ///   The source for the DNS object.
     /// </param>
-    public IWireSerialiser Read(byte[] buffer)
-    {
-        return Read(buffer, 0, buffer.Length);
-    }
+    public IWireSerializer Read(byte[] buffer) => Read(buffer, 0, buffer.Length);
 
     /// <summary>
     ///   Reads the DNS object from a byte array.
@@ -93,7 +87,7 @@ public abstract class DnsObject : IWireSerialiser, ICloneable
     /// <param name="count">
     ///   The number of bytes in the <paramref name="buffer"/>.
     /// </param>
-    public IWireSerialiser Read(byte[] buffer, int offset, int count)
+    public IWireSerializer Read(byte[] buffer, int offset, int count)
     {
         using var ms = new MemoryStream(buffer, offset, count, false);
         return Read(new WireReader(ms));
@@ -105,10 +99,10 @@ public abstract class DnsObject : IWireSerialiser, ICloneable
     /// <param name="stream">
     ///   The source for the DNS object.
     /// </param>
-    public IWireSerialiser Read(Stream stream) => Read(new WireReader(stream));
+    public IWireSerializer Read(Stream stream) => Read(new WireReader(stream));
 
     /// <inheritdoc />
-    public abstract IWireSerialiser Read(WireReader reader);
+    public abstract IWireSerializer Read(WireReader reader);
 
     /// <summary>
     ///   Writes the DNS object to a byte array.
@@ -133,5 +127,4 @@ public abstract class DnsObject : IWireSerialiser, ICloneable
 
     /// <inheritdoc />
     public abstract void Write(WireWriter writer);
-
 }

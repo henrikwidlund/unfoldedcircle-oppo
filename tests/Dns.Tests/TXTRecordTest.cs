@@ -19,7 +19,9 @@ public class TXTRecordTest
                 "colour=false"
             ]
         };
+        
         var b = (TXTRecord)new ResourceRecord().Read(a.ToByteArray());
+        
         Assert.AreEqual(a.Name, b.Name);
         Assert.AreEqual(a.Class, b.Class);
         Assert.AreEqual(a.Type, b.Type);
@@ -42,7 +44,9 @@ public class TXTRecordTest
                 "foo3=a\""
             ]
         };
+        
         var b = (TXTRecord)new ResourceRecord().Read(a.ToString());
+        
         Assert.IsNotNull(b);
         Assert.AreEqual(a.Name, b.Name);
         Assert.AreEqual(a.Class, b.Class);
@@ -58,7 +62,9 @@ public class TXTRecordTest
         {
             Name = "the.printer.local"
         };
+        
         var b = (TXTRecord)new ResourceRecord().Read(a.ToByteArray());
+        
         Assert.AreEqual(a.Name, b.Name);
         Assert.AreEqual(a.Class, b.Class);
         Assert.AreEqual(a.Type, b.Type);
@@ -78,6 +84,7 @@ public class TXTRecordTest
                 "colour=false"
             ]
         };
+        
         var b = new TXTRecord
         {
             Name = "the.printer.local",
@@ -87,6 +94,7 @@ public class TXTRecordTest
                 "colour=true"
             ]
         };
+        
         // ReSharper disable once EqualExpressionComparison
         Assert.IsTrue(a.Equals(a));
         Assert.IsFalse(a.Equals(b));

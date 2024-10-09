@@ -20,6 +20,7 @@ public class UnknownEdnsOptionTest
 
         var opt2 = (OPTRecord)new ResourceRecord().Read(opt1.ToByteArray());
         var actual = (UnknownEdnsOption)opt2.Options[0];
+        
         Assert.AreEqual(expected.Type, actual.Type);
         CollectionAssert.AreEqual(expected.Data, actual.Data);
     }

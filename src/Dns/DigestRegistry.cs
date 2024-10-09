@@ -31,32 +31,6 @@ public static class DigestRegistry
             DigestType.Sha512
         ];
     }
-    
-    // /// <summary>
-    // ///   Gets the hash algorithm for the <see cref="DigestType"/>.
-    // /// </summary>
-    // /// <param name="digestType">
-    // ///   One of the <see cref="DigestType"/> values.
-    // /// </param>
-    // /// <returns>
-    // ///   A new instance of the <see cref="HashAlgorithm"/> that implements
-    // ///   the <paramref name="digestType"/>.
-    // /// </returns>
-    // /// <exception cref="NotImplementedException">
-    // ///   When <paramref name="digestType"/> is not implemented.
-    // /// </exception>
-    // public static HashAlgorithm HashData(DigestType digestType)
-    // {
-    //     switch (digestType)
-    //     {
-    //         
-    //     }
-    //     if (Digests.TryGetValue(digestType, out DigestType maker)) 
-    //     {
-    //         return maker();
-    //     }
-    //     throw new NotImplementedException($"Digest type '{digestType}' is not implemented.");
-    // }
 
     /// <summary>
     ///   Gets the hash algorithm for the <see cref="SecurityAlgorithm"/>.
@@ -73,22 +47,14 @@ public static class DigestRegistry
     ///   When the <paramref name="algorithm"/> or its <see cref="HashAlgorithm"/>
     ///   is not implemented.
     /// </exception>
-    public static byte[] HashData(SecurityAlgorithm algorithm, Stream stream)
-    {
-        var metadata = SecurityAlgorithmRegistry.GetMetadata(algorithm);
-        switch (metadata.HashAlgorithm)
+    public static byte[] HashData(SecurityAlgorithm algorithm, Stream stream) =>
+        SecurityAlgorithmRegistry.GetMetadata(algorithm).HashAlgorithm switch
         {
-            case DigestType.Sha1:
-                return SHA1.HashData(stream);
-            case DigestType.Sha256:
-                return SHA256.HashData(stream);
-            case DigestType.Sha384:
-                return SHA384.HashData(stream);
-            case DigestType.Sha512:
-                return SHA512.HashData(stream);
-            case DigestType.GostR34_11_94:
-            default:
-                throw new ArgumentOutOfRangeException(nameof(algorithm), algorithm, "The algorithm is not implemented.");
-        }
-    }
+            DigestType.Sha1 => SHA1.HashData(stream),
+            DigestType.Sha256 => SHA256.HashData(stream),
+            DigestType.Sha384 => SHA384.HashData(stream),
+            DigestType.Sha512 => SHA512.HashData(stream),
+            DigestType.GostR34_11_94 => throw new ArgumentOutOfRangeException(nameof(algorithm), algorithm, "The algorithm is not implemented."),
+            _ => throw new ArgumentOutOfRangeException(nameof(algorithm), algorithm, "The algorithm is not implemented.")
+        };
 }

@@ -16,6 +16,7 @@ public class ResourceRecordTest
     public void Defaults()
     {
         var rr = new ResourceRecord();
+        
         Assert.AreEqual(DnsClass.IN, rr.Class);
         Assert.AreEqual(ResourceRecord.DefaultTTL, rr.TTL);
     }
@@ -24,6 +25,7 @@ public class ResourceRecordTest
     public void DataLength()
     {
         var rr = new ResourceRecord();
+        
         Assert.AreEqual(0, rr.GetDataLength());
     }
 
@@ -31,6 +33,7 @@ public class ResourceRecordTest
     public void DataLength_DerivedClass()
     {
         var a = new ARecord { Address = IPAddress.Parse("127.0.0.1") };
+        
         Assert.AreEqual(4, a.GetDataLength());
     }
 
@@ -38,6 +41,7 @@ public class ResourceRecordTest
     public void Data()
     {
         var rr = new ResourceRecord();
+        
         Assert.AreEqual(0, rr.GetData().Length);
     }
 
@@ -45,6 +49,7 @@ public class ResourceRecordTest
     public void Data_DerivedClass()
     {
         var a = new ARecord { Address = IPAddress.Parse("127.0.0.1") };
+        
         Assert.AreNotEqual(0, a.GetData().Length);
     }
 
@@ -58,7 +63,9 @@ public class ResourceRecordTest
             Type = (DnsType)0xFFFF,
             TTL = TimeSpan.FromDays(2)
         };
+        
         var b = (ResourceRecord)new ResourceRecord().Read(a.ToByteArray());
+        
         Assert.AreEqual(a.Name, b.Name);
         Assert.AreEqual(a.Class, b.Class);
         Assert.AreEqual(a.Type, b.Type);
@@ -78,6 +85,7 @@ public class ResourceRecordTest
             Type = DnsType.A,
             TTL = TimeSpan.FromSeconds(1)
         };
+        
         var a1 = new ResourceRecord
         {
             Name = "alpha",
@@ -85,6 +93,7 @@ public class ResourceRecordTest
             Type = DnsType.A,
             TTL = TimeSpan.FromSeconds(2)
         };
+        
         var b = new ResourceRecord
         {
             Name = "beta",
@@ -92,9 +101,10 @@ public class ResourceRecordTest
             Type = DnsType.A,
             TTL = TimeSpan.FromSeconds(1)
         };
+        
         ResourceRecord c = null;
         ResourceRecord d = null;
-        ResourceRecord e = new ResourceRecord();
+        ResourceRecord e = new();
 
         Assert.IsTrue(c == d);
         Assert.IsFalse(c == b);
@@ -165,14 +175,14 @@ public class ResourceRecordTest
     }
 
     [TestMethod]
-    public void CreationTime()
+    public async Task CreationTime()
     {
         var now = DateTime.Now;
         var rr = new ResourceRecord();
         Assert.AreEqual(DateTimeKind.Local, rr.CreationTime.Kind);
         Assert.IsTrue(rr.CreationTime >= now);
-
-        Task.Delay(50).Wait();
+        
+        await Task.Delay(50);
         var clone = rr.Clone<ResourceRecord>();
         Assert.AreEqual(rr.CreationTime, clone.CreationTime);
     }
@@ -196,6 +206,7 @@ public class ResourceRecordTest
             Class = (DnsClass)1234,
             Type = DnsType.A
         };
+        
         Assert.AreEqual("x.emanon.org CLASS1234 A \\# 0", a.ToString());
     }
 
@@ -207,6 +218,7 @@ public class ResourceRecordTest
             Name = "x.emanon.org",
             Type = (DnsType)1234
         };
+        
         Assert.AreEqual("x.emanon.org IN TYPE1234 \\# 0", a.ToString());
     }
 
@@ -214,6 +226,7 @@ public class ResourceRecordTest
     public void CanonicalName()
     {
         var rr = new ResourceRecord { Name = "x.EmAnOn.OrG" };
+        
         Assert.AreEqual("x.emanon.org", rr.CanonicalName);
     }
 
@@ -225,6 +238,7 @@ public class ResourceRecordTest
         {
             Position = 0
         };
+        
         ExceptionAssert.Throws<InvalidDataException>(() =>
         {
             _ = new ResourceRecord().Read(ms);

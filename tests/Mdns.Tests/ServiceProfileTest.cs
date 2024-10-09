@@ -64,6 +64,7 @@ public class ServiveProfileTest
         var service = new ServiceProfile("x", "_sdtest._udp", 1024);
         var txt = service.Resources.OfType<TXTRecord>().First();
         txt.Strings.AddRange(["a=1", "b=2"]);
+        
         CollectionAssert.Contains(txt.Strings, "txtvers=1");
         CollectionAssert.Contains(txt.Strings, "a=1");
         CollectionAssert.Contains(txt.Strings, "b=2");
@@ -80,6 +81,7 @@ public class ServiveProfileTest
         service.AddProperty("a", "1");
 
         var txt = service.Resources.OfType<TXTRecord>().First();
+        
         Assert.AreEqual(service.FullyQualifiedName, txt.Name);
         CollectionAssert.Contains(txt.Strings, "a=1");
     }
@@ -88,6 +90,7 @@ public class ServiveProfileTest
     public void TTLs()
     {
         var service = new ServiceProfile("x", "_sdtest._udp", 1024);
+        
         Assert.AreEqual(TimeSpan.FromMinutes(75), service.Resources.OfType<TXTRecord>().First().TTL);
         Assert.AreEqual(TimeSpan.FromSeconds(120), service.Resources.OfType<AddressRecord>().First().TTL);
     }

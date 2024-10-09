@@ -24,9 +24,7 @@ public class CachedNameServer : NameServer
         {
             var resources = node.Resources.Where(r => r.IsExpired(now));
             foreach (var resource in resources)
-            {
                 node.Resources.Remove(resource);
-            }
         }
     }
 
@@ -74,9 +72,8 @@ public class CachedNameServer : NameServer
         var resources = response
             .Answers.Concat(response.AdditionalRecords)
             .Where(static r => r.TTL > TimeSpan.Zero);
+        
         foreach (var resource in resources)
-        {
             Catalog?.Add(resource);
-        }
     }
 }

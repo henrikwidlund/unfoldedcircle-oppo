@@ -15,7 +15,9 @@ public class DNAMERecordTest
             Name = "emanon.org",
             Target = "somewhere.else.org"
         };
+        
         var b = (DNAMERecord)new ResourceRecord().Read(a.ToByteArray());
+        
         Assert.AreEqual(a.Name, b.Name);
         Assert.AreEqual(a.Class, b.Class);
         Assert.AreEqual(a.Type, b.Type);
@@ -31,7 +33,9 @@ public class DNAMERecordTest
             Name = "emanon.org",
             Target = "somewhere.else.org"
         };
+        
         var b = (DNAMERecord)new ResourceRecord().Read(a.ToString());
+        
         Assert.IsNotNull(b);
         Assert.AreEqual(a.Name, b.Name);
         Assert.AreEqual(a.Class, b.Class);
@@ -48,11 +52,13 @@ public class DNAMERecordTest
             Name = "emanon.org",
             Target = "somewhere.else.org"
         };
+        
         var b = new DNAMERecord
         {
             Name = "emanon.org",
             Target = "somewhere.org"
         };
+        
         // ReSharper disable once EqualExpressionComparison
         Assert.IsTrue(a.Equals(a));
         Assert.IsFalse(a.Equals(b));

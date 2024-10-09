@@ -15,7 +15,9 @@ public class UnknownRecordTest
             Name = "emanon.org",
             Data = [10, 11, 12]
         };
+        
         var b = (UnknownRecord)new ResourceRecord().Read(a.ToByteArray());
+        
         Assert.AreEqual(a.Name, b.Name);
         Assert.AreEqual(a.Class, b.Class);
         Assert.AreEqual(a.Type, b.Type);
@@ -31,6 +33,7 @@ public class UnknownRecordTest
             Name = "emanon.org",
             Data = [1, 2, 3, 4]
         };
+        
         var b = new UnknownRecord
         {
             Name = "emanon.org",
@@ -53,7 +56,9 @@ public class UnknownRecordTest
             Type = (DnsType)731,
             Data = [0xab, 0xcd, 0xef, 0x01, 0x23, 0x45]
         };
+        
         var b = (UnknownRecord)new ResourceRecord().Read(a.ToString());
+        
         Assert.IsNotNull(b);
         Assert.AreEqual(a.Name, b.Name);
         Assert.AreEqual(a.Class, b.Class);

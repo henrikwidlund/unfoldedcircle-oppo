@@ -15,7 +15,9 @@ public class RPRecordTest
             Name = "emanon.org",
             Mailbox = "nowon.emanon.org"
         };
+        
         var b = (RPRecord)new ResourceRecord().Read(a.ToByteArray());
+        
         Assert.AreEqual(a.Name, b.Name);
         Assert.AreEqual(a.Class, b.Class);
         Assert.AreEqual(a.Type, b.Type);
@@ -32,7 +34,9 @@ public class RPRecordTest
             Name = "emanon.org",
             Mailbox = "nowon.emanon.org"
         };
+        
         var b = (RPRecord)new ResourceRecord().Read(a.ToString());
+        
         Assert.IsNotNull(b);
         Assert.AreEqual(a.Name, b.Name);
         Assert.AreEqual(a.Class, b.Class);
@@ -50,11 +54,13 @@ public class RPRecordTest
             Name = "emanon.org",
             Mailbox = "nowon.emanon.org"
         };
+        
         var b = new RPRecord
         {
             Name = "emanon.org",
             Mailbox = "someone.emanon.org"
         };
+        
         // ReSharper disable once EqualExpressionComparison
         Assert.IsTrue(a.Equals(a));
         Assert.IsFalse(a.Equals(b));

@@ -86,9 +86,8 @@ public class DomainName : IEquatable<DomainName>
     {
         var joinedName = new DomainName();
         foreach (var name in names)
-        {
             joinedName._labels.AddRange(name.Labels);
-        }
+        
         return joinedName;
     }
 
@@ -174,22 +173,19 @@ public class DomainName : IEquatable<DomainName>
     public bool IsSubdomainOf(DomainName? domain)
     {
         if (domain is null)
-        {
             return false;
-        }
+        
         if (_labels.Count <= domain._labels.Count)
-        {
             return false;
-        }
+        
         var i = _labels.Count - 1;
         var j = domain._labels.Count - 1;
         for (; 0 <= j; --i, --j)
         {
             if (!LabelsEqual(_labels[i], domain._labels[j]))
-            {
                 return false;
-            }
         }
+        
         return true;
     }
 
@@ -240,10 +236,9 @@ public class DomainName : IEquatable<DomainName>
             // Just part of the label.
             label.Append(c);
         }
+        
         if (label.Length > 0)
-        {
             _labels.Add(label.ToString());
-        }
     }
 
     /// <inheritdoc />
@@ -260,21 +255,18 @@ public class DomainName : IEquatable<DomainName>
     public bool Equals(DomainName? that)
     {
         if (that is null)
-        {
             return false;
-        }
+        
         var n = _labels.Count;
         if (n != that._labels.Count)
-        {
             return false;
-        }
+            
         for (var i = 0; i < n; ++i)
         {
             if (!LabelsEqual(_labels[i], that._labels[i]))
-            {
                 return false;
-            }
         }
+        
         return true;
     }
 
@@ -321,5 +313,5 @@ public class DomainName : IEquatable<DomainName>
     /// <remarks>
     ///   Uses a case-insenstive algorithm, where 'A-Z' are equivalent to 'a-z'.
     /// </remarks>
-    public static bool LabelsEqual(string a, string b) => StringComparer.InvariantCultureIgnoreCase.Compare(a, b) == 0;
+    public static bool LabelsEqual(string a, string b) => string.Equals(a, b, StringComparison.InvariantCultureIgnoreCase);
 }

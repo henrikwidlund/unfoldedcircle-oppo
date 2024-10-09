@@ -26,33 +26,21 @@ public class EdnsKeepaliveOption : EdnsOption
     public TimeSpan? Timeout { get; set; }
 
     /// <inheritdoc />
-    public override void ReadData(WireReader reader, int length)
-    {
-        switch (length)
+    public override void ReadData(WireReader reader, int length) =>
+        Timeout = length switch
         {
-            case 0:
-                Timeout = null;
-                break;
-            case 2:
-                Timeout = TimeSpan.FromMilliseconds(reader.ReadUInt16() * 100);
-                break;
-            default:
-                throw new InvalidDataException($"Invalid EdnsKeepAlive length of '{length}'.");
-        }
-    }
+            0 => null,
+            2 => TimeSpan.FromMilliseconds(reader.ReadUInt16() * 100),
+            _ => throw new InvalidDataException($"Invalid EdnsKeepAlive length of '{length}'.")
+        };
 
     /// <inheritdoc />
     public override void WriteData(WireWriter writer)
     {
         if (Timeout.HasValue)
-        {
             writer.WriteUInt16((ushort)(Timeout.Value.TotalMilliseconds / 100));
-        }
     }
 
     /// <inheritdoc />
-    public override string ToString()
-    {
-        return $";   Keepalive = {Timeout}";
-    }
+    public override string ToString() => $";   Keepalive = {Timeout}";
 }

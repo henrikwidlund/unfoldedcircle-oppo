@@ -8,8 +8,6 @@
 /// </remarks>
 public class TKEYRecord : ResourceRecord
 {
-    private static readonly byte[] NoData = [];
-
     /// <summary>
     ///   Creates a new instance of the <see cref="TKEYRecord"/> class.
     /// </summary>
@@ -18,7 +16,7 @@ public class TKEYRecord : ResourceRecord
         Type = DnsType.TKEY;
         Class = DnsClass.ANY;
         TTL = TimeSpan.Zero;
-        OtherData = NoData;
+        OtherData = [];
     }
 
     /// <summary>
@@ -121,6 +119,6 @@ public class TKEYRecord : ResourceRecord
         writer.WriteUInt16((ushort)Mode);
         writer.WriteUInt16((ushort)Error);
         writer.WriteBase64String(Key);
-        writer.WriteBase64String(OtherData ?? NoData, appendSpace: false);
+        writer.WriteBase64String(OtherData ?? [], appendSpace: false);
     }
 }

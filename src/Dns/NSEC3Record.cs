@@ -64,9 +64,7 @@ public class NSEC3Record : ResourceRecord
         NextHashedOwnerName = reader.ReadByteLengthPrefixedBytes();
 
         while (reader.Position < end)
-        {
-            Types.AddRange(reader.ReadBitmap().Select(static t => (DnsType)t));
-        }
+            Types.AddRange(reader.ReadBitmap().Cast<DnsType>());
     }
 
     /// <inheritdoc />
@@ -103,9 +101,7 @@ public class NSEC3Record : ResourceRecord
         NextHashedOwnerName = BaseConvert.FromBase32Hex(reader.ReadString());
 
         while (!reader.IsEndOfLine())
-        {
             Types.Add(reader.ReadDnsType());
-        }
     }
 
     /// <inheritdoc />
@@ -128,13 +124,9 @@ public class NSEC3Record : ResourceRecord
         writer.WriteUInt16(Iterations.Value);
 
         if (Salt == null || Salt.Length == 0)
-        {
             writer.WriteString("-");
-        }
         else
-        {
             writer.WriteBase16String(Salt);
-        }
 
         writer.WriteString(BaseConvert.ToBase32Hex(NextHashedOwnerName).ToLowerInvariant());
 
@@ -142,9 +134,8 @@ public class NSEC3Record : ResourceRecord
         foreach (var type in Types)
         {
             if (next)
-            {
                 writer.WriteSpace();
-            }
+            
             writer.WriteDnsType(type, appendSpace: false);
             next = true;
         }

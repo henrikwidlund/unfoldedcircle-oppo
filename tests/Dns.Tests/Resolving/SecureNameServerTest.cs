@@ -14,10 +14,7 @@ public class SecureNameServerTest
 {
     private readonly Catalog _example = new();
 
-    public SecureNameServerTest()
-    {
-        _example.IncludeZone(new PresentationReader(new StringReader(SecureCatalogTest.ExamplZoneText)));
-    }
+    public SecureNameServerTest() => _example.IncludeZone(new PresentationReader(new StringReader(SecureCatalogTest.ExampleZoneText)));
 
     [TestMethod]
     public async Task SupportDnssec()

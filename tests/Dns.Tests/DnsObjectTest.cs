@@ -21,7 +21,9 @@ public class DnsObjectTest
         {
             Questions = { new Question { Name = "example.com" } }
         };
+        
         var m2 = (Message)m1.Clone();
+        
         CollectionAssert.AreEqual(m1.ToByteArray(), m2.ToByteArray());
     }
 
@@ -32,7 +34,9 @@ public class DnsObjectTest
         {
             Questions = { new Question { Name = "example.com" } }
         };
+        
         var m2 = m1.Clone<Message>();
+        
         CollectionAssert.AreEqual(m1.ToByteArray(), m2.ToByteArray());
     }
 }

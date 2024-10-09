@@ -13,6 +13,7 @@ public class TKEYRecordTest
     public void Defaults()
     {
         var tsig = new TKEYRecord();
+        
         Assert.AreEqual(DnsType.TKEY, tsig.Type);
         Assert.AreEqual(DnsClass.ANY, tsig.Class);
         Assert.AreEqual(TimeSpan.Zero, tsig.TTL);
@@ -33,7 +34,9 @@ public class TKEYRecordTest
             Error = MessageStatus.BadTime,
             OtherData = [5, 6]
         };
+        
         var b = (TKEYRecord)new ResourceRecord().Read(a.ToByteArray());
+        
         Assert.AreEqual(a.Name, b.Name);
         Assert.AreEqual(a.Class, b.Class);
         Assert.AreEqual(a.Type, b.Type);
@@ -62,7 +65,9 @@ public class TKEYRecordTest
             Error = MessageStatus.BadTime,
             OtherData = [5, 6]
         };
+        
         var b = (TKEYRecord)new ResourceRecord().Read(a.ToString());
+        
         Assert.IsNotNull(b);
         Assert.AreEqual(a.Name, b.Name);
         Assert.AreEqual(a.Class, b.Class);

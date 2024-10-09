@@ -21,7 +21,9 @@ public class NSEC3PARAMRecordTest
             Iterations = 12,
             Salt = [0xaa, 0xbb, 0xcc, 0xdd]
         };
+        
         var b = (NSEC3PARAMRecord)new ResourceRecord().Read(a.ToByteArray());
+        
         Assert.AreEqual(a.Name, b.Name);
         Assert.AreEqual(a.Class, b.Class);
         Assert.AreEqual(a.Type, b.Type);
@@ -44,7 +46,9 @@ public class NSEC3PARAMRecordTest
             Iterations = 12,
             Salt = [0xaa, 0xbb, 0xcc, 0xdd]
         };
+        
         var b = (NSEC3PARAMRecord)new ResourceRecord().Read(a.ToString());
+        
         Assert.IsNotNull(b);
         Assert.AreEqual(a.Name, b.Name);
         Assert.AreEqual(a.Class, b.Class);
@@ -67,7 +71,9 @@ public class NSEC3PARAMRecordTest
             Flags = 1,
             Iterations = 12
         };
+        
         var b = (NSEC3PARAMRecord)new ResourceRecord().Read(a.ToString());
+        
         Assert.IsNotNull(b);
         Assert.AreEqual(a.Name, b.Name);
         Assert.AreEqual(a.Class, b.Class);
@@ -91,7 +97,9 @@ public class NSEC3PARAMRecordTest
             Iterations = 12,
             Salt = []
         };
+        
         var b = (NSEC3PARAMRecord)new ResourceRecord().Read(a.ToString());
+        
         Assert.IsNotNull(b);
         Assert.AreEqual(a.Name, b.Name);
         Assert.AreEqual(a.Class, b.Class);

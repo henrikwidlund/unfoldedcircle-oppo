@@ -15,7 +15,9 @@ public class CNAMERecordTest
             Name = "emanon.org",
             Target = "somewhere.else.org"
         };
+
         var b = (CNAMERecord)new ResourceRecord().Read(a.ToByteArray());
+        
         Assert.AreEqual(a.Name, b.Name);
         Assert.AreEqual(a.Class, b.Class);
         Assert.AreEqual(a.Type, b.Type);
@@ -31,7 +33,9 @@ public class CNAMERecordTest
             Name = "emanon.org",
             Target = "somewhere.else.org"
         };
+        
         var b = (CNAMERecord)new ResourceRecord().Read(a.ToString());
+        
         Assert.IsNotNull(b);
         Assert.AreEqual(a.Name, b.Name);
         Assert.AreEqual(a.Class, b.Class);
@@ -48,11 +52,13 @@ public class CNAMERecordTest
             Name = "emanon.org",
             Target = "somewhere.else.org"
         };
+        
         var b = new CNAMERecord
         {
             Name = "emanon.org",
             Target = "somewhere.org"
         };
+        
         // ReSharper disable once EqualExpressionComparison
         Assert.IsTrue(a.Equals(a));
         Assert.IsFalse(a.Equals(b));

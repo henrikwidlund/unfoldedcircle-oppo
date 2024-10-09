@@ -9,7 +9,7 @@ namespace Makaretu.Dns;
 /// </summary>
 public class PresentationReader
 {
-    private TextReader _text;
+    private readonly TextReader _text;
     private TimeSpan? _defaultTtl;
     private DomainName? _defaultDomainName;
     private int _parenLevel;
@@ -23,21 +23,13 @@ public class PresentationReader
     private bool _tokenStartsNewLine;
 
     /// <summary>
-    ///   The reader relative position within the stream.
-    /// </summary>
-    public int Position;
-
-    /// <summary>
     ///   Creates a new instance of the <see cref="PresentationReader"/> using the
     ///   specified <see cref="System.IO.TextReader"/>.
     /// </summary>
     /// <param name="text">
     ///   The source for data items.
     /// </param>
-    public PresentationReader(TextReader text)
-    {
-        this._text = text;
-    }
+    public PresentationReader(TextReader text) => _text = text;
 
     /// <summary>
     ///   The origin domain name, sometimes called the zone name.
@@ -57,10 +49,7 @@ public class PresentationReader
     /// <returns>
     ///   The number as a byte.
     /// </returns>
-    public byte ReadByte()
-    {
-        return byte.Parse(ReadToken(), CultureInfo.InvariantCulture);
-    }
+    public byte ReadByte() => byte.Parse(ReadToken(), CultureInfo.InvariantCulture);
 
     /// <summary>
     ///   Read an unsigned short.
@@ -68,10 +57,7 @@ public class PresentationReader
     /// <returns>
     ///   The number as an unsigned short.
     /// </returns>
-    public ushort ReadUInt16()
-    {
-        return ushort.Parse(ReadToken(), CultureInfo.InvariantCulture);
-    }
+    public ushort ReadUInt16() => ushort.Parse(ReadToken(), CultureInfo.InvariantCulture);
 
     /// <summary>
     ///   Read an unsigned int.
@@ -79,10 +65,7 @@ public class PresentationReader
     /// <returns>
     ///   The number as an unsignd int.
     /// </returns>
-    public uint ReadUInt32()
-    {
-        return uint.Parse(ReadToken(), CultureInfo.InvariantCulture);
-    }
+    public uint ReadUInt32() => uint.Parse(ReadToken(), CultureInfo.InvariantCulture);
 
     /// <summary>
     ///   Read a domain name.
@@ -90,20 +73,14 @@ public class PresentationReader
     /// <returns>
     ///   The domain name as a string.
     /// </returns>
-    public DomainName ReadDomainName()
-    {
-        return MakeAbsoluteDomainName(ReadToken(ignoreEscape: true));
-    }
+    public DomainName ReadDomainName() => MakeAbsoluteDomainName(ReadToken(ignoreEscape: true));
 
-    private DomainName MakeAbsoluteDomainName(string name)
-    {
-        // If an absolute name.
-        if (name.EndsWith('.'))
-            return new DomainName(name[..^1]);
-
-        // Then its a relative name.
-        return DomainName.Join(new DomainName(name), Origin);
-    }
+    private DomainName MakeAbsoluteDomainName(string name) =>
+        name.EndsWith('.')
+            // If an absolute name.
+            ? new DomainName(name[..^1]) :
+            // Then it's a relative name.
+            DomainName.Join(new DomainName(name), Origin);
 
     /// <summary>
     ///   Read a string.
@@ -111,10 +88,7 @@ public class PresentationReader
     /// <returns>
     ///   The string.
     /// </returns>
-    public string ReadString()
-    {
-        return ReadToken();
-    }
+    public string ReadString() => ReadToken();
 
     /// <summary>
     ///   Read bytes encoded in base-64.
@@ -131,9 +105,8 @@ public class PresentationReader
         // Handle embedded space and CRLFs inside of parens.
         var sb = new StringBuilder();
         while (!IsEndOfLine())
-        {
             sb.Append(ReadToken());
-        }
+        
         return Convert.FromBase64String(sb.ToString());
     }
 
@@ -143,10 +116,7 @@ public class PresentationReader
     /// <returns>
     ///   A <see cref="TimeSpan"/> with second resolution.
     /// </returns>
-    public TimeSpan ReadTimeSpan16()
-    {
-        return TimeSpan.FromSeconds(ReadUInt16());
-    }
+    public TimeSpan ReadTimeSpan16() => TimeSpan.FromSeconds(ReadUInt16());
 
     /// <summary>
     ///   Read a time span (interval) in 32-bit seconds.
@@ -154,10 +124,7 @@ public class PresentationReader
     /// <returns>
     ///   A <see cref="TimeSpan"/> with second resolution.
     /// </returns>
-    public TimeSpan ReadTimeSpan32()
-    {
-        return TimeSpan.FromSeconds(ReadUInt32());
-    }
+    public TimeSpan ReadTimeSpan32() => TimeSpan.FromSeconds(ReadUInt32());
 
     /// <summary>
     ///   Read an Internet address.
@@ -168,10 +135,7 @@ public class PresentationReader
     /// <returns>
     ///   An <see cref="IPAddress"/>.
     /// </returns>
-    public IPAddress ReadIPAddress(int length = 4)
-    {
-        return IPAddress.Parse(ReadToken());
-    }
+    public IPAddress ReadIPAddress(int length = 4) => IPAddress.Parse(ReadToken());
 
     /// <summary>
     ///   Read a DNS Type.
@@ -183,11 +147,9 @@ public class PresentationReader
     public DnsType ReadDnsType()
     {
         var token = ReadToken();
-        if (token.StartsWith("TYPE", StringComparison.Ordinal))
-        {
-            return (DnsType)ushort.Parse(token.AsSpan(4), CultureInfo.InvariantCulture);
-        }
-        return (DnsType)Enum.Parse(typeof(DnsType), token);
+        return token.StartsWith("TYPE", StringComparison.Ordinal)
+            ? (DnsType)ushort.Parse(token.AsSpan(4), CultureInfo.InvariantCulture)
+            : DnsTypeExtensions.Parse(token);
     }
 
     /// <summary>
@@ -203,16 +165,13 @@ public class PresentationReader
     public DateTime ReadDateTime()
     {
         var token = ReadToken();
-        if (token.Length == 14)
-        {
-            return DateTime.ParseExact(
+        return token.Length == 14
+            ? DateTime.ParseExact(
                 token,
                 "yyyyMMddHHmmss",
                 CultureInfo.InvariantCulture,
-                DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal);
-        }
-
-        return DateTimeOffset.UnixEpoch.UtcDateTime.AddSeconds(ulong.Parse(token, CultureInfo.InvariantCulture));
+                DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal)
+            : DateTimeOffset.UnixEpoch.UtcDateTime.AddSeconds(ulong.Parse(token, CultureInfo.InvariantCulture));
     }
 
     /// <summary>
@@ -242,10 +201,13 @@ public class PresentationReader
             var word = ReadToken();
             if (word.Length == 0)
                 break;
+            
             if (word.Length % 2 != 0)
                 throw new FormatException($"The hex word ('{word}') must have an even number of digits.");
+            
             sb.Append(word);
         }
+        
         if (sb.Length != length * 2)
             throw new FormatException("Wrong number of RDATA hex digits.");
 
@@ -290,10 +252,8 @@ public class PresentationReader
         while (!type.HasValue)
         {
             var token = ReadToken(ignoreEscape: true);
-            if (token == "")
-            {
+            if (string.Equals(token, string.Empty, StringComparison.Ordinal))
                 return null;
-            }
 
             // Domain names and directives must be at the start of a line.
             if (_tokenStartsNewLine)
@@ -331,6 +291,7 @@ public class PresentationReader
                 type = (DnsType)ushort.Parse(token.AsSpan(4), CultureInfo.InvariantCulture);
                 continue;
             }
+            
             if (!token.Equals("any", StringComparison.InvariantCultureIgnoreCase) && Enum.TryParse<DnsType>(token, out var t))
             {
                 type = t;
@@ -343,29 +304,27 @@ public class PresentationReader
                 dnsClass = (DnsClass)ushort.Parse(token.AsSpan(5), CultureInfo.InvariantCulture);
                 continue;
             }
-            if (Enum.TryParse<DnsClass>(token, out var k))
+            
+            if (DnsClassExtensions.TryParse(token, out var c))
             {
-                dnsClass = k;
+                dnsClass = c;
                 continue;
             }
 
             throw new InvalidDataException($"Unknown token '{token}', expected a Class, Type or TTL.");
         }
 
-        if (domainName == null)
-        { 
+        if (domainName is null)
             throw new InvalidDataException("Missing resource record name.");
-        }
 
         // Create the specific resource record based on the type.
         var resource = ResourceRegistry.Create(type.Value);
         resource.Name = domainName;
         resource.Type = type.Value;
         resource.Class = dnsClass;
+
         if (ttl.HasValue)
-        {
             resource.TTL = ttl.Value;
-        }
 
         // Read the specific properties of the resource record.
         resource.ReadData(this);
@@ -389,6 +348,7 @@ public class PresentationReader
                     _previousChar = c;
                     continue;
                 }
+                
                 if (c == ')')
                 {
                     --_parenLevel;
@@ -396,9 +356,9 @@ public class PresentationReader
                     _previousChar = c;
                     break;
                 }
+                
                 return false;
             }
-
         }
 
         if (_eolSeen)
@@ -435,11 +395,12 @@ public class PresentationReader
             // Comments are terminated by a newline.
             if (incomment)
             {
-                if (c == '\r' || c == '\n')
+                if (c is '\r' or '\n')
                 {
                     incomment = false;
                     skipWhitespace = true;
                 }
+                
                 _previousChar = c;
                 continue;
             }
@@ -450,9 +411,8 @@ public class PresentationReader
                 if (ignoreEscape)
                 {
                     if (sb.Length == 0)
-                    {
                         _tokenStartsNewLine = _previousChar is '\r' or '\n';
-                    }
+                    
                     sb.Append((char)c);
                     _previousChar = c;
 
@@ -462,6 +422,7 @@ public class PresentationReader
                         sb.Append((char)c);
                         _previousChar = c;
                     }
+                    
                     continue;
                 }
                 _previousChar = c;
@@ -476,19 +437,20 @@ public class PresentationReader
                     {
                         _text.Read();
                         ddd = ddd * 10 + (c - '0');
+                        
                         if (ddd > 0xFF)
                             throw new FormatException("Invalid value.");
                     }
                     else
-                    {
                         break;
-                    }
                 }
+                
                 c = ndigits > 0 ? ddd : _text.Read();
 
                 sb.Append((char)c);
                 skipWhitespace = false;
                 _previousChar = (char)c;
+                
                 continue;
             }
 
@@ -505,6 +467,7 @@ public class PresentationReader
                 _previousChar = c;
                 continue;
             }
+            
             if (c == '"')
             {
                 inquote = true;
@@ -518,6 +481,7 @@ public class PresentationReader
                 ++_parenLevel;
                 c = ' ';
             }
+            
             if (c == ')')
             {
                 --_parenLevel;
@@ -532,6 +496,7 @@ public class PresentationReader
                     _previousChar = c;
                     continue;
                 }
+                
                 skipWhitespace = false;
             }
 
@@ -553,14 +518,12 @@ public class PresentationReader
 
             // Default handling, use the character as part of the token.
             if (sb.Length == 0)
-            {
                 _tokenStartsNewLine = _previousChar is '\r' or '\n';
-            }
+            
             sb.Append((char)c);
             _previousChar = c;
         }
 
         return sb.ToString();
     }
-
 }

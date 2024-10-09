@@ -47,23 +47,16 @@ public class EdnsDAUOption : EdnsOption
     {
         Algorithms.Clear();
         for (; length > 0; --length)
-        {
             Algorithms.Add((SecurityAlgorithm)reader.ReadByte());
-        }
     }
 
     /// <inheritdoc />
     public override void WriteData(WireWriter writer)
     {
         foreach (var algorithm in Algorithms)
-        {
             writer.WriteByte((byte)algorithm);
-        }
     }
 
     /// <inheritdoc />
-    public override string ToString()
-    {
-        return $";   DAU = {string.Join(", ", Algorithms)}";
-    }
+    public override string ToString() => $";   DAU = {string.Join(", ", Algorithms)}";
 }

@@ -28,10 +28,7 @@ public class WireWriter
     /// <param name="stream">
     ///   The destination for data items.
     /// </param>
-    public WireWriter(Stream stream)
-    {
-        this._stream = stream;
-    }
+    public WireWriter(Stream stream) => this._stream = stream;
 
     /// <summary>
     ///   Determines if canonical records are produced.
@@ -77,6 +74,7 @@ public class WireWriter
     {
         var lp = _stream;
         var length = (ushort)lp.Position;
+        
         _stream = _scopes.Pop();
         WriteUInt16(length);
         Position -= 2;
@@ -176,9 +174,7 @@ public class WireWriter
     public void WriteUInt48(ulong value)
     {
         if (value > Uint48MaxValue)
-        {
             throw new ArgumentException("Value is greater than 48 bits.", nameof(value));
-        }
 
         _stream.WriteByte((byte)(value >> 40));
         _stream.WriteByte((byte)(value >> 32));
@@ -219,6 +215,7 @@ public class WireWriter
             ++Position;
             return;
         }
+        
         WriteDomainName(new DomainName(name), uncompressed);
     }
 
@@ -275,10 +272,9 @@ public class WireWriter
                 WriteUInt16((ushort)(0xC000 | pointer));
                 return;
             }
+            
             if (Position <= MaxPointer)
-            {
                 _pointers[qn] = Position;
-            }
 
             // Add the label
             WriteByteLengthPrefixedBytes(labelBytes);
@@ -302,9 +298,7 @@ public class WireWriter
     public void WriteString(string value)
     {
         if (!Ascii.IsValid(value))
-        {
             throw new ArgumentException("Only ASCII characters are allowed.", nameof(value));
-        }
 
         var bytes = Encoding.ASCII.GetBytes(value);
         WriteByteLengthPrefixedBytes(bytes);
@@ -331,10 +325,7 @@ public class WireWriter
     /// <remarks>
     ///   Strings are encoded in UTF8.
     /// </remarks>
-    public void WriteStringUTF8Unprefixed(string value)
-    {
-        WriteBytes(Encoding.UTF8.GetBytes(value));
-    }
+    public void WriteStringUTF8Unprefixed(string value) => WriteBytes(Encoding.UTF8.GetBytes(value));
 
     /// <summary>
     ///   Write a time span with 16-bits.
@@ -345,10 +336,7 @@ public class WireWriter
     /// <remarks>
     ///   The interval is represented as the number of seconds in two bytes.
     /// </remarks>
-    public void WriteTimeSpan16(TimeSpan value)
-    {
-        WriteUInt16((ushort)value.TotalSeconds);
-    }
+    public void WriteTimeSpan16(TimeSpan value) => WriteUInt16((ushort)value.TotalSeconds);
 
     /// <summary>
     ///   Write a time span with 32-bits.
@@ -359,10 +347,7 @@ public class WireWriter
     /// <remarks>
     ///   The interval is represented as the number of seconds in four bytes.
     /// </remarks>
-    public void WriteTimeSpan32(TimeSpan value)
-    {
-        WriteUInt32((uint)value.TotalSeconds);
-    }
+    public void WriteTimeSpan32(TimeSpan value) => WriteUInt32((uint)value.TotalSeconds);
 
     /// <summary>
     ///   Write a date/time.
@@ -410,10 +395,7 @@ public class WireWriter
     ///   Write an IP address.
     /// </summary>
     /// <param name="value"></param>
-    public void WriteIPAddress(IPAddress value)
-    {
-        WriteBytes(value.GetAddressBytes());
-    }
+    public void WriteIPAddress(IPAddress value) => WriteBytes(value.GetAddressBytes());
 
     /// <summary>
     ///   Write the bitmap(s) for the values.
@@ -449,6 +431,7 @@ public class WireWriter
             {
                 if (mask[i] != 0)
                     break;
+                
                 mask.RemoveAt(i);
             }
 
@@ -468,14 +451,17 @@ public class WireWriter
         {
             if (bitValue)
                 outByte |= MSB ? 1 << bitCount : 1 << (7 - bitCount);
+            
             if (bitCount == 0)
             {
                 yield return (byte)outByte;
                 bitCount = 8;
                 outByte = 0;
             }
+            
             bitCount--;
         }
+        
         // Last partially decoded byte
         if (bitCount < 7)
             yield return (byte)outByte;

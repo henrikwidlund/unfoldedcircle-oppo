@@ -48,18 +48,14 @@ public class EdnsN3UOption : EdnsOption
     {
         Algorithms.Clear();
         for (; length > 0; --length)
-        {
             Algorithms.Add((DigestType)reader.ReadByte());
-        }
     }
 
     /// <inheritdoc />
     public override void WriteData(WireWriter writer)
     {
         foreach (var algorithm in Algorithms)
-        {
             writer.WriteByte((byte)algorithm);
-        }
     }
 
     /// <inheritdoc />

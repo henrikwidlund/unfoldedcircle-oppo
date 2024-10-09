@@ -23,14 +23,8 @@ public class EdnsNSIDOption : EdnsOption
     public byte[]? Id { get; set; }
 
     /// <inheritdoc />
-    public override void ReadData(WireReader reader, int length)
-    {
-        Id = reader.ReadBytes(length);
-    }
+    public override void ReadData(WireReader reader, int length) => Id = reader.ReadBytes(length);
 
     /// <inheritdoc />
-    public override void WriteData(WireWriter writer)
-    {
-        writer.WriteBytes(Id);
-    }
+    public override void WriteData(WireWriter writer) => writer.WriteBytes(Id);
 }

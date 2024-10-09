@@ -8,8 +8,6 @@
 /// </remarks>
 public class TSIGRecord : ResourceRecord
 {
-    private static readonly byte[] NoData = [];
-
     /// <summary>
     ///  The <see cref="Algorithm"/> name for HMACMD5.
     /// </summary>
@@ -56,7 +54,7 @@ public class TSIGRecord : ResourceRecord
         var now = DateTime.UtcNow;
         TimeSigned = new DateTime(now.Year, now.Month, now.Day, now.Hour, now.Minute, now.Second, now.Kind);
         Fudge = TimeSpan.FromSeconds(300);
-        OtherData = NoData;
+        OtherData = [];
     }
 
     /// <summary>
@@ -161,6 +159,6 @@ public class TSIGRecord : ResourceRecord
         writer.WriteBase64String(MAC);
         writer.WriteUInt16(OriginalMessageId);
         writer.WriteUInt16((ushort)Error);
-        writer.WriteBase64String(OtherData ?? NoData, appendSpace: false);
+        writer.WriteBase64String(OtherData ?? [], appendSpace: false);
     }
 }

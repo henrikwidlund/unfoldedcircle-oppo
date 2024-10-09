@@ -15,7 +15,9 @@ public class NULLRecordTest
             Name = "emanon.org",
             Data = [1, 2, 3, 4]
         };
+        
         var b = (NULLRecord)new ResourceRecord().Read(a.ToByteArray());
+        
         Assert.AreEqual(a.Name, b.Name);
         Assert.AreEqual(a.Class, b.Class);
         Assert.AreEqual(a.Type, b.Type);
@@ -31,7 +33,9 @@ public class NULLRecordTest
             Name = "emanon.org",
             Data = [1, 2, 3, 4]
         };
+        
         var b = (NULLRecord)new ResourceRecord().Read(a.ToString());
+        
         Assert.IsNotNull(b);
         Assert.AreEqual(a.Name, b.Name);
         Assert.AreEqual(a.Class, b.Class);
@@ -48,11 +52,13 @@ public class NULLRecordTest
             Name = "emanon.org",
             Data = [1, 2, 3, 4]
         };
+        
         var b = new NULLRecord
         {
             Name = "emanon.org",
             Data = [1, 2, 3, 40]
         };
+        
         // ReSharper disable once EqualExpressionComparison
         Assert.IsTrue(a.Equals(a));
         Assert.IsFalse(a.Equals(b));

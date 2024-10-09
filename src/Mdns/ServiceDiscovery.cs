@@ -497,7 +497,7 @@ public class ServiceDiscovery : IServiceDiscovery
             }
         }
 
-        var response = NameServer.ResolveAsync(request).Result;
+        var response = await NameServer.ResolveAsync(request);
 
         if (response.Status != MessageStatus.NoError)
         {

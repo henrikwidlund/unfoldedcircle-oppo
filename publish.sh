@@ -15,7 +15,7 @@ echo "Publish"
 dotnet publish ./src/UnfoldedCircle.Server/UnfoldedCircle.Server.csproj -c Release -p:BuildForLinuxArm=true --self-contained -o ./publish
 
 # Enter the publish directory
-cd ./publish
+cd ./publish || exit
 
 # Create a new directory called driver
 mkdir -p driverdir
@@ -37,7 +37,7 @@ cp ./driver ./driverdir/bin/
 cp ./*.pdb ./driverdir/bin/
 
 # Package the driver directory into a tarball
-cd ./driverdir
+cd ./driverdir || exit
 tar -czvf ../../unfoldedcircle-oppo.tar.gz ./*
 
 # Remove the output directory

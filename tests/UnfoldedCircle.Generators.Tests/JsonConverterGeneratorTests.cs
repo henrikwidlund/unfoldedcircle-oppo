@@ -40,8 +40,8 @@ internal static class TestHelpers
     {
         var syntaxTree = CSharpSyntaxTree.ParseText(source);
         var references = AppDomain.CurrentDomain.GetAssemblies()
-            .Where(static _ => !_.IsDynamic && !string.IsNullOrWhiteSpace(_.Location))
-            .Select(static _ => MetadataReference.CreateFromFile(_.Location))
+            .Where(static assembly => !assembly.IsDynamic && !string.IsNullOrWhiteSpace(assembly.Location))
+            .Select(static assembly => MetadataReference.CreateFromFile(assembly.Location))
             .Concat([
                 MetadataReference.CreateFromFile(typeof(T).Assembly.Location),
                 MetadataReference.CreateFromFile(typeof(EnumJsonConverterAttribute).Assembly.Location),
@@ -50,7 +50,7 @@ internal static class TestHelpers
 
         var compilation = CSharpCompilation.Create(
             "generator",
-            new[] { syntaxTree },
+            [syntaxTree],
             references,
             new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
 
