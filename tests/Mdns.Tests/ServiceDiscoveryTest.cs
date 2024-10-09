@@ -10,6 +10,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Makaretu.Mdns;
 
+// ReSharper disable AccessToDisposedClosure
 [TestClass]
 public class ServiceDiscoveryTest
 {
