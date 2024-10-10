@@ -8,7 +8,7 @@ internal static class OppoConstants
     internal const string DriverVersion = "0.0.3";
     internal const string DriverDeveloper = "Henrik Widlund";
     internal const string DriverEmail = "07online_rodeo@icloud.com";
-    internal static readonly DateOnly DriverReleaseDate = new(2024, 10, 01);
+    internal static readonly DateOnly DriverReleaseDate = new(2024, 10, 10);
     internal static readonly Uri DriverUrl = new("https://github.com/henrikwidlund/unfoldedcircle-oppo");
     internal const string DeviceName = DriverName;
     internal const string EntityId = "0393caf1-c9d2-422e-88b5-cb716756334a";
