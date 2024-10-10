@@ -502,29 +502,15 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         _is20XModel &&
         (await SendCommand(Oppo20XCommand.AVSync, cancellationToken)).Success;
 
-    public async ValueTask<bool> GaplessPlayAsync(CancellationToken cancellationToken = default)
-    {
-        if (!_is20XModel)
-            return false;
-        
-        var result = await SendCommand(Oppo20XCommand.GaplessPlay, cancellationToken);
-        return result.Success;
-    }
-    
-    public async ValueTask<bool> NoopAsync(CancellationToken cancellationToken = default)
-    {
-        var command = _is20XModel ? Oppo20XCommand.Noop : Oppo10XCommand.Noop;
-        var result = await SendCommand(command, cancellationToken);
-        return result.Success;
-    }
-    
-    public async ValueTask<bool> InputAsync(CancellationToken cancellationToken = default)
-    {
-        var command = _is20XModel ? Oppo20XCommand.Input : Oppo10XCommand.Input;
-        var result = await SendCommand(command, cancellationToken);
-        return result.Success;
-    }
-    
+    public async ValueTask<bool> GaplessPlayAsync(CancellationToken cancellationToken = default) =>
+        _is20XModel && (await SendCommand(Oppo20XCommand.GaplessPlay, cancellationToken)).Success;
+
+    public async ValueTask<bool> NoopAsync(CancellationToken cancellationToken = default) =>
+        (await SendCommand(_is20XModel ? Oppo20XCommand.Noop : Oppo10XCommand.Noop, cancellationToken)).Success;
+
+    public async ValueTask<bool> InputAsync(CancellationToken cancellationToken = default) =>
+        (await SendCommand(_is20XModel ? Oppo20XCommand.Input : Oppo10XCommand.Input, cancellationToken)).Success;
+
     public async ValueTask<OppoResult<RepeatMode>> SetRepeatAsync(RepeatMode mode, CancellationToken cancellationToken = default)
     {
         if (mode == RepeatMode.Unknown)
@@ -753,8 +739,8 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         if (_model is OppoModel.BDP8395)
             return false;
         
-        var command = _is20XModel ? Oppo20XQueryCommand.QueryInputSource : Oppo10XQueryCommand.QueryInputSource;
-        var result = await SendCommand(command, cancellationToken);
+        var result = await SendCommand(_is20XModel ? Oppo20XQueryCommand.QueryInputSource : Oppo10XQueryCommand.QueryInputSource,
+            cancellationToken);
         
         return result.Success switch
         {
