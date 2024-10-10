@@ -25,12 +25,6 @@ internal partial class UnfoldedCircleWebSocketHandler
             return;
         }
         
-        if (!await oppoClientHolder.Client.IsConnectedAsync() || oppoClientHolder is { ClientKey.UseMediaEvents: false })
-        {
-            _logger.LogDebug("{WSId} Client not connected or configured to not use events. {@ClientKey}", wsId, oppoClientHolder.ClientKey);
-            return;
-        }
-        
         var cancellationTokenSource = cancellationTokenWrapper.GetCurrentBroadcastCancellationTokenSource();
         if (cancellationTokenSource is null || cancellationTokenSource.IsCancellationRequested)
         {
