@@ -1,5 +1,6 @@
 using Oppo;
 
+using UnfoldedCircle.Models.Events;
 using UnfoldedCircle.Models.Sync;
 using UnfoldedCircle.Server.Oppo;
 using UnfoldedCircle.Server.Response;
@@ -41,7 +42,7 @@ internal partial class UnfoldedCircleWebSocketHandler
                 if (powerStateResponse is not { Result: PowerState.On })
                     powerStateResponse = await oppoClientHolder.Client.PowerOnAsync(cancellationTokenWrapper.ApplicationStopping);
 
-                if (powerStateResponse is { Result: PowerState.On })
+                if (powerStateResponse is not { Result: PowerState.Unknown })
                     // Run in background
                     _ = HandleEventUpdates(socket, wsId, oppoClientHolder, cancellationTokenWrapper);
                 
@@ -52,6 +53,13 @@ internal partial class UnfoldedCircleWebSocketHandler
                 // Power commands can be flaky, so we try twice
                 if ((await oppoClientHolder.Client.PowerOffAsync(cancellationTokenWrapper.ApplicationStopping)) is not { Result: PowerState.Off })
                     await oppoClientHolder.Client.PowerOffAsync(cancellationTokenWrapper.ApplicationStopping);
+                
+                await SendAsync(socket,
+                    ResponsePayloadHelpers.CreateStateChangedResponsePayload(
+                        new StateChangedEventMessageDataAttributes { State = State.Off },
+                        _unfoldedCircleJsonSerializerContext),
+                    wsId,
+                    cancellationTokenWrapper.ApplicationStopping);
                 break;
             case OppoCommandId.Toggle:
                 await oppoClientHolder.Client.PowerToggleAsync(cancellationTokenWrapper.ApplicationStopping);

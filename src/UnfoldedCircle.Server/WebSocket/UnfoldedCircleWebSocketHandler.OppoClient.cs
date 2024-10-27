@@ -159,8 +159,12 @@ internal partial class UnfoldedCircleWebSocketHandler
         
         try
         {
-            if (await oppoClientHolder.Client.IsConnectedAsync())
-                return DeviceState.Connected;
+            using var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(9));
+            while (!cancellationTokenSource.IsCancellationRequested)
+            {
+                if (await oppoClientHolder.Client.IsConnectedAsync())
+                    return DeviceState.Connected;
+            }
 
             return DeviceState.Disconnected;
         }

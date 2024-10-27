@@ -40,8 +40,16 @@ internal partial class UnfoldedCircleWebSocketHandler
         
         BroadcastingEvents.AddOrUpdate(wsId, true, static (_, _) => true);
         
-        _logger.LogDebug("{WSId} Starting events for {DeviceId}", wsId, oppoClientHolder.Client.GetHost());
         using var periodicTimer = new PeriodicTimer(TimeSpan.FromSeconds(1));
+        
+        _logger.LogDebug("{WSId} Trying to get OppoClientHolder.", wsId);
+        while (await periodicTimer.WaitForNextTickAsync(cancellationTokenSource.Token))
+        {
+            if (await oppoClientHolder.Client.IsConnectedAsync())
+                break;
+        }
+        
+        _logger.LogDebug("{WSId} Starting events for {DeviceId}", wsId, oppoClientHolder.Client.GetHost());
         try
         {
             while (await periodicTimer.WaitForNextTickAsync(cancellationTokenSource.Token))
@@ -100,7 +108,7 @@ internal partial class UnfoldedCircleWebSocketHandler
                         { Result: PlaybackStatus.Play } => State.Playing,
                         { Result: PlaybackStatus.Pause } => State.Paused,
                         { Result: PlaybackStatus.FastForward or PlaybackStatus.FastRewind or PlaybackStatus.SlowForward or PlaybackStatus.SlowRewind} => State.Buffering,
-                        _ => State.Unknown
+                        _ => State.On
                     };
 
                     if (playbackStatusResponse is { Result: PlaybackStatus.Play or PlaybackStatus.Pause })
@@ -195,13 +203,6 @@ internal partial class UnfoldedCircleWebSocketHandler
         }
         finally
         {
-            await SendAsync(socket,
-                ResponsePayloadHelpers.CreateStateChangedResponsePayload(
-                    new StateChangedEventMessageDataAttributes { State = State.Off },
-                    _unfoldedCircleJsonSerializerContext),
-                wsId,
-                cancellationTokenWrapper.ApplicationStopping);
-            
             BroadcastingEvents.TryRemove(wsId, out _);
         }
         
