@@ -175,12 +175,8 @@ internal partial class UnfoldedCircleWebSocketHandler
                                 State = state,
                                 MediaType = discTypeResponse?.Result switch
                                 {
-                                    DiscType.BlueRayMovie => MediaType.Movie,
-                                    DiscType.DVDVideo => MediaType.Movie,
-                                    DiscType.DVDAudio => MediaType.Music,
-                                    DiscType.SACD => MediaType.Music,
-                                    DiscType.CDDiscAudio => MediaType.Music,
-                                    DiscType.UltraHDBluRay => MediaType.Movie,
+                                    DiscType.BlueRayMovie or DiscType.DVDVideo or DiscType.UltraHDBluRay => MediaType.Movie,
+                                    DiscType.DVDAudio or DiscType.SACD or DiscType.CDDiscAudio => MediaType.Music,
                                     _ => null
                                 },
                                 MediaPosition = elapsedResponse?.Result,
