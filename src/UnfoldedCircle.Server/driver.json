@@ -1,6 +1,6 @@
 {
   "driver_id": "oppo-unfolded-circle",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "min_core_api": "0.20.0",
   "name": {
     "en": "Oppo Blu-ray Player"
@@ -106,5 +106,5 @@
       }
     ]
   },
-  "release_date": "2024-10-10"
+  "release_date": "2024-10-27"
 }
