@@ -21,8 +21,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
     {
         OppoModel.BDP8395 => 19999,
         OppoModel.BDP10X => 48360,
-        OppoModel.UDP203 => 23,
-        OppoModel.UDP205 => 23,
+        OppoModel.UDP203 or OppoModel.UDP205 => 23,
         _ => throw new InvalidOperationException($"Model {model} is not supported.")
     };
     
