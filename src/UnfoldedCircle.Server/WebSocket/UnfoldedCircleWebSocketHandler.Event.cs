@@ -28,7 +28,7 @@ internal partial class UnfoldedCircleWebSocketHandler
                     wsId,
                     cancellationTokenWrapper.ApplicationStopping);
 
-                if (deviceState == DeviceState.Connected)
+                if (deviceState is DeviceState.Connected)
                     _ = HandleEventUpdates(socket, wsId, oppoClientHolder!, cancellationTokenWrapper);
                 
                 return;
@@ -88,8 +88,8 @@ internal partial class UnfoldedCircleWebSocketHandler
                         wsId,
                         cancellationTokenWrapper.ApplicationStopping);
                     
-                    if (oppoClientHolder is not null && await oppoClientHolder.Client.IsConnectedAsync())
-                        _ = HandleEventUpdates(socket, wsId, oppoClientHolder, cancellationTokenWrapper);
+                    if (deviceState is DeviceState.Connected)
+                        _ = HandleEventUpdates(socket, wsId, oppoClientHolder!, cancellationTokenWrapper);
                     return;
                 }
             default:
