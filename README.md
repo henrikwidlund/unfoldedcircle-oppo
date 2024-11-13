@@ -56,7 +56,7 @@ This repository contains the server code for hosting an Oppo Blu-ray integration
 
 ### Development
 
-- [dotnet 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0).
+- [dotnet 9 SDK](https://dotnet.microsoft.com/download/dotnet/9.0).
 - or [Docker](https://www.docker.com/get-started).
 
 ## Installing on the remote
