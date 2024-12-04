@@ -15,7 +15,7 @@
         </PackageReference>
         <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" PrivateAssets="all" />
         <PackageReference Include="MSTest.TestAdapter" Version="3.6.3" PrivateAssets="all" />
-        <PackageReference Include="MSTest.TestFramework" Version="3.6.3" PrivateAssets="all" />
+        <PackageReference Include="MSTest.TestFramework" Version="3.6.4" PrivateAssets="all" />
         <PackageReference Include="coverlet.msbuild" Version="6.0.2" PrivateAssets="all" />
         <PackageReference Include="SimpleBase" Version="4.0.2" />
     </ItemGroup>
