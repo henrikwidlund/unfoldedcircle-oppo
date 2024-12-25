@@ -100,7 +100,7 @@ public class DNSKEYRecord : ResourceRecord
     /// <summary>
     ///  Identifies the intended usage of the key.
     /// </summary>
-    public DNSKEYFlags? Flags { get; set; }
+    public DnsKeys? Flags { get; set; }
 
     /// <summary>
     ///   Must be three.
@@ -157,7 +157,7 @@ public class DNSKEYRecord : ResourceRecord
     {
         var end = reader.Position + length;
 
-        Flags = (DNSKEYFlags)reader.ReadUInt16();
+        Flags = (DnsKeys)reader.ReadUInt16();
         Protocol = reader.ReadByte();
         Algorithm = (SecurityAlgorithm)reader.ReadByte();
         PublicKey = reader.ReadBytes(end - reader.Position);
@@ -175,7 +175,7 @@ public class DNSKEYRecord : ResourceRecord
     /// <inheritdoc />
     public override void ReadData(PresentationReader reader)
     {
-        Flags = (DNSKEYFlags)reader.ReadUInt16();
+        Flags = (DnsKeys)reader.ReadUInt16();
         Protocol = reader.ReadByte();
         Algorithm = (SecurityAlgorithm)reader.ReadByte();
         PublicKey = reader.ReadBase64String();

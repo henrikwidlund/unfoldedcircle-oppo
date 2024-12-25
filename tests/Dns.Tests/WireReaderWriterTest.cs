@@ -247,12 +247,11 @@ public class WireReaderWriterTest
     }
 
     [TestMethod]
-    [ExpectedException(typeof(ArgumentException))]
     public void Uint48TooBig()
     {
         using var ms = new MemoryStream();
         var writer = new WireWriter(ms);
-        writer.WriteUInt48(0X1FFFFFFFFFFFFul);
+        Assert.ThrowsException<ArgumentException>(() => writer.WriteUInt48(0X1FFFFFFFFFFFFul));
     }
 
     [TestMethod]
@@ -267,28 +266,25 @@ public class WireReaderWriterTest
     }
 
     [TestMethod]
-    [ExpectedException(typeof(ArgumentException))]
     public void WriteString_NotAscii()
     {
         var writer = new WireWriter(Stream.Null);
-        writer.WriteString("δοκιμή"); // test in Greek
+        Assert.ThrowsException<ArgumentException>(() => writer.WriteString("δοκιμή")); // test in Greek
     }
 
     [TestMethod]
-    [ExpectedException(typeof(ArgumentException))]
     public void WriteString_TooBig()
     {
         var writer = new WireWriter(Stream.Null);
-        writer.WriteString(new string('a', 0x100));
+        Assert.ThrowsException<ArgumentException>(() => writer.WriteString(new string('a', 0x100)));
     }
 
     [TestMethod]
-    [ExpectedException(typeof(InvalidDataException))]
     public void ReadString_NotAscii()
     {
         using var ms = new MemoryStream([1, 0xFF]);
         var reader = new WireReader(ms);
-        reader.ReadString();
+        Assert.ThrowsException<InvalidDataException>(() => reader.ReadString());
     }
 
     [TestMethod]

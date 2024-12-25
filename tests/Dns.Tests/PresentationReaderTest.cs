@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.IO;
 
+using FluentAssertions;
+
 using Makaretu.Dns;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -345,35 +347,31 @@ public class PresentationReaderTest
     }
 
     [TestMethod]
-    [ExpectedException(typeof(FormatException))]
     public void ReadResourceData_MissingLeadin()
     {
         var reader = new PresentationReader(new StringReader("0"));
-        _ = reader.ReadResourceData();
+        Assert.ThrowsException<FormatException>(() => _ = reader.ReadResourceData());
     }
 
     [TestMethod]
-    [ExpectedException(typeof(FormatException))]
     public void ReadResourceData_BadHex_BadDigit()
     {
         var reader = new PresentationReader(new StringReader("\\# 3 ab cd ez"));
-        _ = reader.ReadResourceData();
+        Assert.ThrowsException<FormatException>(() => _ = reader.ReadResourceData());
     }
 
     [TestMethod]
-    [ExpectedException(typeof(FormatException))]
     public void ReadResourceData_BadHex_NotEven()
     {
         var reader = new PresentationReader(new StringReader("\\# 3 ab cd e"));
-        _ = reader.ReadResourceData();
+        Assert.ThrowsException<FormatException>(() => _ = reader.ReadResourceData());
     }
 
     [TestMethod]
-    [ExpectedException(typeof(FormatException))]
     public void ReadResourceData_BadHex_TooFew()
     {
         var reader = new PresentationReader(new StringReader("\\# 3 abcd"));
-        _ = reader.ReadResourceData();
+        Assert.ThrowsException<FormatException>(() => _ = reader.ReadResourceData());
     }
 
     [TestMethod]
@@ -386,19 +384,18 @@ public class PresentationReaderTest
     }
 
     [TestMethod]
-    [ExpectedException(typeof(Exception), AllowDerivedTypes = true)]
     public void ReadType_BadName()
     {
         var reader = new PresentationReader(new StringReader("BADNAME"));
-        reader.ReadDnsType();
+        var bla = () => reader.ReadDnsType();
+        bla.Should().Throw<Exception>();
     }
 
     [TestMethod]
-    [ExpectedException(typeof(FormatException))]
     public void ReadType_BadDigit()
     {
         var reader = new PresentationReader(new StringReader("TYPEX"));
-        reader.ReadDnsType();
+        Assert.ThrowsException<FormatException>(() => reader.ReadDnsType());
     }
 
     [TestMethod]

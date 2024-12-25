@@ -36,7 +36,7 @@ public class EdnsKeepaliveOptionTest
         var expected = new EdnsKeepaliveOption();
         
         Assert.AreEqual(EdnsOptionType.Keepalive, expected.Type);
-        Assert.AreEqual(false, expected.Timeout.HasValue);
+        Assert.IsFalse(expected.Timeout.HasValue);
         
         opt1.Options.Add(expected);
         var opt2 = (OPTRecord)new ResourceRecord().Read(opt1.ToByteArray());

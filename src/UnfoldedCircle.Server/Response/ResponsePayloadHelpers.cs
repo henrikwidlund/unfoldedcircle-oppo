@@ -10,6 +10,8 @@ namespace UnfoldedCircle.Server.Response;
 
 internal static class ResponsePayloadHelpers
 {
+    const string EventKind = "event";
+    
     private static byte[]? _createAuthResponsePayload;
     internal static byte[] CreateAuthResponsePayload(UnfoldedCircleJsonSerializerContext jsonSerializerContext) =>
         _createAuthResponsePayload ??= JsonSerializer.SerializeToUtf8Bytes(new AuthMsg
@@ -55,7 +57,7 @@ internal static class ResponsePayloadHelpers
         UnfoldedCircleJsonSerializerContext jsonSerializerContext) =>
         JsonSerializer.SerializeToUtf8Bytes(new DeviceStateEventMsg
         {
-            Kind = "event",
+            Kind = EventKind,
             Msg = "device_state",
             Cat = "DEVICE",
             TimeStamp = DateTime.UtcNow,
@@ -178,7 +180,7 @@ internal static class ResponsePayloadHelpers
         UnfoldedCircleJsonSerializerContext jsonSerializerContext) =>
         JsonSerializer.SerializeToUtf8Bytes(new DriverSetupChangeEvent
         {
-            Kind = "event",
+            Kind = EventKind,
             Msg = "driver_setup_change",
             Cat = "DEVICE",
             TimeStamp = DateTime.UtcNow,
@@ -192,18 +194,17 @@ internal static class ResponsePayloadHelpers
 
     public static byte[] CreateConnectEventResponsePayload(
         in DeviceState deviceState,
-        UnfoldedCircleJsonSerializerContext jsonSerializerContext) =>
-        JsonSerializer.SerializeToUtf8Bytes(new ConnectEventMsg
+        UnfoldedCircleJsonSerializerContext jsonSerializerContext)
+    {
+        return JsonSerializer.SerializeToUtf8Bytes(new ConnectEventMsg
         {
-            Kind = "event",
+            Kind = EventKind,
             Msg = "device_state",
             Cat = "DEVICE",
             TimeStamp = DateTime.UtcNow,
-            MsgData = new ConnectDeviceStateItem
-            {
-                State = deviceState
-            }
+            MsgData = new ConnectDeviceStateItem { State = deviceState }
         }, jsonSerializerContext.ConnectEventMsg);
+    }
 
     internal static byte[] CreateValidationErrorResponsePayload(
         CommonReq req,
@@ -223,7 +224,7 @@ internal static class ResponsePayloadHelpers
         UnfoldedCircleJsonSerializerContext jsonSerializerContext) =>
         JsonSerializer.SerializeToUtf8Bytes(new StateChangedEvent
         {
-            Kind = "event",
+            Kind = EventKind,
             Msg = "entity_change",
             Cat = "ENTITY",
             TimeStamp = DateTime.UtcNow,

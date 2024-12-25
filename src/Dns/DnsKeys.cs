@@ -4,7 +4,7 @@
 ///   The usage of a <see cref="DNSKEYRecord">key</see>.
 /// </summary>
 [Flags]
-public enum DNSKEYFlags : ushort
+public enum DnsKeys : ushort
 {
     /// <summary>
     ///  No specific usage.

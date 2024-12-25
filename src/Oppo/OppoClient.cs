@@ -29,6 +29,9 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
     private readonly SemaphoreSlim _semaphore = new(1, 1);
     private readonly TimeSpan _timeout = TimeSpan.FromSeconds(1);
     private readonly StringBuilder _stringBuilder = new();
+    
+    private const string OkOn = "@OK ON";
+    private const string OkOff = "@OK OFF";
 
     public async ValueTask<OppoResult<PowerState>> PowerToggleAsync(CancellationToken cancellationToken = default)
     {
@@ -44,8 +47,8 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
                 Success = true,
                 Result = result.Response switch
                 {
-                    "@OK ON" => PowerState.On,
-                    "@OK OFF" => PowerState.Off,
+                    OkOn => PowerState.On,
+                    OkOff => PowerState.Off,
                     _ => LogError(result.Response, PowerState.Unknown)
                 }
             }
@@ -66,7 +69,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
                 Success = true,
                 Result = result.Response switch
                 {
-                    "@OK ON" => PowerState.On,
+                    OkOn => PowerState.On,
                     _ => LogError(result.Response, PowerState.Unknown)
                 }
             }
@@ -87,7 +90,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
                 Success = true,
                 Result = result.Response switch
                 {
-                    "@OK OFF" => PowerState.Off,
+                    OkOff => PowerState.Off,
                     _ => LogError(result.Response, PowerState.Unknown)
                 }
             }
@@ -130,9 +133,9 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
                 Success = true,
                 Result = result.Response switch
                 {
-                    "@OK ON" => DimmerState.On,
+                    OkOn => DimmerState.On,
                     "@OK DIM" => DimmerState.Dim,
-                    "@OK OFF" => DimmerState.Off,
+                    OkOff => DimmerState.Off,
                     _ => LogError(result.Response, DimmerState.Unknown)
                 }
             }
@@ -153,8 +156,8 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
                 Success = true,
                 Result = result.Response switch
                 {
-                    "@OK ON" => PureAudioState.On,
-                    "@OK OFF" => PureAudioState.Off,
+                    OkOn => PureAudioState.On,
+                    OkOff => PureAudioState.Off,
                     _ => LogError(result.Response, PureAudioState.Unknown)
                 }
             }
@@ -420,7 +423,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
                 {
                     "@OK A-" => ABReplayState.A,
                     "@OK AB" => ABReplayState.AB,
-                    "@OK OFF" => ABReplayState.Off,
+                    OkOff => ABReplayState.Off,
                     _ => LogError(result.Response, ABReplayState.Unknown)
                 }
             }
@@ -443,7 +446,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
                 {
                     "@OK Repeat Chapter" => RepeatState.RepeatChapter,
                     "@OK Repeat Title" => RepeatState.RepeatTitle,
-                    "@OK OFF" => RepeatState.Off,
+                    OkOff => RepeatState.Off,
                     _ => LogError(result.Response, RepeatState.Unknown)
                 }
             }
@@ -537,7 +540,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
                     "@OK CH" => RepeatMode.Chapter,
                     "@OK TT" => RepeatMode.Title,
                     "@OK ALL" => RepeatMode.All,
-                    "@OK OFF" => RepeatMode.Off,
+                    OkOff => RepeatMode.Off,
                     "@OK SHF" => RepeatMode.Shuffle,
                     "@OK RND" => RepeatMode.Random,
                     _ => LogError(result.Response, RepeatMode.Unknown)
@@ -605,8 +608,8 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
                 Success = true,
                 Result = result.Response switch
                 {
-                    "@OK ON" => PowerState.On,
-                    "@OK OFF" => PowerState.Off,
+                    OkOn => PowerState.On,
+                    OkOff => PowerState.Off,
                     _ => LogError(result.Response, PowerState.Unknown)
                 }
             }
@@ -928,20 +931,21 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
 
     public async ValueTask<bool> IsConnectedAsync(TimeSpan? timeout = null)
     {
-        if (!_tcpClient.Connected)
+        // check twice, once before the wait, and once after the wait
+        if (!_tcpClient.Connected && (await _semaphore.WaitAsync(timeout ?? TimeSpan.FromSeconds(9)) && !_tcpClient.Connected))
         {
-            if (await _semaphore.WaitAsync(timeout ?? TimeSpan.FromSeconds(9)) && !_tcpClient.Connected)
+            try
             {
-                try
-                {
-                    using var cancellationTokenSource = new CancellationTokenSource(timeout ?? TimeSpan.FromSeconds(10));
-                    await _tcpClient.ConnectAsync(_hostName, _port, cancellationTokenSource.Token);
-                }
-                catch (OperationCanceledException) { }
-                finally
-                {
-                    _semaphore.Release();
-                }
+                using var cancellationTokenSource = new CancellationTokenSource(timeout ?? TimeSpan.FromSeconds(10));
+                await _tcpClient.ConnectAsync(_hostName, _port, cancellationTokenSource.Token);
+            }
+            catch (OperationCanceledException)
+            {
+                // nothing to do here, ignore
+            }
+            finally
+            {
+                _semaphore.Release();
             }
         }
         

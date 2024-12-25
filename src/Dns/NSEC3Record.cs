@@ -24,7 +24,7 @@ public class NSEC3Record : ResourceRecord
     /// <summary>
     ///  Indicates different processing.
     /// </summary>
-    public NSEC3Flags? Flags { get; set; }
+    public NSEC3s? Flags { get; set; }
 
     /// <summary>
     ///   Number of times to perform the <see cref="HashAlgorithm"/>.
@@ -58,7 +58,7 @@ public class NSEC3Record : ResourceRecord
         var end = reader.Position + length;
 
         HashAlgorithm = (DigestType)reader.ReadByte();
-        Flags = (NSEC3Flags)reader.ReadByte();
+        Flags = (NSEC3s)reader.ReadByte();
         Iterations = reader.ReadUInt16();
         Salt = reader.ReadByteLengthPrefixedBytes();
         NextHashedOwnerName = reader.ReadByteLengthPrefixedBytes();
@@ -91,7 +91,7 @@ public class NSEC3Record : ResourceRecord
     public override void ReadData(PresentationReader reader)
     {
         HashAlgorithm = (DigestType)reader.ReadByte();
-        Flags = (NSEC3Flags)reader.ReadByte();
+        Flags = (NSEC3s)reader.ReadByte();
         Iterations = reader.ReadUInt16();
 
         var salt = reader.ReadString();

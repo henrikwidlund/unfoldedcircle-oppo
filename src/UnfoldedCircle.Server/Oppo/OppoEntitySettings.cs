@@ -73,7 +73,7 @@ public static class OppoEntitySettings
         EntitySettingsConstants.GaplessPlay
     }.ToFrozenSet();
 
-    public static readonly Dictionary<OppoModel, string[]> SourceList = new()
+    public static readonly FrozenDictionary<OppoModel, string[]> SourceList = new Dictionary<OppoModel, string[]>()
     {
         [OppoModel.BDP10X] =
         [
@@ -101,9 +101,9 @@ public static class OppoEntitySettings
             OppoConstants.InputSource.Coaxial,
             OppoConstants.InputSource.USBAudio
         ]
-    };
+    }.ToFrozenDictionary();
     
-    public static readonly Dictionary<string, InputSource> SourceMap = new(StringComparer.OrdinalIgnoreCase)
+    public static readonly FrozenDictionary<string, InputSource> SourceMap = new Dictionary<string, InputSource>(StringComparer.OrdinalIgnoreCase)
     {
         [OppoConstants.InputSource.BluRayPlayer] = InputSource.BluRayPlayer,
         [OppoConstants.InputSource.HDMIFront] = InputSource.HDMIIn,
@@ -115,5 +115,5 @@ public static class OppoEntitySettings
         [OppoConstants.InputSource.USBAudio] = InputSource.USBAudio,
         [OppoConstants.InputSource.HDMIIn] = InputSource.HDMIIn,
         [OppoConstants.InputSource.ARCHDMIOut] = InputSource.ARCHDMIOut
-    };
+    }.ToFrozenDictionary();
 }

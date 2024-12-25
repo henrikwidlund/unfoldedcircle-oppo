@@ -19,7 +19,7 @@ public class DNSKEYRecordTest
         {
             Name = "example.com",
             TTL = TimeSpan.FromDays(2),
-            Flags = DNSKEYFlags.ZoneKey,
+            Flags = DnsKeys.ZoneKey,
             Protocol = 3,
             Algorithm = SecurityAlgorithm.RSASHA1,
             PublicKey = Key
@@ -44,7 +44,7 @@ public class DNSKEYRecordTest
         {
             Name = "example.com",
             TTL = TimeSpan.FromDays(2),
-            Flags = DNSKEYFlags.ZoneKey,
+            Flags = DnsKeys.ZoneKey,
             Protocol = 3,
             Algorithm = SecurityAlgorithm.RSASHA1,
             PublicKey = Key
@@ -71,7 +71,7 @@ public class DNSKEYRecordTest
         {
             Name = "example.com",
             TTL = TimeSpan.FromSeconds(86400),
-            Flags = DNSKEYFlags.ZoneKey,
+            Flags = DnsKeys.ZoneKey,
             Algorithm = SecurityAlgorithm.RSASHA1,
             PublicKey = Convert.FromBase64String(
                 """
@@ -108,10 +108,10 @@ public class DNSKEYRecordTest
 
         var dnskey = new DNSKEYRecord(publicKey, SecurityAlgorithm.RSASHA256)
         {
-            Flags = DNSKEYFlags.ZoneKey
+            Flags = DnsKeys.ZoneKey
         };
         
-        Assert.AreEqual(DNSKEYFlags.ZoneKey, dnskey.Flags);
+        Assert.AreEqual(DnsKeys.ZoneKey, dnskey.Flags);
         Assert.AreEqual(3, dnskey.Protocol);
         Assert.AreEqual(SecurityAlgorithm.RSASHA256, dnskey.Algorithm);
         CollectionAssert.AreEqual(dnsPublicKey, dnskey.PublicKey);
@@ -159,10 +159,10 @@ public class DNSKEYRecordTest
 
         var dnskey = new DNSKEYRecord(publicKey, SecurityAlgorithm.RSASHA512)
         {
-            Flags = DNSKEYFlags.ZoneKey
+            Flags = DnsKeys.ZoneKey
         };
         
-        Assert.AreEqual(DNSKEYFlags.ZoneKey, dnskey.Flags);
+        Assert.AreEqual(DnsKeys.ZoneKey, dnskey.Flags);
         Assert.AreEqual(3, dnskey.Protocol);
         Assert.AreEqual(SecurityAlgorithm.RSASHA512, dnskey.Algorithm);
         CollectionAssert.AreEqual(dnsPublicKey, dnskey.PublicKey);
@@ -203,10 +203,10 @@ public class DNSKEYRecordTest
 
         var dnskey = new DNSKEYRecord(publicKey)
         {
-            Flags = DNSKEYFlags.ZoneKey | DNSKEYFlags.SecureEntryPoint
+            Flags = DnsKeys.ZoneKey | DnsKeys.SecureEntryPoint
         };
         
-        Assert.AreEqual(DNSKEYFlags.ZoneKey | DNSKEYFlags.SecureEntryPoint, dnskey.Flags);
+        Assert.AreEqual(DnsKeys.ZoneKey | DnsKeys.SecureEntryPoint, dnskey.Flags);
         Assert.AreEqual(3, dnskey.Protocol);
         Assert.AreEqual(SecurityAlgorithm.ECDSAP256SHA256, dnskey.Algorithm);
         CollectionAssert.AreEqual(dnsPublicKey, dnskey.PublicKey);
@@ -247,10 +247,10 @@ public class DNSKEYRecordTest
 
         var dnskey = new DNSKEYRecord(publicKey)
         {
-            Flags = DNSKEYFlags.ZoneKey | DNSKEYFlags.SecureEntryPoint
+            Flags = DnsKeys.ZoneKey | DnsKeys.SecureEntryPoint
         };
         
-        Assert.AreEqual(DNSKEYFlags.ZoneKey | DNSKEYFlags.SecureEntryPoint, dnskey.Flags);
+        Assert.AreEqual(DnsKeys.ZoneKey | DnsKeys.SecureEntryPoint, dnskey.Flags);
         Assert.AreEqual(3, dnskey.Protocol);
         Assert.AreEqual(SecurityAlgorithm.ECDSAP384SHA384, dnskey.Algorithm);
         CollectionAssert.AreEqual(dnsPublicKey, dnskey.PublicKey);
