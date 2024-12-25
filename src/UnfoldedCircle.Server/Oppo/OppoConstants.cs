@@ -5,7 +5,7 @@ internal static class OppoConstants
     internal const string DriverName = "Oppo Blu-ray Player";
     internal const string DriverDescription = "Integration for the Oppo Blu-ray players";
     internal const string DriverId = "oppo-unfolded-circle";
-    internal const string DriverVersion = "0.0.5";
+    internal const string DriverVersion = "0.0.6";
     internal const string DriverDeveloper = "Henrik Widlund";
     internal const string DriverEmail = "07online_rodeo@icloud.com";
     internal static readonly DateOnly DriverReleaseDate = new(2024, 11, 13);
