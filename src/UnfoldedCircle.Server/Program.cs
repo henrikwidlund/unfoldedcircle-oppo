@@ -30,6 +30,7 @@ builder.Services.AddHttpClient<IAlbumCoverService, AlbumCoverService>(static cli
 {
     client.DefaultRequestHeaders.UserAgent.Clear();
     client.DefaultRequestHeaders.UserAgent.ParseAdd("UnfoldedCircle/1.0");
+    client.Timeout = TimeSpan.FromSeconds(7);
 });
 builder.Services.AddMemoryCache();
 builder.Services.ConfigureHttpJsonOptions(options =>
@@ -39,7 +40,6 @@ builder.Services.ConfigureHttpJsonOptions(options =>
 
 builder.Services.AddHostedService<MDnsBackgroundService>();
 
-builder.Services.AddHttpClient();
 builder.Services.AddSingleton<UnfoldedCircleMiddleware>();
 builder.Services.AddSingleton<UnfoldedCircleWebSocketHandler>();
 
