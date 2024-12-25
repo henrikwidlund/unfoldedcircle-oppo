@@ -105,11 +105,8 @@ public partial class NameServer : IResolver
         }
 
         // If a name error, then add the domain authority.
-        if (response.Status == MessageStatus.NameError)
-        {
-            if (soa is not null)
-                response.AuthorityRecords.Add(soa);
-        }
+        if (response.Status == MessageStatus.NameError && soa is not null)
+            response.AuthorityRecords.Add(soa);
 
         // Add additional records.
         await AddAdditionalRecords(response, cancel);

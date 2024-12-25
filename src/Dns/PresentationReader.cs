@@ -458,10 +458,7 @@ public class PresentationReader
             if (inquote)
             {
                 if (c == '"')
-                {
-                    inquote = false;
                     break;
-                }
 
                 sb.Append((char)c);
                 _previousChar = c;

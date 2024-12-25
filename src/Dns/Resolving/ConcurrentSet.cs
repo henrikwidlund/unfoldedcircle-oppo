@@ -79,11 +79,11 @@ public sealed class ConcurrentSet<T> : ICollection<T>
     /// <summary>
     /// Determine whether the given value is in the set.
     /// </summary>
-    /// <param name="value">The value to test.</param>
+    /// <param name="item">The value to test.</param>
     /// <returns>true if the set contains the specified value; otherwise, false.</returns>
-    public bool Contains(T value)
+    public bool Contains(T item)
     {
-        return _dictionary.ContainsKey(value);
+        return _dictionary.ContainsKey(item);
     }
 
     /// <summary>
@@ -113,11 +113,11 @@ public sealed class ConcurrentSet<T> : ICollection<T>
     /// <summary>
     /// Attempts to remove a value from the set.
     /// </summary>
-    /// <param name="value">The value to remove.</param>
+    /// <param name="item">The value to remove.</param>
     /// <returns>true if the value was removed successfully; otherwise false.</returns>
-    public bool Remove(T value)
+    public bool Remove(T item)
     {
-        return _dictionary.TryRemove(value, out _);
+        return _dictionary.TryRemove(item, out _);
     }
 
     /// <summary>

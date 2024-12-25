@@ -20,6 +20,5 @@ public class SecurityAlgorithmRegistryTest
     }
 
     [TestMethod]
-    [ExpectedException(typeof(NotImplementedException))]
-    public void UnknownAlgorithm() => SecurityAlgorithmRegistry.GetMetadata((SecurityAlgorithm)0xBA);
+    public void UnknownAlgorithm() => Assert.ThrowsException<NotImplementedException>(static () => SecurityAlgorithmRegistry.GetMetadata((SecurityAlgorithm)0xBA));
 }

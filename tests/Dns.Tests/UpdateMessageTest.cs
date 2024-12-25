@@ -17,11 +17,11 @@ public class UpdateMessageTest
         
         Assert.AreEqual(0, m.AdditionalResources.Count);
         Assert.AreEqual(0, m.Id);
-        Assert.AreEqual(false, m.IsResponse);
-        Assert.AreEqual(true, m.IsUpdate);
+        Assert.IsFalse(m.IsResponse);
+        Assert.IsTrue(m.IsUpdate);
         Assert.AreEqual(MessageOperation.Update, m.Opcode);
         Assert.AreEqual(0, m.Prerequisites.Count);
-        Assert.AreEqual(false, m.QR);
+        Assert.IsFalse(m.QR);
         Assert.AreEqual(MessageStatus.NoError, m.Status);
         Assert.AreEqual(0, m.Updates.Count);
         Assert.AreEqual(0, m.Z);

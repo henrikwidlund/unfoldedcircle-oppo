@@ -342,13 +342,12 @@ public class MulticastService : IMulticastService
             }
 
             // Tell others.
-            if (newNics.Count > 0)
+            if (newNics.Count > 0 && NetworkInterfaceDiscovered is not null)
             {
-                if (NetworkInterfaceDiscovered is not null)
-                    await NetworkInterfaceDiscovered(new NetworkInterfaceEventArgs
-                    {
-                        NetworkInterfaces = newNics
-                    });
+                await NetworkInterfaceDiscovered(new NetworkInterfaceEventArgs
+                {
+                    NetworkInterfaces = newNics
+                });
             }
 
             // Magic from @eshvatskyi
@@ -735,10 +734,9 @@ public class MulticastService : IMulticastService
                 if (QueryReceived is not null)
                     await QueryReceived(new MessageEventArgs { Message = msg, RemoteEndPoint = result.RemoteEndPoint });
             }
-            else if (msg.IsResponse && msg.Answers.Count > 0)
+            else if (msg is { IsResponse: true, Answers.Count: > 0 } && AnswerReceived is not null)
             {
-                if (AnswerReceived is not null)
-                    await AnswerReceived(new MessageEventArgs { Message = msg, RemoteEndPoint = result.RemoteEndPoint });
+                await AnswerReceived(new MessageEventArgs { Message = msg, RemoteEndPoint = result.RemoteEndPoint });
             }
         }
         catch (Exception e)

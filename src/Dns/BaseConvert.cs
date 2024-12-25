@@ -81,11 +81,7 @@ public static class BaseConvert
             }
 
             if (arrayIndex != charCount)
-            {
                 returnArray[arrayIndex++] = ValueToChar(nextChar);
-                //while (arrayIndex != charCount)
-                //    returnArray[arrayIndex++] = '='; //padding
-            }
 
             return string.Create(arrayIndex, (arrayIndex, returnArray), static (span, state) => state.returnArray.AsSpan(0, state.arrayIndex).CopyTo(span));
         }

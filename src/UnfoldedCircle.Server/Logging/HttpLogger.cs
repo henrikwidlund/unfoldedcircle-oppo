@@ -8,7 +8,7 @@ using UnfoldedCircle.Server.Configuration;
 
 namespace UnfoldedCircle.Server.Logging;
 
-file class HttpLogger(string name, IOptionsMonitor<LoggerFilterOptions> logFilterOptions, IConfiguration configuration) : ILogger
+file sealed class HttpLogger(string name, IOptionsMonitor<LoggerFilterOptions> logFilterOptions, IConfiguration configuration) : ILogger
 {
     private readonly IOptionsMonitor<LoggerFilterOptions> _logFilterOptions = logFilterOptions;
     private readonly string _name = name;
@@ -17,7 +17,7 @@ file class HttpLogger(string name, IOptionsMonitor<LoggerFilterOptions> logFilte
     // This should use factory, but the logger is used before the factory is available.
     private static readonly HttpClient HttpClient = new();
 
-    public IDisposable? BeginScope<TState>(TState state) where TState : notnull => default;
+    public IDisposable? BeginScope<TState>(TState state) where TState : notnull => null;
 
     public bool IsEnabled(LogLevel logLevel) => logLevel >= _logFilterOptions.CurrentValue.MinLevel;
     

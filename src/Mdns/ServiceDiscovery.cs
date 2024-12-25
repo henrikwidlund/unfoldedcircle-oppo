@@ -530,7 +530,7 @@ public class ServiceDiscovery : IServiceDiscovery
         _logger?.LogDebug("Sending answer");
         if (_logger?.IsEnabled(LogLevel.Trace) is true)
         {
-            _logger?.LogTrace("{@Message}", response);
+            _logger.LogTrace("{@Message}", response);
         }
     }
 
@@ -542,18 +542,15 @@ public class ServiceDiscovery : IServiceDiscovery
     /// <param name="disposing"></param>
     protected virtual void Dispose(bool disposing)
     {
-        if (disposing)
+        if (disposing && Mdns != null)
         {
-            if (Mdns != null)
+            Mdns.QueryReceived -= OnQuery;
+            Mdns.AnswerReceived -= OnAnswer;
+            if (_instantiatedMdns)
             {
-                Mdns.QueryReceived -= OnQuery;
-                Mdns.AnswerReceived -= OnAnswer;
-                if (_instantiatedMdns)
-                {
-                    Mdns.Dispose();
-                }
-                Mdns = null;
+                Mdns.Dispose();
             }
+            Mdns = null;
         }
     }
 

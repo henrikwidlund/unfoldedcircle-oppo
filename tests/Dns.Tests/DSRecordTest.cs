@@ -70,7 +70,7 @@ public class DSRecordTest
         {
             Name = "dskey.example.com",
             TTL = TimeSpan.FromSeconds(86400),
-            Flags = DNSKEYFlags.ZoneKey,
+            Flags = DnsKeys.ZoneKey,
             Algorithm = SecurityAlgorithm.RSASHA1,
             PublicKey = Convert.FromBase64String(
                 """
@@ -103,7 +103,7 @@ public class DSRecordTest
         var key = new DNSKEYRecord
         {
             Name = "example.com",
-            Flags = DNSKEYFlags.SecureEntryPoint,
+            Flags = DnsKeys.SecureEntryPoint,
             Algorithm = SecurityAlgorithm.RSASHA1,
             PublicKey = Convert.FromBase64String(
                 """
@@ -130,7 +130,7 @@ public class DSRecordTest
         var key = new DNSKEYRecord
         {
             Name = "example.com",
-            Flags = DNSKEYFlags.ZoneKey,
+            Flags = DnsKeys.ZoneKey,
             Algorithm = SecurityAlgorithm.RSASHA1,
             PublicKey = Convert.FromBase64String(
                 """

@@ -17,7 +17,7 @@ public class OPTRecordTest
         Assert.AreEqual((ushort)opt.Class, opt.RequestorPayloadSize);
         Assert.AreEqual(0, opt.Opcode8);
         Assert.AreEqual(0, opt.Version);
-        Assert.AreEqual(false, opt.DO);
+        Assert.IsFalse(opt.DO);
         Assert.AreEqual(0, opt.Options.Count);
     }
 

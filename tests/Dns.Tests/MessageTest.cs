@@ -312,7 +312,23 @@ public class MessageTest
         });
 
         var text = m.ToString();
-        Console.WriteLine(text);
+        const string expected = """
+                                 ;; Header: QR AA RCODE=NoError
+
+                                 ;; Question
+                                 emanon.org IN A
+
+                                 ;; Answer
+                                 emanon.org IN A 127.0.0.1
+
+                                 ;; Authority
+                                 emanon.org 0 IN SOA erehwon hostmaster.emanon.org 0 0 0 0 0
+
+                                 ;; Additional
+                                 ;;  (empty)
+
+                                 """;
+        Assert.AreEqual(expected, text);
     }
 
     [TestMethod]
@@ -326,7 +342,26 @@ public class MessageTest
         m.Read(buffer2);
 
         var text = m.ToString();
-        Console.WriteLine(text);
+        const string expected = """
+                                 ;; Header: RD RCODE=NoError
+
+                                 ;; Question
+                                 ipfs.io IN TXT
+
+                                 ;; Answer
+                                 ;;  (empty)
+
+                                 ;; Authority
+                                 ;;  (empty)
+
+                                 ;; Additional
+                                 ; EDNS: version: 0, udp 1280
+                                 ;   Keepalive = 01:30:46.4000000
+                                 ;   Padding = 80
+
+
+                                 """;
+        Assert.AreEqual(expected, text);
     }
 
     [TestMethod]

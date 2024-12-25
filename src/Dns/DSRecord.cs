@@ -26,7 +26,7 @@ public class DSRecord : ResourceRecord
     ///   If <b>true</b>, key usage checks are ignored.
     /// </param>
     /// <exception cref="ArgumentException">
-    ///   Both <see cref="DNSKEYFlags.ZoneKey"/> and <see cref="DNSKEYFlags.SecureEntryPoint"/>
+    ///   Both <see cref="DnsKeys.ZoneKey"/> and <see cref="DnsKeys.SecureEntryPoint"/>
     ///   must be set.
     /// </exception>
     /// <exception cref="ArgumentOutOfRangeException">
@@ -41,9 +41,9 @@ public class DSRecord : ResourceRecord
         // Check the key.
         if (!force)
         {
-            if ((key.Flags & DNSKEYFlags.ZoneKey) == DNSKEYFlags.None)
+            if ((key.Flags & DnsKeys.ZoneKey) == DnsKeys.None)
                 throw new ArgumentException("ZoneKey must be set.", nameof(key));
-            if ((key.Flags & DNSKEYFlags.SecureEntryPoint) == DNSKEYFlags.None)
+            if ((key.Flags & DnsKeys.SecureEntryPoint) == DnsKeys.None)
                 throw new ArgumentException("SecureEntryPoint must be set.", nameof(key));
         }
 

@@ -98,14 +98,12 @@ public class JsonConverterGenerator : IIncrementalGenerator
 
                 if (attribute.AttributeClass?.Name.Equals(DescriptionAttribute, StringComparison.Ordinal) == true
                     && attribute.AttributeClass.ToDisplayString().Equals("DescriptionAttribute", StringComparison.Ordinal)
-                    && attribute.ConstructorArguments.Length == 1)
+                    && attribute.ConstructorArguments.Length == 1
+                    && attribute.ConstructorArguments[0].Value?.ToString() is { } dn1)
                 {
-                    if (attribute.ConstructorArguments[0].Value?.ToString() is { } dn)
-                    {
-                        // found display attribute, all done
-                        displayName = dn;
-                        goto addDisplayName;
-                    }
+                    // found display attribute, all done
+                    displayName = dn1;
+                    goto addDisplayName;
                 }
             }
 

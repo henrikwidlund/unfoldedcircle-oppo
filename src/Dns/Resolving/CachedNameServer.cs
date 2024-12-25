@@ -20,11 +20,10 @@ public class CachedNameServer : NameServer
         now ??= DateTime.Now;
 
         var nodes = Catalog?.Values.Where(static node => !node.Authoritative) ?? [];
-        foreach (var node in nodes)
+        foreach (var resources in nodes.Select(static node => node.Resources))
         {
-            var resources = node.Resources.Where(r => r.IsExpired(now));
-            foreach (var resource in resources)
-                node.Resources.Remove(resource);
+            foreach (var resource in resources.Where(r => r.IsExpired(now)))
+                resources.Remove(resource);
         }
     }
 

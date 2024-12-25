@@ -10,7 +10,7 @@ namespace Makaretu.Dns;
 /// <remarks>
 ///   Equality is based on the number of and the case-insenstive contents of <see cref="Labels"/>.
 /// </remarks>
-public class DomainName : IEquatable<DomainName>
+public sealed class DomainName : IEquatable<DomainName>
 {
     private const char DotChar = '.';
     private const string EscapedDot = @"\.";
