@@ -8,7 +8,7 @@
 ///   resource records. When reading, if the registry does not contain
 ///   the record, then an <see cref="UnknownRecord"/> is used.
 /// </remarks>
-public class ResourceRecord : DnsObject, IPresentationSerializer
+public class ResourceRecord : DnsObject, IPresentationSerializer, IEqualityComparer<ResourceRecord>
 {
     /// <summary>
     ///   The default time interval that a resource record maybe cached.
@@ -209,16 +209,33 @@ public class ResourceRecord : DnsObject, IPresentationSerializer
     /// </remarks>
     public override bool Equals(object? obj)
     {
-        if (obj is not ResourceRecord that) return false;
+        if (obj is ResourceRecord resourceRecord)
+            return Equals(this, resourceRecord);
 
-        if (Name is null && that.Name is not null) return false;
-        if (Name is not null && that.Name is not null && Name != that.Name) return false;
-        if (Class != that.Class) return false;
-        if (Type != that.Type) return false;
-
-        return GetData().SequenceEqual(that.GetData());
+        return false;
     }
+    
+    /// <inheritdoc />
+    /// <remarks>
+    ///   Two Resource Records are considered equal if their <see cref="Name"/>, 
+    ///   <see cref="Class"/>, <see cref="Type"/> and data fields
+    ///   are equal. Note that the <see cref="TTL"/> field is explicitly 
+    ///   excluded from the comparison.
+    /// </remarks>
+    public bool Equals(ResourceRecord? x, ResourceRecord? y)
+    {
+        if (ReferenceEquals(x, y))
+            return true;
 
+        if (x is null)
+            return false;
+
+        if (y is null)
+            return false;
+
+        return x.Name == y.Name && x.Class == y.Class && x.Type == y.Type && x.GetData().SequenceEqual(y.GetData());
+    }
+    
     /// <summary>
     ///   Value equality.
     /// </summary>
@@ -228,16 +245,13 @@ public class ResourceRecord : DnsObject, IPresentationSerializer
     ///   are equal. Note that the <see cref="TTL"/> field is explicitly 
     ///   excluded from the comparison.
     /// </remarks>
-    public static bool operator ==(ResourceRecord? a, ResourceRecord? b)
-    {
-#pragma warning disable IDE0041 // Null check can be simplified
-        if (ReferenceEquals(a, b)) return true;
-        if (ReferenceEquals(a, null)) return false;
-        if (ReferenceEquals(b, null)) return false;
-#pragma warning restore IDE0041 // Null check can be simplified
-
-        return a.Equals(b);
-    }
+    public static bool operator ==(ResourceRecord? a, ResourceRecord? b) =>
+        a switch
+        {
+            null when b is null => true,
+            null => false,
+            _ => a.Equals(b)
+        };
 
     /// <summary>
     ///   Value inequality.
@@ -248,27 +262,19 @@ public class ResourceRecord : DnsObject, IPresentationSerializer
     ///   are equal. Note that the <see cref="TTL"/> field is explicitly 
     ///   excluded from the comparison.
     /// </remarks>
-    public static bool operator !=(ResourceRecord? a, ResourceRecord? b)
-    {
-#pragma warning disable IDE0041 // Null check can be simplified
-        if (ReferenceEquals(a, b)) return false;
-        if (ReferenceEquals(a, null)) return true;
-        if (ReferenceEquals(b, null)) return true;
-#pragma warning restore IDE0041 // Null check can be simplified
-
-        return !a.Equals(b);
-    }
+    public static bool operator !=(ResourceRecord? a, ResourceRecord? b) =>
+        a switch
+        {
+            null when b is null => false,
+            null => true,
+            _ => !a.Equals(b)
+        };
 
     /// <inheritdoc />
-    public override int GetHashCode()
-    {
-        return 
-            Name?.GetHashCode() ?? 0
-            ^ Class.GetHashCode()
-            ^ Type.GetHashCode()
-            ^ GetData().Aggregate(0, static (r, b) => r ^ b.GetHashCode());
+    public override int GetHashCode() => GetHashCode(this);
 
-    }
+    /// <inheritdoc />
+    public int GetHashCode(ResourceRecord obj) => HashCode.Combine(obj.Name, (int)obj.Type, (int)obj.Class, GetData().Aggregate(0, static (r, b) => r ^ b.GetHashCode()));
 
     /// <summary>
     ///   Returns the textual representation.

@@ -1010,11 +1010,10 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
             {
                 var result = await pipeReader.ReadAsync(cancellationToken);
                 var buffer = result.Buffer;
-                SequencePosition? position;
 
                 do
                 {
-                    position = buffer.PositionOf((byte)0x0d); // ASCII 0x0d (carriage return)
+                    var position = buffer.PositionOf((byte)0x0d); // ASCII 0x0d (carriage return)
 
                     if (position != null)
                     {
@@ -1040,7 +1039,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
                         WriteSpan(segment.Span, charBuffer, ref firstWrite);
                     }
                     pipeReader.AdvanceTo(buffer.End);
-                } while (position == null && !result.IsCompleted);
+                } while (!result.IsCompleted);
 
                 if (result.IsCompleted)
                 {

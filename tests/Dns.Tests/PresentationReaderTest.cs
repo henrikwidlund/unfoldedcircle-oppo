@@ -476,7 +476,7 @@ public class PresentationReaderTest
     [TestMethod]
     public void ReadDateTime()
     {
-        DateTime expected = new(2004, 9, 16);
+        DateTime expected = new(2004, 9, 16, 0, 0, 0, DateTimeKind.Utc);
         var reader = new PresentationReader(new StringReader("1095292800 20040916000000"));
         
         Assert.AreEqual(expected, reader.ReadDateTime());

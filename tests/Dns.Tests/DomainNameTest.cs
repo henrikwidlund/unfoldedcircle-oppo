@@ -76,7 +76,7 @@ public class DomainNameTest
         Assert.AreEqual("my.example", name.Labels[0]);
         Assert.AreEqual("org", name.Labels[1]);
 
-        name = @"my.example.org";
+        name = "my.example.org";
         Assert.AreEqual(3, name.Labels.Count);
         Assert.AreEqual("my", name.Labels[0]);
         Assert.AreEqual("example", name.Labels[1]);
@@ -109,7 +109,7 @@ public class DomainNameTest
         Assert.AreEqual(a, d);
         Assert.AreNotEqual(a, other1);
         Assert.AreNotEqual(a, other2);
-        Assert.AreNotEqual(a, null);
+        Assert.AreNotEqual(null, a);
 
         Assert.IsTrue(a == b);
         Assert.IsTrue(a == c);

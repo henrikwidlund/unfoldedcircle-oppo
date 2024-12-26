@@ -75,7 +75,6 @@ public class CachedNameServerTest
     [TestMethod]
     public async Task AddingResponse_TTL0()
     {
-        var now = DateTime.Now;
         var cache = new CachedNameServer { Catalog = new Catalog(), AnswerAllQuestions = true };
         var response = new Message
         {

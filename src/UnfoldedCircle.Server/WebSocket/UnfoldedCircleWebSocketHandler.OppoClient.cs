@@ -177,5 +177,5 @@ internal partial class UnfoldedCircleWebSocketHandler
     
     private record struct RemoveInstruction(string? DeviceId, string[]? EntityIds, string? Host);
 
-    private record OppoClientHolder(IOppoClient Client, in OppoClientKey ClientKey);
+    private sealed record OppoClientHolder(IOppoClient Client, in OppoClientKey ClientKey);
 }

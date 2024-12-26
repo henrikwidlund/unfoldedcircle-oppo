@@ -14,7 +14,7 @@ public class WireReader
     /// <summary>
     ///   The reader relative position within the stream.
     /// </summary>
-    public int Position;
+    public int Position { get; private set; }
 
     /// <summary>
     ///   Creates a new instance of the <see cref="WireReader"/> on the

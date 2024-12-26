@@ -206,10 +206,6 @@ internal partial class UnfoldedCircleWebSocketHandler
                 return;
             }
             case MessageEvent.SupportedEntityTypes:
-            {
-                // var payload = jsonDocument.Deserialize(unfoldedCircleJsonSerializerContext.CommonReq)!;
-                return;
-            }
             default:
                 return;
         }

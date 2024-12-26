@@ -7,6 +7,8 @@ using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 
+using FluentAssertions;
+
 using Makaretu.Dns;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -29,9 +31,14 @@ public class MulticastServiceTest
     [TestMethod]
     public async Task StartStop()
     {
-        var mdns = new MulticastService();
-        await mdns.Start(CancellationToken.None);
-        mdns.Stop();
+        var action = static async () =>
+        {
+            var mdns = new MulticastService();
+            await mdns.Start(CancellationToken.None);
+            mdns.Stop();
+        };
+
+        await action.Should().NotThrowAsync();
     }
 
     [TestMethod]
@@ -104,8 +111,8 @@ public class MulticastServiceTest
             
             await mdns.SendUnicastQuery("some-service.local");
             Assert.IsTrue(done.WaitOne(TimeSpan.FromSeconds(1)), "query timeout");
-            Assert.AreEqual("some-service.local", msg.Questions.First().Name);
-            Assert.AreEqual(DnsClass.IN + 0x8000, msg.Questions.First().Class);
+            Assert.AreEqual("some-service.local", msg.Questions[0].Name);
+            Assert.AreEqual(DnsClass.IN + 0x8000, msg.Questions[0].Class);
         }
         finally
         {
@@ -174,7 +181,7 @@ public class MulticastServiceTest
         });
         
         var packet = query.ToByteArray();
-        var client = new UdpClient();
+        using var client = new UdpClient();
         MulticastService.IncludeLoopbackInterfaces = true;
         using var mdns = new MulticastService();
         mdns.NetworkInterfaceDiscovered += _ =>
