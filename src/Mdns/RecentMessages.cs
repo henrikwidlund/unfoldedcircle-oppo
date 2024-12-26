@@ -14,6 +14,8 @@ namespace Makaretu.Dns;
 /// </remarks>
 public class RecentMessages
 {
+    private readonly TimeProvider _timeProvider;
+    
     /// <summary>
     ///   Recent messages.
     /// </summary>
@@ -21,12 +23,27 @@ public class RecentMessages
     ///   The key is the Base64 encoding of the MD5 hash of 
     ///   a message and the value is when the message was seen.
     /// </value>
-    public readonly ConcurrentDictionary<string, DateTime> Messages = new(StringComparer.OrdinalIgnoreCase);
+    private readonly ConcurrentDictionary<string, DateTime> _messages = new(StringComparer.OrdinalIgnoreCase);
 
+    public RecentMessages() : this(TimeProvider.System) { }
+    
+    public RecentMessages(TimeProvider timeProvider) => _timeProvider = timeProvider;
+
+    /// <summary>
+    /// The number of messages.
+    /// </summary>
+    public int Count => _messages.Count;
+    
     /// <summary>
     ///   The time interval used to determine if a message is recent.
     /// </summary>
     public TimeSpan Interval { get; init; } = TimeSpan.FromSeconds(1);
+    
+    /// <summary>
+    /// Checks if a message has been added to the recent message list.
+    /// </summary>
+    /// <param name="message">The message to look for.</param>
+    public bool HasMessage(byte[] message) => _messages.ContainsKey(GetId(message));
 
     /// <summary>
     ///   Try adding a message to the recent message list.
@@ -41,7 +58,7 @@ public class RecentMessages
     public bool TryAdd(byte[] message)
     {
         Prune();
-        return Messages.TryAdd(GetId(message), DateTime.Now);
+        return _messages.TryAdd(GetId(message), _timeProvider.GetLocalNow().DateTime);
     }
 
     /// <summary>
@@ -55,12 +72,12 @@ public class RecentMessages
     /// </remarks>
     public int Prune()
     {
-        var dead = DateTime.Now - Interval;
+        var dead = _timeProvider.GetLocalNow().DateTime - Interval;
         var count = 0;
 
-        foreach (var stale in Messages.Where(x => x.Value < dead))
+        foreach (var stale in _messages.Where(x => x.Value < dead))
         {
-            if (Messages.TryRemove(stale.Key, out _))
+            if (_messages.TryRemove(stale.Key, out _))
             {
                 ++count;
             }

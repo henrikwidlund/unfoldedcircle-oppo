@@ -41,7 +41,7 @@ public class MessageTest
         Assert.AreEqual(0, msg.AuthorityRecords.Count);
         Assert.AreEqual(0, msg.AdditionalRecords.Count);
         
-        var question = msg.Questions.First();
+        var question = msg.Questions[0];
         Assert.AreEqual("appletv.local", question.Name);
         Assert.AreEqual(DnsType.A, question.Type);
         Assert.AreEqual(DnsClass.IN, question.Class);
@@ -187,14 +187,14 @@ public class MessageTest
     public void Issue_11()
     {
         var bytes = Convert.FromBase64String("EjSBgAABAAEAAAAABGlwZnMCaW8AABAAAcAMABAAAQAAADwAPTxkbnNsaW5rPS9pcGZzL1FtWU5RSm9LR05IVHBQeENCUGg5S2tEcGFFeGdkMmR1TWEzYUY2eXRNcEhkYW8=");
-        _ = (Message)(new Message().Read(bytes));
+        Assert.IsInstanceOfType<Message>(new Message().Read(bytes));
     }
 
     [TestMethod]
     public void Issue_12()
     {
         var bytes = Convert.FromBase64String("AASBgAABAAQAAAABA3d3dwxvcGluaW9uc3RhZ2UDY29tAAABAAHADAAFAAEAAAA8AALAEMAQAAEAAQAAADwABCLAkCrANAABAAEAAAA8AAQ0NgUNwDQAAQABAAAAPAAEaxUAqgAAKQYAAAAAAAFlAAwBYQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
-        _ = (Message)(new Message().Read(bytes));
+        Assert.IsInstanceOfType<Message>(new Message().Read(bytes));
     }
 
     [TestMethod]

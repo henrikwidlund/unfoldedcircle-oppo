@@ -1,4 +1,6 @@
-﻿using Makaretu.Dns;
+﻿using System.Linq;
+
+using Makaretu.Dns;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -32,6 +34,6 @@ public class EdnsDAUOptionTest
         var option = EdnsDAUOption.Create();
         
         Assert.AreEqual(EdnsOptionType.DAU, option.Type);
-        CollectionAssert.AreEqual(SecurityAlgorithmRegistry.Algorithms.Keys, option.Algorithms);
+        CollectionAssert.AreEqual(SecurityAlgorithmRegistry.Algorithms.Keys.ToList(), option.Algorithms);
     }
 }

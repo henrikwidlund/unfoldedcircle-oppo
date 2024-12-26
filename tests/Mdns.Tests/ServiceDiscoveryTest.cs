@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Threading;
@@ -663,7 +664,7 @@ public class ServiceDiscoveryTest
         var service = new ServiceProfile("z", "_sdtest-4._udp", 1024, [IPAddress.Loopback]);
         var done = new ManualResetEvent(false);
         var nanswers = 0;
-        DateTime start = DateTime.Now;
+        var stopWatch = new Stopwatch();
         
         using var mdns = new MulticastService
         {
@@ -673,11 +674,8 @@ public class ServiceDiscoveryTest
         mdns.AnswerReceived += e =>
         {
             var msg = e.Message;
-            if (msg.Answers.OfType<PTRRecord>().Any(p => p.DomainName == service.FullyQualifiedName))
-            {
-                if (++nanswers == 3)
-                    done.Set();
-            }
+            if (msg.Answers.OfType<PTRRecord>().Any(p => p.DomainName == service.FullyQualifiedName) && ++nanswers == 3)
+                done.Set();
             
             return Task.CompletedTask;
         };
@@ -688,14 +686,15 @@ public class ServiceDiscoveryTest
             mdns.NetworkInterfaceDiscovered += async _ =>
             {
                 Assert.IsFalse(await sd.Probe(service));
-                start = DateTime.Now;
+                stopWatch.Start();
                 await sd.Announce(service, 3);
             };
             
             await mdns.Start(CancellationToken.None);
             
             Assert.IsTrue(done.WaitOne(TimeSpan.FromSeconds(4)), "announce timeout");
-            if ((DateTime.Now - start).TotalMilliseconds < 3000)
+            stopWatch.Stop();
+            if (stopWatch.ElapsedMilliseconds < 3000)
                 Assert.Fail("Announcing too fast");
         }
         finally

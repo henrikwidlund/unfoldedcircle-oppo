@@ -12,7 +12,7 @@ public class RRSIGRecordTest
     [TestMethod]
     public void Roundtrip()
     {
-        var now = new DateTime(2018, 8, 13, 23, 59, 59);
+        var now = new DateTime(2018, 8, 13, 23, 59, 59, DateTimeKind.Utc);
         var a = new RRSIGRecord
         {
             Name = "host.example.com",
@@ -48,7 +48,7 @@ public class RRSIGRecordTest
     [TestMethod]
     public void Roundtrip_Master()
     {
-        var now = new DateTime(2018, 8, 13, 23, 59, 59);
+        var now = new DateTime(2018, 8, 13, 23, 59, 59, DateTimeKind.Utc);
         var a = new RRSIGRecord
         {
             Name = "host.example.com",

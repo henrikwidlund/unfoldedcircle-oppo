@@ -6,6 +6,38 @@
 /// <see cref="ResourceRecord"/>
 public static class ResourceRegistry
 {
+    private static readonly Dictionary<DnsType, Func<ResourceRecord>> RecordsPrivate = InitRecords();
+    
+    private static Dictionary<DnsType, Func<ResourceRecord>> InitRecords()
+    {
+        var dictionary = new Dictionary<DnsType, Func<ResourceRecord>>();
+        RegisterCore<ARecord>(dictionary);
+        RegisterCore<AAAARecord>(dictionary);
+        RegisterCore<AFSDBRecord>(dictionary);
+        RegisterCore<CNAMERecord>(dictionary);
+        RegisterCore<DNAMERecord>(dictionary);
+        RegisterCore<DNSKEYRecord>(dictionary);
+        RegisterCore<DSRecord>(dictionary);
+        RegisterCore<HINFORecord>(dictionary);
+        RegisterCore<MXRecord>(dictionary);
+        RegisterCore<NSECRecord>(dictionary);
+        RegisterCore<NSEC3Record>(dictionary);
+        RegisterCore<NSEC3PARAMRecord>(dictionary);
+        RegisterCore<NSRecord>(dictionary);
+        RegisterCore<NULLRecord>(dictionary);
+        RegisterCore<OPTRecord>(dictionary);
+        RegisterCore<PTRRecord>(dictionary);
+        RegisterCore<RPRecord>(dictionary);
+        RegisterCore<RRSIGRecord>(dictionary);
+        RegisterCore<SOARecord>(dictionary);
+        RegisterCore<SRVRecord>(dictionary);
+        RegisterCore<TKEYRecord>(dictionary);
+        RegisterCore<TSIGRecord>(dictionary);
+        RegisterCore<TXTRecord>(dictionary);
+
+        return dictionary;
+    }
+    
     /// <summary>
     ///   All the resource records.
     /// </summary>
@@ -13,35 +45,7 @@ public static class ResourceRegistry
     ///   The key is the DNS Resource Record type, <see cref="DnsType"/>.
     ///   The value is a function that returns a new <see cref="ResourceRecord"/>.
     /// </remarks>
-    public static readonly Dictionary<DnsType, Func<ResourceRecord>> Records;
-
-    static ResourceRegistry()
-    {
-        Records = new Dictionary<DnsType, Func<ResourceRecord>>();
-        Register<ARecord>();
-        Register<AAAARecord>();
-        Register<AFSDBRecord>();
-        Register<CNAMERecord>();
-        Register<DNAMERecord>();
-        Register<DNSKEYRecord>();
-        Register<DSRecord>();
-        Register<HINFORecord>();
-        Register<MXRecord>();
-        Register<NSECRecord>();
-        Register<NSEC3Record>();
-        Register<NSEC3PARAMRecord>();
-        Register<NSRecord>();
-        Register<NULLRecord>();
-        Register<OPTRecord>();
-        Register<PTRRecord>();
-        Register<RPRecord>();
-        Register<RRSIGRecord>();
-        Register<SOARecord>();
-        Register<SRVRecord>();
-        Register<TKEYRecord>();
-        Register<TSIGRecord>();
-        Register<TXTRecord>();
-    }
+    public static IReadOnlyDictionary<DnsType, Func<ResourceRecord>> Records => RecordsPrivate;
 
     /// <summary>
     ///   Register a new resource record.
@@ -54,11 +58,16 @@ public static class ResourceRegistry
     /// </exception>
     public static void Register<T>() where T : ResourceRecord, new()
     {
+        RegisterCore<T>(RecordsPrivate);
+    }
+    
+    private static void RegisterCore<T>(Dictionary<DnsType, Func<ResourceRecord>> records) where T : ResourceRecord, new()
+    {
         var rr = new T();
         if (!DnsTypeExtensions.IsDefined(rr.Type))
             throw new InvalidOperationException($"The RR TYPE {rr.Type} is not defined.");
         
-        Records.Add(rr.Type, static () => new T());
+        records.Add(rr.Type, static () => new T());
     }
 
     /// <summary>
@@ -74,5 +83,5 @@ public static class ResourceRegistry
     ///   When the <paramref name="type"/> is not implemented, a new
     ///   of <see cref="UnknownRecord"/> is returned.
     /// </remarks>
-    public static ResourceRecord Create(DnsType type) => Records.TryGetValue(type, out var maker) ? maker() : new UnknownRecord();
+    public static ResourceRecord Create(DnsType type) => RecordsPrivate.TryGetValue(type, out var maker) ? maker() : new UnknownRecord();
 }

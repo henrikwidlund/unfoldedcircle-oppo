@@ -91,7 +91,7 @@ public class JsonConverterGenerator : IIncrementalGenerator
                         {
                             // found display attribute, all done
                             displayName = dn;
-                            goto addDisplayName;
+                            break;
                         }
                     }
                 }
@@ -103,11 +103,10 @@ public class JsonConverterGenerator : IIncrementalGenerator
                 {
                     // found display attribute, all done
                     displayName = dn1;
-                    goto addDisplayName;
+                    break;
                 }
             }
-
-            addDisplayName:
+            
             if (displayName is not null)
             {
                 // Handle cases where contains a quote or a backslash

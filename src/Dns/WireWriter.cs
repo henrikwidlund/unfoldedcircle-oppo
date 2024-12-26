@@ -19,7 +19,7 @@ public class WireWriter
     /// <summary>
     ///   The writer relative position within the stream.
     /// </summary>
-    public int Position;
+    public int Position { get; private set; }
 
     /// <summary>
     ///   Creates a new instance of the <see cref="WireWriter"/> on the

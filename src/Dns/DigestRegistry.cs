@@ -19,18 +19,7 @@ public static class DigestRegistry
     ///   The key is the <see cref="DigestType"/>.
     ///   The value is a function that returns a new <see cref="ResourceRecord"/>.
     /// </remarks>
-    public static readonly HashSet<DigestType> Digests;
-    
-    static DigestRegistry()
-    {
-        Digests =
-        [
-            DigestType.Sha1,
-            DigestType.Sha256,
-            DigestType.Sha384,
-            DigestType.Sha512
-        ];
-    }
+    public static readonly IReadOnlySet<DigestType> Digests = new HashSet<DigestType> { DigestType.Sha1, DigestType.Sha256, DigestType.Sha384, DigestType.Sha512 };
 
     /// <summary>
     ///   Gets the hash algorithm for the <see cref="SecurityAlgorithm"/>.

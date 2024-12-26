@@ -5,6 +5,8 @@ using Makaretu.Dns;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
+using Moq;
+
 namespace Makaretu.Mdns;
 
 [TestClass]
@@ -13,15 +15,20 @@ public class RecentMessagesTest
     [TestMethod]
     public void Pruning()
     {
-        var messages = new RecentMessages();
-        var now = DateTime.Now;
-        messages.Messages.TryAdd("a", now.AddSeconds(-2));
-        messages.Messages.TryAdd("b", now.AddSeconds(-3));
-        messages.Messages.TryAdd("c", now);
+        var now = DateTimeOffset.UtcNow;
+        var timeProviderMock = new Mock<TimeProvider>();
+        timeProviderMock.Setup(static tp => tp.GetUtcNow()).Returns(now.AddSeconds(-2));
+        timeProviderMock.Setup(static tp => tp.LocalTimeZone).Returns(TimeZoneInfo.Local);
+
+        var messages = new RecentMessages(timeProviderMock.Object);
+        messages.TryAdd("a"u8.ToArray());
+        messages.TryAdd("b"u8.ToArray());
+        timeProviderMock.Setup(static tp => tp.GetUtcNow()).Returns(now);
+        byte[] cMessage = "c"u8.ToArray();
+        messages.TryAdd(cMessage);
         
-        Assert.AreEqual(2, messages.Prune());
-        Assert.AreEqual(1, messages.Messages.Count);
-        Assert.IsTrue(messages.Messages.ContainsKey("c"));
+        Assert.AreEqual(1, messages.Count);
+        Assert.IsTrue(messages.HasMessage(cMessage));
     }
 
     [TestMethod]
