@@ -17,7 +17,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "GitHub", "GitHub", "{56E7AF
 		.github\dependabot.yml = .github\dependabot.yml
 		.github\workflows\docker.yml = .github\workflows\docker.yml
 		.github\workflows\ci.yml = .github\workflows\ci.yml
-		.github\workflows\sonarcloud.yml = .github\workflows\sonarcloud.yml
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{FF85200F-5EFF-4EE1-94A1-70B1408780A6}"
