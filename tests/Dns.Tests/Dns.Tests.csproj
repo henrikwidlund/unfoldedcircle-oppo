@@ -10,7 +10,7 @@
     
     <ItemGroup>
         <PackageReference Include="FluentAssertions" Version="7.0.0" />
-        <PackageReference Include="Meziantou.Analyzer" Version="2.0.183">
+        <PackageReference Include="Meziantou.Analyzer" Version="2.0.184">
           <PrivateAssets>all</PrivateAssets>
           <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
