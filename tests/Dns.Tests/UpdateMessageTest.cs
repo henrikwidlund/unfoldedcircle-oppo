@@ -25,7 +25,7 @@ public class UpdateMessageTest
         Assert.AreEqual(MessageStatus.NoError, m.Status);
         Assert.AreEqual(0, m.Updates.Count);
         Assert.AreEqual(0, m.Z);
-        Assert.AreNotEqual(null, m.Zone);
+        Assert.IsNotNull(m.Zone);
         Assert.AreEqual(DnsType.SOA, m.Zone.Type, "must be SOA");
         Assert.AreEqual(DnsClass.IN, m.Zone.Class);
     }

@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Globalization;
 using System.Text;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging.Configuration;
@@ -23,14 +24,15 @@ file sealed class HttpLogger(string name, IOptionsMonitor<LoggerFilterOptions> l
     
     public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
     {
-        var logMessage = $"{DateTime.UtcNow:O} {eventId.Id,2}: {logLevel,-12} {_name} - {formatter(state, exception)}";
+        var logMessage = $"{DateTime.UtcNow:O} {eventId.Id.ToString(NumberFormatInfo.InvariantInfo),2}: {logLevel,-12} {_name} - {formatter(state, exception)}";
         Console.WriteLine(logMessage);
         
         try
         {
             using var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, _configuration.GetRequired<string>("HttpLogger:Endpoint"));
             httpRequestMessage.Content = new StringContent(logMessage, Encoding.UTF8);
-            HttpClient.Send(httpRequestMessage);
+            using var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(2));
+            HttpClient.Send(httpRequestMessage, cancellationTokenSource.Token);
         }
         catch (Exception e)
         {

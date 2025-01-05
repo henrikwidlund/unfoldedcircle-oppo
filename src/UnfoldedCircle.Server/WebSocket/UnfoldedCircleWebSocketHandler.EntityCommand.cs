@@ -7,7 +7,7 @@ using UnfoldedCircle.Server.Response;
 
 namespace UnfoldedCircle.Server.WebSocket;
 
-internal partial class UnfoldedCircleWebSocketHandler
+internal sealed partial class UnfoldedCircleWebSocketHandler
 {
     private async Task HandleEntityCommand(
         System.Net.WebSockets.WebSocket socket,

@@ -11,7 +11,7 @@ using UnfoldedCircle.Server.Response;
 
 namespace UnfoldedCircle.Server.WebSocket;
 
-internal partial class UnfoldedCircleWebSocketHandler
+internal sealed partial class UnfoldedCircleWebSocketHandler
 {
     private static readonly ConcurrentDictionary<string, string> SocketIdEntityIpMap = new(StringComparer.Ordinal);
     private static readonly ConcurrentDictionary<string, bool> SubscribeEvents = new(StringComparer.Ordinal);

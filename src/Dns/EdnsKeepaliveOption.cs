@@ -1,4 +1,6 @@
-﻿namespace Makaretu.Dns;
+﻿using System.Globalization;
+
+namespace Makaretu.Dns;
 
 /// <summary>
 ///   TCP idle time.
@@ -31,7 +33,7 @@ public class EdnsKeepaliveOption : EdnsOption
         {
             0 => null,
             2 => TimeSpan.FromMilliseconds(reader.ReadUInt16() * 100),
-            _ => throw new InvalidDataException($"Invalid EdnsKeepAlive length of '{length}'.")
+            _ => throw new InvalidDataException($"Invalid EdnsKeepAlive length of '{length.ToString(NumberFormatInfo.InvariantInfo)}'.")
         };
 
     /// <inheritdoc />

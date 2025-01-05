@@ -68,7 +68,7 @@ public class PresentationReaderTest
         Assert.AreEqual(DnsClass.IN, resource.Class);
         Assert.AreEqual(DnsType.A, resource.Type);
         Assert.AreEqual(ResourceRecord.DefaultTTL, resource.TTL);
-        Assert.IsInstanceOfType(resource, typeof(ARecord));
+        Assert.IsInstanceOfType<ARecord>(resource);
     }
 
     [TestMethod]
@@ -82,7 +82,7 @@ public class PresentationReaderTest
         Assert.AreEqual(DnsClass.IN, resource.Class);
         Assert.AreEqual(DnsType.A, resource.Type);
         Assert.AreEqual(ResourceRecord.DefaultTTL, resource.TTL);
-        Assert.IsInstanceOfType(resource, typeof(ARecord));
+        Assert.IsInstanceOfType<ARecord>(resource);
     }
 
     [TestMethod]
@@ -96,7 +96,7 @@ public class PresentationReaderTest
         Assert.AreEqual(DnsClass.IN, resource.Class);
         Assert.AreEqual(DnsType.A, resource.Type);
         Assert.AreEqual(ResourceRecord.DefaultTTL, resource.TTL);
-        Assert.IsInstanceOfType(resource, typeof(ARecord));
+        Assert.IsInstanceOfType<ARecord>(resource);
     }
 
     [TestMethod]
@@ -110,7 +110,7 @@ public class PresentationReaderTest
         Assert.AreEqual(DnsClass.CH, resource.Class);
         Assert.AreEqual(DnsType.A, resource.Type);
         Assert.AreEqual(TimeSpan.FromSeconds(63), resource.TTL);
-        Assert.IsInstanceOfType(resource, typeof(ARecord));
+        Assert.IsInstanceOfType<ARecord>(resource);
     }
 
     [TestMethod]
@@ -123,7 +123,7 @@ public class PresentationReaderTest
         Assert.AreEqual("me", resource.Name);
         Assert.AreEqual(1234, (int)resource.Class);
         Assert.AreEqual(DnsType.A, resource.Type);
-        Assert.IsInstanceOfType(resource, typeof(ARecord));
+        Assert.IsInstanceOfType<ARecord>(resource);
     }
 
     [TestMethod]
@@ -136,7 +136,7 @@ public class PresentationReaderTest
         Assert.AreEqual("me", resource.Name);
         Assert.AreEqual(DnsClass.CH, resource.Class);
         Assert.AreEqual(1234, (int)resource.Type);
-        Assert.IsInstanceOfType(resource, typeof(UnknownRecord));
+        Assert.IsInstanceOfType<UnknownRecord>(resource);
     }
 
     [TestMethod]
@@ -157,7 +157,7 @@ public class PresentationReaderTest
         Assert.AreEqual(DnsClass.IN, resource.Class);
         Assert.AreEqual(DnsType.A, resource.Type);
         Assert.AreEqual(ResourceRecord.DefaultTTL, resource.TTL);
-        Assert.IsInstanceOfType(resource, typeof(ARecord));
+        Assert.IsInstanceOfType<ARecord>(resource);
     }
 
     [TestMethod]
@@ -175,7 +175,7 @@ public class PresentationReaderTest
         Assert.AreEqual(DnsClass.IN, resource.Class);
         Assert.AreEqual(DnsType.PTR, resource.Type);
         Assert.AreEqual(ResourceRecord.DefaultTTL, resource.TTL);
-        Assert.IsInstanceOfType(resource, typeof(PTRRecord));
+        Assert.IsInstanceOfType<PTRRecord>(resource);
     }
 
     [TestMethod]
@@ -193,7 +193,7 @@ public class PresentationReaderTest
         Assert.AreEqual(DnsClass.IN, resource.Class);
         Assert.AreEqual(DnsType.PTR, resource.Type);
         Assert.AreEqual(ResourceRecord.DefaultTTL, resource.TTL);
-        Assert.IsInstanceOfType(resource, typeof(PTRRecord));
+        Assert.IsInstanceOfType<PTRRecord>(resource);
         Assert.IsNotNull(resource.Name);
         Assert.AreEqual(1, resource.Name.Labels.Count);
     }
@@ -213,7 +213,7 @@ public class PresentationReaderTest
         Assert.AreEqual(DnsClass.IN, resource.Class);
         Assert.AreEqual(DnsType.PTR, resource.Type);
         Assert.AreEqual(TimeSpan.FromMinutes(2), resource.TTL);
-        Assert.IsInstanceOfType(resource, typeof(PTRRecord));
+        Assert.IsInstanceOfType<PTRRecord>(resource);
     }
 
     [TestMethod]
@@ -231,7 +231,7 @@ public class PresentationReaderTest
         Assert.AreEqual(DnsClass.IN, a.Class);
         Assert.AreEqual(DnsType.A, a.Type);
         Assert.AreEqual(ResourceRecord.DefaultTTL, a.TTL);
-        Assert.IsInstanceOfType(a, typeof(ARecord));
+        Assert.IsInstanceOfType<ARecord>(a);
 
         var aaaa = reader.ReadResourceRecord();
         Assert.IsNotNull(aaaa);
@@ -239,7 +239,7 @@ public class PresentationReaderTest
         Assert.AreEqual(DnsClass.IN, aaaa.Class);
         Assert.AreEqual(DnsType.AAAA, aaaa.Type);
         Assert.AreEqual(ResourceRecord.DefaultTTL, aaaa.TTL);
-        Assert.IsInstanceOfType(aaaa, typeof(AAAARecord));
+        Assert.IsInstanceOfType<AAAARecord>(aaaa);
     }
 
     [TestMethod]
@@ -257,7 +257,7 @@ public class PresentationReaderTest
         Assert.AreEqual(DnsClass.IN, a.Class);
         Assert.AreEqual(DnsType.A, a.Type);
         Assert.AreEqual(ResourceRecord.DefaultTTL, a.TTL);
-        Assert.IsInstanceOfType(a, typeof(ARecord));
+        Assert.IsInstanceOfType<ARecord>(a);
         Assert.IsNotNull(a.Name);
         Assert.AreEqual(2, a.Name.Labels.Count);
 
@@ -267,7 +267,7 @@ public class PresentationReaderTest
         Assert.AreEqual(DnsClass.IN, aaaa.Class);
         Assert.AreEqual(DnsType.AAAA, aaaa.Type);
         Assert.AreEqual(ResourceRecord.DefaultTTL, aaaa.TTL);
-        Assert.IsInstanceOfType(aaaa, typeof(AAAARecord));
+        Assert.IsInstanceOfType<AAAARecord>(aaaa);
         Assert.AreEqual(2, a.Name.Labels.Count);
     }
 
@@ -283,7 +283,7 @@ public class PresentationReaderTest
         Assert.AreEqual(DnsClass.IN, a.Class);
         Assert.AreEqual(DnsType.A, a.Type);
         Assert.AreEqual(ResourceRecord.DefaultTTL, a.TTL);
-        Assert.IsInstanceOfType(a, typeof(ARecord));
+        Assert.IsInstanceOfType<ARecord>(a);
         Assert.IsNotNull(a.Name);
         Assert.AreEqual(2, a.Name.Labels.Count);
     }

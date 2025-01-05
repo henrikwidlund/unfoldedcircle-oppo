@@ -11,7 +11,7 @@ public interface IAlbumCoverService
     Task<Uri?> GetAlbumCoverAsync(string artist, string? album, string? track, CancellationToken cancellationToken = default);
 }
 
-internal class AlbumCoverService(
+internal sealed class AlbumCoverService(
     HttpClient httpClient,
     IMemoryCache memoryCache,
     UnfoldedCircleJsonSerializerContext unfoldedCircleJsonSerializerContext,
