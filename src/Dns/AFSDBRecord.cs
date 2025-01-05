@@ -47,14 +47,14 @@ public class AFSDBRecord : ResourceRecord
     /// <inheritdoc />
     public override void WriteData(WireWriter writer)
     {
-        writer.WriteUInt16(Subtype ?? default);
+        writer.WriteUInt16(Subtype ?? 0);
         writer.WriteDomainName(Target);
     }
 
     /// <inheritdoc />
     public override void WriteData(PresentationWriter writer)
     {
-        writer.WriteUInt16(Subtype ?? default);
+        writer.WriteUInt16(Subtype ?? 0);
         writer.WriteDomainName(Target, appendSpace: false);
     }
 }

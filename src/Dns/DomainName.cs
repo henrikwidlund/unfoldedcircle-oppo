@@ -277,9 +277,8 @@ public sealed class DomainName : IEquatable<DomainName>
     {
         if (ReferenceEquals(a, b)) return true;
         if (a is null) return false;
-        if (b is null) return false;
-
-        return a.Equals(b);
+        
+        return b is not null && a.Equals(b);
     }
 
     /// <summary>

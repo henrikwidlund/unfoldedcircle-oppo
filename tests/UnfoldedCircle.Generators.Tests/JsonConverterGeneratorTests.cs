@@ -26,7 +26,7 @@ public class JsonConverterGeneratorTests
                                  }
                              }
                              """;
-        var (diagnostics, output) = TestHelpers.GetGeneratedOutput<JsonConverterGenerator>(input);
+        (ImmutableArray<Diagnostic> diagnostics, string output) = TestHelpers.GetGeneratedOutput<JsonConverterGenerator>(input);
 
         Assert.Empty(diagnostics);
         return Verify(output).UseDirectory("Snapshots");

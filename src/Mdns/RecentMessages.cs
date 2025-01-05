@@ -12,9 +12,9 @@ namespace Makaretu.Dns;
 ///   <b>RecentMessages</b> is used to determine if a message has already been
 ///   processed within the specified <see cref="Interval"/>.
 /// </remarks>
-public class RecentMessages
+public class RecentMessages(TimeProvider timeProvider)
 {
-    private readonly TimeProvider _timeProvider;
+    private readonly TimeProvider _timeProvider = timeProvider;
     
     /// <summary>
     ///   Recent messages.
@@ -26,8 +26,6 @@ public class RecentMessages
     private readonly ConcurrentDictionary<string, DateTime> _messages = new(StringComparer.OrdinalIgnoreCase);
 
     public RecentMessages() : this(TimeProvider.System) { }
-    
-    public RecentMessages(TimeProvider timeProvider) => _timeProvider = timeProvider;
 
     /// <summary>
     /// The number of messages.
@@ -73,16 +71,8 @@ public class RecentMessages
     public int Prune()
     {
         var dead = _timeProvider.GetLocalNow().DateTime - Interval;
-        var count = 0;
 
-        foreach (var stale in _messages.Where(x => x.Value < dead))
-        {
-            if (_messages.TryRemove(stale.Key, out _))
-            {
-                ++count;
-            }
-        }
-        return count;
+        return _messages.Count(x => x.Value < dead && _messages.TryRemove(x.Key, out _));
     }
 
     /// <summary>

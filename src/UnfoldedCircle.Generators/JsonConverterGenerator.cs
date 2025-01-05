@@ -30,12 +30,12 @@ public class JsonConverterGenerator : IIncrementalGenerator
 
     private static void Execute(JsonConverterToGenerate? jsonConverterToGenerate, SourceProductionContext context)
     {
-        if (jsonConverterToGenerate is { } eg)
-        {
-            StringBuilder sb = new();
-            var result = JsonConverterSourceBuilder.GenerateJsonConverterClass(sb, eg);
-            context.AddSource(eg.ConverterType + ".g.cs", SourceText.From(result, Encoding.UTF8));
-        }
+        if (jsonConverterToGenerate is not { } eg)
+            return;
+
+        StringBuilder sb = new();
+        var result = JsonConverterSourceBuilder.GenerateJsonConverterClass(sb, eg);
+        context.AddSource(eg.ConverterType + ".g.cs", SourceText.From(result, Encoding.UTF8));
     }
 
     private static JsonConverterToGenerate? GetTypeToGenerate(GeneratorAttributeSyntaxContext context, CancellationToken ct)
@@ -87,24 +87,24 @@ public class JsonConverterGenerator : IIncrementalGenerator
                 {
                     foreach (var namedArgument in attribute.NamedArguments)
                     {
-                        if (namedArgument.Key.Equals("Name", StringComparison.Ordinal) && namedArgument.Value.Value?.ToString() is { } dn)
-                        {
-                            // found display attribute, all done
-                            displayName = dn;
-                            break;
-                        }
+                        if (!namedArgument.Key.Equals("Name", StringComparison.Ordinal) || namedArgument.Value.Value?.ToString() is not { } dn)
+                            continue;
+
+                        // found display attribute, all done
+                        displayName = dn;
+                        break;
                     }
                 }
 
-                if (attribute.AttributeClass?.Name.Equals(DescriptionAttribute, StringComparison.Ordinal) == true
-                    && attribute.AttributeClass.ToDisplayString().Equals("DescriptionAttribute", StringComparison.Ordinal)
-                    && attribute.ConstructorArguments.Length == 1
-                    && attribute.ConstructorArguments[0].Value?.ToString() is { } dn1)
-                {
-                    // found display attribute, all done
-                    displayName = dn1;
-                    break;
-                }
+                if (attribute.AttributeClass?.Name.Equals(DescriptionAttribute, StringComparison.Ordinal) != true
+                    || !attribute.AttributeClass.ToDisplayString().Equals("DescriptionAttribute", StringComparison.Ordinal)
+                    || attribute.ConstructorArguments.Length != 1
+                    || attribute.ConstructorArguments[0].Value?.ToString() is not { } dn1)
+                    continue;
+
+                // found display attribute, all done
+                displayName = dn1;
+                break;
             }
             
             if (displayName is not null)

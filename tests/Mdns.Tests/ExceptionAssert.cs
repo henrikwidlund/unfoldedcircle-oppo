@@ -4,14 +4,14 @@ using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace Makaretu;
+namespace Makaretu.Mdns;
 
 /// <summary>
 ///   Asserting an <see cref="Exception"/>.
 /// </summary>
 public static class ExceptionAssert
 {
-    public static async Task<T> ThrowsAsync<T>(Func<Task> action, string expectedMessage = null) where T : Exception
+    public static async Task ThrowsAsync<T>(Func<Task> action, string expectedMessage = null) where T : Exception
     {
         try
         {
@@ -20,29 +20,20 @@ public static class ExceptionAssert
         catch (AggregateException e)
         {
             var match = e.InnerExceptions.OfType<T>().FirstOrDefault();
-            if (match != null)
-            {
-                if (expectedMessage != null)
-                    Assert.AreEqual(expectedMessage, match.Message, "Wrong exception message.");
-                return match;
-            }
+            if (match == null)
+                throw;
 
-            throw;
+            if (expectedMessage != null)
+                Assert.AreEqual(expectedMessage, match.Message, "Wrong exception message.");
+            return;
+
         }
         catch (T e)
         {
             if (expectedMessage != null)
                 Assert.AreEqual(expectedMessage, e.Message);
-            return e;
+            return;
         }
         Assert.Fail("Exception of type {0} should be thrown.", typeof(T));
-
-        //  The compiler doesn't know that Assert.Fail will always throw an exception
-        return null;
-    }
-
-    public static async Task<Exception> ThrowsAsync(Func<Task> action, string expectedMessage = null)
-    {
-        return await ThrowsAsync<Exception>(action, expectedMessage);
     }
 }

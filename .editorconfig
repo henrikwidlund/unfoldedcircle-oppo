@@ -355,4 +355,6 @@ dotnet_diagnostic.MA0016.severity = none
 dotnet_diagnostic.MA0025.severity = none
 dotnet_diagnostic.MA0048.severity = none
 dotnet_diagnostic.MA0051.severity = none
+dotnet_diagnostic.MA0007.severity = none
+dotnet_diagnostic.MA0020.severity = none
 dotnet_diagnostic.CS9124.severity = error

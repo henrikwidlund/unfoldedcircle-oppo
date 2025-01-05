@@ -422,7 +422,7 @@ public static class DnsTypeExtensions
             DnsType.ANY => true,
             DnsType.URI => true,
             DnsType.CAA => true,
-            _ => false,
+            _ => false
         };
 
     public static string ToStringFast(this DnsType value)

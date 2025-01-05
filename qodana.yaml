@@ -1,0 +1,12 @@
+version: "1.0"
+linter: jetbrains/qodana-dotnet:2024.2
+profile:
+  name: qodana.recommended
+include:
+  - name: CheckDependencyLicenses
+exclude:
+  - name: MA0007
+  - name: MA0003
+  - name: ReplaceWithPrimaryConstructorParameter
+dotnet:
+  solution: UnfoldedCircle.sln

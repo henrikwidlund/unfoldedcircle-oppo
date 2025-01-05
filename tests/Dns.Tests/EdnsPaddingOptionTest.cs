@@ -13,7 +13,7 @@ public class EdnsPaddingOptionTest
         var opt1 = new OPTRecord();
         var expected = new EdnsPaddingOption
         {
-            Padding = [0, 0, 0]
+            Padding = "\0\0\0"u8.ToArray()
         };
         
         Assert.AreEqual(EdnsOptionType.Padding, expected.Type);

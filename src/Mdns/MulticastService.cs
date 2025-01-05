@@ -729,7 +729,7 @@ public class MulticastService : IMulticastService
         // Dispatch the message.
         try
         {
-            if (msg.IsQuery && msg.Questions.Count > 0)
+            if (msg is { IsQuery: true, Questions.Count: > 0 })
             {
                 if (QueryReceived is not null)
                     await QueryReceived(new MessageEventArgs { Message = msg, RemoteEndPoint = result.RemoteEndPoint });
@@ -754,13 +754,13 @@ public class MulticastService : IMulticastService
     /// <param name="disposing"></param>
     protected virtual void Dispose(bool disposing)
     {
-        if (disposing)
-        {
-            //Dispose of the clients
-            _unicastClientIp4?.Dispose();
-            _unicastClientIp6?.Dispose();
-            Stop();
-        }
+        if (!disposing)
+            return;
+
+        //Dispose of the clients
+        _unicastClientIp4?.Dispose();
+        _unicastClientIp6?.Dispose();
+        Stop();
     }
 
     /// <inheritdoc />
