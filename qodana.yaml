@@ -2,6 +2,8 @@ version: "1.0"
 linter: jetbrains/qodana-dotnet:2024.3
 profile:
   name: qodana.recommended
+dotnet:
+  solution: UnfoldedCircle.sln
 include:
   - name: CheckDependencyLicenses
   - name: CompareNonConstrainedGenericWithNull
