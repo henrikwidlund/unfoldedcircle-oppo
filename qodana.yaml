@@ -4,3 +4,6 @@ profile:
   name: qodana.recommended
 include:
   - name: CheckDependencyLicenses
+exclude:
+  - name: MA0007
+  - name: MA0003

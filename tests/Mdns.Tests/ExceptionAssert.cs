@@ -20,14 +20,13 @@ public static class ExceptionAssert
         catch (AggregateException e)
         {
             var match = e.InnerExceptions.OfType<T>().FirstOrDefault();
-            if (match != null)
-            {
-                if (expectedMessage != null)
-                    Assert.AreEqual(expectedMessage, match.Message, "Wrong exception message.");
-                return match;
-            }
+            if (match == null)
+                throw;
 
-            throw;
+            if (expectedMessage != null)
+                Assert.AreEqual(expectedMessage, match.Message, "Wrong exception message.");
+            return match;
+
         }
         catch (T e)
         {

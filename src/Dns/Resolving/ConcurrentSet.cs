@@ -101,13 +101,11 @@ public sealed class ConcurrentSet<T> : ICollection<T>
     /// </summary>
     public void AddRange(IEnumerable<T>? values)
     {
-        if (values != null)
-        {
-            foreach (var v in values)
-            {
-                Add(v);
-            }
-        }
+        if (values == null)
+            return;
+
+        foreach (var v in values)
+            Add(v);
     }
 
     /// <summary>

@@ -326,16 +326,15 @@ public class ServiceDiscovery : IServiceDiscovery
         // Convert handler to task
         Task Handler(MessageEventArgs e)
         {
-            foreach (ResourceRecord answer in e.Message.Answers)
+            if (!e.Message.Answers.Any(answer => (DnsClass)((ushort)answer.Class & ~MulticastService.CacheFlushBit) == DnsClass.IN
+                                                 && answer.Name?.Equals(profile.HostName) == true))
             {
-                if ((DnsClass)((ushort)answer.Class & ~MulticastService.CacheFlushBit) == DnsClass.IN && answer.Name?.Equals(profile.HostName) == true)
-                {
-                    conflict = true;
-                    return Task.CompletedTask;
-                }
+                return Task.CompletedTask;
             }
-            
+
+            conflict = true;
             return Task.CompletedTask;
+
         }
     }
 
@@ -448,29 +447,29 @@ public class ServiceDiscovery : IServiceDiscovery
             }
             else if (ptr.TTL == TimeSpan.Zero)
             {
-                if (ServiceInstanceShutdown is not null)
+                if (ServiceInstanceShutdown is null)
+                    continue;
+
+                var args = new ServiceInstanceShutdownEventArgs
                 {
-                    var args = new ServiceInstanceShutdownEventArgs
-                    {
-                        ServiceInstanceName = ptr.DomainName,
-                        Message = msg,
-                        RemoteEndPoint = e.RemoteEndPoint
-                    };
-                    await ServiceInstanceShutdown(args);
-                }
+                    ServiceInstanceName = ptr.DomainName,
+                    Message = msg,
+                    RemoteEndPoint = e.RemoteEndPoint
+                };
+                await ServiceInstanceShutdown(args);
             }
             else
             {
-                if (ServiceInstanceDiscovered is not null)
+                if (ServiceInstanceDiscovered is null)
+                    continue;
+
+                var args = new ServiceInstanceDiscoveryEventArgs
                 {
-                    var args = new ServiceInstanceDiscoveryEventArgs
-                    {
-                        ServiceInstanceName = ptr.DomainName,
-                        Message = msg,
-                        RemoteEndPoint = e.RemoteEndPoint
-                    };
-                    await ServiceInstanceDiscovered(args);
-                }
+                    ServiceInstanceName = ptr.DomainName,
+                    Message = msg,
+                    RemoteEndPoint = e.RemoteEndPoint
+                };
+                await ServiceInstanceDiscovered(args);
             }
         }
     }
@@ -488,13 +487,10 @@ public class ServiceDiscovery : IServiceDiscovery
         // Determine if this query is requesting a unicast response
         // and normalise the Class.
         var QU = false; // unicast query response?
-        foreach (var r in request.Questions)
+        foreach (var r in request.Questions.Where(static r => ((ushort)r.Class & MulticastService.UnicastResponseBit) != 0))
         {
-            if (((ushort)r.Class & MulticastService.UnicastResponseBit) != 0)
-            {
-                QU = true;
-                r.Class = (DnsClass)((ushort)r.Class & ~MulticastService.UnicastResponseBit);
-            }
+            QU = true;
+            r.Class = (DnsClass)((ushort)r.Class & ~MulticastService.UnicastResponseBit);
         }
 
         var response = await NameServer.ResolveAsync(request);
@@ -542,16 +538,15 @@ public class ServiceDiscovery : IServiceDiscovery
     /// <param name="disposing"></param>
     protected virtual void Dispose(bool disposing)
     {
-        if (disposing && Mdns != null)
-        {
-            Mdns.QueryReceived -= OnQuery;
-            Mdns.AnswerReceived -= OnAnswer;
-            if (_instantiatedMdns)
-            {
-                Mdns.Dispose();
-            }
-            Mdns = null;
-        }
+        if (!disposing || Mdns == null)
+            return;
+
+        Mdns.QueryReceived -= OnQuery;
+        Mdns.AnswerReceived -= OnAnswer;
+        if (_instantiatedMdns)
+            Mdns.Dispose();
+        
+        Mdns = null;
     }
 
     /// <inheritdoc />

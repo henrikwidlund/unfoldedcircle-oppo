@@ -628,10 +628,9 @@ public class ServiceDiscoveryTest
             foreach (var answer in e.Message.Answers)
                 answer.Class = (DnsClass)((ushort)answer.Class & ~MulticastService.CacheFlushBit);
             
-            foreach (var r in service.Resources)
+            if (service.Resources.Any(r => !msg.Answers.Contains(r)))
             {
-                if (!msg.Answers.Contains(r))
-                    return Task.CompletedTask;
+                return Task.CompletedTask;
             }
             
             done.Set();

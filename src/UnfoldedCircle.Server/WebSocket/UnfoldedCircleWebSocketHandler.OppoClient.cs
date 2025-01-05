@@ -23,13 +23,12 @@ internal partial class UnfoldedCircleWebSocketHandler
         var entity = !string.IsNullOrWhiteSpace(deviceId)
             ? configuration.Entities.Find(x => string.Equals(x.DeviceId, deviceId, StringComparison.Ordinal))
             : configuration.Entities[0];
-        if (entity is null)
-        {
-            _logger.LogInformation("[{WSId}] WS: No configuration found for device ID '{DeviceId}'", wsId, deviceId);
-            return null;
-        }
-        
-        return new OppoClientKey(entity.Host, entity.Model, entity.UseMediaEvents, entity.UseChapterLengthForMovies);
+        if (entity is not null)
+            return new OppoClientKey(entity.Host, entity.Model, entity.UseMediaEvents, entity.UseChapterLengthForMovies);
+
+        _logger.LogInformation("[{WSId}] WS: No configuration found for device ID '{DeviceId}'", wsId, deviceId);
+        return null;
+
     }
     
     private async Task<OppoClientHolder?> TryGetOppoClientHolder(
@@ -44,13 +43,13 @@ internal partial class UnfoldedCircleWebSocketHandler
         var oppoClient = _oppoClientFactory.TryGetOrCreateClient(oppoClientKey.Value);
         if (oppoClient is null)
             return null;
-        
-        if (!await oppoClient.IsConnectedAsync())
-        {
-            _oppoClientFactory.TryDisposeClient(oppoClientKey.Value);
-            oppoClient = _oppoClientFactory.TryGetOrCreateClient(oppoClientKey.Value);
-        }
-        
+
+        if (await oppoClient.IsConnectedAsync())
+            return new OppoClientHolder(oppoClient, oppoClientKey.Value);
+
+        _oppoClientFactory.TryDisposeClient(oppoClientKey.Value);
+        oppoClient = _oppoClientFactory.TryGetOrCreateClient(oppoClientKey.Value);
+
         return oppoClient is null ? null : new OppoClientHolder(oppoClient, oppoClientKey.Value);
     }
     

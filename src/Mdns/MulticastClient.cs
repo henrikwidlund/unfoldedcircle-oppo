@@ -179,29 +179,29 @@ internal class MulticastClient : IDisposable
 
     protected virtual void Dispose(bool disposing)
     {
-        if (!_disposedValue)
+        if (_disposedValue)
+            return;
+
+        if (disposing)
         {
-            if (disposing)
+            MessageReceived = null;
+
+            foreach (var receiver in _receivers)
             {
-                MessageReceived = null;
-
-                foreach (var receiver in _receivers)
+                try
                 {
-                    try
-                    {
-                        receiver.Dispose();
-                    }
-                    catch
-                    {
-                        // eat it.
-                    }
+                    receiver.Dispose();
                 }
-                _receivers.Clear();
-                _senders.Clear();
+                catch
+                {
+                    // eat it.
+                }
             }
-
-            _disposedValue = true;
+            _receivers.Clear();
+            _senders.Clear();
         }
+
+        _disposedValue = true;
     }
 
     // This code added to correctly implement the disposable pattern.

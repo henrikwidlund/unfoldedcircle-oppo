@@ -10,7 +10,7 @@ namespace DnsTests;
 /// </summary>
 public static class ExceptionAssert
 {
-    public static T Throws<T>(Action action, string expectedMessage = null) where T : Exception
+    public static void Throws<T>(Action action, string expectedMessage = null) where T : Exception
     {
         try
         {
@@ -19,20 +19,19 @@ public static class ExceptionAssert
         catch (AggregateException e)
         {
             var match = e.InnerExceptions.OfType<T>().FirstOrDefault();
-            if (match != null)
-            {
-                if (expectedMessage != null)
-                    Assert.AreEqual(expectedMessage, match.Message, "Wrong exception message.");
-                return match;
-            }
+            if (match == null)
+                throw;
 
-            throw;
+            if (expectedMessage != null)
+                Assert.AreEqual(expectedMessage, match.Message, "Wrong exception message.");
+            return;
+
         }
         catch (T e)
         {
             if (expectedMessage != null)
                 Assert.AreEqual(expectedMessage, e.Message);
-            return e;
+            return;
         }
         catch (Exception e)
         {
@@ -40,6 +39,5 @@ public static class ExceptionAssert
         }
 
         Assert.Fail("Expected Exception of type {0} but nothing was thrown.", typeof(T));
-        return null;
     }
 }

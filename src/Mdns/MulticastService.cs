@@ -754,13 +754,13 @@ public class MulticastService : IMulticastService
     /// <param name="disposing"></param>
     protected virtual void Dispose(bool disposing)
     {
-        if (disposing)
-        {
-            //Dispose of the clients
-            _unicastClientIp4?.Dispose();
-            _unicastClientIp6?.Dispose();
-            Stop();
-        }
+        if (!disposing)
+            return;
+
+        //Dispose of the clients
+        _unicastClientIp4?.Dispose();
+        _unicastClientIp6?.Dispose();
+        Stop();
     }
 
     /// <inheritdoc />

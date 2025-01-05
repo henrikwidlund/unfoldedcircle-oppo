@@ -120,7 +120,7 @@ namespace UnfoldedCircle.Generators
             .AppendLine()
             .AppendLine("    {");
         var stringComparison = jsonConverterToGenerate.CaseSensitive ? "global::System.StringComparison.Ordinal" : "global::System.StringComparison.OrdinalIgnoreCase";
-        foreach (var (enumMember, enumValueOption) in jsonConverterToGenerate.Members)
+        foreach ((string enumMember, EnumValueOption enumValueOption) in jsonConverterToGenerate.Members)
         {
             if (enumValueOption.DisplayName is not null)
             {
@@ -155,7 +155,7 @@ namespace UnfoldedCircle.Generators
             .AppendLine("        => enumValue switch")
             .AppendLine("        {");
         
-        foreach (var (enumMember, enumValueOption) in jsonConverterToGenerate.Members)
+        foreach ((string enumMember, EnumValueOption enumValueOption) in jsonConverterToGenerate.Members)
         {
             sb.AppendLine($"""            global::{jsonConverterToGenerate.FullyQualifiedEnumName}.{enumMember} => "{enumValueOption.DisplayName ?? enumMember}",""");
         }

@@ -304,14 +304,12 @@ public class PresentationReader
                 dnsClass = (DnsClass)ushort.Parse(token.AsSpan(5), CultureInfo.InvariantCulture);
                 continue;
             }
-            
-            if (DnsClassExtensions.TryParse(token, out var c))
-            {
-                dnsClass = c;
-                continue;
-            }
 
-            throw new InvalidDataException($"Unknown token '{token}', expected a Class, Type or TTL.");
+            if (!DnsClassExtensions.TryParse(token, out var c))
+                throw new InvalidDataException($"Unknown token '{token}', expected a Class, Type or TTL.");
+
+            dnsClass = c;
+
         }
 
         if (domainName is null)
@@ -348,16 +346,15 @@ public class PresentationReader
                     _previousChar = c;
                     continue;
                 }
-                
-                if (c == ')')
-                {
-                    --_parenLevel;
-                    c = _text.Read();
-                    _previousChar = c;
-                    break;
-                }
-                
-                return false;
+
+                if (c != ')')
+                    return false;
+
+                --_parenLevel;
+                c = _text.Read();
+                _previousChar = c;
+                break;
+
             }
         }
 
@@ -367,14 +364,11 @@ public class PresentationReader
         while ((c = _text.Peek()) >= 0)
         {
             // Skip space or tab.
-            if (c is ' ' or '\t')
-            {
-                c = _text.Read();
-                _previousChar = c;
-                continue;
-            }
+            if (c is not (' ' or '\t'))
+                return c is '\r' or '\n' or ';';
 
-            return c is '\r' or '\n' or ';';
+            c = _text.Read();
+            _previousChar = c;
         }
 
         // EOF is end of line

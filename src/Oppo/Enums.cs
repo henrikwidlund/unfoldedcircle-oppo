@@ -175,6 +175,6 @@ public enum InputSource
     HDMIFront,
     HDMIBack,
     ARCHDMIOut1,
-    ARCHDMIOut2,
+    ARCHDMIOut2
     // ReSharper restore InconsistentNaming
 }

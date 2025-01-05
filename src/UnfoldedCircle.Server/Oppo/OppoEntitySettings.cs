@@ -73,7 +73,7 @@ public static class OppoEntitySettings
         EntitySettingsConstants.GaplessPlay
     }.ToFrozenSet();
 
-    public static readonly FrozenDictionary<OppoModel, string[]> SourceList = new Dictionary<OppoModel, string[]>()
+    public static readonly FrozenDictionary<OppoModel, string[]> SourceList = new Dictionary<OppoModel, string[]>
     {
         [OppoModel.BDP10X] =
         [
