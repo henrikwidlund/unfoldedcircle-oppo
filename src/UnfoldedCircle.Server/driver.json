@@ -35,7 +35,6 @@
         "id": "oppo_model",
         "field": {
           "dropdown": {
-            "value": "movie_length",
             "items": [
               {
                 "id": "BDP8395",
