@@ -11,7 +11,7 @@ namespace Makaretu.Mdns;
 /// </summary>
 public static class ExceptionAssert
 {
-    public static async Task<T> ThrowsAsync<T>(Func<Task> action, string expectedMessage = null) where T : Exception
+    public static async Task ThrowsAsync<T>(Func<Task> action, string expectedMessage = null) where T : Exception
     {
         try
         {
@@ -25,23 +25,15 @@ public static class ExceptionAssert
 
             if (expectedMessage != null)
                 Assert.AreEqual(expectedMessage, match.Message, "Wrong exception message.");
-            return match;
+            return;
 
         }
         catch (T e)
         {
             if (expectedMessage != null)
                 Assert.AreEqual(expectedMessage, e.Message);
-            return e;
+            return;
         }
         Assert.Fail("Exception of type {0} should be thrown.", typeof(T));
-
-        //  The compiler doesn't know that Assert.Fail will always throw an exception
-        return null;
-    }
-
-    public static async Task<Exception> ThrowsAsync(Func<Task> action, string expectedMessage = null)
-    {
-        return await ThrowsAsync<Exception>(action, expectedMessage);
     }
 }

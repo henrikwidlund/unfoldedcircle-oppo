@@ -7,3 +7,4 @@ include:
 exclude:
   - name: MA0007
   - name: MA0003
+  - name: ReplaceWithPrimaryConstructorParameter
