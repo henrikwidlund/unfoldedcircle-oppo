@@ -150,10 +150,9 @@ public partial class NameServer : IResolver
 
         //  Find the resources that match the question.
         var resources = node.Resources
-            .Where(r => question.Class == DnsClass.ANY || r.Class == question.Class)
-            .Where(r => question.Type == DnsType.ANY || r.Type == question.Type)
-            .Where(r => node.Authoritative || !r.IsExpired(question.CreationTime))
-            .ToArray();
+            .Where(r => (question.Class == DnsClass.ANY || r.Class == question.Class)
+                        && (question.Type == DnsType.ANY || r.Type == question.Type)
+                        && (node.Authoritative || !r.IsExpired(question.CreationTime))).ToArray();
         if (resources.Length > 0)
         {
             response.Answers.AddRange(resources);

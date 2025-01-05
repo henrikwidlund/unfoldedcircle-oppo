@@ -6,7 +6,7 @@ using UnfoldedCircle.Server.Oppo;
 
 namespace UnfoldedCircle.Server.WebSocket;
 
-internal partial class UnfoldedCircleWebSocketHandler
+internal sealed partial class UnfoldedCircleWebSocketHandler
 {
     private async Task<OppoClientKey?> TryGetOppoClientKey(
         string wsId,

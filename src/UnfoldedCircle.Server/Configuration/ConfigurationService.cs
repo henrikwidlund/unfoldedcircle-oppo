@@ -2,7 +2,7 @@ using UnfoldedCircle.Server.Json;
 
 namespace UnfoldedCircle.Server.Configuration;
 
-internal class ConfigurationService(IConfiguration configuration, UnfoldedCircleJsonSerializerContext jsonSerializerContext)
+internal sealed class ConfigurationService(IConfiguration configuration, UnfoldedCircleJsonSerializerContext jsonSerializerContext)
     : IConfigurationService
 {
     private readonly IConfiguration _configuration = configuration;

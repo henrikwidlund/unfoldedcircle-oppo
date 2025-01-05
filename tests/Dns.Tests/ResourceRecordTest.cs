@@ -72,7 +72,7 @@ public class ResourceRecordTest
         Assert.AreEqual(a.TTL, b.TTL);
         Assert.AreEqual(a.GetDataLength(), b.GetDataLength());
         Assert.AreEqual(a.GetHashCode(), b.GetHashCode());
-        Assert.IsInstanceOfType(b, typeof(ResourceRecord));
+        Assert.IsInstanceOfType<ResourceRecord>(b);
     }
 
     [TestMethod]

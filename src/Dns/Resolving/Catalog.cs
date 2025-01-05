@@ -108,8 +108,9 @@ public class Catalog : ConcurrentDictionary<DomainName, Node>
         if (resource.Name is null)
             throw new ArgumentNullException(nameof(resource), "Resource name is missing.");
         var node = AddOrUpdate(
-            resource.Name,
-            k => new Node { Name = k, Authoritative = authoritative }, static (_, n) => n
+            resource.Name, static (k, arg) => new Node { Name = k, Authoritative = arg },
+            static (_, n, _) => n,
+            authoritative
         );
 
         // If the resource already exist, then update the the non-equality

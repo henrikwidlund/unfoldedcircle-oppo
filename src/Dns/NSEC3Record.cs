@@ -84,7 +84,7 @@ public class NSEC3Record : ResourceRecord
         writer.WriteUInt16(Iterations.Value);
         writer.WriteByteLengthPrefixedBytes(Salt);
         writer.WriteByteLengthPrefixedBytes(NextHashedOwnerName);
-        writer.WriteBitmap(Types.Select(static t => (ushort)t));
+        writer.WriteBitmap(Types.Cast<ushort>());
     }
 
     /// <inheritdoc />

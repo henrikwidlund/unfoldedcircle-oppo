@@ -14,9 +14,9 @@ public class ResourceRegistryTest
     public void Create()
     {
         var rr = ResourceRegistry.Create(DnsType.NS);
-        Assert.IsInstanceOfType(rr, typeof(NSRecord));
+        Assert.IsInstanceOfType<NSRecord>(rr);
 
         rr = ResourceRegistry.Create((DnsType)1234);
-        Assert.IsInstanceOfType(rr, typeof(UnknownRecord));
+        Assert.IsInstanceOfType<UnknownRecord>(rr);
     }
 }

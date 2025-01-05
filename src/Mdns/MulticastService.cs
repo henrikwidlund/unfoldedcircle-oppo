@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Net.NetworkInformation;
@@ -220,9 +221,8 @@ public class MulticastService : IMulticastService
     public static IEnumerable<NetworkInterface> GetNetworkInterfaces()
     {
         var nics = NetworkInterface.GetAllNetworkInterfaces()
-            .Where(static nic => nic is { OperationalStatus: OperationalStatus.Up, IsReceiveOnly: false, SupportsMulticast: true })
-            .Where(static nic => IncludeLoopbackInterfaces || (nic.NetworkInterfaceType != NetworkInterfaceType.Loopback))
-            .ToArray();
+            .Where(static nic => nic is { OperationalStatus: OperationalStatus.Up, IsReceiveOnly: false, SupportsMulticast: true }
+                                 && (IncludeLoopbackInterfaces || (nic.NetworkInterfaceType != NetworkInterfaceType.Loopback))).ToArray();
         if (nics.Length > 0)
             return nics;
 
@@ -619,7 +619,7 @@ public class MulticastService : IMulticastService
         var packet = msg.ToByteArray();
         if (packet.Length > _maxPacketSize)
         {
-            throw new ArgumentOutOfRangeException($"Exceeds max packet size of {_maxPacketSize}.");
+            throw new ArgumentOutOfRangeException($"Exceeds max packet size of {_maxPacketSize.ToString(NumberFormatInfo.InvariantInfo)}.");
         }
 
         if (checkDuplicate && !_sentMessages.TryAdd(packet))

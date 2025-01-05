@@ -3,7 +3,7 @@ using System.Net.WebSockets;
 
 namespace UnfoldedCircle.Server.WebSocket;
 
-internal class UnfoldedCircleMiddleware(
+internal sealed class UnfoldedCircleMiddleware(
     UnfoldedCircleWebSocketHandler unfoldedCircleWebSocketHandler,
     IHostApplicationLifetime applicationLifetime,
     ILoggerFactory loggerFactory,
@@ -25,7 +25,7 @@ internal class UnfoldedCircleMiddleware(
 
                 _logger.LogDebug("[{WSId}] WS: New connection", wsId);
 
-                using var cancellationTokenWrapper = new CancellationTokenWrapper(_applicationLifetime.ApplicationStopping, context.RequestAborted, _loggerFactory.CreateLogger<CancellationTokenWrapper>());
+                using var cancellationTokenWrapper = new CancellationTokenWrapper(_loggerFactory.CreateLogger<CancellationTokenWrapper>(), _applicationLifetime.ApplicationStopping, context.RequestAborted);
                 var result = await _unfoldedCircleWebSocketHandler.HandleWebSocketAsync(socket, wsId, cancellationTokenWrapper);
                 await socket.CloseAsync(result.CloseStatus ?? WebSocketCloseStatus.NormalClosure, result.CloseStatusDescription, CancellationToken.None);
                 

@@ -1,9 +1,9 @@
 namespace UnfoldedCircle.Server.WebSocket;
 
 public sealed class CancellationTokenWrapper(
+    ILogger<CancellationTokenWrapper> logger,
     in CancellationToken applicationStopping,
-    in CancellationToken requestAborted,
-    ILogger<CancellationTokenWrapper> logger) : IDisposable
+    in CancellationToken requestAborted) : IDisposable
 {
     public readonly CancellationToken ApplicationStopping = applicationStopping;
     public readonly CancellationToken RequestAborted = requestAborted;

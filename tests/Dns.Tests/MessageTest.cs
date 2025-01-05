@@ -76,7 +76,7 @@ public class MessageTest
         Assert.AreEqual(DnsType.A, msg.Answers[0].Type);
         Assert.AreEqual(0x8001, (ushort)msg.Answers[0].Class);
         Assert.AreEqual(TimeSpan.FromSeconds(30720), msg.Answers[0].TTL);
-        Assert.IsInstanceOfType(msg.Answers[0], typeof(ARecord));
+        Assert.IsInstanceOfType<ARecord>(msg.Answers[0]);
         Assert.AreEqual(IPAddress.Parse("153.109.7.90"), ((ARecord)msg.Answers[0]).Address);
 
         var aaaa = (AAAARecord)msg.AdditionalRecords[0];
