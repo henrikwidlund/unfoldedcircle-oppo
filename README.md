@@ -78,7 +78,7 @@ Additionally, the application saves configured entities to the `configured_entit
 
 ## Logging
 
-By default, the application logs to stdout. It can also be customized to send the logs over HTTP to a remote server. 
+By default, the application logs to stdout. 
 You can customize the log levels by either modifying the `appsettings.json` file or by setting environment variables.
 
 ### Log levels
@@ -110,25 +110,6 @@ Same adjustments to log levels can be made by setting environment variables.
 - `Logging__LogLevel__UnfoldedCircle.Server` = `Information`
 - `Logging__LogLevel__Oppo` = `Information`
 - `Logging__LogLevel__Makaretu.Dns` = `Warning`
-
-### HTTP logging
-
-Change `appsettings.json` to send logs over HTTP.
-
-```json
-{
-    "HttpLogger": {
-        "Enabled": true,
-        "Endpoint": "https://YOUR_HOST:PORT/OPTIONAL_PATH"
-    }
-}
-```
-
-Similarly you can configure it using environment variables:
-- `HttpLogger__Enabled` = `true`
-- `HttpLogger__Endpoint` = `https://YOUR_HOST:PORT/OPTIONAL_PATH`
-
-Note that when using HTTP logging the application will default to `Trace` log level.
 
 ## Building from source code
 

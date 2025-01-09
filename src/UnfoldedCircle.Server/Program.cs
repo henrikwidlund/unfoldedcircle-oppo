@@ -4,7 +4,6 @@ using UnfoldedCircle.Server.AlbumCover;
 using UnfoldedCircle.Server.Configuration;
 using UnfoldedCircle.Server.Dns;
 using UnfoldedCircle.Server.Json;
-using UnfoldedCircle.Server.Logging;
 
 using UnfoldedCircle.Server.WebSocket;
 
@@ -14,9 +13,6 @@ builder.WebHost.ConfigureKestrel(options =>
 {
     options.ListenAnyIP(builder.Configuration.GetOrDefault("UC_INTEGRATION_HTTP_PORT", 9001));
 });
-
-if (builder.Configuration.GetOrDefault("HttpLogger:Enabled", false))
-    builder.Logging.AddHttpLogger();
 
 var unfoldedCircleJsonSerializerContext = new UnfoldedCircleJsonSerializerContext(new JsonSerializerOptions
 {
