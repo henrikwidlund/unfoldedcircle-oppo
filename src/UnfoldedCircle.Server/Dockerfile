@@ -10,11 +10,10 @@ COPY [".editorconfig", "."]
 COPY ["src/UnfoldedCircle.Server/UnfoldedCircle.Server.csproj", "UnfoldedCircle.Server/"]
 RUN dotnet restore "UnfoldedCircle.Server/UnfoldedCircle.Server.csproj"
 COPY ./src .
-WORKDIR "/src/UnfoldedCircle.Server"
-RUN dotnet build "UnfoldedCircle.Server.csproj" -c "$BUILD_CONFIGURATION" -o /app/build
 
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
+WORKDIR "/src/UnfoldedCircle.Server"
 RUN dotnet publish "UnfoldedCircle.Server.csproj" -c "$BUILD_CONFIGURATION" -o /app/publish /p:UseAppHost=true
 RUN chown "$APP_UID" /app/publish/configured_entities.json && chmod 644 /app/publish/configured_entities.json
 
