@@ -12,6 +12,9 @@
         <Copyright>© 2018-2019 Richard Schneider, jdomnitz</Copyright>
         <Nullable>enable</Nullable>
         <RuntimeIdentifier Condition="'$(BuildForLinuxArm)' == 'true'">linux-arm64</RuntimeIdentifier>
+        <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
+        <IsTrimmable>true</IsTrimmable>
+        <IsAotCompatible>true</IsAotCompatible>
     </PropertyGroup>
     
     <ItemGroup>

@@ -6,8 +6,9 @@
         <Nullable>enable</Nullable>
         <RuntimeIdentifier Condition="'$(BuildForLinuxArm)' == 'true'">linux-arm64</RuntimeIdentifier>
         <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
-        <IsTrimmable>false</IsTrimmable>
+        <IsTrimmable>true</IsTrimmable>
         <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+        <IsAotCompatible>true</IsAotCompatible>
     </PropertyGroup>
 
     <ItemGroup>

@@ -10,6 +10,8 @@
         <RuntimeIdentifier Condition="'$(BuildForLinuxArm)' == 'true'">linux-arm64</RuntimeIdentifier>
         <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
         <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+        <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
+        <IsTrimmable>true</IsTrimmable>
         <IsAotCompatible>true</IsAotCompatible>
     </PropertyGroup>
     
