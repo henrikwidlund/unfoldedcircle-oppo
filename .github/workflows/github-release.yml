@@ -12,11 +12,14 @@ jobs:
       contents: write
     strategy:
       matrix:
-        kind: [ 'linux', 'macos', 'windows' ]
+        kind: [ 'linux-x64', 'linux-arm64', 'macos', 'windows' ]
         include:
-          - kind: linux
+          - kind: linux-x64
             os: ubuntu-latest
-            target: linux
+            target: linux-x64
+          - kind: linux-arm64
+            os: ubuntu-24.04-arm
+            target: linux-arm64
           - kind: macos
             os: macos-latest
             target: osx
@@ -41,20 +44,13 @@ jobs:
           tag=$(git describe --tags --abbrev=0)
           # Build everything
           ASSEMBLY_VERSION="${tag//v}"
-          for target_arch in "x64" "arm64"; do
-            target="${{ matrix.target }}-$target_arch"
-            release_name="unfolded-circle-oppo-$tag-$target"
-          
-            dotnet publish ./src/UnfoldedCircle.Server/UnfoldedCircle.Server.csproj -r $target -c Release --self-contained -o ./publish -p:Version="$ASSEMBLY_VERSION"
-            if [ "${{ matrix.kind }}" == "windows" ]; then
-              # Pack to zip for Windows
-              7z a -tzip "${release_name}.zip" "./publish/*"
-            else
-              # Pack tar.gz for non-Windows
-              tar -czvf "${release_name}.tar.gz" -C ./publish .
-            fi
+          if [ "${{ matrix.kind }}" == "linux-x64" ] || [ "${{ matrix.kind }}" == "linux-arm64" ]; then
+            release_name="unfolded-circle-oppo-$tag-${{ matrix.target }}"
             
-            if [ "${{ matrix.kind }}" == "linux" ] && [ "$target_arch" == "arm64" ]; then
+            dotnet publish ./src/UnfoldedCircle.Server/UnfoldedCircle.Server.csproj -r ${{ matrix.target }} -c Release -p:PublishUsingAot=true -o ./publish -p:Version="$ASSEMBLY_VERSION"
+            tar -czvf "${release_name}.tar.gz" -C ./publish .
+            
+            if [ "${{ matrix.target }}" == "linux-arm64" ]; then
               mkdir driverdir && mkdir driverdir/bin && mkdir driverdir/config && mkdir driverdir/data
               cp publish/driver.json driverdir/driver.json
               cp ./oppo.png ./driverdir/oppo.png
@@ -69,7 +65,28 @@ jobs:
             fi
             # Delete output directory
             rm -r "./publish"
-          done
+          else
+            for target_arch in "x64" "arm64"; do
+              target="${{ matrix.target }}-$target_arch"
+              release_name="unfolded-circle-oppo-$tag-$target"
+              publish_aot=false
+              if [ "$target_arch" == "x64" ]; then
+                  publish_aot=true
+              fi
+              
+              dotnet publish ./src/UnfoldedCircle.Server/UnfoldedCircle.Server.csproj -r $target -c Release -p:PublishUsingAot="$publish_aot" -o ./publish -p:Version="$ASSEMBLY_VERSION"
+              if [ "${{ matrix.kind }}" == "windows" ]; then
+                # Pack to zip for Windows
+                7z a -tzip "${release_name}.zip" "./publish/*"
+              else
+                # Pack tar.gz for non-Windows
+                tar -czvf "${release_name}.tar.gz" -C ./publish .
+              fi
+              
+              # Delete output directory
+              rm -r "./publish"
+            done
+          fi
       - name: Publish
         uses: softprops/action-gh-release@v2
         with:

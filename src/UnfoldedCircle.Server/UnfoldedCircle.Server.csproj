@@ -10,6 +10,16 @@
         <RuntimeIdentifier Condition="'$(BuildForLinuxArm)' == 'true'">linux-arm64</RuntimeIdentifier>
         <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
         <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+        <IsAotCompatible>true</IsAotCompatible>
+    </PropertyGroup>
+    
+    <PropertyGroup Condition="'$(PublishUsingAot)' == 'true'">
+        <PublishAot>true</PublishAot>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="'$(PublishUsingAot)' != 'true'">
+        <PublishSingleFile>true</PublishSingleFile>
+        <PublishTrimmed>true</PublishTrimmed>
     </PropertyGroup>
 
     <PropertyGroup>
