@@ -7,11 +7,11 @@ using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 
-using FluentAssertions;
-
 using Makaretu.Dns;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+
+using Shouldly;
 
 namespace Makaretu.Mdns;
 
@@ -38,7 +38,7 @@ public class MulticastServiceTest
             mdns.Stop();
         };
 
-        await action.Should().NotThrowAsync();
+        await action.ShouldNotThrowAsync();
     }
 
     [TestMethod]
