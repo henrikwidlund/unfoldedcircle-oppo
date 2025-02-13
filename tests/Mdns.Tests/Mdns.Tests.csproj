@@ -10,14 +10,14 @@
     
     <ItemGroup>
         <PackageReference Include="FluentAssertions" Version="8.0.1" />
-        <PackageReference Include="Meziantou.Analyzer" Version="2.0.186">
+        <PackageReference Include="Meziantou.Analyzer" Version="2.0.187">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" PrivateAssets="all" />
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.13.0" PrivateAssets="all" />
         <PackageReference Include="Moq" Version="4.20.72" />
-        <PackageReference Include="MSTest.TestAdapter" Version="3.7.3" PrivateAssets="all" />
-        <PackageReference Include="MSTest.TestFramework" Version="3.7.3" PrivateAssets="all" />
+        <PackageReference Include="MSTest.TestAdapter" Version="3.8.0" PrivateAssets="all" />
+        <PackageReference Include="MSTest.TestFramework" Version="3.8.0" PrivateAssets="all" />
         <PackageReference Include="coverlet.msbuild" Version="6.0.4" PrivateAssets="all" />
     </ItemGroup>
     
