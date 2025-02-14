@@ -2,11 +2,11 @@
 using System.Collections.Generic;
 using System.IO;
 
-using FluentAssertions;
-
 using Makaretu.Dns;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+
+using Shouldly;
 
 namespace DnsTests;
 
@@ -387,8 +387,7 @@ public class PresentationReaderTest
     public void ReadType_BadName()
     {
         var reader = new PresentationReader(new StringReader("BADNAME"));
-        var bla = () => reader.ReadDnsType();
-        bla.Should().Throw<Exception>();
+        Should.Throw<Exception>(() => reader.ReadDnsType());
     }
 
     [TestMethod]
