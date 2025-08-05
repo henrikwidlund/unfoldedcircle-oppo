@@ -3,8 +3,8 @@ using Oppo;
 using UnfoldedCircle.Models.Events;
 using UnfoldedCircle.Models.Shared;
 using UnfoldedCircle.Models.Sync;
+using UnfoldedCircle.Server.Configuration;
 using UnfoldedCircle.Server.Json;
-using UnfoldedCircle.Server.Oppo;
 
 namespace UnfoldedCircle.Server.Response;
 
@@ -102,9 +102,7 @@ internal static class ResponsePayloadHelpers
 
     public static byte[] CreateGetEntityStatesResponsePayload(
         CommonReq req,
-        in bool isConnected,
-        string? deviceId,
-        in OppoModel? model,
+        IEnumerable<EntityIdDeviceId> entityIdDeviceIds,
         UnfoldedCircleJsonSerializerContext jsonSerializerContext) =>
         JsonSerializer.SerializeToUtf8Bytes(new EntityStates<MediaPlayerEntityAttribute>
         {
@@ -112,21 +110,16 @@ internal static class ResponsePayloadHelpers
             Kind = "resp",
             ReqId = req.Id,
             Msg = "entity_states",
-            MsgData = isConnected
-                ?
-                [
-                    new EntityStateChanged<MediaPlayerEntityAttribute>
-                    {
-                        EntityId = OppoConstants.EntityId,
-                        EntityType = EntityType.MediaPlayer,
-                        Attributes = GetMediaPlayerAttributes(model!.Value),
-                        DeviceId = deviceId
-                    }
-                ]
-                : []
+            MsgData = entityIdDeviceIds.Select(static x => new EntityStateChanged<MediaPlayerEntityAttribute>
+            {
+                EntityId = x.EntityId,
+                EntityType = EntityType.MediaPlayer,
+                Attributes = GetMediaPlayerAttributes(x.Model),
+                DeviceId = x.DeviceId
+            }).ToArray()
         }, jsonSerializerContext.EntityStatesMediaPlayerEntityAttribute);
 
-    private static MediaPlayerEntityAttribute[] GetMediaPlayerAttributes(OppoModel model)
+    private static MediaPlayerEntityAttribute[] GetMediaPlayerAttributes(in OppoModel model)
     {
         return model switch
         {
@@ -221,6 +214,7 @@ internal static class ResponsePayloadHelpers
 
     internal static byte[] CreateStateChangedResponsePayload(
         StateChangedEventMessageDataAttributes attributes,
+        string entityId,
         UnfoldedCircleJsonSerializerContext jsonSerializerContext) =>
         JsonSerializer.SerializeToUtf8Bytes(new StateChangedEvent
         {
@@ -230,7 +224,7 @@ internal static class ResponsePayloadHelpers
             TimeStamp = DateTime.UtcNow,
             MsgData = new StateChangedEventMessageData
             {
-                EntityId = OppoConstants.EntityId,
+                EntityId = entityId,
                 EntityType = EntityType.MediaPlayer,
                 Attributes = attributes
             }

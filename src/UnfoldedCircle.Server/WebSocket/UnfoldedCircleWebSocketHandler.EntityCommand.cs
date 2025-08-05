@@ -13,10 +13,10 @@ internal sealed partial class UnfoldedCircleWebSocketHandler
         System.Net.WebSockets.WebSocket socket,
         EntityCommandMsg<OppoCommandId> payload,
         string wsId,
-        string? deviceId,
+        string entityId,
         CancellationTokenWrapper cancellationTokenWrapper)
     {
-        var oppoClientHolder = await TryGetOppoClientHolder(wsId, deviceId, cancellationTokenWrapper.ApplicationStopping);
+        var oppoClientHolder = await TryGetOppoClientHolder(wsId, entityId, IdentifierType.EntityId, cancellationTokenWrapper.ApplicationStopping);
         if (oppoClientHolder is null || !await oppoClientHolder.Client.IsConnectedAsync())
         {
             await SendAsync(socket,
@@ -57,6 +57,7 @@ internal sealed partial class UnfoldedCircleWebSocketHandler
                 await SendAsync(socket,
                     ResponsePayloadHelpers.CreateStateChangedResponsePayload(
                         new StateChangedEventMessageDataAttributes { State = State.Off },
+                        entityId,
                         _unfoldedCircleJsonSerializerContext),
                     wsId,
                     cancellationTokenWrapper.ApplicationStopping);

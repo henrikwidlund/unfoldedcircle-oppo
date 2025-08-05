@@ -77,6 +77,7 @@ internal sealed partial class UnfoldedCircleWebSocketHandler
                     await SendAsync(socket,
                         ResponsePayloadHelpers.CreateStateChangedResponsePayload(
                             new StateChangedEventMessageDataAttributes { State = state },
+                            oppoClientHolder.ClientKey.EntityId,
                             _unfoldedCircleJsonSerializerContext),
                         wsId,
                         cancellationTokenWrapper.ApplicationStopping);
@@ -168,7 +169,7 @@ internal sealed partial class UnfoldedCircleWebSocketHandler
                         TimeStamp = DateTime.UtcNow,
                         MsgData = new StateChangedEventMessageData
                         {
-                            EntityId = OppoConstants.EntityId,
+                            EntityId = oppoClientHolder.ClientKey.EntityId,
                             EntityType = EntityType.MediaPlayer,
                             Attributes = new StateChangedEventMessageDataAttributes
                             {

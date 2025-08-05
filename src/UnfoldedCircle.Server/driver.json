@@ -1,6 +1,6 @@
 {
   "driver_id": "oppo-unfolded-circle",
-  "version": "0.0.6",
+  "version": "0.0.8",
   "min_core_api": "0.20.0",
   "name": {
     "en": "Oppo Blu-ray Player"
@@ -20,6 +20,15 @@
     },
     "settings": [
       {
+        "id": "device_name",
+        "field": {
+          "text": { }
+        },
+        "label": {
+          "en": "Enter the name of the Oppo player (optional)"
+        }
+      },
+      {
         "id": "ip_address",
         "field": {
           "text": {
@@ -28,7 +37,7 @@
           }
         },
         "label": {
-          "en": "Enter the IP address of the Oppo player"
+          "en": "Enter the IP address of the Oppo player (mandatory)"
         }
       },
       {
@@ -64,7 +73,7 @@
           }
         },
         "label": {
-          "en": "Select the model of your Oppo player"
+          "en": "Select the model of your Oppo player (mandatory)"
         }
       },
       {
@@ -105,5 +114,5 @@
       }
     ]
   },
-  "release_date": "2024-11-13"
+  "release_date": "2025-08-05"
 }
