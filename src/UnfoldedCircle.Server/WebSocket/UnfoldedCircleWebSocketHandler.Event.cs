@@ -23,13 +23,19 @@ internal sealed partial class UnfoldedCircleWebSocketHandler
                 var oppoClientHolders = await TryGetOppoClientHolders(wsId, cancellationTokenWrapper.ApplicationStopping);
                 if (oppoClientHolders is { Count: > 0 })
                 {
+                    var lastDeviceState = DeviceState.Disconnected;
                     foreach (var oppoClientHolder in oppoClientHolders)
                     {
                         var deviceState = await GetDeviceState(oppoClientHolder);
-                        await SendAsync(socket,
-                            ResponsePayloadHelpers.CreateConnectEventResponsePayload(deviceState),
-                            wsId,
-                            cancellationTokenWrapper.ApplicationStopping);
+                        if (lastDeviceState != deviceState)
+                        {
+                            if (lastDeviceState != DeviceState.Connected && deviceState == DeviceState.Connected)
+                                await SendAsync(socket,
+                                    ResponsePayloadHelpers.CreateConnectEventResponsePayload(deviceState),
+                                    wsId,
+                                    cancellationTokenWrapper.ApplicationStopping);
+                            lastDeviceState = deviceState;
+                        }
 
                         if (deviceState is DeviceState.Connected)
                             _ = HandleEventUpdates(socket, wsId, oppoClientHolder, cancellationTokenWrapper);
@@ -42,7 +48,7 @@ internal sealed partial class UnfoldedCircleWebSocketHandler
             {
                 var payload = jsonDocument.Deserialize(UnfoldedCircleJsonSerializerContext.Instance.DisconnectEvent)!;
                 await (cancellationTokenWrapper.GetCurrentBroadcastCancellationTokenSource()?.CancelAsync() ?? Task.CompletedTask);
-                var success = await TryDisconnectOppoClient(wsId, payload.MsgData?.DeviceId, cancellationTokenWrapper.ApplicationStopping);
+                var success = await TryDisconnectOppoClients(wsId, payload.MsgData?.DeviceId, cancellationTokenWrapper.ApplicationStopping);
                 SocketIdEntityIpMap.TryRemove(wsId, out _);
                 
                 await SendAsync(socket,
@@ -87,13 +93,19 @@ internal sealed partial class UnfoldedCircleWebSocketHandler
                     var oppoClientHolders = await TryGetOppoClientHolders(wsId, cancellationTokenWrapper.ApplicationStopping);
                     if (oppoClientHolders is { Count: > 0 })
                     {
+                        var lastDeviceState = DeviceState.Disconnected;
                         foreach (var oppoClientHolder in oppoClientHolders)
                         {
                             var deviceState = await GetDeviceState(oppoClientHolder);
-                            await SendAsync(socket,
-                                ResponsePayloadHelpers.CreateConnectEventResponsePayload(deviceState),
-                                wsId,
-                                cancellationTokenWrapper.ApplicationStopping);
+                            if (lastDeviceState != deviceState)
+                            {
+                                if (lastDeviceState != DeviceState.Connected && deviceState == DeviceState.Connected)
+                                    await SendAsync(socket,
+                                        ResponsePayloadHelpers.CreateConnectEventResponsePayload(deviceState),
+                                        wsId,
+                                        cancellationTokenWrapper.ApplicationStopping);
+                                lastDeviceState = deviceState;
+                            }
 
                             if (deviceState is DeviceState.Connected)
                                 _ = HandleEventUpdates(socket, wsId, oppoClientHolder, cancellationTokenWrapper);
