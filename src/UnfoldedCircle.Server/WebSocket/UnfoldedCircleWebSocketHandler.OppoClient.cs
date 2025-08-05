@@ -171,8 +171,8 @@ internal sealed partial class UnfoldedCircleWebSocketHandler
         var driverMetadata = await _configurationService.GetDriverMetadataAsync(cancellationToken);
         var host = msgDataSetupData[OppoConstants.IpAddressKey];
         var oppoModel = GetOppoModel(msgDataSetupData);
-        var deviceName = msgDataSetupData.GetValueOrDefault(OppoConstants.DeviceNameKey, $"{driverMetadata.Name["en"]} ({oppoModel} - {host}");
-        var deviceId = msgDataSetupData.GetValueOrDefault(OppoConstants.DeviceIdKey, host);
+        var deviceName = msgDataSetupData.GetValueOrNull(OppoConstants.DeviceNameKey, $"{driverMetadata.Name["en"]} ({oppoModel} - {host}");
+        var deviceId = msgDataSetupData.GetValueOrNull(OppoConstants.DeviceIdKey, host);
         bool? useMediaEvents = msgDataSetupData.TryGetValue(OppoConstants.UseMediaEventsKey, out var useMediaEventsValue)
             ? useMediaEventsValue.Equals(bool.TrueString, StringComparison.OrdinalIgnoreCase)
             : null;
