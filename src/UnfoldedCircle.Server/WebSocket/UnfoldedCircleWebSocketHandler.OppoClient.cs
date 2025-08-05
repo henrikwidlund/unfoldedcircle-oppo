@@ -143,16 +143,23 @@ internal sealed partial class UnfoldedCircleWebSocketHandler
         return configuration.Entities;
     }
     
-    private async Task<bool> TryDisconnectOppoClient(
+    private async Task<bool> TryDisconnectOppoClients(
         string wsId,
         string? deviceId,
         CancellationToken cancellationToken)
     {
-        var oppoClientKey = await TryGetOppoClientKey(wsId, IdentifierType.DeviceId, deviceId, cancellationToken);
-        if (oppoClientKey is null)
+        var oppoClientKeys = await TryGetOppoClientKeys(wsId, cancellationToken);
+        if (oppoClientKeys is not { Length: > 0 })
             return false;
-        
-        _oppoClientFactory.TryDisposeClient(oppoClientKey.Value);
+
+        foreach (var oppoClientKey in oppoClientKeys)
+        {
+            if (!string.IsNullOrEmpty(deviceId) && !string.Equals(oppoClientKey.DeviceId, deviceId, StringComparison.Ordinal))
+                continue;
+
+            _oppoClientFactory.TryDisposeClient(oppoClientKey);
+        }
+
         return true;
     }
     
