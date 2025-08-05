@@ -171,7 +171,7 @@ internal sealed partial class UnfoldedCircleWebSocketHandler
         var driverMetadata = await _configurationService.GetDriverMetadataAsync(cancellationToken);
         var host = msgDataSetupData[OppoConstants.IpAddressKey];
         var oppoModel = GetOppoModel(msgDataSetupData);
-        var deviceName = msgDataSetupData.GetValueOrNull(OppoConstants.DeviceNameKey, $"{driverMetadata.Name["en"]} ({oppoModel} - {host}");
+        var deviceName = msgDataSetupData.GetValueOrNull(OppoConstants.DeviceNameKey, $"{driverMetadata.Name["en"]} ({GetOppoModelName(oppoModel)}) - {host}");
         var deviceId = msgDataSetupData.GetValueOrNull(OppoConstants.DeviceIdKey, host);
         bool? useMediaEvents = msgDataSetupData.TryGetValue(OppoConstants.UseMediaEventsKey, out var useMediaEventsValue)
             ? useMediaEventsValue.Equals(bool.TrueString, StringComparison.OrdinalIgnoreCase)
@@ -231,6 +231,15 @@ internal sealed partial class UnfoldedCircleWebSocketHandler
 
             return OppoModel.UDP203;
         }
+
+        static string GetOppoModelName(in OppoModel oppoModel) =>
+            oppoModel switch
+            {
+                OppoModel.BDP8395 => "BDP-83/95",
+                OppoModel.BDP10X => "BDP-10X",
+                OppoModel.UDP203 => "UDP-203",
+                _ => "UDP-205"
+            };
     }
     
     private async Task RemoveConfiguration(
