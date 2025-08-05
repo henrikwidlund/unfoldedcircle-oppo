@@ -98,7 +98,7 @@ internal sealed partial class UnfoldedCircleWebSocketHandler
                                 cancellationTokenWrapper.ApplicationStopping);
 
                             if (deviceState is DeviceState.Connected)
-                                _ = HandleEventUpdates(socket, wsId, oppoClientHolder!, cancellationTokenWrapper);
+                                _ = HandleEventUpdates(socket, wsId, oppoClientHolder, cancellationTokenWrapper);
                         }
                     }
 
