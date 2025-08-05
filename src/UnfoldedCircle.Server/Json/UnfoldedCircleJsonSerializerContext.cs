@@ -32,4 +32,16 @@ namespace UnfoldedCircle.Server.Json;
 [JsonSerializable(typeof(StateChangedEvent))]
 [JsonSerializable(typeof(ArtistAlbumsResponse))]
 [JsonSerializable(typeof(ArtistTrackResponse))]
-internal sealed partial class UnfoldedCircleJsonSerializerContext : JsonSerializerContext;
+internal sealed partial class UnfoldedCircleJsonSerializerContext : JsonSerializerContext
+{
+    internal static readonly UnfoldedCircleJsonSerializerContext Instance = new(new JsonSerializerOptions
+    {
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+        Converters = { new SettingTypeFieldConverter() }
+    });
+
+    internal static readonly UnfoldedCircleJsonSerializerContext InstanceWithoutCustomConverters = new(new JsonSerializerOptions
+    {
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+    });
+}

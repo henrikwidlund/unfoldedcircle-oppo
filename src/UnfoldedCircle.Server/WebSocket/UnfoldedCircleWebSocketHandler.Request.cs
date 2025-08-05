@@ -7,6 +7,7 @@ using UnfoldedCircle.Models.Shared;
 using UnfoldedCircle.Models.Sync;
 using UnfoldedCircle.Server.Configuration;
 using UnfoldedCircle.Server.Event;
+using UnfoldedCircle.Server.Json;
 using UnfoldedCircle.Server.Oppo;
 using UnfoldedCircle.Server.Response;
 
@@ -28,18 +29,19 @@ internal sealed partial class UnfoldedCircleWebSocketHandler
         {
             case MessageEvent.GetDriverVersion:
             {
-                var payload = jsonDocument.Deserialize(_unfoldedCircleJsonSerializerContext.CommonReq)!;
+                var payload = jsonDocument.Deserialize(UnfoldedCircleJsonSerializerContext.Instance.CommonReq)!;
+                var driverMetadata = await _configurationService.GetDriverMetadataAsync(cancellationTokenWrapper.RequestAborted);
                 await SendAsync(socket,
                     ResponsePayloadHelpers.CreateDriverVersionResponsePayload(
                         payload,
                         new DriverVersion
                         {
-                            Name = OppoConstants.DriverName,
+                            Name = driverMetadata.Name["en"],
                             Version = new DriverVersionInner
                             {
-                                Driver = OppoConstants.DriverVersion
+                                Driver = driverMetadata.Version
                             }
-                        }, _unfoldedCircleJsonSerializerContext),
+                        }),
                     wsId,
                     cancellationTokenWrapper.ApplicationStopping);
                 
@@ -47,10 +49,10 @@ internal sealed partial class UnfoldedCircleWebSocketHandler
             }
             case MessageEvent.GetDriverMetaData:
             {
-                var payload = jsonDocument.Deserialize(_unfoldedCircleJsonSerializerContext.CommonReq)!;
+                var payload = jsonDocument.Deserialize(UnfoldedCircleJsonSerializerContext.Instance.CommonReq)!;
                 
                 await SendAsync(socket,
-                    ResponsePayloadHelpers.CreateDriverMetaDataResponsePayload(payload, CreateDriverMetadata(), _unfoldedCircleJsonSerializerContext),
+                    ResponsePayloadHelpers.CreateDriverMetaDataResponsePayload(payload, await _configurationService.GetDriverMetadataAsync(cancellationTokenWrapper.RequestAborted)),
                     wsId,
                     cancellationTokenWrapper.ApplicationStopping);
                 
@@ -58,13 +60,12 @@ internal sealed partial class UnfoldedCircleWebSocketHandler
             }
             case MessageEvent.GetDeviceState:
             {
-                var payload = jsonDocument.Deserialize(_unfoldedCircleJsonSerializerContext.GetDeviceStateMsg)!;
+                var payload = jsonDocument.Deserialize(UnfoldedCircleJsonSerializerContext.Instance.GetDeviceStateMsg)!;
                 var oppoClientHolder = await TryGetOppoClientHolder(wsId, payload.MsgData.DeviceId, IdentifierType.DeviceId, cancellationTokenWrapper.ApplicationStopping);
                 await SendAsync(socket,
                     ResponsePayloadHelpers.CreateGetDeviceStateResponsePayload(
                         await GetDeviceState(oppoClientHolder),
-                        payload.MsgData.DeviceId,
-                        _unfoldedCircleJsonSerializerContext
+                        payload.MsgData.DeviceId
                     ),
                     wsId,
                     cancellationTokenWrapper.ApplicationStopping);
@@ -73,7 +74,7 @@ internal sealed partial class UnfoldedCircleWebSocketHandler
             }
             case MessageEvent.GetAvailableEntities:
             {
-                var payload = jsonDocument.Deserialize(_unfoldedCircleJsonSerializerContext.GetAvailableEntitiesMsg)!;
+                var payload = jsonDocument.Deserialize(UnfoldedCircleJsonSerializerContext.Instance.GetAvailableEntitiesMsg)!;
                 var entities = await GetEntities(wsId, payload.MsgData.Filter?.DeviceId, cancellationTokenWrapper.ApplicationStopping);
                 await SendAsync(socket,
                     ResponsePayloadHelpers.CreateGetAvailableEntitiesMsg(payload,
@@ -81,7 +82,7 @@ internal sealed partial class UnfoldedCircleWebSocketHandler
                         {
                             Filter = payload.MsgData.Filter,
                             AvailableEntities = GetAvailableEntities(entities, payload)
-                        }, _unfoldedCircleJsonSerializerContext),
+                        }),
                     wsId,
                     cancellationTokenWrapper.ApplicationStopping);
 
@@ -89,9 +90,9 @@ internal sealed partial class UnfoldedCircleWebSocketHandler
             }
             case MessageEvent.SubscribeEvents:
             {
-                var payload = jsonDocument.Deserialize(_unfoldedCircleJsonSerializerContext.CommonReq)!;
+                var payload = jsonDocument.Deserialize(UnfoldedCircleJsonSerializerContext.Instance.CommonReq)!;
                 await SendAsync(socket,
-                    ResponsePayloadHelpers.CreateCommonResponsePayload(payload, _unfoldedCircleJsonSerializerContext),
+                    ResponsePayloadHelpers.CreateCommonResponsePayload(payload),
                     wsId,
                     cancellationTokenWrapper.ApplicationStopping);
 
@@ -113,8 +114,7 @@ internal sealed partial class UnfoldedCircleWebSocketHandler
                                     {
                                         SourceList = OppoEntitySettings.SourceList[oppoClientHolder.ClientKey.Model]
                                     },
-                                    oppoClientHolder.ClientKey.HostName,
-                                    _unfoldedCircleJsonSerializerContext),
+                                    oppoClientHolder.ClientKey.HostName),
                                 wsId,
                                 cancellationTokenWrapper.ApplicationStopping);
                         }
@@ -125,11 +125,11 @@ internal sealed partial class UnfoldedCircleWebSocketHandler
             }
             case MessageEvent.UnsubscribeEvents:
             {
-                var payload = jsonDocument.Deserialize(_unfoldedCircleJsonSerializerContext.UnsubscribeEventsMsg)!;
+                var payload = jsonDocument.Deserialize(UnfoldedCircleJsonSerializerContext.Instance.UnsubscribeEventsMsg)!;
                 
                 await RemoveConfiguration(new RemoveInstruction(payload.MsgData?.DeviceId, payload.MsgData?.EntityIds, null), cancellationTokenWrapper.ApplicationStopping);
                 await SendAsync(socket,
-                    ResponsePayloadHelpers.CreateCommonResponsePayload(payload, _unfoldedCircleJsonSerializerContext),
+                    ResponsePayloadHelpers.CreateCommonResponsePayload(payload),
                     wsId,
                     cancellationTokenWrapper.ApplicationStopping);
                 
@@ -137,14 +137,13 @@ internal sealed partial class UnfoldedCircleWebSocketHandler
             }
             case MessageEvent.GetEntityStates:
             {
-                var payload = jsonDocument.Deserialize(_unfoldedCircleJsonSerializerContext.GetEntityStatesMsg)!;
+                var payload = jsonDocument.Deserialize(UnfoldedCircleJsonSerializerContext.Instance.GetEntityStatesMsg)!;
                 var entities = await GetEntities(wsId, payload.MsgData?.DeviceId, cancellationTokenWrapper.ApplicationStopping);
                 await SendAsync(socket,
                     ResponsePayloadHelpers.CreateGetEntityStatesResponsePayload(payload,
                         entities is { Count: > 0 }
                             ? entities.Select(static x => new EntityIdDeviceId(x.EntityId, x.DeviceId, x.Model))
-                            : [],
-                        _unfoldedCircleJsonSerializerContext),
+                            : []),
                     wsId,
                     cancellationTokenWrapper.ApplicationStopping);
                 
@@ -152,7 +151,7 @@ internal sealed partial class UnfoldedCircleWebSocketHandler
             }
             case MessageEvent.SetupDriver:
             {
-                var payload = jsonDocument.Deserialize(_unfoldedCircleJsonSerializerContext.SetupDriverMsg)!;
+                var payload = jsonDocument.Deserialize(UnfoldedCircleJsonSerializerContext.Instance.SetupDriverMsg)!;
                 SocketIdEntityIpMap.AddOrUpdate(wsId,
                     static (_, arg) => arg.MsgData.SetupData[OppoConstants.IpAddressKey],
                     static (_, _, arg) => arg.MsgData.SetupData[OppoConstants.IpAddressKey], payload);
@@ -165,16 +164,15 @@ internal sealed partial class UnfoldedCircleWebSocketHandler
                 
                 await Task.WhenAll(
                     SendAsync(socket,
-                        ResponsePayloadHelpers.CreateCommonResponsePayload(payload, _unfoldedCircleJsonSerializerContext),
+                        ResponsePayloadHelpers.CreateCommonResponsePayload(payload),
                         wsId,
                         cancellationTokenWrapper.ApplicationStopping),
                     SendAsync(socket,
-                        ResponsePayloadHelpers.CreateDeviceSetupChangeResponsePayload(isConnected, _unfoldedCircleJsonSerializerContext),
+                        ResponsePayloadHelpers.CreateDeviceSetupChangeResponsePayload(isConnected),
                         wsId,
                         cancellationTokenWrapper.ApplicationStopping),
                     SendAsync(socket,
-                        ResponsePayloadHelpers.CreateConnectEventResponsePayload(await GetDeviceState(oppoClientHolder),
-                            _unfoldedCircleJsonSerializerContext),
+                        ResponsePayloadHelpers.CreateConnectEventResponsePayload(await GetDeviceState(oppoClientHolder)),
                         wsId,
                         cancellationTokenWrapper.ApplicationStopping)
                 );
@@ -183,12 +181,12 @@ internal sealed partial class UnfoldedCircleWebSocketHandler
             }
             case MessageEvent.SetupDriverUserData:
             {
-                var payload = jsonDocument.Deserialize(_unfoldedCircleJsonSerializerContext.SetDriverUserDataMsg)!;
+                var payload = jsonDocument.Deserialize(UnfoldedCircleJsonSerializerContext.Instance.SetDriverUserDataMsg)!;
                 SocketIdEntityIpMap.AddOrUpdate(wsId,
                     static (_, arg) => arg.MsgData.SetupData[OppoConstants.IpAddressKey],
                     static (_, _, arg) => arg.MsgData.SetupData[OppoConstants.IpAddressKey], payload);
                 await SendAsync(socket,
-                    ResponsePayloadHelpers.CreateCommonResponsePayload(payload, _unfoldedCircleJsonSerializerContext),
+                    ResponsePayloadHelpers.CreateCommonResponsePayload(payload),
                     wsId,
                     cancellationTokenWrapper.ApplicationStopping);
                 
@@ -196,7 +194,7 @@ internal sealed partial class UnfoldedCircleWebSocketHandler
             }
             case MessageEvent.EntityCommand:
             {
-                var payload = jsonDocument.Deserialize(_unfoldedCircleJsonSerializerContext.EntityCommandMsgOppoCommandId)!;
+                var payload = jsonDocument.Deserialize(UnfoldedCircleJsonSerializerContext.Instance.EntityCommandMsgOppoCommandId)!;
                 await HandleEntityCommand(socket, payload, wsId, payload.MsgData.EntityId, cancellationTokenWrapper);
                 return;
             }
@@ -223,162 +221,4 @@ internal sealed partial class UnfoldedCircleWebSocketHandler
                 }
             }).ToArray()
             : [];
-
-    private static DriverMetadata? _driverMetadata;
-    private static DriverMetadata CreateDriverMetadata() =>
-        _driverMetadata ??= new DriverMetadata
-        {
-            Name = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
-            {
-                ["en"] = OppoConstants.DriverName
-            },
-            Description = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
-            {
-                ["en"] = OppoConstants.DriverDescription
-            },
-            Version = OppoConstants.DriverVersion,
-            DriverId = OppoConstants.DriverId,
-            Developer = new DriverDeveloper { Email = OppoConstants.DriverEmail, Name = OppoConstants.DriverDeveloper, Url = OppoConstants.DriverUrl },
-            ReleaseDate = OppoConstants.DriverReleaseDate,
-            SetupDataSchema = new SettingsPage
-            {
-                Title = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
-                {
-                    ["en"] = "Enter Details"
-                },
-                Settings =
-                [
-                    new Setting
-                    {
-                        Id = OppoConstants.DeviceNameKey,
-                        Field = new SettingTypeText
-                        {
-                            Text = new ValueRegex()
-                        },
-                        Label = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
-                        {
-                            ["en"] = "Enter the name of the Oppo player (optional)"
-                        }
-                    },
-                    new Setting
-                    {
-                        Id = OppoConstants.IpAddressKey,
-                        Field = new SettingTypeText
-                        {
-                            Text = new ValueRegex
-                            {
-                                RegEx = Ipv4Or6,
-                                Value = string.Empty
-                            }
-                        },
-                        Label = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
-                        {
-                            ["en"] = "Enter the IP address of the Oppo player (mandatory)"
-                        }
-                    },
-                    new Setting
-                    {
-                        Field = new SettingTypeDropdown
-                        {
-                            Dropdown = new SettingTypeDropdownInner
-                            {
-                                Items =
-                                [
-                                    new SettingTypeDropdownItem
-                                    {
-                                        Label = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
-                                        {
-                                            ["en"] = "BDP-83, 93 and 95"
-                                        },
-                                        Value = nameof(OppoModel.BDP8395)
-                                    },
-                                    new SettingTypeDropdownItem
-                                    {
-                                        Label = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
-                                        {
-                                            ["en"] = "BDP-103 and 105"
-                                        },
-                                        Value = nameof(OppoModel.BDP10X)
-                                    },
-                                    new SettingTypeDropdownItem
-                                    {
-                                        Label = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
-                                        {
-                                            ["en"] = "UDP-203"
-                                        },
-                                        Value = nameof(OppoModel.UDP203)
-                                    },
-                                    new SettingTypeDropdownItem
-                                    {
-                                        Label = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
-                                        {
-                                            ["en"] = "UDP-205"
-                                        },
-                                        Value = nameof(OppoModel.UDP205)
-                                    }
-                                ]
-                            }
-                        },
-                        Id = OppoConstants.OppoModelKey,
-                        Label = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
-                        {
-                            ["en"] = "Select the model of your Oppo player (mandatory)"
-                        }
-                    },
-                    new Setting
-                    {
-                        Field = new SettingTypeCheckbox
-                        {
-                            Checkbox = new SettingTypeCheckboxInner
-                            {
-                                Value = false
-                            }
-                        },
-                        Id = OppoConstants.UseMediaEventsKey,
-                        Label = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
-                        {
-                            ["en"] = "Use Media Events? This enables playback information at the expense of updates every second"
-                        }
-                    },
-                    new Setting
-                    {
-                        Field = new SettingTypeDropdown
-                        {
-                            Dropdown = new SettingTypeDropdownInner
-                            {
-                                Items =
-                                [
-                                    new SettingTypeDropdownItem
-                                    {
-                                        Label = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
-                                        {
-                                            ["en"] = "Movie Length"
-                                        },
-                                        Value = OppoConstants.MovieLengthValue
-                                    },
-                                    new SettingTypeDropdownItem
-                                    {
-                                        Label = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
-                                        {
-                                            ["en"] = "Chapter Length"
-                                        },
-                                        Value = OppoConstants.ChapterLengthValue
-                                    }
-                                ],
-                                Value = OppoConstants.MovieLengthValue
-                            }
-                        },
-                        Id = OppoConstants.ChapterOrMovieLengthKey,
-                        Label = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
-                        {
-                            ["en"] = "Use chapter or movie length for progress bar (only applicable if Media Events is enabled)?"
-                        }
-                    }
-                ]
-            },
-            DeviceDiscovery = false,
-            Icon = "custom:oppo.png"
-        };
-
-    private const string? Ipv4Or6 = """^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)|(([0-9a-fA-F]{1,4}:){7,7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,7}:|([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})|:((:[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(:[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]{1,}|::(ffff(:0{1,4}){0,1}:){0,1}((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])|([0-9a-fA-F]{1,4}:){1,4}:((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9]))$""";
 }
