@@ -19,7 +19,7 @@ internal sealed partial class UnfoldedCircleWebSocketHandler
             case MessageEvent.Connect:
             {
                 cancellationTokenWrapper.EnsureNonCancelledBroadcastCancellationTokenSource();
-                var payload = jsonDocument.Deserialize(UnfoldedCircleJsonSerializerContext.Instance.ConnectEvent)!;
+                _ = jsonDocument.Deserialize(UnfoldedCircleJsonSerializerContext.Instance.ConnectEvent)!;
                 var oppoClientHolders = await TryGetOppoClientHolders(wsId, cancellationTokenWrapper.ApplicationStopping);
                 if (oppoClientHolders is { Count: > 0 })
                 {
