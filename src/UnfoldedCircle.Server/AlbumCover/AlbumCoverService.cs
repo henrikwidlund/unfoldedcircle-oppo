@@ -14,12 +14,10 @@ public interface IAlbumCoverService
 internal sealed class AlbumCoverService(
     HttpClient httpClient,
     IMemoryCache memoryCache,
-    UnfoldedCircleJsonSerializerContext unfoldedCircleJsonSerializerContext,
     ILogger<AlbumCoverService> logger) : IAlbumCoverService
 {
     private readonly HttpClient _httpClient = httpClient;
     private readonly IMemoryCache _memoryCache = memoryCache;
-    private readonly UnfoldedCircleJsonSerializerContext _unfoldedCircleJsonSerializerContext = unfoldedCircleJsonSerializerContext;
     private readonly ILogger<AlbumCoverService> _logger = logger;
     private static readonly TimeSpan CacheDuration = TimeSpan.FromHours(3);
 
@@ -32,7 +30,7 @@ internal sealed class AlbumCoverService(
                 entry.SetSlidingExpiration(CacheDuration);
 
                 var artistTrackResponse = await SendAndDeserializeAsync(artist, album, track,
-                    _unfoldedCircleJsonSerializerContext.ArtistTrackResponse, cancellationToken);
+                    UnfoldedCircleJsonSerializerContext.Instance.ArtistTrackResponse, cancellationToken);
 
                 if (artistTrackResponse is not { Recordings.Length: > 0 })
                     return null;
@@ -56,7 +54,7 @@ internal sealed class AlbumCoverService(
             entry.SetSlidingExpiration(CacheDuration);
             
             var artistAlbumsResponse = await SendAndDeserializeAsync(artist, album, track,
-                _unfoldedCircleJsonSerializerContext.ArtistAlbumsResponse, cancellationToken);
+                UnfoldedCircleJsonSerializerContext.Instance.ArtistAlbumsResponse, cancellationToken);
 
             if (artistAlbumsResponse is not { Releases.Length: > 0 })
                 return null;

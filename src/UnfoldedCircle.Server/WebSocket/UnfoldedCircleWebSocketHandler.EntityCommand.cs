@@ -25,8 +25,7 @@ internal sealed partial class UnfoldedCircleWebSocketHandler
                     {
                         Code = "INV_ARGUMENT",
                         Message = oppoClientHolder is null ? "Device not found" : "Device not connected"
-                    },
-                    _unfoldedCircleJsonSerializerContext),
+                    }),
                 wsId,
                 cancellationTokenWrapper.ApplicationStopping);
             return;
@@ -57,8 +56,7 @@ internal sealed partial class UnfoldedCircleWebSocketHandler
                 await SendAsync(socket,
                     ResponsePayloadHelpers.CreateStateChangedResponsePayload(
                         new StateChangedEventMessageDataAttributes { State = State.Off },
-                        entityId,
-                        _unfoldedCircleJsonSerializerContext),
+                        entityId),
                     wsId,
                     cancellationTokenWrapper.ApplicationStopping);
                 break;
@@ -315,7 +313,7 @@ internal sealed partial class UnfoldedCircleWebSocketHandler
         if (success)
         {
             await SendAsync(socket,
-                ResponsePayloadHelpers.CreateCommonResponsePayload(payload, _unfoldedCircleJsonSerializerContext),
+                ResponsePayloadHelpers.CreateCommonResponsePayload(payload),
                 wsId,
                 cancellationTokenWrapper.ApplicationStopping);
         }
@@ -327,8 +325,7 @@ internal sealed partial class UnfoldedCircleWebSocketHandler
                     {
                         Code = "INV_ARGUMENT",
                         Message = "Unknown command"
-                    },
-                    _unfoldedCircleJsonSerializerContext),
+                    }),
                 wsId,
                 cancellationTokenWrapper.ApplicationStopping);
         }

@@ -7,19 +7,16 @@ using Oppo;
 using UnfoldedCircle.Server.AlbumCover;
 using UnfoldedCircle.Server.Configuration;
 using UnfoldedCircle.Server.Event;
-using UnfoldedCircle.Server.Json;
 using UnfoldedCircle.Server.Response;
 
 namespace UnfoldedCircle.Server.WebSocket;
 
 internal sealed partial class UnfoldedCircleWebSocketHandler(
-    UnfoldedCircleJsonSerializerContext unfoldedCircleJsonSerializerContext,
     IOppoClientFactory oppoClientFactory,
     IConfigurationService configurationService,
     IAlbumCoverService albumCoverService,
     ILogger<UnfoldedCircleWebSocketHandler> logger)
 {
-    private readonly UnfoldedCircleJsonSerializerContext _unfoldedCircleJsonSerializerContext = unfoldedCircleJsonSerializerContext;
     private readonly IOppoClientFactory _oppoClientFactory = oppoClientFactory;
     private readonly IConfigurationService _configurationService = configurationService;
     private readonly IAlbumCoverService _albumCoverService = albumCoverService;
@@ -83,7 +80,7 @@ internal sealed partial class UnfoldedCircleWebSocketHandler(
         string wsId,
         CancellationTokenWrapper cancellationTokenWrapper) =>
         SendAsync(socket,
-            ResponsePayloadHelpers.CreateAuthResponsePayload(_unfoldedCircleJsonSerializerContext),
+            ResponsePayloadHelpers.CreateAuthResponsePayload(),
             wsId,
             cancellationTokenWrapper.ApplicationStopping);
 

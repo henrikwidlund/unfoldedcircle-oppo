@@ -4,6 +4,7 @@ using Oppo;
 
 using UnfoldedCircle.Models.Events;
 using UnfoldedCircle.Models.Shared;
+using UnfoldedCircle.Server.Json;
 using UnfoldedCircle.Server.Oppo;
 using UnfoldedCircle.Server.Response;
 
@@ -77,8 +78,7 @@ internal sealed partial class UnfoldedCircleWebSocketHandler
                     await SendAsync(socket,
                         ResponsePayloadHelpers.CreateStateChangedResponsePayload(
                             new StateChangedEventMessageDataAttributes { State = state },
-                            oppoClientHolder.ClientKey.EntityId,
-                            _unfoldedCircleJsonSerializerContext),
+                            oppoClientHolder.ClientKey.EntityId),
                         wsId,
                         cancellationTokenWrapper.ApplicationStopping);
                     
@@ -193,7 +193,7 @@ internal sealed partial class UnfoldedCircleWebSocketHandler
                                 Muted = volumeResponse?.Result.Muted
                             }
                         }
-                    }, _unfoldedCircleJsonSerializerContext.StateChangedEvent),
+                    }, UnfoldedCircleJsonSerializerContext.Instance.StateChangedEvent),
                     wsId,
                     cancellationTokenWrapper.ApplicationStopping);
             }
