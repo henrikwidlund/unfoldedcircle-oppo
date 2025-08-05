@@ -19,17 +19,22 @@ internal sealed partial class UnfoldedCircleWebSocketHandler
             {
                 cancellationTokenWrapper.EnsureNonCancelledBroadcastCancellationTokenSource();
                 var payload = jsonDocument.Deserialize(_unfoldedCircleJsonSerializerContext.ConnectEvent)!;
-                var oppoClientHolder = await TryGetOppoClientHolder(wsId, payload.MsgData?.DeviceId, cancellationTokenWrapper.ApplicationStopping);
+                var oppoClientHolders = await TryGetOppoClientHolders(wsId, cancellationTokenWrapper.ApplicationStopping);
+                if (oppoClientHolders is { Count: > 0 })
+                {
+                    foreach (var oppoClientHolder in oppoClientHolders)
+                    {
+                        var deviceState = await GetDeviceState(oppoClientHolder);
+                        await SendAsync(socket,
+                            ResponsePayloadHelpers.CreateConnectEventResponsePayload(deviceState,
+                                _unfoldedCircleJsonSerializerContext),
+                            wsId,
+                            cancellationTokenWrapper.ApplicationStopping);
 
-                var deviceState = await GetDeviceState(oppoClientHolder);
-                await SendAsync(socket,
-                    ResponsePayloadHelpers.CreateConnectEventResponsePayload(deviceState,
-                        _unfoldedCircleJsonSerializerContext),
-                    wsId,
-                    cancellationTokenWrapper.ApplicationStopping);
-
-                if (deviceState is DeviceState.Connected)
-                    _ = HandleEventUpdates(socket, wsId, oppoClientHolder!, cancellationTokenWrapper);
+                        if (deviceState is DeviceState.Connected)
+                            _ = HandleEventUpdates(socket, wsId, oppoClientHolder, cancellationTokenWrapper);
+                    }
+                }
                 
                 return;
             }
@@ -80,16 +85,23 @@ internal sealed partial class UnfoldedCircleWebSocketHandler
                 {
                     _ = jsonDocument.Deserialize(_unfoldedCircleJsonSerializerContext.ExitStandbyEvent)!;
                     cancellationTokenWrapper.EnsureNonCancelledBroadcastCancellationTokenSource();
-                    var oppoClientHolder = await TryGetOppoClientHolder(wsId, null, cancellationTokenWrapper.ApplicationStopping);
-                    var deviceState = await GetDeviceState(oppoClientHolder);
-                    await SendAsync(socket,
-                        ResponsePayloadHelpers.CreateConnectEventResponsePayload(deviceState,
-                            _unfoldedCircleJsonSerializerContext),
-                        wsId,
-                        cancellationTokenWrapper.ApplicationStopping);
-                    
-                    if (deviceState is DeviceState.Connected)
-                        _ = HandleEventUpdates(socket, wsId, oppoClientHolder!, cancellationTokenWrapper);
+                    var oppoClientHolders = await TryGetOppoClientHolders(wsId, cancellationTokenWrapper.ApplicationStopping);
+                    if (oppoClientHolders is { Count: > 0 })
+                    {
+                        foreach (var oppoClientHolder in oppoClientHolders)
+                        {
+                            var deviceState = await GetDeviceState(oppoClientHolder);
+                            await SendAsync(socket,
+                                ResponsePayloadHelpers.CreateConnectEventResponsePayload(deviceState,
+                                    _unfoldedCircleJsonSerializerContext),
+                                wsId,
+                                cancellationTokenWrapper.ApplicationStopping);
+
+                            if (deviceState is DeviceState.Connected)
+                                _ = HandleEventUpdates(socket, wsId, oppoClientHolder!, cancellationTokenWrapper);
+                        }
+                    }
+
                     return;
                 }
             default:
