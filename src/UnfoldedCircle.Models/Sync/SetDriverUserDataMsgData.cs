@@ -11,7 +11,7 @@ public record SetDriverUserDataMsgData
     /// Non native string values as numbers or booleans are represented as string values!
     /// </remarks>
     [JsonPropertyName("setup_data")]
-    public required Dictionary<string, string> SetupData { get; init; }
+    public Dictionary<string, string>? SetupData { get; init; }
 
     [JsonPropertyName("confirm")]
     public bool? Confirm { get; init; }

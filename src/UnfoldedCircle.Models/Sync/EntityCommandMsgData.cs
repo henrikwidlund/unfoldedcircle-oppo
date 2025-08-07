@@ -2,8 +2,7 @@ using UnfoldedCircle.Models.Shared;
 
 namespace UnfoldedCircle.Models.Sync;
 
-public record EntityCommandMsgData<TCommandId>
-    where TCommandId : struct, Enum
+public record EntityCommandMsgData<TCommandId, TEntityCommandParams>
 {
     [JsonPropertyName("device_id")]
     public string? DeviceId { get; init; }
@@ -18,5 +17,5 @@ public record EntityCommandMsgData<TCommandId>
     public required TCommandId CommandId { get; init; }
 
     [JsonPropertyName("params")]
-    public EntityCommandParams? Params { get; init; }
+    public TEntityCommandParams? Params { get; init; }
 }

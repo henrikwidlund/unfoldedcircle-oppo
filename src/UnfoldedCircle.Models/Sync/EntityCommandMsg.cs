@@ -1,4 +1,4 @@
 namespace UnfoldedCircle.Models.Sync;
 
-public record EntityCommandMsg<TCommandId> : CommonReq<EntityCommandMsgData<TCommandId>>
+public record MediaPlayerEntityCommandMsgData<TCommandId> : CommonReq<EntityCommandMsgData<TCommandId, MediaPlayerEntityCommandParams>>
     where TCommandId : struct, Enum;

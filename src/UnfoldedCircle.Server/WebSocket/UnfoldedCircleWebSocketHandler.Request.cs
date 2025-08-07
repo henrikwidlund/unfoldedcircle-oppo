@@ -78,10 +78,10 @@ internal sealed partial class UnfoldedCircleWebSocketHandler
                 var entities = await GetEntities(wsId, payload.MsgData.Filter?.DeviceId, cancellationTokenWrapper.ApplicationStopping);
                 await SendAsync(socket,
                     ResponsePayloadHelpers.CreateGetAvailableEntitiesMsg(payload,
-                        new AvailableEntitiesMsgData<MediaPlayerEntityFeature>
+                        new AvailableEntitiesMsgData
                         {
                             Filter = payload.MsgData.Filter,
-                            AvailableEntities = GetAvailableEntities(entities, payload)
+                            AvailableEntities = GetAvailableEntities(entities, payload).ToArray()
                         }),
                     wsId,
                     cancellationTokenWrapper.ApplicationStopping);
@@ -110,11 +110,12 @@ internal sealed partial class UnfoldedCircleWebSocketHandler
                         {
                             await SendAsync(socket,
                                 ResponsePayloadHelpers.CreateStateChangedResponsePayload(
-                                    new StateChangedEventMessageDataAttributes
+                                    new MediaPlayerStateChangedEventMessageDataAttributes
                                     {
                                         SourceList = OppoEntitySettings.SourceList[oppoClientHolder.ClientKey.Model]
                                     },
-                                    oppoClientHolder.ClientKey.HostName),
+                                    oppoClientHolder.ClientKey.HostName,
+                                    EntityType.MediaPlayer),
                                 wsId,
                                 cancellationTokenWrapper.ApplicationStopping);
                         }
@@ -127,7 +128,7 @@ internal sealed partial class UnfoldedCircleWebSocketHandler
             {
                 var payload = jsonDocument.Deserialize(UnfoldedCircleJsonSerializerContext.Instance.UnsubscribeEventsMsg)!;
                 
-                await RemoveConfiguration(new RemoveInstruction(payload.MsgData?.DeviceId, payload.MsgData?.EntityIds, null), cancellationTokenWrapper.ApplicationStopping);
+                await RemoveConfiguration(new RemoveInstruction(payload.MsgData?.DeviceId.GetUnprefixedIdentifier(), payload.MsgData?.EntityIds?.Select(static x => x.GetUnprefixedIdentifier()!), null), cancellationTokenWrapper.ApplicationStopping);
                 await SendAsync(socket,
                     ResponsePayloadHelpers.CreateCommonResponsePayload(payload),
                     wsId,
@@ -183,8 +184,8 @@ internal sealed partial class UnfoldedCircleWebSocketHandler
             {
                 var payload = jsonDocument.Deserialize(UnfoldedCircleJsonSerializerContext.Instance.SetDriverUserDataMsg)!;
                 SocketIdEntityIpMap.AddOrUpdate(wsId,
-                    static (_, arg) => arg.MsgData.SetupData[OppoConstants.IpAddressKey],
-                    static (_, _, arg) => arg.MsgData.SetupData[OppoConstants.IpAddressKey], payload);
+                    static (_, arg) => arg.MsgData.SetupData![OppoConstants.IpAddressKey],
+                    static (_, _, arg) => arg.MsgData.SetupData![OppoConstants.IpAddressKey], payload);
                 await SendAsync(socket,
                     ResponsePayloadHelpers.CreateCommonResponsePayload(payload),
                     wsId,
@@ -194,8 +195,18 @@ internal sealed partial class UnfoldedCircleWebSocketHandler
             }
             case MessageEvent.EntityCommand:
             {
-                var payload = jsonDocument.Deserialize(UnfoldedCircleJsonSerializerContext.Instance.EntityCommandMsgOppoCommandId)!;
-                await HandleEntityCommand(socket, payload, wsId, payload.MsgData.EntityId, cancellationTokenWrapper);
+                var entityType = GetEntityType(jsonDocument);
+                if (entityType == EntityType.MediaPlayer)
+                {
+                    var payload = jsonDocument.Deserialize(UnfoldedCircleJsonSerializerContext.Instance.MediaPlayerEntityCommandMsgDataOppoCommandId)!;
+                    await HandleEntityCommand(socket, payload, wsId, cancellationTokenWrapper);
+                }
+                else if (entityType == EntityType.Remote)
+                {
+                    var payload = jsonDocument.Deserialize(UnfoldedCircleJsonSerializerContext.Instance.RemoteEntityCommandMsgData)!;
+                    await HandleEntityCommand(socket, payload, wsId, cancellationTokenWrapper);
+                }
+
                 return;
             }
             case MessageEvent.SupportedEntityTypes:
@@ -204,21 +215,61 @@ internal sealed partial class UnfoldedCircleWebSocketHandler
         }
     }
 
-    private static AvailableEntity<MediaPlayerEntityFeature>[] GetAvailableEntities(
+    private static EntityType? GetEntityType(JsonDocument jsonDocument)
+    {
+        return jsonDocument.RootElement.TryGetProperty("msg_data", out var msgDataElement) && msgDataElement.TryGetProperty("entity_type", out var value)
+            ? value.Deserialize(UnfoldedCircleJsonSerializerContext.Instance.EntityType)
+            : null;
+    }
+
+    private static IEnumerable<AvailableEntity> GetAvailableEntities(
         List<UnfoldedCircleConfigurationItem>? entities,
-        GetAvailableEntitiesMsg payload) =>
-        entities is { Count: > 0 }
-            ? entities.Select(x => new AvailableEntity<MediaPlayerEntityFeature>
+        GetAvailableEntitiesMsg payload)
+    {
+        if (entities is not { Count: > 0 })
+            yield break;
+
+        var hasDeviceIdFilter = !string.IsNullOrEmpty(payload.MsgData.Filter?.DeviceId);
+        var hasEntityTypeFilter = payload.MsgData.Filter?.EntityType is not null;
+        foreach (var unfoldedCircleConfigurationItem in entities)
+        {
+            if (hasDeviceIdFilter && !string.Equals(unfoldedCircleConfigurationItem.DeviceId, payload.MsgData.Filter!.DeviceId.GetUnprefixedIdentifier(), StringComparison.OrdinalIgnoreCase))
+                continue;
+
+            if (hasEntityTypeFilter)
             {
-                EntityId = x.EntityId,
-                EntityType = EntityType.MediaPlayer,
-                Name = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { ["en"] = x.DeviceName },
-                DeviceId = payload.MsgData.Filter?.DeviceId ?? x.DeviceId,
-                Features = OppoEntitySettings.MediaPlayerEntityFeatures,
-                Options = new Dictionary<string, ISet<string>>(StringComparer.OrdinalIgnoreCase)
-                {
-                    ["simple_commands"] = OppoEntitySettings.SimpleCommands
-                }
-            }).ToArray()
-            : [];
+                if (payload.MsgData.Filter!.EntityType == EntityType.MediaPlayer)
+                    yield return GetMediaPlayerEntity(unfoldedCircleConfigurationItem);
+                else if (payload.MsgData.Filter.EntityType == EntityType.Remote)
+                    yield return GetRemoteEntity(unfoldedCircleConfigurationItem);
+            }
+            else
+            {
+                yield return GetMediaPlayerEntity(unfoldedCircleConfigurationItem);
+                yield return GetRemoteEntity(unfoldedCircleConfigurationItem);
+            }
+        }
+    }
+
+    private static MediaPlayerAvailableEntity GetMediaPlayerEntity(UnfoldedCircleConfigurationItem configurationItem) =>
+        new()
+        {
+            EntityId = configurationItem.EntityId.GetIdentifier(EntityType.MediaPlayer),
+            EntityType = EntityType.MediaPlayer,
+            Name = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { ["en"] = configurationItem.DeviceName },
+            DeviceId = configurationItem.DeviceId.GetNullableIdentifier(EntityType.MediaPlayer),
+            Features = OppoEntitySettings.MediaPlayerEntityFeatures,
+            Options = new Dictionary<string, ISet<string>>(StringComparer.OrdinalIgnoreCase) { ["simple_commands"] = OppoEntitySettings.MediaPlayerSimpleCommands }
+        };
+
+    private static RemoteAvailableEntity GetRemoteEntity(UnfoldedCircleConfigurationItem configurationItem) =>
+        new()
+        {
+            EntityId = configurationItem.EntityId.GetIdentifier(EntityType.Remote),
+            EntityType = EntityType.Remote,
+            Name = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { ["en"] = $"{configurationItem.DeviceName} Remote" },
+            DeviceId = configurationItem.DeviceId.GetNullableIdentifier(EntityType.Remote),
+            Features = OppoEntitySettings.RemoteFeatures,
+            Options = OppoEntitySettings.RemoteOptions
+        };
 }

@@ -2,7 +2,11 @@ using UnfoldedCircle.Models.Shared;
 
 namespace UnfoldedCircle.Models.Sync;
 
-public record AvailableEntity<TFeature>
+[JsonDerivedType(typeof(MediaPlayerAvailableEntity))]
+[JsonDerivedType(typeof(RemoteAvailableEntity))]
+public abstract record AvailableEntity;
+
+public record AvailableEntity<TFeature, TOptions> : AvailableEntity
     where TFeature : struct, Enum
 {
     /// <summary>
@@ -36,5 +40,5 @@ public record AvailableEntity<TFeature>
     public string? Area { get; init; }
     
     [JsonPropertyName("options")]
-    public Dictionary<string, ISet<string>>? Options { get; init; }
+    public TOptions? Options { get; init; }
 }

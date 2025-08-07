@@ -4,347 +4,347 @@ using UnfoldedCircle.Generators;
 namespace UnfoldedCircle.Models.Sync;
 
 [JsonConverter(typeof(CommandIdJsonConverter))]
-public enum CommandId
+public enum MediaPlayerCommandId
 {
     /// <summary>
     /// Switch on media player.
     /// </summary>
-    [Display(Name = "on")]
+    [Display(Name = MediaPlayerCommandIdConstants.On)]
     On = 1,
-    
+
     /// <summary>
     /// Switch off media player.
     /// </summary>
-    [Display(Name = "off")]
+    [Display(Name = MediaPlayerCommandIdConstants.Off)]
     Off,
-    
+
     /// <summary>
     /// Toggle the current power state, either from on -> off or from off -> on.
     /// </summary>
-    [Display(Name = "toggle")]
+    [Display(Name = MediaPlayerCommandIdConstants.Toggle)]
     Toggle,
-    
+
     /// <summary>
     /// Toggle play / pause.
     /// </summary>
-    [Display(Name = "play_pause")]
+    [Display(Name = MediaPlayerCommandIdConstants.PlayPause)]
     PlayPause,
-    
+
     /// <summary>
     /// Stop playback.
     /// </summary>
-    [Display(Name = "stop")]
+    [Display(Name = MediaPlayerCommandIdConstants.Stop)]
     Stop,
-    
+
     /// <summary>
     /// Go back to previous track.
     /// </summary>
-    [Display(Name = "previous")]
+    [Display(Name = MediaPlayerCommandIdConstants.Previous)]
     Previous,
-    
+
     /// <summary>
     /// Skip to next track.
     /// </summary>
-    [Display(Name = "next")]
+    [Display(Name = MediaPlayerCommandIdConstants.Next)]
     Next,
-    
+
     /// <summary>
     /// Fast forward current track.
     /// </summary>
-    [Display(Name = "fast_forward")]
+    [Display(Name = MediaPlayerCommandIdConstants.FastForward)]
     FastForward,
-    
+
     /// <summary>
     /// Rewind current track.
     /// </summary>
-    [Display(Name = "rewind")]
+    [Display(Name = MediaPlayerCommandIdConstants.Rewind)]
     Rewind,
-    
+
     /// <summary>
     /// Seek to given position in current track. Position is given in seconds.
     /// </summary>
     /// <remarks>Parameters: media_position</remarks>
-    [Display(Name = "seek")]
+    [Display(Name = MediaPlayerCommandIdConstants.Seek)]
     Seek,
-    
+
     /// <summary>
     /// Set volume to given level.
     /// </summary>
     /// <remarks>Parameters: volume</remarks>
-    [Display(Name = "volume")]
+    [Display(Name = MediaPlayerCommandIdConstants.Volume)]
     Volume,
-    
+
     /// <summary>
     /// Increase volume.
     /// </summary>
-    [Display(Name = "volume_up")]
+    [Display(Name = MediaPlayerCommandIdConstants.VolumeUp)]
     VolumeUp,
-    
+
     /// <summary>
     /// Decrease volume.
     /// </summary>
-    [Display(Name = "volume_down")]
+    [Display(Name = MediaPlayerCommandIdConstants.VolumeDown)]
     VolumeDown,
-    
+
     /// <summary>
     /// Toggle mute state.
     /// </summary>
-    [Display(Name = "mute_toggle")]
+    [Display(Name = MediaPlayerCommandIdConstants.MuteToggle)]
     MuteToggle,
-    
+
     /// <summary>
     /// Mute volume.
     /// </summary>
-    [Display(Name = "mute")]
+    [Display(Name = MediaPlayerCommandIdConstants.Mute)]
     Mute,
-    
+
     /// <summary>
     /// Unmute volume.
     /// </summary>
-    [Display(Name = "unmute")]
+    [Display(Name = MediaPlayerCommandIdConstants.Unmute)]
     Unmute,
-    
+
     /// <summary>
     /// Repeat track or playlist.
     /// </summary>
     /// <remarks>Parameters: repeat</remarks>
-    [Display(Name = "repeat")]
+    [Display(Name = MediaPlayerCommandIdConstants.Repeat)]
     Repeat,
-    
+
     /// <summary>
     /// Shuffle playlist or start random playback.
     /// </summary>
     /// <remarks>Parameters: shuffle</remarks>
-    [Display(Name = "shuffle")]
+    [Display(Name = MediaPlayerCommandIdConstants.Shuffle)]
     Shuffle,
-    
+
     /// <summary>
     /// Channel up.
     /// </summary>
-    [Display(Name = "channel_up")]
+    [Display(Name = MediaPlayerCommandIdConstants.ChannelUp)]
     ChannelUp,
-    
+
     /// <summary>
     /// Channel down.
     /// </summary>
-    [Display(Name = "channel_down")]
+    [Display(Name = MediaPlayerCommandIdConstants.ChannelDown)]
     ChannelDown,
-    
+
     /// <summary>
     /// Directional pad up.
     /// </summary>
-    [Display(Name = "cursor_up")]
+    [Display(Name = MediaPlayerCommandIdConstants.CursorUp)]
     CursorUp,
-    
+
     /// <summary>
     /// Directional pad down.
     /// </summary>
-    [Display(Name = "cursor_down")]
+    [Display(Name = MediaPlayerCommandIdConstants.CursorDown)]
     CursorDown,
-    
+
     /// <summary>
     /// Directional pad left.
     /// </summary>
-    [Display(Name = "cursor_left")]
+    [Display(Name = MediaPlayerCommandIdConstants.CursorLeft)]
     CursorLeft,
-    
+
     /// <summary>
     /// Directional pad right.
     /// </summary>
-    [Display(Name = "cursor_right")]
+    [Display(Name = MediaPlayerCommandIdConstants.CursorRight)]
     CursorRight,
-    
+
     /// <summary>
     /// Directional pad enter.
     /// </summary>
-    [Display(Name = "cursor_enter")]
+    [Display(Name = MediaPlayerCommandIdConstants.CursorEnter)]
     CursorEnter,
-    
+
     /// <summary>
     /// Number pad digit 0.
     /// </summary>
-    [Display(Name = "digit_0")]
+    [Display(Name = MediaPlayerCommandIdConstants.Digit0)]
     Digit0,
-    
+
     /// <summary>
     /// Number pad digit 1.
     /// </summary>
-    [Display(Name = "digit_1")]
+    [Display(Name = MediaPlayerCommandIdConstants.Digit1)]
     Digit1,
-    
+
     /// <summary>
     /// Number pad digit 2.
     /// </summary>
-    [Display(Name = "digit_2")]
+    [Display(Name = MediaPlayerCommandIdConstants.Digit2)]
     Digit2,
-    
+
     /// <summary>
     /// Number pad digit 3.
     /// </summary>
-    [Display(Name = "digit_3")]
+    [Display(Name = MediaPlayerCommandIdConstants.Digit3)]
     Digit3,
-    
+
     /// <summary>
     /// Number pad digit 4.
     /// </summary>
-    [Display(Name = "digit_4")]
+    [Display(Name = MediaPlayerCommandIdConstants.Digit4)]
     Digit4,
-    
+
     /// <summary>
     /// Number pad digit 5.
     /// </summary>
-    [Display(Name = "digit_5")]
+    [Display(Name = MediaPlayerCommandIdConstants.Digit5)]
     Digit5,
-    
+
     /// <summary>
     /// Number pad digit 6.
     /// </summary>
-    [Display(Name = "digit_6")]
+    [Display(Name = MediaPlayerCommandIdConstants.Digit6)]
     Digit6,
-    
+
     /// <summary>
     /// Number pad digit 7.
     /// </summary>
-    [Display(Name = "digit_7")]
+    [Display(Name = MediaPlayerCommandIdConstants.Digit7)]
     Digit7,
-    
+
     /// <summary>
     /// Number pad digit 8.
     /// </summary>
-    [Display(Name = "digit_8")]
+    [Display(Name = MediaPlayerCommandIdConstants.Digit8)]
     Digit8,
-    
+
     /// <summary>
     /// Number pad digit 9.
     /// </summary>
-    [Display(Name = "digit_9")]
+    [Display(Name = MediaPlayerCommandIdConstants.Digit9)]
     Digit9,
-    
+
     /// <summary>
     /// Function red.
     /// </summary>
-    [Display(Name = "function_red")]
+    [Display(Name = MediaPlayerCommandIdConstants.FunctionRed)]
     FunctionRed,
-    
+
     /// <summary>
     /// Function green.
     /// </summary>
-    [Display(Name = "function_green")]
+    [Display(Name = MediaPlayerCommandIdConstants.FunctionGreen)]
     FunctionGreen,
-    
+
     /// <summary>
     /// Function yellow.
     /// </summary>
-    [Display(Name = "function_yellow")]
+    [Display(Name = MediaPlayerCommandIdConstants.FunctionYellow)]
     FunctionYellow,
-    
+
     /// <summary>
     /// Function blue.
     /// </summary>
-    [Display(Name = "function_blue")]
+    [Display(Name = MediaPlayerCommandIdConstants.FunctionBlue)]
     FunctionBlue,
-    
+
     /// <summary>
     /// Home menu
     /// </summary>
-    [Display(Name = "home")]
+    [Display(Name = MediaPlayerCommandIdConstants.Home)]
     Home,
-    
+
     /// <summary>
     /// Menu
     /// </summary>
-    [Display(Name = "menu")]
+    [Display(Name = MediaPlayerCommandIdConstants.Menu)]
     Menu,
-    
+
     /// <summary>
     /// Context menu
     /// </summary>
-    [Display(Name = "context_menu")]
+    [Display(Name = MediaPlayerCommandIdConstants.ContextMenu)]
     ContextMenu,
-    
+
     /// <summary>
     /// Program guide menu.
     /// </summary>
-    [Display(Name = "guide")]
+    [Display(Name = MediaPlayerCommandIdConstants.Guide)]
     Guide,
-    
+
     /// <summary>
     /// Information menu / what's playing.
     /// </summary>
-    [Display(Name = "info")]
+    [Display(Name = MediaPlayerCommandIdConstants.Info)]
     Info,
-    
+
     /// <summary>
     /// Back / exit function for menu navigation (to exit menu, guide, info).
     /// </summary>
-    [Display(Name = "back")]
+    [Display(Name = MediaPlayerCommandIdConstants.Back)]
     Back,
-    
+
     /// <summary>
     /// Select an input source from the available sources.
     /// </summary>
     /// <remarks>Parameters: source</remarks>
-    [Display(Name = "select_source")]
+    [Display(Name = MediaPlayerCommandIdConstants.SelectSource)]
     SelectSource,
-    
+
     /// <summary>
     /// Select a sound mode from the available modes.
     /// </summary>
     /// <remarks>Parameters: mode</remarks>
-    [Display(Name = "select_sound_mode")]
+    [Display(Name = MediaPlayerCommandIdConstants.SelectSoundMode)]
     SelectSoundMode,
-    
+
     /// <summary>
     /// Start, stop or open recording menu (device dependant).
     /// </summary>
-    [Display(Name = "record")]
+    [Display(Name = MediaPlayerCommandIdConstants.Record)]
     Record,
-    
+
     /// <summary>
     /// Open recordings.
     /// </summary>
-    [Display(Name = "my_recordings")]
+    [Display(Name = MediaPlayerCommandIdConstants.MyRecordings)]
     MyRecordings,
-    
+
     /// <summary>
     /// Switch to live view.
     /// </summary>
-    [Display(Name = "live")]
+    [Display(Name = MediaPlayerCommandIdConstants.Live)]
     Live,
-    
+
     /// <summary>
     /// Eject media.
     /// </summary>
-    [Display(Name = "eject")]
+    [Display(Name = MediaPlayerCommandIdConstants.Eject)]
     Eject,
-    
+
     /// <summary>
     /// Open or close.
     /// </summary>
-    [Display(Name = "open_close")]
+    [Display(Name = MediaPlayerCommandIdConstants.OpenClose)]
     OpenClose,
-    
+
     /// <summary>
     /// Switch or select audio track.
     /// </summary>
-    [Display(Name = "audio_track")]
+    [Display(Name = MediaPlayerCommandIdConstants.AudioTrack)]
     AudioTrack,
-    
+
     /// <summary>
     /// Switch or select subtitle.
     /// </summary>
-    [Display(Name = "subtitle")]
+    [Display(Name = MediaPlayerCommandIdConstants.Subtitle)]
     Subtitle,
-    
+
     /// <summary>
     /// Settings menu
     /// </summary>
-    [Display(Name = "settings")]
+    [Display(Name = MediaPlayerCommandIdConstants.Settings)]
     Settings,
-    
-    [Display(Name = "search")]
+
+    [Display(Name = MediaPlayerCommandIdConstants.Search)]
     Search
 }
 
-[EnumJsonConverter(typeof(CommandId), CaseSensitive = false, PropertyName = "cmd_id")]
+[EnumJsonConverter(typeof(MediaPlayerCommandId), CaseSensitive = false, PropertyName = "cmd_id")]
 public partial class CommandIdJsonConverter;

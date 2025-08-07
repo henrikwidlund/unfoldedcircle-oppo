@@ -220,7 +220,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         };
     }
     
-    public async ValueTask<bool> NumericInput([Range(0, 9)] ushort number, CancellationToken cancellationToken = default)
+    public async ValueTask<bool> NumericInputAsync([Range(0, 9)] ushort number, CancellationToken cancellationToken = default)
     {
         if (number > 9)
             return false;
