@@ -251,7 +251,7 @@ public class WireReaderWriterTest
     {
         using var ms = new MemoryStream();
         var writer = new WireWriter(ms);
-        Assert.ThrowsException<ArgumentException>(() => writer.WriteUInt48(0X1FFFFFFFFFFFFul));
+        Assert.ThrowsExactly<ArgumentException>(() => writer.WriteUInt48(0X1FFFFFFFFFFFFul));
     }
 
     [TestMethod]
@@ -269,14 +269,14 @@ public class WireReaderWriterTest
     public void WriteString_NotAscii()
     {
         var writer = new WireWriter(Stream.Null);
-        Assert.ThrowsException<ArgumentException>(() => writer.WriteString("δοκιμή")); // test in Greek
+        Assert.ThrowsExactly<ArgumentException>(() => writer.WriteString("δοκιμή")); // test in Greek
     }
 
     [TestMethod]
     public void WriteString_TooBig()
     {
         var writer = new WireWriter(Stream.Null);
-        Assert.ThrowsException<ArgumentException>(() => writer.WriteString(new string('a', 0x100)));
+        Assert.ThrowsExactly<ArgumentException>(() => writer.WriteString(new string('a', 0x100)));
     }
 
     [TestMethod]
@@ -284,7 +284,7 @@ public class WireReaderWriterTest
     {
         using var ms = new MemoryStream([1, 0xFF]);
         var reader = new WireReader(ms);
-        Assert.ThrowsException<InvalidDataException>(() => reader.ReadString());
+        Assert.ThrowsExactly<InvalidDataException>(() => reader.ReadString());
     }
 
     [TestMethod]

@@ -350,28 +350,28 @@ public class PresentationReaderTest
     public void ReadResourceData_MissingLeadin()
     {
         var reader = new PresentationReader(new StringReader("0"));
-        Assert.ThrowsException<FormatException>(() => _ = reader.ReadResourceData());
+        Assert.ThrowsExactly<FormatException>(() => _ = reader.ReadResourceData());
     }
 
     [TestMethod]
     public void ReadResourceData_BadHex_BadDigit()
     {
         var reader = new PresentationReader(new StringReader("\\# 3 ab cd ez"));
-        Assert.ThrowsException<FormatException>(() => _ = reader.ReadResourceData());
+        Assert.ThrowsExactly<FormatException>(() => _ = reader.ReadResourceData());
     }
 
     [TestMethod]
     public void ReadResourceData_BadHex_NotEven()
     {
         var reader = new PresentationReader(new StringReader("\\# 3 ab cd e"));
-        Assert.ThrowsException<FormatException>(() => _ = reader.ReadResourceData());
+        Assert.ThrowsExactly<FormatException>(() => _ = reader.ReadResourceData());
     }
 
     [TestMethod]
     public void ReadResourceData_BadHex_TooFew()
     {
         var reader = new PresentationReader(new StringReader("\\# 3 abcd"));
-        Assert.ThrowsException<FormatException>(() => _ = reader.ReadResourceData());
+        Assert.ThrowsExactly<FormatException>(() => _ = reader.ReadResourceData());
     }
 
     [TestMethod]
@@ -394,7 +394,7 @@ public class PresentationReaderTest
     public void ReadType_BadDigit()
     {
         var reader = new PresentationReader(new StringReader("TYPEX"));
-        Assert.ThrowsException<FormatException>(() => reader.ReadDnsType());
+        Assert.ThrowsExactly<FormatException>(() => reader.ReadDnsType());
     }
 
     [TestMethod]
