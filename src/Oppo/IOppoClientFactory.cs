@@ -2,7 +2,7 @@ namespace Oppo;
 
 public interface IOppoClientFactory
 {
-    IOppoClient? TryGetOrCreateClient(in OppoClientKey oppoClientKey);
+    ValueTask<IOppoClient?> TryGetOrCreateClient(OppoClientKey oppoClientKey, CancellationToken cancellationToken);
     void TryDisposeClient(in OppoClientKey oppoClientKey);
     public void TryDisposeAllClients();
 }

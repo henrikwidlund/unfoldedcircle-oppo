@@ -76,7 +76,7 @@ internal sealed partial class UnfoldedCircleWebSocketHandler
         if (oppoClientKey is null)
             return null;
 
-        var oppoClient = _oppoClientFactory.TryGetOrCreateClient(oppoClientKey.Value);
+        var oppoClient = await _oppoClientFactory.TryGetOrCreateClient(oppoClientKey.Value, cancellationToken);
         if (oppoClient is null)
             return null;
 
@@ -84,7 +84,7 @@ internal sealed partial class UnfoldedCircleWebSocketHandler
             return new OppoClientHolder(oppoClient, oppoClientKey.Value);
 
         _oppoClientFactory.TryDisposeClient(oppoClientKey.Value);
-        oppoClient = _oppoClientFactory.TryGetOrCreateClient(oppoClientKey.Value);
+        oppoClient = await _oppoClientFactory.TryGetOrCreateClient(oppoClientKey.Value, cancellationToken);
 
         return oppoClient is null ? null : new OppoClientHolder(oppoClient, oppoClientKey.Value);
     }
@@ -100,7 +100,7 @@ internal sealed partial class UnfoldedCircleWebSocketHandler
         var oppoClients = new List<OppoClientHolder>(oppoClientKeys.Length);
         foreach (var oppoClientKey in oppoClientKeys)
         {
-            var oppoClient = _oppoClientFactory.TryGetOrCreateClient(oppoClientKey);
+            var oppoClient = await _oppoClientFactory.TryGetOrCreateClient(oppoClientKey, cancellationToken);
             if (oppoClient is null)
                 return null;
 
@@ -111,7 +111,7 @@ internal sealed partial class UnfoldedCircleWebSocketHandler
             }
 
             _oppoClientFactory.TryDisposeClient(oppoClientKey);
-            oppoClient = _oppoClientFactory.TryGetOrCreateClient(oppoClientKey);
+            oppoClient = await _oppoClientFactory.TryGetOrCreateClient(oppoClientKey, cancellationToken);
 
             if (oppoClient is null)
                 continue;
