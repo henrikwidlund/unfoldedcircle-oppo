@@ -4,7 +4,6 @@ using Oppo;
 
 using UnfoldedCircle.Models.Events;
 using UnfoldedCircle.Models.Shared;
-using UnfoldedCircle.Server.Json;
 using UnfoldedCircle.Server.Oppo;
 using UnfoldedCircle.Server.Response;
 
@@ -13,7 +12,8 @@ namespace UnfoldedCircle.Server.WebSocket;
 internal sealed partial class UnfoldedCircleWebSocketHandler
 {
     private static readonly ConcurrentDictionary<string, bool> BroadcastingEvents = new(StringComparer.Ordinal);
-    
+    private static readonly ConcurrentDictionary<int, int> PreviousStatesMap = new();
+
     private async Task HandleEventUpdates(
         System.Net.WebSockets.WebSocket socket,
         string wsId,
@@ -71,18 +71,14 @@ internal sealed partial class UnfoldedCircleWebSocketHandler
                     { Result: PowerState.Off } => State.Off,
                     _ => State.Unknown
                 };
-                
+
+                MediaPlayerStateChangedEventMessageDataAttributes newMediaPlayerState;
                 // Only send power state if not using media events
                 if (oppoClientHolder is { ClientKey.UseMediaEvents: false })
                 {
-                    await SendAsync(socket,
-                        ResponsePayloadHelpers.CreateStateChangedResponsePayload(
-                            new MediaPlayerStateChangedEventMessageDataAttributes { State = state },
-                            oppoClientHolder.ClientKey.EntityId,
-                            EntityType.MediaPlayer),
-                        wsId,
-                        cancellationTokenWrapper.ApplicationStopping);
-
+                    newMediaPlayerState = new MediaPlayerStateChangedEventMessageDataAttributes { State = state };
+                    if (!await SendMediaPlayerEvent(socket, wsId, oppoClientHolder, newMediaPlayerState, cancellationTokenWrapper))
+                        continue;
                     await SendRemotePowerEvent(socket, wsId, oppoClientHolder, cancellationTokenWrapper, state);
                     
                     continue;
@@ -163,42 +159,30 @@ internal sealed partial class UnfoldedCircleWebSocketHandler
                     }
                 }
 
-                await SendAsync(socket,
-                    JsonSerializer.SerializeToUtf8Bytes(new StateChangedEvent<MediaPlayerStateChangedEventMessageDataAttributes>
+                newMediaPlayerState = new MediaPlayerStateChangedEventMessageDataAttributes
+                {
+                    State = state,
+                    MediaType = discTypeResponse?.Result switch
                     {
-                        Kind = "event",
-                        Msg = "entity_change",
-                        Cat = "ENTITY",
-                        TimeStamp = DateTime.UtcNow,
-                        MsgData = new StateChangedEventMessageData<MediaPlayerStateChangedEventMessageDataAttributes>
-                        {
-                            EntityId = oppoClientHolder.ClientKey.EntityId,
-                            EntityType = EntityType.MediaPlayer,
-                            Attributes = new MediaPlayerStateChangedEventMessageDataAttributes
-                            {
-                                State = state,
-                                MediaType = discTypeResponse?.Result switch
-                                {
-                                    DiscType.BlueRayMovie or DiscType.DVDVideo or DiscType.UltraHDBluRay => MediaType.Movie,
-                                    DiscType.DVDAudio or DiscType.SACD or DiscType.CDDiscAudio => MediaType.Music,
-                                    _ => null
-                                },
-                                MediaPosition = elapsedResponse?.Result,
-                                MediaDuration = elapsedResponse?.Result + remainingResponse?.Result,
-                                MediaTitle = ReplaceStarWithEllipsis(trackResponse?.Result),
-                                MediaAlbum = ReplaceStarWithEllipsis(album),
-                                MediaArtist = ReplaceStarWithEllipsis(performer),
-                                MediaImageUrl = coverUri,
-                                Repeat = repeatMode,
-                                Shuffle = shuffle,
-                                Source = GetInputSource(inputSourceResponse),
-                                Volume = volumeResponse?.Result.Volume,
-                                Muted = volumeResponse?.Result.Muted
-                            }
-                        }
-                    }, UnfoldedCircleJsonSerializerContext.Instance.StateChangedEventMediaPlayerStateChangedEventMessageDataAttributes),
-                    wsId,
-                    cancellationTokenWrapper.ApplicationStopping);
+                        DiscType.BlueRayMovie or DiscType.DVDVideo or DiscType.UltraHDBluRay => MediaType.Movie,
+                        DiscType.DVDAudio or DiscType.SACD or DiscType.CDDiscAudio => MediaType.Music,
+                        _ => null
+                    },
+                    MediaPosition = elapsedResponse?.Result,
+                    MediaDuration = elapsedResponse?.Result + remainingResponse?.Result,
+                    MediaTitle = ReplaceStarWithEllipsis(trackResponse?.Result),
+                    MediaAlbum = ReplaceStarWithEllipsis(album),
+                    MediaArtist = ReplaceStarWithEllipsis(performer),
+                    MediaImageUrl = coverUri,
+                    Repeat = repeatMode,
+                    Shuffle = shuffle,
+                    Source = GetInputSource(inputSourceResponse),
+                    Volume = volumeResponse?.Result.Volume,
+                    Muted = volumeResponse?.Result.Muted
+                };
+
+                if (!await SendMediaPlayerEvent(socket, wsId, oppoClientHolder, newMediaPlayerState, cancellationTokenWrapper))
+                    continue;
 
                 await SendRemotePowerEvent(socket, wsId, oppoClientHolder, cancellationTokenWrapper, state);
             }
@@ -235,6 +219,31 @@ internal sealed partial class UnfoldedCircleWebSocketHandler
                 _ => null
             };
         }
+    }
+
+    private async Task<bool> SendMediaPlayerEvent(System.Net.WebSockets.WebSocket socket,
+        string wsId,
+        OppoClientHolder oppoClientHolder,
+        MediaPlayerStateChangedEventMessageDataAttributes mediaPlayerState,
+        CancellationTokenWrapper cancellationTokenWrapper)
+    {
+        var stateHash = mediaPlayerState.GetHashCode();
+        if (PreviousStatesMap.TryGetValue(oppoClientHolder.ClientKey.GetHashCode(), out var previousStateHash) &&
+            previousStateHash == stateHash)
+        {
+            _logger.LogTrace("{WSId} State did not change for {EntityId}", wsId, oppoClientHolder.ClientKey.EntityId);
+            return false;
+        }
+
+        PreviousStatesMap[oppoClientHolder.ClientKey.GetHashCode()] = stateHash;
+        await SendAsync(socket,
+            ResponsePayloadHelpers.CreateStateChangedResponsePayload(
+                mediaPlayerState,
+                oppoClientHolder.ClientKey.EntityId,
+                EntityType.MediaPlayer),
+            wsId,
+            cancellationTokenWrapper.ApplicationStopping);
+        return true;
     }
 
     private async Task SendRemotePowerEvent(System.Net.WebSockets.WebSocket socket, string wsId, OppoClientHolder oppoClientHolder, CancellationTokenWrapper cancellationTokenWrapper, State state)
