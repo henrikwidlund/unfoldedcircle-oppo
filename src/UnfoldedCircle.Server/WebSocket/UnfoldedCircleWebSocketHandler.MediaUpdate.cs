@@ -12,7 +12,8 @@ namespace UnfoldedCircle.Server.WebSocket;
 internal sealed partial class UnfoldedCircleWebSocketHandler
 {
     private static readonly ConcurrentDictionary<string, bool> BroadcastingEvents = new(StringComparer.Ordinal);
-    private static readonly ConcurrentDictionary<int, int> PreviousStatesMap = new();
+    private static readonly ConcurrentDictionary<int, int> PreviousMediaStatesMap = new();
+    private static readonly ConcurrentDictionary<int, State> PreviousRemoteStatesMap = new();
 
     private async Task HandleEventUpdates(
         System.Net.WebSockets.WebSocket socket,
@@ -79,7 +80,8 @@ internal sealed partial class UnfoldedCircleWebSocketHandler
                     newMediaPlayerState = new MediaPlayerStateChangedEventMessageDataAttributes { State = state };
                     if (!await SendMediaPlayerEvent(socket, wsId, oppoClientHolder, newMediaPlayerState, cancellationTokenWrapper))
                         continue;
-                    await SendRemotePowerEvent(socket, wsId, oppoClientHolder, cancellationTokenWrapper, state);
+
+                    await SendRemotePowerEvent(socket, wsId, oppoClientHolder, state, cancellationTokenWrapper);
                     
                     continue;
                 }
@@ -184,7 +186,7 @@ internal sealed partial class UnfoldedCircleWebSocketHandler
                 if (!await SendMediaPlayerEvent(socket, wsId, oppoClientHolder, newMediaPlayerState, cancellationTokenWrapper))
                     continue;
 
-                await SendRemotePowerEvent(socket, wsId, oppoClientHolder, cancellationTokenWrapper, state);
+                await SendRemotePowerEvent(socket, wsId, oppoClientHolder, state, cancellationTokenWrapper);
             }
         }
         finally
@@ -228,14 +230,12 @@ internal sealed partial class UnfoldedCircleWebSocketHandler
         CancellationTokenWrapper cancellationTokenWrapper)
     {
         var stateHash = mediaPlayerState.GetHashCode();
-        if (PreviousStatesMap.TryGetValue(oppoClientHolder.ClientKey.GetHashCode(), out var previousStateHash) &&
+        int clientHashCode = oppoClientHolder.ClientKey.GetHashCode();
+        if (PreviousMediaStatesMap.TryGetValue(clientHashCode, out var previousStateHash) &&
             previousStateHash == stateHash)
-        {
-            _logger.LogTrace("{WSId} State did not change for {EntityId}", wsId, oppoClientHolder.ClientKey.EntityId);
             return false;
-        }
 
-        PreviousStatesMap[oppoClientHolder.ClientKey.GetHashCode()] = stateHash;
+        PreviousMediaStatesMap[clientHashCode] = stateHash;
         await SendAsync(socket,
             ResponsePayloadHelpers.CreateStateChangedResponsePayload(
                 mediaPlayerState,
@@ -246,8 +246,18 @@ internal sealed partial class UnfoldedCircleWebSocketHandler
         return true;
     }
 
-    private async Task SendRemotePowerEvent(System.Net.WebSockets.WebSocket socket, string wsId, OppoClientHolder oppoClientHolder, CancellationTokenWrapper cancellationTokenWrapper, State state)
+    private async Task SendRemotePowerEvent(System.Net.WebSockets.WebSocket socket,
+        string wsId,
+        OppoClientHolder oppoClientHolder,
+        State state,
+        CancellationTokenWrapper cancellationTokenWrapper)
     {
+        int clientHashCode = oppoClientHolder.ClientKey.GetHashCode();
+        if (PreviousRemoteStatesMap.TryGetValue(clientHashCode, out var previousState) &&
+            previousState == state)
+            return;
+
+        PreviousRemoteStatesMap[clientHashCode] = state;
         await SendAsync(socket,
             ResponsePayloadHelpers.CreateStateChangedResponsePayload(
                 new RemoteStateChangedEventMessageDataAttributes { State = state switch
