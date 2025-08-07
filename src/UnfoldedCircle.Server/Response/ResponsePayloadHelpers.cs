@@ -65,11 +65,10 @@ internal static class ResponsePayloadHelpers
             }
         }, UnfoldedCircleJsonSerializerContext.Instance.DeviceStateEventMsg);
 
-    internal static byte[] CreateGetAvailableEntitiesMsg<TFeature>(
+    internal static byte[] CreateGetAvailableEntitiesMsg(
         GetAvailableEntitiesMsg req,
-        AvailableEntitiesMsgData<TFeature> availableEntitiesMsgData)
-        where TFeature : struct, Enum =>
-        JsonSerializer.SerializeToUtf8Bytes(new AvailableEntitiesMsg<TFeature>
+        AvailableEntitiesMsgData availableEntitiesMsgData) =>
+        JsonSerializer.SerializeToUtf8Bytes(new AvailableEntitiesMsg
             {
                 Kind = "resp",
                 ReqId = req.Id,
@@ -77,7 +76,7 @@ internal static class ResponsePayloadHelpers
                 Code = 200,
                 MsgData = availableEntitiesMsgData
             },
-            UnfoldedCircleJsonSerializerContext.Instance.AvailableEntitiesMsgMediaPlayerEntityFeature);
+            UnfoldedCircleJsonSerializerContext.Instance.AvailableEntitiesMsg);
 
     public static byte[] CreateCommonResponsePayload(
         CommonReq req) =>
@@ -96,21 +95,38 @@ internal static class ResponsePayloadHelpers
 
     public static byte[] CreateGetEntityStatesResponsePayload(
         CommonReq req,
-        IEnumerable<EntityIdDeviceId> entityIdDeviceIds) =>
-        JsonSerializer.SerializeToUtf8Bytes(new EntityStates<MediaPlayerEntityAttribute>
+        IEnumerable<EntityIdDeviceId> entityIdDeviceIds)
+    {
+        return JsonSerializer.SerializeToUtf8Bytes(new EntityStates
         {
             Code = 200,
             Kind = "resp",
             ReqId = req.Id,
             Msg = "entity_states",
-            MsgData = entityIdDeviceIds.Select(static x => new EntityStateChanged<MediaPlayerEntityAttribute>
+            MsgData = GetEntityStates(entityIdDeviceIds).ToArray()
+        }, UnfoldedCircleJsonSerializerContext.Instance.EntityStates);
+    }
+
+    private static IEnumerable<EntityStateChanged> GetEntityStates(IEnumerable<EntityIdDeviceId> entityIdDeviceIds)
+    {
+        foreach (var entityIdDeviceId in entityIdDeviceIds)
+        {
+            yield return new MediaPlayerEntityStateChanged
             {
-                EntityId = x.EntityId,
+                EntityId = entityIdDeviceId.EntityId.GetIdentifier(EntityType.MediaPlayer),
                 EntityType = EntityType.MediaPlayer,
-                Attributes = GetMediaPlayerAttributes(x.Model),
-                DeviceId = x.DeviceId
-            }).ToArray()
-        }, UnfoldedCircleJsonSerializerContext.Instance.EntityStatesMediaPlayerEntityAttribute);
+                Attributes = GetMediaPlayerAttributes(entityIdDeviceId.Model),
+                DeviceId = entityIdDeviceId.DeviceId.GetNullableIdentifier(EntityType.MediaPlayer)
+            };
+            yield return new RemoteEntityStateChanged
+            {
+                EntityId = entityIdDeviceId.EntityId.GetIdentifier(EntityType.Remote),
+                EntityType = EntityType.Remote,
+                Attributes = [RemoteEntityAttribute.State],
+                DeviceId = entityIdDeviceId.DeviceId.GetNullableIdentifier(EntityType.Remote)
+            };
+        }
+    }
 
     private static MediaPlayerEntityAttribute[] GetMediaPlayerAttributes(in OppoModel model)
     {
@@ -202,20 +218,24 @@ internal static class ResponsePayloadHelpers
             MsgData = validationError
         }, UnfoldedCircleJsonSerializerContext.Instance.CommonRespRequiredValidationError);
 
-    internal static byte[] CreateStateChangedResponsePayload(
-        StateChangedEventMessageDataAttributes attributes,
-        string entityId) =>
-        JsonSerializer.SerializeToUtf8Bytes(new StateChangedEvent
-        {
-            Kind = EventKind,
-            Msg = "entity_change",
-            Cat = "ENTITY",
-            TimeStamp = DateTime.UtcNow,
-            MsgData = new StateChangedEventMessageData
+    internal static byte[] CreateStateChangedResponsePayload<TAttributes>(
+        TAttributes attributes,
+        string entityId,
+        in EntityType entityType) where TAttributes : StateChangedEventMessageDataAttributes =>
+        JsonSerializer.SerializeToUtf8Bytes(new StateChangedEvent<TAttributes>
             {
-                EntityId = entityId,
-                EntityType = EntityType.MediaPlayer,
-                Attributes = attributes
-            }
-        }, UnfoldedCircleJsonSerializerContext.Instance.StateChangedEvent);
+                Kind = EventKind,
+                Msg = "entity_change",
+                Cat = "ENTITY",
+                TimeStamp = DateTime.UtcNow,
+                MsgData = new StateChangedEventMessageData<TAttributes>
+                {
+                    EntityId = entityId.GetIdentifier(entityType),
+                    EntityType = entityType,
+                    Attributes = attributes
+                }
+            },
+            entityType == EntityType.Remote
+                ? UnfoldedCircleJsonSerializerContext.Instance.StateChangedEventRemoteStateChangedEventMessageDataAttributes
+                : UnfoldedCircleJsonSerializerContext.Instance.StateChangedEventMediaPlayerStateChangedEventMessageDataAttributes);
 }

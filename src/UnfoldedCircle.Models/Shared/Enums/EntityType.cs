@@ -21,6 +21,9 @@ public enum EntityType
     
     [Display(Name = "media_player")]
     MediaPlayer,
+
+    [Display(Name = "remote")]
+    Remote,
     
     [Display(Name = "sensor")]
     Sensor,

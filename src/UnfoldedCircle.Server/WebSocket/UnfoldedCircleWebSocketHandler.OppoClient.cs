@@ -21,13 +21,15 @@ internal sealed partial class UnfoldedCircleWebSocketHandler
             return null;
         }
 
+        var localIdentifier = identifier.GetUnprefixedIdentifier();
+
         var entity = identifierType switch
         {
-            IdentifierType.DeviceId => !string.IsNullOrWhiteSpace(identifier)
-                ? configuration.Entities.Find(x => string.Equals(x.DeviceId, identifier, StringComparison.Ordinal))
+            IdentifierType.DeviceId => !string.IsNullOrWhiteSpace(localIdentifier)
+                ? configuration.Entities.Find(x => string.Equals(x.DeviceId, localIdentifier, StringComparison.Ordinal))
                 : configuration.Entities[0],
-            IdentifierType.EntityId => !string.IsNullOrWhiteSpace(identifier)
-                ? configuration.Entities.Find(x => string.Equals(x.EntityId, identifier, StringComparison.Ordinal))
+            IdentifierType.EntityId => !string.IsNullOrWhiteSpace(localIdentifier)
+                ? configuration.Entities.Find(x => string.Equals(x.EntityId, localIdentifier, StringComparison.Ordinal))
                 :null,
             _ => throw new ArgumentOutOfRangeException(nameof(identifierType), identifierType, null)
         };
@@ -37,7 +39,7 @@ internal sealed partial class UnfoldedCircleWebSocketHandler
                 entity.EntityId, entity.DeviceId);
 
         _logger.LogInformation("[{WSId}] WS: No configuration found for identifier '{Identifier}' with type {Type}",
-            wsId, identifier, identifierType.ToString());
+            wsId, localIdentifier, identifierType.ToString());
         return null;
     }
 
@@ -132,11 +134,12 @@ internal sealed partial class UnfoldedCircleWebSocketHandler
 
         if (!string.IsNullOrEmpty(deviceId))
         {
-            var entity = configuration.Entities.Find(x => string.Equals(x.DeviceId, deviceId, StringComparison.Ordinal));
+            var localDeviceId = deviceId.GetUnprefixedIdentifier();
+            var entity = configuration.Entities.Find(x => string.Equals(x.DeviceId, localDeviceId, StringComparison.Ordinal));
             if (entity is not null)
                 return [entity];
 
-            _logger.LogInformation("[{WSId}] WS: No configuration found for device ID '{DeviceId}'", wsId, deviceId);
+            _logger.LogInformation("[{WSId}] WS: No configuration found for device ID '{DeviceId}'", wsId, localDeviceId);
             return null;
         }
 
@@ -285,7 +288,7 @@ internal sealed partial class UnfoldedCircleWebSocketHandler
         }
     }
     
-    private record struct RemoveInstruction(string? DeviceId, string[]? EntityIds, string? Host);
+    private record struct RemoveInstruction(string? DeviceId, IEnumerable<string>? EntityIds, string? Host);
 
     private sealed record OppoClientHolder(IOppoClient Client, in OppoClientKey ClientKey);
 }

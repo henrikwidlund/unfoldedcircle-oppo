@@ -55,7 +55,7 @@ public interface IOppoClient : IDisposable
     /// <summary>
     /// Numeric key 1
     /// </summary>
-    ValueTask<bool> NumericInput([Range(0, 9)] ushort number, CancellationToken cancellationToken = default);
+    ValueTask<bool> NumericInputAsync([Range(0, 9)] ushort number, CancellationToken cancellationToken = default);
     
     /// <summary>
     /// Clear numeric input

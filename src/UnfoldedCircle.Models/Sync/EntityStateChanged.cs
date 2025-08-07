@@ -2,11 +2,9 @@ using UnfoldedCircle.Models.Shared;
 
 namespace UnfoldedCircle.Models.Sync;
 
-/// <summary>
-/// See entity documentation for <see cref="Attributes"/> payload.
-/// </summary>
-public record EntityStateChanged<TAttribute>
-    where TAttribute : struct, Enum
+[JsonDerivedType(typeof(MediaPlayerEntityStateChanged))]
+[JsonDerivedType(typeof(RemoteEntityStateChanged))]
+public abstract record EntityStateChanged
 {
     [JsonPropertyName("device_id")]
     public string? DeviceId { get; init; }
@@ -16,7 +14,14 @@ public record EntityStateChanged<TAttribute>
     
     [JsonPropertyName("entity_id")]
     public required string EntityId { get; init; }
-    
+}
+
+/// <summary>
+/// See entity documentation for <see cref="Attributes"/> payload.
+/// </summary>
+public abstract record EntityStateChanged<TAttribute> : EntityStateChanged
+    where TAttribute : struct, Enum
+{
     [JsonPropertyName("attributes")]
     public required TAttribute[] Attributes { get; init; }
 }

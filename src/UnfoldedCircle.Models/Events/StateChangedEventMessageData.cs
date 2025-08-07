@@ -2,7 +2,8 @@ using UnfoldedCircle.Models.Shared;
 
 namespace UnfoldedCircle.Models.Events;
 
-public record StateChangedEventMessageData
+public record StateChangedEventMessageData<TAttributes>
+    where TAttributes : StateChangedEventMessageDataAttributes
 {
     [JsonPropertyName("entity_type")]
     public required EntityType EntityType { get; init; }
@@ -11,5 +12,5 @@ public record StateChangedEventMessageData
     public required string EntityId { get; init; }
     
     [JsonPropertyName("attributes")]
-    public required StateChangedEventMessageDataAttributes Attributes { get; init; }
+    public required TAttributes Attributes { get; init; }
 }

@@ -15,4 +15,10 @@ public record DriverSetupChange
     /// </summary>
     [JsonPropertyName("error")]
     public DriverSetupChangeError? Error { get; init; }
+
+    /// <summary>
+    /// If set, the setup process waits for the specified user action.
+    /// </summary>
+    [JsonPropertyName("require_user_action")]
+    public RequireUserAction? RequireUserAction { get; init; }
 }

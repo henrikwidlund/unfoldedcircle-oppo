@@ -77,10 +77,13 @@ internal sealed partial class UnfoldedCircleWebSocketHandler
                 {
                     await SendAsync(socket,
                         ResponsePayloadHelpers.CreateStateChangedResponsePayload(
-                            new StateChangedEventMessageDataAttributes { State = state },
-                            oppoClientHolder.ClientKey.EntityId),
+                            new MediaPlayerStateChangedEventMessageDataAttributes { State = state },
+                            oppoClientHolder.ClientKey.EntityId,
+                            EntityType.MediaPlayer),
                         wsId,
                         cancellationTokenWrapper.ApplicationStopping);
+
+                    await SendRemotePowerEvent(socket, wsId, oppoClientHolder, cancellationTokenWrapper, state);
                     
                     continue;
                 }
@@ -161,17 +164,17 @@ internal sealed partial class UnfoldedCircleWebSocketHandler
                 }
 
                 await SendAsync(socket,
-                    JsonSerializer.SerializeToUtf8Bytes(new StateChangedEvent
+                    JsonSerializer.SerializeToUtf8Bytes(new StateChangedEvent<MediaPlayerStateChangedEventMessageDataAttributes>
                     {
                         Kind = "event",
                         Msg = "entity_change",
                         Cat = "ENTITY",
                         TimeStamp = DateTime.UtcNow,
-                        MsgData = new StateChangedEventMessageData
+                        MsgData = new StateChangedEventMessageData<MediaPlayerStateChangedEventMessageDataAttributes>
                         {
                             EntityId = oppoClientHolder.ClientKey.EntityId,
                             EntityType = EntityType.MediaPlayer,
-                            Attributes = new StateChangedEventMessageDataAttributes
+                            Attributes = new MediaPlayerStateChangedEventMessageDataAttributes
                             {
                                 State = state,
                                 MediaType = discTypeResponse?.Result switch
@@ -193,9 +196,11 @@ internal sealed partial class UnfoldedCircleWebSocketHandler
                                 Muted = volumeResponse?.Result.Muted
                             }
                         }
-                    }, UnfoldedCircleJsonSerializerContext.Instance.StateChangedEvent),
+                    }, UnfoldedCircleJsonSerializerContext.Instance.StateChangedEventMediaPlayerStateChangedEventMessageDataAttributes),
                     wsId,
                     cancellationTokenWrapper.ApplicationStopping);
+
+                await SendRemotePowerEvent(socket, wsId, oppoClientHolder, cancellationTokenWrapper, state);
             }
         }
         finally
@@ -231,7 +236,23 @@ internal sealed partial class UnfoldedCircleWebSocketHandler
             };
         }
     }
-    
+
+    private async Task SendRemotePowerEvent(System.Net.WebSockets.WebSocket socket, string wsId, OppoClientHolder oppoClientHolder, CancellationTokenWrapper cancellationTokenWrapper, State state)
+    {
+        await SendAsync(socket,
+            ResponsePayloadHelpers.CreateStateChangedResponsePayload(
+                new RemoteStateChangedEventMessageDataAttributes { State = state switch
+                {
+                    State.Buffering or State.Playing or State.Paused or State.On => RemoteState.On,
+                    State.Off => RemoteState.Off,
+                    _ => RemoteState.Unknown
+                } },
+                oppoClientHolder.ClientKey.EntityId,
+                EntityType.Remote),
+            wsId,
+            cancellationTokenWrapper.ApplicationStopping);
+    }
+
     private static (Models.Shared.RepeatMode? RepeatMode, bool? shuffle) GetRepeatMode(OppoResult<CurrentRepeatMode> repeatModeResponse) =>
         !repeatModeResponse
             ? (null, null)
