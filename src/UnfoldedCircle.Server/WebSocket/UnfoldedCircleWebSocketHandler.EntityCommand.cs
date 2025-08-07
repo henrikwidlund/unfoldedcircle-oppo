@@ -627,6 +627,9 @@ internal sealed partial class UnfoldedCircleWebSocketHandler
             _ when command.Equals(EntitySettingsConstants.ResolutionHold, StringComparison.OrdinalIgnoreCase) => await client.ResolutionHoldAsync(cancellationToken),
             _ when command.Equals(EntitySettingsConstants.AvSync, StringComparison.OrdinalIgnoreCase) => await client.AVSyncAsync(cancellationToken),
             _ when command.Equals(EntitySettingsConstants.GaplessPlay, StringComparison.OrdinalIgnoreCase) => await client.GaplessPlayAsync(cancellationToken),
+            _ when command.Equals(EntitySettingsConstants.InfoToggle, StringComparison.OrdinalIgnoreCase) => await client.InfoToggleAsync(cancellationToken),
+            _ when command.Equals(MediaPlayerCommandIdConstants.AudioTrack, StringComparison.OrdinalIgnoreCase) => await client.AudioAsync(cancellationToken),
+            _ when command.Equals(MediaPlayerCommandIdConstants.OpenClose, StringComparison.OrdinalIgnoreCase) => await client.EjectToggleAsync(cancellationToken),
 
             _ => false
         };
