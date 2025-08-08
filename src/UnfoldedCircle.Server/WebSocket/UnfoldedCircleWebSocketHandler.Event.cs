@@ -34,7 +34,7 @@ internal sealed partial class UnfoldedCircleWebSocketHandler
                 await SendAsync(socket,
                     ResponsePayloadHelpers.CreateConnectEventResponsePayload(success ? DeviceState.Disconnected : DeviceState.Error),
                     wsId,
-                    cancellationTokenWrapper.ApplicationStopping);
+                    cancellationTokenWrapper.RequestAborted);
                 
                 return;
             }
@@ -51,7 +51,7 @@ internal sealed partial class UnfoldedCircleWebSocketHandler
                 await SendAsync(socket,
                     ResponsePayloadHelpers.CreateCommonResponsePayload(0),
                     wsId,
-                    cancellationTokenWrapper.ApplicationStopping);
+                    cancellationTokenWrapper.RequestAborted);
                 
                 return;
             }
@@ -63,7 +63,7 @@ internal sealed partial class UnfoldedCircleWebSocketHandler
                     await SendAsync(socket,
                         ResponsePayloadHelpers.CreateConnectEventResponsePayload(DeviceState.Disconnected),
                         wsId,
-                        cancellationTokenWrapper.ApplicationStopping);
+                        cancellationTokenWrapper.RequestAborted);
                     return;
                 }
             case MessageEvent.ExitStandby:
@@ -81,7 +81,7 @@ internal sealed partial class UnfoldedCircleWebSocketHandler
     private async Task HandleConnectOrExitStandby(System.Net.WebSockets.WebSocket socket, string wsId, CancellationTokenWrapper cancellationTokenWrapper)
     {
         cancellationTokenWrapper.EnsureNonCancelledBroadcastCancellationTokenSource();
-        var oppoClientHolders = await TryGetOppoClientHolders(wsId, cancellationTokenWrapper.ApplicationStopping);
+        var oppoClientHolders = await TryGetOppoClientHolders(wsId, cancellationTokenWrapper.RequestAborted);
         if (oppoClientHolders is { Count: > 0 })
         {
             var lastDeviceState = DeviceState.Disconnected;
@@ -94,7 +94,7 @@ internal sealed partial class UnfoldedCircleWebSocketHandler
                         await SendAsync(socket,
                             ResponsePayloadHelpers.CreateConnectEventResponsePayload(deviceState),
                             wsId,
-                            cancellationTokenWrapper.ApplicationStopping);
+                            cancellationTokenWrapper.RequestAborted);
                     lastDeviceState = deviceState;
                 }
 

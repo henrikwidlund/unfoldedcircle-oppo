@@ -18,7 +18,7 @@ public sealed class CancellationTokenWrapper(
             return;
             
         _broadcastCancellationTokenSource?.Dispose();
-        _broadcastCancellationTokenSource = new CancellationTokenSource();
+        _broadcastCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(RequestAborted, ApplicationStopping);
         _broadcastCancellationTokenSource.Token.Register(static logger => ((ILogger)logger!).LogWarning("Broadcast cancelled"), _logger);
     }
 

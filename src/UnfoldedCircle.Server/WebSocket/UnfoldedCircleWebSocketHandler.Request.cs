@@ -43,7 +43,7 @@ internal sealed partial class UnfoldedCircleWebSocketHandler
                             }
                         }),
                     wsId,
-                    cancellationTokenWrapper.ApplicationStopping);
+                    cancellationTokenWrapper.RequestAborted);
                 
                 return;
             }
@@ -54,28 +54,28 @@ internal sealed partial class UnfoldedCircleWebSocketHandler
                 await SendAsync(socket,
                     ResponsePayloadHelpers.CreateDriverMetaDataResponsePayload(payload, await _configurationService.GetDriverMetadataAsync(cancellationTokenWrapper.RequestAborted)),
                     wsId,
-                    cancellationTokenWrapper.ApplicationStopping);
+                    cancellationTokenWrapper.RequestAborted);
                 
                 return;
             }
             case MessageEvent.GetDeviceState:
             {
                 var payload = jsonDocument.Deserialize(UnfoldedCircleJsonSerializerContext.Instance.GetDeviceStateMsg)!;
-                var oppoClientHolder = await TryGetOppoClientHolder(wsId, payload.MsgData.DeviceId, IdentifierType.DeviceId, cancellationTokenWrapper.ApplicationStopping);
+                var oppoClientHolder = await TryGetOppoClientHolder(wsId, payload.MsgData.DeviceId, IdentifierType.DeviceId, cancellationTokenWrapper.RequestAborted);
                 await SendAsync(socket,
                     ResponsePayloadHelpers.CreateGetDeviceStateResponsePayload(
                         await GetDeviceState(oppoClientHolder),
                         payload.MsgData.DeviceId
                     ),
                     wsId,
-                    cancellationTokenWrapper.ApplicationStopping);
+                    cancellationTokenWrapper.RequestAborted);
 
                 return;
             }
             case MessageEvent.GetAvailableEntities:
             {
                 var payload = jsonDocument.Deserialize(UnfoldedCircleJsonSerializerContext.Instance.GetAvailableEntitiesMsg)!;
-                var entities = await GetEntities(wsId, payload.MsgData.Filter?.DeviceId, cancellationTokenWrapper.ApplicationStopping);
+                var entities = await GetEntities(wsId, payload.MsgData.Filter?.DeviceId, cancellationTokenWrapper.RequestAborted);
                 await SendAsync(socket,
                     ResponsePayloadHelpers.CreateGetAvailableEntitiesMsg(payload,
                         new AvailableEntitiesMsgData
@@ -84,7 +84,7 @@ internal sealed partial class UnfoldedCircleWebSocketHandler
                             AvailableEntities = GetAvailableEntities(entities, payload).ToArray()
                         }),
                     wsId,
-                    cancellationTokenWrapper.ApplicationStopping);
+                    cancellationTokenWrapper.RequestAborted);
 
                 return;
             }
@@ -94,10 +94,10 @@ internal sealed partial class UnfoldedCircleWebSocketHandler
                 await SendAsync(socket,
                     ResponsePayloadHelpers.CreateCommonResponsePayload(payload),
                     wsId,
-                    cancellationTokenWrapper.ApplicationStopping);
+                    cancellationTokenWrapper.RequestAborted);
 
                 SubscribeEvents.AddOrUpdate(wsId, static _ => true, static (_, _) => true);
-                var oppoClientHolders = await TryGetOppoClientHolders(wsId, cancellationTokenWrapper.ApplicationStopping);
+                var oppoClientHolders = await TryGetOppoClientHolders(wsId, cancellationTokenWrapper.RequestAborted);
                 if (oppoClientHolders is { Count: > 0 })
                 {
                     foreach (var oppoClientHolder in oppoClientHolders)
@@ -117,7 +117,7 @@ internal sealed partial class UnfoldedCircleWebSocketHandler
                                     oppoClientHolder.ClientKey.HostName,
                                     EntityType.MediaPlayer),
                                 wsId,
-                                cancellationTokenWrapper.ApplicationStopping);
+                                cancellationTokenWrapper.RequestAborted);
                         }
                     }
                 }
@@ -132,21 +132,21 @@ internal sealed partial class UnfoldedCircleWebSocketHandler
                 await SendAsync(socket,
                     ResponsePayloadHelpers.CreateCommonResponsePayload(payload),
                     wsId,
-                    cancellationTokenWrapper.ApplicationStopping);
+                    cancellationTokenWrapper.RequestAborted);
                 
                 return;
             }
             case MessageEvent.GetEntityStates:
             {
                 var payload = jsonDocument.Deserialize(UnfoldedCircleJsonSerializerContext.Instance.GetEntityStatesMsg)!;
-                var entities = await GetEntities(wsId, payload.MsgData?.DeviceId, cancellationTokenWrapper.ApplicationStopping);
+                var entities = await GetEntities(wsId, payload.MsgData?.DeviceId, cancellationTokenWrapper.RequestAborted);
                 await SendAsync(socket,
                     ResponsePayloadHelpers.CreateGetEntityStatesResponsePayload(payload,
                         entities is { Count: > 0 }
                             ? entities.Select(static x => new EntityIdDeviceId(x.EntityId, x.DeviceId, x.Model))
                             : []),
                     wsId,
-                    cancellationTokenWrapper.ApplicationStopping);
+                    cancellationTokenWrapper.RequestAborted);
                 
                 return;
             }
@@ -159,7 +159,7 @@ internal sealed partial class UnfoldedCircleWebSocketHandler
                 SubscribeEvents.AddOrUpdate(wsId, static _ => false, static (_, _) => false);
                 
                 var entity = await UpdateConfiguration(payload.MsgData.SetupData, cancellationTokenWrapper.ApplicationStopping);
-                var oppoClientHolder = await TryGetOppoClientHolder(wsId, entity.EntityId, IdentifierType.EntityId, cancellationTokenWrapper.ApplicationStopping);
+                var oppoClientHolder = await TryGetOppoClientHolder(wsId, entity.EntityId, IdentifierType.EntityId, cancellationTokenWrapper.RequestAborted);
                 
                 var isConnected = oppoClientHolder is not null && await oppoClientHolder.Client.IsConnectedAsync();
                 
@@ -167,15 +167,15 @@ internal sealed partial class UnfoldedCircleWebSocketHandler
                     SendAsync(socket,
                         ResponsePayloadHelpers.CreateCommonResponsePayload(payload),
                         wsId,
-                        cancellationTokenWrapper.ApplicationStopping),
+                        cancellationTokenWrapper.RequestAborted),
                     SendAsync(socket,
                         ResponsePayloadHelpers.CreateDeviceSetupChangeResponsePayload(isConnected),
                         wsId,
-                        cancellationTokenWrapper.ApplicationStopping),
+                        cancellationTokenWrapper.RequestAborted),
                     SendAsync(socket,
                         ResponsePayloadHelpers.CreateConnectEventResponsePayload(await GetDeviceState(oppoClientHolder)),
                         wsId,
-                        cancellationTokenWrapper.ApplicationStopping)
+                        cancellationTokenWrapper.RequestAborted)
                 );
                 
                 return;
@@ -189,7 +189,7 @@ internal sealed partial class UnfoldedCircleWebSocketHandler
                 await SendAsync(socket,
                     ResponsePayloadHelpers.CreateCommonResponsePayload(payload),
                     wsId,
-                    cancellationTokenWrapper.ApplicationStopping);
+                    cancellationTokenWrapper.RequestAborted);
                 
                 return;
             }

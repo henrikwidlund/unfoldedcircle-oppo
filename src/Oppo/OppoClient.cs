@@ -931,24 +931,35 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
 
     public async ValueTask<bool> IsConnectedAsync(TimeSpan? timeout = null)
     {
-        // check twice, once before the wait, and once after the wait
-        if (!_tcpClient.Connected && (await _semaphore.WaitAsync(timeout ?? TimeSpan.FromSeconds(9)) && !_tcpClient.Connected))
+        if (_tcpClient.Connected)
+            return _tcpClient.Connected;
+
+        var acquired = await _semaphore.WaitAsync(timeout ?? TimeSpan.FromSeconds(9));
+        if (!acquired)
+            return _tcpClient.Connected;
+
+        try
         {
-            try
-            {
-                using var cancellationTokenSource = new CancellationTokenSource(timeout ?? TimeSpan.FromSeconds(10));
-                await _tcpClient.ConnectAsync(_hostName, _port, cancellationTokenSource.Token);
-            }
-            catch (OperationCanceledException)
-            {
-                // nothing to do here, ignore
-            }
-            finally
-            {
-                _semaphore.Release();
-            }
+            if (_tcpClient.Connected)
+                return _tcpClient.Connected;
+
+            using var cancellationTokenSource = new CancellationTokenSource(timeout ?? TimeSpan.FromSeconds(10));
+            await _tcpClient.ConnectAsync(_hostName, _port, cancellationTokenSource.Token);
+            return _tcpClient.Connected;
         }
-        
+        catch (OperationCanceledException)
+        {
+            // nothing to do here, ignore
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Failed to connect to Oppo player at {Host}:{Port}", _hostName, _port);
+        }
+        finally
+        {
+            _semaphore.Release();
+        }
+
         return _tcpClient.Connected;
     }
 
@@ -996,19 +1007,19 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         }
     }
     
-    private async ValueTask<string> ReadUntilCarriageReturnAsync(NetworkStream networkStream,
-        CancellationToken cancellationToken = default)
+    private async ValueTask<string> ReadUntilCarriageReturnAsync(NetworkStream networkStream, CancellationToken cancellationToken)
     {
         _stringBuilder.Clear();
         var pipeReader = PipeReader.Create(networkStream);
         var charBuffer = ArrayPool<char>.Shared.Rent(1024);
         var firstWrite = true;
-        
+        using var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(3));
+
         try
         {
             while (true)
             {
-                var result = await pipeReader.ReadAsync(cancellationToken);
+                var result = await pipeReader.ReadAsync(cancellationTokenSource.Token);
                 var buffer = result.Buffer;
 
                 do
@@ -1039,12 +1050,10 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
                         WriteSpan(segment.Span, charBuffer, ref firstWrite);
                     }
                     pipeReader.AdvanceTo(buffer.End);
-                } while (!result.IsCompleted);
+                } while (!result.IsCompleted && !cancellationToken.IsCancellationRequested);
 
-                if (result.IsCompleted)
-                {
+                if (result.IsCompleted || cancellationToken.IsCancellationRequested)
                     break;
-                }
             }
         }
         finally
@@ -1060,7 +1069,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         if (isFirstWrite)
         {
             // Models prior to UDP-20X doesn't send back @OK or @ER, rather it's @(COMMAND_CODE) followed by OK|ER and then the response
-            if (!_is20XModel && (!span.StartsWith("@OK "u8) || !span.StartsWith("@ER "u8)))
+            if (!_is20XModel && (!span.StartsWith("@OK "u8) && !span.StartsWith("@ER "u8)))
             {
                 _stringBuilder.Append('@');
                 int charsDecoded = Encoding.ASCII.GetChars(span[5..], charBuffer);
