@@ -18,7 +18,7 @@ internal sealed partial class UnfoldedCircleWebSocketHandler
         string wsId,
         CancellationTokenWrapper cancellationTokenWrapper)
     {
-        var oppoClientHolder = await TryGetOppoClientHolder(wsId, payload.MsgData.EntityId, IdentifierType.EntityId, cancellationTokenWrapper.ApplicationStopping);
+        var oppoClientHolder = await TryGetOppoClientHolder(wsId, payload.MsgData.EntityId, IdentifierType.EntityId, cancellationTokenWrapper.RequestAborted);
         if (oppoClientHolder is null || !await oppoClientHolder.Client.IsConnectedAsync())
         {
             await SendAsync(socket,
@@ -29,7 +29,7 @@ internal sealed partial class UnfoldedCircleWebSocketHandler
                         Message = oppoClientHolder is null ? "Device not found" : "Device not connected"
                     }),
                 wsId,
-                cancellationTokenWrapper.ApplicationStopping);
+                cancellationTokenWrapper.RequestAborted);
             return;
         }
 
@@ -64,54 +64,54 @@ internal sealed partial class UnfoldedCircleWebSocketHandler
                 await SendPowerEvent(socket, payload, wsId, PowerState.Off, cancellationTokenWrapper);
                 break;
             case OppoCommandId.Toggle:
-                await oppoClientHolder.Client.PowerToggleAsync(cancellationTokenWrapper.ApplicationStopping);
+                await oppoClientHolder.Client.PowerToggleAsync(cancellationTokenWrapper.RequestAborted);
                 break;
             case OppoCommandId.PlayPause:
-                await oppoClientHolder.Client.PauseAsync(cancellationTokenWrapper.ApplicationStopping);
+                await oppoClientHolder.Client.PauseAsync(cancellationTokenWrapper.RequestAborted);
                 break;
             case OppoCommandId.Stop:
-                await oppoClientHolder.Client.StopAsync(cancellationTokenWrapper.ApplicationStopping);
+                await oppoClientHolder.Client.StopAsync(cancellationTokenWrapper.RequestAborted);
                 break;
             case OppoCommandId.Previous:
-                await oppoClientHolder.Client.PreviousAsync(cancellationTokenWrapper.ApplicationStopping);
+                await oppoClientHolder.Client.PreviousAsync(cancellationTokenWrapper.RequestAborted);
                 break;
             case OppoCommandId.Next:
-                await oppoClientHolder.Client.NextAsync(cancellationTokenWrapper.ApplicationStopping);
+                await oppoClientHolder.Client.NextAsync(cancellationTokenWrapper.RequestAborted);
                 break;
             case OppoCommandId.FastForward:
-                await oppoClientHolder.Client.ForwardAsync(cancellationTokenWrapper.ApplicationStopping);
+                await oppoClientHolder.Client.ForwardAsync(cancellationTokenWrapper.RequestAborted);
                 break;
             case OppoCommandId.Rewind:
-                await oppoClientHolder.Client.ReverseAsync(cancellationTokenWrapper.ApplicationStopping);
+                await oppoClientHolder.Client.ReverseAsync(cancellationTokenWrapper.RequestAborted);
                 break;
             case OppoCommandId.Seek:
                 if (payload.MsgData.Params is { MediaPosition: not null })
                 {
                     var digits = GetDigits(payload.MsgData.Params.MediaPosition.Value);
-                    await oppoClientHolder.Client.GoToAsync(cancellationTokenWrapper.ApplicationStopping);
+                    await oppoClientHolder.Client.GoToAsync(cancellationTokenWrapper.RequestAborted);
                     foreach (uint digit in digits)
                     {
                         if (digit > 9)
                         {
-                            await oppoClientHolder.Client.ClearAsync(cancellationTokenWrapper.ApplicationStopping);
-                            await oppoClientHolder.Client.EnterAsync(cancellationTokenWrapper.ApplicationStopping);
+                            await oppoClientHolder.Client.ClearAsync(cancellationTokenWrapper.RequestAborted);
+                            await oppoClientHolder.Client.EnterAsync(cancellationTokenWrapper.RequestAborted);
                             return;
                         }
 
-                        await oppoClientHolder.Client.NumericInputAsync((ushort)digit, cancellationTokenWrapper.ApplicationStopping);
+                        await oppoClientHolder.Client.NumericInputAsync((ushort)digit, cancellationTokenWrapper.RequestAborted);
                     }
 
-                    await oppoClientHolder.Client.EnterAsync(cancellationTokenWrapper.ApplicationStopping);
+                    await oppoClientHolder.Client.EnterAsync(cancellationTokenWrapper.RequestAborted);
                 }
                 break;
             case OppoCommandId.VolumeUp:
-                await oppoClientHolder.Client.VolumeUpAsync(cancellationTokenWrapper.ApplicationStopping);
+                await oppoClientHolder.Client.VolumeUpAsync(cancellationTokenWrapper.RequestAborted);
                 break;
             case OppoCommandId.VolumeDown:
-                await oppoClientHolder.Client.VolumeDownAsync(cancellationTokenWrapper.ApplicationStopping);
+                await oppoClientHolder.Client.VolumeDownAsync(cancellationTokenWrapper.RequestAborted);
                 break;
             case OppoCommandId.MuteToggle:
-                await oppoClientHolder.Client.MuteToggleAsync(cancellationTokenWrapper.ApplicationStopping);
+                await oppoClientHolder.Client.MuteToggleAsync(cancellationTokenWrapper.RequestAborted);
                 break;
             case OppoCommandId.Repeat:
                 if (payload.MsgData.Params is { Repeat: not null })
@@ -121,181 +121,181 @@ internal sealed partial class UnfoldedCircleWebSocketHandler
                         Models.Shared.RepeatMode.All => RepeatMode.All,
                         Models.Shared.RepeatMode.One => RepeatMode.Title,
                         _ => RepeatMode.Off
-                    }, cancellationTokenWrapper.ApplicationStopping);
+                    }, cancellationTokenWrapper.RequestAborted);
                 else
-                    await oppoClientHolder.Client.RepeatAsync(cancellationTokenWrapper.ApplicationStopping);
+                    await oppoClientHolder.Client.RepeatAsync(cancellationTokenWrapper.RequestAborted);
 
                 break;
             case OppoCommandId.ChannelUp:
-                await oppoClientHolder.Client.PageUpAsync(cancellationTokenWrapper.ApplicationStopping);
+                await oppoClientHolder.Client.PageUpAsync(cancellationTokenWrapper.RequestAborted);
                 break;
             case OppoCommandId.ChannelDown:
-                await oppoClientHolder.Client.PageDownAsync(cancellationTokenWrapper.ApplicationStopping);
+                await oppoClientHolder.Client.PageDownAsync(cancellationTokenWrapper.RequestAborted);
                 break;
             case OppoCommandId.CursorUp:
-                await oppoClientHolder.Client.UpArrowAsync(cancellationTokenWrapper.ApplicationStopping);
+                await oppoClientHolder.Client.UpArrowAsync(cancellationTokenWrapper.RequestAborted);
                 break;
             case OppoCommandId.CursorDown:
-                await oppoClientHolder.Client.DownArrowAsync(cancellationTokenWrapper.ApplicationStopping);
+                await oppoClientHolder.Client.DownArrowAsync(cancellationTokenWrapper.RequestAborted);
                 break;
             case OppoCommandId.CursorLeft:
-                await oppoClientHolder.Client.LeftArrowAsync(cancellationTokenWrapper.ApplicationStopping);
+                await oppoClientHolder.Client.LeftArrowAsync(cancellationTokenWrapper.RequestAborted);
                 break;
             case OppoCommandId.CursorRight:
-                await oppoClientHolder.Client.RightArrowAsync(cancellationTokenWrapper.ApplicationStopping);
+                await oppoClientHolder.Client.RightArrowAsync(cancellationTokenWrapper.RequestAborted);
                 break;
             case OppoCommandId.CursorEnter:
-                await oppoClientHolder.Client.EnterAsync(cancellationTokenWrapper.ApplicationStopping);
+                await oppoClientHolder.Client.EnterAsync(cancellationTokenWrapper.RequestAborted);
                 break;
             case OppoCommandId.Digit0:
-                await oppoClientHolder.Client.NumericInputAsync(0, cancellationTokenWrapper.ApplicationStopping);
+                await oppoClientHolder.Client.NumericInputAsync(0, cancellationTokenWrapper.RequestAborted);
                 break;
             case OppoCommandId.Digit1:
-                await oppoClientHolder.Client.NumericInputAsync(1, cancellationTokenWrapper.ApplicationStopping);
+                await oppoClientHolder.Client.NumericInputAsync(1, cancellationTokenWrapper.RequestAborted);
                 break;
             case OppoCommandId.Digit2:
-                await oppoClientHolder.Client.NumericInputAsync(2, cancellationTokenWrapper.ApplicationStopping);
+                await oppoClientHolder.Client.NumericInputAsync(2, cancellationTokenWrapper.RequestAborted);
                 break;
             case OppoCommandId.Digit3:
-                await oppoClientHolder.Client.NumericInputAsync(3, cancellationTokenWrapper.ApplicationStopping);
+                await oppoClientHolder.Client.NumericInputAsync(3, cancellationTokenWrapper.RequestAborted);
                 break;
             case OppoCommandId.Digit4:
-                await oppoClientHolder.Client.NumericInputAsync(4, cancellationTokenWrapper.ApplicationStopping);
+                await oppoClientHolder.Client.NumericInputAsync(4, cancellationTokenWrapper.RequestAborted);
                 break;
             case OppoCommandId.Digit5:
-                await oppoClientHolder.Client.NumericInputAsync(5, cancellationTokenWrapper.ApplicationStopping);
+                await oppoClientHolder.Client.NumericInputAsync(5, cancellationTokenWrapper.RequestAborted);
                 break;
             case OppoCommandId.Digit6:
-                await oppoClientHolder.Client.NumericInputAsync(6, cancellationTokenWrapper.ApplicationStopping);
+                await oppoClientHolder.Client.NumericInputAsync(6, cancellationTokenWrapper.RequestAborted);
                 break;
             case OppoCommandId.Digit7:
-                await oppoClientHolder.Client.NumericInputAsync(7, cancellationTokenWrapper.ApplicationStopping);
+                await oppoClientHolder.Client.NumericInputAsync(7, cancellationTokenWrapper.RequestAborted);
                 break;
             case OppoCommandId.Digit8:
-                await oppoClientHolder.Client.NumericInputAsync(8, cancellationTokenWrapper.ApplicationStopping);
+                await oppoClientHolder.Client.NumericInputAsync(8, cancellationTokenWrapper.RequestAborted);
                 break;
             case OppoCommandId.Digit9:
-                await oppoClientHolder.Client.NumericInputAsync(9, cancellationTokenWrapper.ApplicationStopping);
+                await oppoClientHolder.Client.NumericInputAsync(9, cancellationTokenWrapper.RequestAborted);
                 break;
             case OppoCommandId.FunctionRed:
-                await oppoClientHolder.Client.RedAsync(cancellationTokenWrapper.ApplicationStopping);
+                await oppoClientHolder.Client.RedAsync(cancellationTokenWrapper.RequestAborted);
                 break;
             case OppoCommandId.FunctionGreen:
-                await oppoClientHolder.Client.GreenAsync(cancellationTokenWrapper.ApplicationStopping);
+                await oppoClientHolder.Client.GreenAsync(cancellationTokenWrapper.RequestAborted);
                 break;
             case OppoCommandId.FunctionYellow:
-                await oppoClientHolder.Client.YellowAsync(cancellationTokenWrapper.ApplicationStopping);
+                await oppoClientHolder.Client.YellowAsync(cancellationTokenWrapper.RequestAborted);
                 break;
             case OppoCommandId.FunctionBlue:
-                await oppoClientHolder.Client.BlueAsync(cancellationTokenWrapper.ApplicationStopping);
+                await oppoClientHolder.Client.BlueAsync(cancellationTokenWrapper.RequestAborted);
                 break;
             case OppoCommandId.Home:
-                await oppoClientHolder.Client.HomeAsync(cancellationTokenWrapper.ApplicationStopping);
+                await oppoClientHolder.Client.HomeAsync(cancellationTokenWrapper.RequestAborted);
                 break;
             case OppoCommandId.ContextMenu:
-                await oppoClientHolder.Client.TopMenuAsync(cancellationTokenWrapper.ApplicationStopping);
+                await oppoClientHolder.Client.TopMenuAsync(cancellationTokenWrapper.RequestAborted);
                 break;
             case OppoCommandId.Info:
-                await oppoClientHolder.Client.InfoToggleAsync(cancellationTokenWrapper.ApplicationStopping);
+                await oppoClientHolder.Client.InfoToggleAsync(cancellationTokenWrapper.RequestAborted);
                 break;
             case OppoCommandId.Back:
-                await oppoClientHolder.Client.ReturnAsync(cancellationTokenWrapper.ApplicationStopping);
+                await oppoClientHolder.Client.ReturnAsync(cancellationTokenWrapper.RequestAborted);
                 break;
             case OppoCommandId.SelectSource:
                 if (payload.MsgData.Params is { Source: not null } && OppoEntitySettings.SourceMap.TryGetValue(payload.MsgData.Params.Source, out var source))
                 {
                     // Sending input source is only allowed if the unit is on - avoid locking up the driver by only sending it when the unit is ready
-                    var powerState = await oppoClientHolder.Client.QueryPowerStatusAsync(cancellationTokenWrapper.ApplicationStopping);
+                    var powerState = await oppoClientHolder.Client.QueryPowerStatusAsync(cancellationTokenWrapper.RequestAborted);
                     if (powerState is { Result: PowerState.On })
-                        await oppoClientHolder.Client.SetInputSourceAsync(source, cancellationTokenWrapper.ApplicationStopping);
+                        await oppoClientHolder.Client.SetInputSourceAsync(source, cancellationTokenWrapper.RequestAborted);
                 }
                 else
-                    await oppoClientHolder.Client.InputAsync(cancellationTokenWrapper.ApplicationStopping);
+                    await oppoClientHolder.Client.InputAsync(cancellationTokenWrapper.RequestAborted);
                 break;
             case OppoCommandId.PureAudioToggle:
-                await oppoClientHolder.Client.PureAudioToggleAsync(cancellationTokenWrapper.ApplicationStopping);
+                await oppoClientHolder.Client.PureAudioToggleAsync(cancellationTokenWrapper.RequestAborted);
                 break;
             case OppoCommandId.OpenClose:
-                await oppoClientHolder.Client.EjectToggleAsync(cancellationTokenWrapper.ApplicationStopping);
+                await oppoClientHolder.Client.EjectToggleAsync(cancellationTokenWrapper.RequestAborted);
                 break;
             case OppoCommandId.AudioTrack:
-                await oppoClientHolder.Client.AudioAsync(cancellationTokenWrapper.ApplicationStopping);
+                await oppoClientHolder.Client.AudioAsync(cancellationTokenWrapper.RequestAborted);
                 break;
             case OppoCommandId.Subtitle:
-                await oppoClientHolder.Client.SubtitleAsync(cancellationTokenWrapper.ApplicationStopping);
+                await oppoClientHolder.Client.SubtitleAsync(cancellationTokenWrapper.RequestAborted);
                 break;
             case OppoCommandId.Settings:
-                await oppoClientHolder.Client.SetupAsync(cancellationTokenWrapper.ApplicationStopping);
+                await oppoClientHolder.Client.SetupAsync(cancellationTokenWrapper.RequestAborted);
                 break;
             case OppoCommandId.Dimmer:
-                await oppoClientHolder.Client.DimmerAsync(cancellationTokenWrapper.ApplicationStopping);
+                await oppoClientHolder.Client.DimmerAsync(cancellationTokenWrapper.RequestAborted);
                 break;
             case OppoCommandId.Clear:
-                await oppoClientHolder.Client.ClearAsync(cancellationTokenWrapper.ApplicationStopping);
+                await oppoClientHolder.Client.ClearAsync(cancellationTokenWrapper.RequestAborted);
                 break;
             case OppoCommandId.PopUpMenu:
-                await oppoClientHolder.Client.PopUpMenuAsync(cancellationTokenWrapper.ApplicationStopping);
+                await oppoClientHolder.Client.PopUpMenuAsync(cancellationTokenWrapper.RequestAborted);
                 break;
             case OppoCommandId.Pause:
-                await oppoClientHolder.Client.PauseAsync(cancellationTokenWrapper.ApplicationStopping);
+                await oppoClientHolder.Client.PauseAsync(cancellationTokenWrapper.RequestAborted);
                 break;
             case OppoCommandId.Play:
-                await oppoClientHolder.Client.PlayAsync(cancellationTokenWrapper.ApplicationStopping);
+                await oppoClientHolder.Client.PlayAsync(cancellationTokenWrapper.RequestAborted);
                 break;
             case OppoCommandId.Angle:
-                await oppoClientHolder.Client.AngleAsync(cancellationTokenWrapper.ApplicationStopping);
+                await oppoClientHolder.Client.AngleAsync(cancellationTokenWrapper.RequestAborted);
                 break;
             case OppoCommandId.Zoom:
-                await oppoClientHolder.Client.ZoomAsync(cancellationTokenWrapper.ApplicationStopping);
+                await oppoClientHolder.Client.ZoomAsync(cancellationTokenWrapper.RequestAborted);
                 break;
             case OppoCommandId.SecondaryAudioProgram:
-                await oppoClientHolder.Client.SecondaryAudioProgramAsync(cancellationTokenWrapper.ApplicationStopping);
+                await oppoClientHolder.Client.SecondaryAudioProgramAsync(cancellationTokenWrapper.RequestAborted);
                 break;
             case OppoCommandId.AbReplay:
-                await oppoClientHolder.Client.ABReplayAsync(cancellationTokenWrapper.ApplicationStopping);
+                await oppoClientHolder.Client.ABReplayAsync(cancellationTokenWrapper.RequestAborted);
                 break;
             case OppoCommandId.PictureInPicture:
-                await oppoClientHolder.Client.PictureInPictureAsync(cancellationTokenWrapper.ApplicationStopping);
+                await oppoClientHolder.Client.PictureInPictureAsync(cancellationTokenWrapper.RequestAborted);
                 break;
             case OppoCommandId.Resolution:
-                await oppoClientHolder.Client.ResolutionAsync(cancellationTokenWrapper.ApplicationStopping);
+                await oppoClientHolder.Client.ResolutionAsync(cancellationTokenWrapper.RequestAborted);
                 break;
             case OppoCommandId.SubtitleHold:
-                await oppoClientHolder.Client.SubtitleHoldAsync(cancellationTokenWrapper.ApplicationStopping);
+                await oppoClientHolder.Client.SubtitleHoldAsync(cancellationTokenWrapper.RequestAborted);
                 break;
             case OppoCommandId.Option:
-                await oppoClientHolder.Client.OptionAsync(cancellationTokenWrapper.ApplicationStopping);
+                await oppoClientHolder.Client.OptionAsync(cancellationTokenWrapper.RequestAborted);
                 break;
             case OppoCommandId.ThreeD:
-                await oppoClientHolder.Client.ThreeDAsync(cancellationTokenWrapper.ApplicationStopping);
+                await oppoClientHolder.Client.ThreeDAsync(cancellationTokenWrapper.RequestAborted);
                 break;
             case OppoCommandId.PictureAdjustment:
-                await oppoClientHolder.Client.PictureAdjustmentAsync(cancellationTokenWrapper.ApplicationStopping);
+                await oppoClientHolder.Client.PictureAdjustmentAsync(cancellationTokenWrapper.RequestAborted);
                 break;
             case OppoCommandId.Hdr:
-                await oppoClientHolder.Client.HDRAsync(cancellationTokenWrapper.ApplicationStopping);
+                await oppoClientHolder.Client.HDRAsync(cancellationTokenWrapper.RequestAborted);
                 break;
             case OppoCommandId.InfoHold:
-                await oppoClientHolder.Client.InfoHoldAsync(cancellationTokenWrapper.ApplicationStopping);
+                await oppoClientHolder.Client.InfoHoldAsync(cancellationTokenWrapper.RequestAborted);
                 break;
             case OppoCommandId.ResolutionHold:
-                await oppoClientHolder.Client.ResolutionHoldAsync(cancellationTokenWrapper.ApplicationStopping);
+                await oppoClientHolder.Client.ResolutionHoldAsync(cancellationTokenWrapper.RequestAborted);
                 break;
             case OppoCommandId.AvSync:
-                await oppoClientHolder.Client.AVSyncAsync(cancellationTokenWrapper.ApplicationStopping);
+                await oppoClientHolder.Client.AVSyncAsync(cancellationTokenWrapper.RequestAborted);
                 break;
             case OppoCommandId.GaplessPlay:
-                await oppoClientHolder.Client.GaplessPlayAsync(cancellationTokenWrapper.ApplicationStopping);
+                await oppoClientHolder.Client.GaplessPlayAsync(cancellationTokenWrapper.RequestAborted);
                 break;
 
             case OppoCommandId.Shuffle:
                 if (payload.MsgData.Params is { Shuffle: not null })
-                    await oppoClientHolder.Client.SetRepeatAsync(payload.MsgData.Params.Shuffle.Value ? RepeatMode.Shuffle : RepeatMode.Off, cancellationTokenWrapper.ApplicationStopping);
+                    await oppoClientHolder.Client.SetRepeatAsync(payload.MsgData.Params.Shuffle.Value ? RepeatMode.Shuffle : RepeatMode.Off, cancellationTokenWrapper.RequestAborted);
                 break;
 
             case OppoCommandId.Volume:
                 if (payload.MsgData.Params is { Volume: not null })
-                    await oppoClientHolder.Client.SetVolumeAsync(payload.MsgData.Params.Volume.Value, cancellationTokenWrapper.ApplicationStopping);
+                    await oppoClientHolder.Client.SetVolumeAsync(payload.MsgData.Params.Volume.Value, cancellationTokenWrapper.RequestAborted);
                 break;
 
             // unsupported default commands
@@ -318,7 +318,7 @@ internal sealed partial class UnfoldedCircleWebSocketHandler
             await SendAsync(socket,
                 ResponsePayloadHelpers.CreateCommonResponsePayload(payload),
                 wsId,
-                cancellationTokenWrapper.ApplicationStopping);
+                cancellationTokenWrapper.RequestAborted);
         }
         else
         {
@@ -330,7 +330,7 @@ internal sealed partial class UnfoldedCircleWebSocketHandler
                         Message = "Unknown command"
                     }),
                 wsId,
-                cancellationTokenWrapper.ApplicationStopping);
+                cancellationTokenWrapper.RequestAborted);
         }
     }
 
@@ -351,7 +351,7 @@ internal sealed partial class UnfoldedCircleWebSocketHandler
                 payload.MsgData.EntityId,
                 EntityType.MediaPlayer),
             wsId,
-            cancellationTokenWrapper.ApplicationStopping);
+            cancellationTokenWrapper.RequestAborted);
         await SendAsync(socket,
             ResponsePayloadHelpers.CreateStateChangedResponsePayload(
                 new RemoteStateChangedEventMessageDataAttributes { State = powerState switch
@@ -363,7 +363,7 @@ internal sealed partial class UnfoldedCircleWebSocketHandler
                 payload.MsgData.EntityId,
                 EntityType.Remote),
             wsId,
-            cancellationTokenWrapper.ApplicationStopping);
+            cancellationTokenWrapper.RequestAborted);
     }
 
     private static async Task HandlePowerOff(OppoClientHolder oppoClientHolder, CancellationTokenWrapper cancellationTokenWrapper)
@@ -371,17 +371,17 @@ internal sealed partial class UnfoldedCircleWebSocketHandler
         await (cancellationTokenWrapper.GetCurrentBroadcastCancellationTokenSource()?.CancelAsync() ?? Task.CompletedTask);
 
         // Power commands can be flaky, so we try twice
-        if ((await oppoClientHolder.Client.PowerOffAsync(cancellationTokenWrapper.ApplicationStopping)) is not { Result: PowerState.Off })
-            await oppoClientHolder.Client.PowerOffAsync(cancellationTokenWrapper.ApplicationStopping);
+        if ((await oppoClientHolder.Client.PowerOffAsync(cancellationTokenWrapper.RequestAborted)) is not { Result: PowerState.Off })
+            await oppoClientHolder.Client.PowerOffAsync(cancellationTokenWrapper.RequestAborted);
     }
 
     private static async Task<OppoResult<PowerState>> HandlePowerOn(OppoClientHolder oppoClientHolder, CancellationTokenWrapper cancellationTokenWrapper)
     {
         cancellationTokenWrapper.EnsureNonCancelledBroadcastCancellationTokenSource();
-        var powerStateResponse = await oppoClientHolder.Client.PowerOnAsync(cancellationTokenWrapper.ApplicationStopping);
+        var powerStateResponse = await oppoClientHolder.Client.PowerOnAsync(cancellationTokenWrapper.RequestAborted);
         // Power commands can be flaky, so we try twice
         if (powerStateResponse is not { Result: PowerState.On })
-            powerStateResponse = await oppoClientHolder.Client.PowerOnAsync(cancellationTokenWrapper.ApplicationStopping);
+            powerStateResponse = await oppoClientHolder.Client.PowerOnAsync(cancellationTokenWrapper.RequestAborted);
         return powerStateResponse;
     }
 
@@ -412,7 +412,7 @@ internal sealed partial class UnfoldedCircleWebSocketHandler
                             payload.MsgData.EntityId,
                             EntityType.Remote),
                         wsId,
-                        cancellationTokenWrapper.ApplicationStopping);
+                        cancellationTokenWrapper.RequestAborted);
                     await SendAsync(socket,
                         ResponsePayloadHelpers.CreateStateChangedResponsePayload(
                             new MediaPlayerStateChangedEventMessageDataAttributes { State = powerStateResult.Result switch
@@ -424,7 +424,7 @@ internal sealed partial class UnfoldedCircleWebSocketHandler
                             payload.MsgData.EntityId,
                             EntityType.MediaPlayer),
                         wsId,
-                        cancellationTokenWrapper.ApplicationStopping);
+                        cancellationTokenWrapper.RequestAborted);
                     break;
                 case "off":
                     await HandlePowerOff(oppoClientHolder, cancellationTokenWrapper);
@@ -434,17 +434,17 @@ internal sealed partial class UnfoldedCircleWebSocketHandler
                             payload.MsgData.EntityId,
                             EntityType.Remote),
                         wsId,
-                        cancellationTokenWrapper.ApplicationStopping);
+                        cancellationTokenWrapper.RequestAborted);
                     await SendAsync(socket,
                         ResponsePayloadHelpers.CreateStateChangedResponsePayload(
                             new MediaPlayerStateChangedEventMessageDataAttributes { State = State.Off },
                             payload.MsgData.EntityId,
                             EntityType.MediaPlayer),
                         wsId,
-                        cancellationTokenWrapper.ApplicationStopping);
+                        cancellationTokenWrapper.RequestAborted);
                     break;
                 case "toggle":
-                    await oppoClientHolder.Client.PowerToggleAsync(cancellationTokenWrapper.ApplicationStopping);
+                    await oppoClientHolder.Client.PowerToggleAsync(cancellationTokenWrapper.RequestAborted);
                     break;
                 case "send_cmd":
                     success = await HandleSendCommand(payload, cancellationTokenWrapper, oppoClientHolder);
@@ -462,7 +462,7 @@ internal sealed partial class UnfoldedCircleWebSocketHandler
                 await SendAsync(socket,
                     ResponsePayloadHelpers.CreateCommonResponsePayload(payload),
                     wsId,
-                    cancellationTokenWrapper.ApplicationStopping);
+                    cancellationTokenWrapper.RequestAborted);
             }
             else
             {
@@ -474,7 +474,7 @@ internal sealed partial class UnfoldedCircleWebSocketHandler
                             Message = "Unknown command"
                         }),
                     wsId,
-                    cancellationTokenWrapper.ApplicationStopping);
+                    cancellationTokenWrapper.RequestAborted);
             }
         }
         catch (Exception e)
@@ -488,7 +488,7 @@ internal sealed partial class UnfoldedCircleWebSocketHandler
                         Message = "Error while handling command"
                     }),
                 wsId,
-                cancellationTokenWrapper.ApplicationStopping);
+                cancellationTokenWrapper.RequestAborted);
         }
     }
 
@@ -517,14 +517,14 @@ internal sealed partial class UnfoldedCircleWebSocketHandler
         {
             for (var i = 0; i < payload.MsgData.Params.Repeat.Value; i++)
             {
-                await ExecuteCommand(command, oppoClientHolder.Client, cancellationTokenWrapper.ApplicationStopping);
+                await ExecuteCommand(command, oppoClientHolder.Client, cancellationTokenWrapper.RequestAborted);
                 if (delay> 0)
-                    await Task.Delay(TimeSpan.FromMilliseconds(delay), cancellationTokenWrapper.ApplicationStopping);
+                    await Task.Delay(TimeSpan.FromMilliseconds(delay), cancellationTokenWrapper.RequestAborted);
             }
         }
         else
         {
-            await ExecuteCommand(command, oppoClientHolder.Client, cancellationTokenWrapper.ApplicationStopping);
+            await ExecuteCommand(command, oppoClientHolder.Client, cancellationTokenWrapper.RequestAborted);
         }
 
         return true;
@@ -545,15 +545,15 @@ internal sealed partial class UnfoldedCircleWebSocketHandler
             {
                 for (var i = 0; i < payload.MsgData.Params!.Repeat!.Value; i++)
                 {
-                    await ExecuteCommand(command, oppoClientHolder.Client, cancellationTokenWrapper.ApplicationStopping);
+                    await ExecuteCommand(command, oppoClientHolder.Client, cancellationTokenWrapper.RequestAborted);
                     if (delay> 0)
-                        await Task.Delay(TimeSpan.FromMilliseconds(delay), cancellationTokenWrapper.ApplicationStopping);
+                        await Task.Delay(TimeSpan.FromMilliseconds(delay), cancellationTokenWrapper.RequestAborted);
                 }
             }
             else
             {
-                await ExecuteCommand(command, oppoClientHolder.Client, cancellationTokenWrapper.ApplicationStopping);
-                await Task.Delay(TimeSpan.FromMilliseconds(delay), cancellationTokenWrapper.ApplicationStopping);
+                await ExecuteCommand(command, oppoClientHolder.Client, cancellationTokenWrapper.RequestAborted);
+                await Task.Delay(TimeSpan.FromMilliseconds(delay), cancellationTokenWrapper.RequestAborted);
             }
         }
 

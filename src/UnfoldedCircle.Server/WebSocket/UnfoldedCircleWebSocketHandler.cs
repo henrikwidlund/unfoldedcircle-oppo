@@ -82,7 +82,7 @@ internal sealed partial class UnfoldedCircleWebSocketHandler(
         SendAsync(socket,
             ResponsePayloadHelpers.CreateAuthResponsePayload(),
             wsId,
-            cancellationTokenWrapper.ApplicationStopping);
+            cancellationTokenWrapper.RequestAborted);
 
     private Task SendAsync(
         System.Net.WebSockets.WebSocket socket,

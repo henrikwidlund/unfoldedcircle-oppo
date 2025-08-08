@@ -62,7 +62,7 @@ internal sealed partial class UnfoldedCircleWebSocketHandler
                 
                 OppoResult<PowerState>? powerStatusResponse;
                 if (connected)
-                    powerStatusResponse = await oppoClientHolder.Client.QueryPowerStatusAsync(cancellationTokenWrapper.ApplicationStopping);
+                    powerStatusResponse = await oppoClientHolder.Client.QueryPowerStatusAsync(cancellationTokenSource.Token);
                 else
                     powerStatusResponse = null;
                 
@@ -78,10 +78,10 @@ internal sealed partial class UnfoldedCircleWebSocketHandler
                 if (oppoClientHolder is { ClientKey.UseMediaEvents: false })
                 {
                     newMediaPlayerState = new MediaPlayerStateChangedEventMessageDataAttributes { State = state };
-                    if (!await SendMediaPlayerEvent(socket, wsId, oppoClientHolder, newMediaPlayerState, cancellationTokenWrapper))
+                    if (!await SendMediaPlayerEvent(socket, wsId, oppoClientHolder, newMediaPlayerState, cancellationTokenSource.Token))
                         continue;
 
-                    await SendRemotePowerEvent(socket, wsId, oppoClientHolder, state, cancellationTokenWrapper);
+                    await SendRemotePowerEvent(socket, wsId, oppoClientHolder, state, cancellationTokenSource.Token);
                     
                     continue;
                 }
@@ -100,10 +100,10 @@ internal sealed partial class UnfoldedCircleWebSocketHandler
 
                 if (powerStatusResponse is { Result: PowerState.On })
                 {
-                    volumeResponse = await oppoClientHolder.Client.QueryVolumeAsync(cancellationTokenWrapper.ApplicationStopping);
-                    inputSourceResponse = await oppoClientHolder.Client.QueryInputSourceAsync(cancellationTokenWrapper.ApplicationStopping);
+                    volumeResponse = await oppoClientHolder.Client.QueryVolumeAsync(cancellationTokenSource.Token);
+                    inputSourceResponse = await oppoClientHolder.Client.QueryInputSourceAsync(cancellationTokenSource.Token);
                     
-                    var playbackStatusResponse = await oppoClientHolder.Client.QueryPlaybackStatusAsync(cancellationTokenWrapper.ApplicationStopping);
+                    var playbackStatusResponse = await oppoClientHolder.Client.QueryPlaybackStatusAsync(cancellationTokenSource.Token);
                     state = playbackStatusResponse switch
                     {
                         { Result: PlaybackStatus.Unknown } => State.Unknown,
@@ -115,34 +115,34 @@ internal sealed partial class UnfoldedCircleWebSocketHandler
 
                     if (playbackStatusResponse is { Result: PlaybackStatus.Play or PlaybackStatus.Pause })
                     {
-                        discTypeResponse = await oppoClientHolder.Client.QueryDiscTypeAsync(cancellationTokenWrapper.ApplicationStopping);
+                        discTypeResponse = await oppoClientHolder.Client.QueryDiscTypeAsync(cancellationTokenSource.Token);
 
                         if (discTypeResponse.Value && discTypeResponse.Value.Result is not DiscType.UnknownDisc and not DiscType.DataDisc)
                         {
-                            (repeatMode, shuffle) = GetRepeatMode(await oppoClientHolder.Client.QueryRepeatModeAsync(cancellationTokenWrapper.ApplicationStopping));
+                            (repeatMode, shuffle) = GetRepeatMode(await oppoClientHolder.Client.QueryRepeatModeAsync(cancellationTokenSource.Token));
                             
                             if (discTypeResponse.Value.Result is DiscType.BlueRayMovie or DiscType.DVDVideo or DiscType.UltraHDBluRay)
                             {
                                 elapsedResponse = oppoClientHolder.ClientKey.UseChapterLengthForMovies
-                                    ? await oppoClientHolder.Client.QueryChapterElapsedTimeAsync(cancellationTokenWrapper.ApplicationStopping)
-                                    : await oppoClientHolder.Client.QueryTotalElapsedTimeAsync(cancellationTokenWrapper.ApplicationStopping);
+                                    ? await oppoClientHolder.Client.QueryChapterElapsedTimeAsync(cancellationTokenSource.Token)
+                                    : await oppoClientHolder.Client.QueryTotalElapsedTimeAsync(cancellationTokenSource.Token);
                                 if (elapsedResponse.Value)
                                     remainingResponse = oppoClientHolder.ClientKey.UseChapterLengthForMovies
-                                        ? await oppoClientHolder.Client.QueryChapterRemainingTimeAsync(cancellationTokenWrapper.ApplicationStopping)
-                                        : await oppoClientHolder.Client.QueryTotalRemainingTimeAsync(cancellationTokenWrapper.ApplicationStopping);
+                                        ? await oppoClientHolder.Client.QueryChapterRemainingTimeAsync(cancellationTokenSource.Token)
+                                        : await oppoClientHolder.Client.QueryTotalRemainingTimeAsync(cancellationTokenSource.Token);
                             }
                             else
                             {
-                                elapsedResponse = await oppoClientHolder.Client.QueryTrackOrTitleElapsedTimeAsync(cancellationTokenWrapper.ApplicationStopping);
+                                elapsedResponse = await oppoClientHolder.Client.QueryTrackOrTitleElapsedTimeAsync(cancellationTokenSource.Token);
                                 if (elapsedResponse.Value)
                                 {
-                                    remainingResponse = await oppoClientHolder.Client.QueryTrackOrTitleRemainingTimeAsync(cancellationTokenWrapper.ApplicationStopping);
+                                    remainingResponse = await oppoClientHolder.Client.QueryTrackOrTitleRemainingTimeAsync(cancellationTokenSource.Token);
 
                                     if (oppoClientHolder.ClientKey.Model is OppoModel.UDP203 or OppoModel.UDP205)
                                     {
-                                        trackResponse = await oppoClientHolder.Client.QueryTrackNameAsync(cancellationTokenWrapper.ApplicationStopping);
-                                        album = (await oppoClientHolder.Client.QueryTrackAlbumAsync(cancellationTokenWrapper.ApplicationStopping)).Result;
-                                        performer = (await oppoClientHolder.Client.QueryTrackPerformerAsync(cancellationTokenWrapper.ApplicationStopping)).Result;                                        
+                                        trackResponse = await oppoClientHolder.Client.QueryTrackNameAsync(cancellationTokenSource.Token);
+                                        album = (await oppoClientHolder.Client.QueryTrackAlbumAsync(cancellationTokenSource.Token)).Result;
+                                        performer = (await oppoClientHolder.Client.QueryTrackPerformerAsync(cancellationTokenSource.Token)).Result;
                                     }
                                 }
                             }
@@ -153,7 +153,7 @@ internal sealed partial class UnfoldedCircleWebSocketHandler
                                     album = album.AsSpan()[(performer.Length + 3)..].ToString();
 
                                 coverUri = await _albumCoverService.GetAlbumCoverAsync(performer, album, null,
-                                    cancellationTokenWrapper.ApplicationStopping);
+                                    cancellationTokenSource.Token);
                             }
                             else
                                 coverUri = null;   
@@ -183,10 +183,10 @@ internal sealed partial class UnfoldedCircleWebSocketHandler
                     Muted = volumeResponse?.Result.Muted
                 };
 
-                if (!await SendMediaPlayerEvent(socket, wsId, oppoClientHolder, newMediaPlayerState, cancellationTokenWrapper))
+                if (!await SendMediaPlayerEvent(socket, wsId, oppoClientHolder, newMediaPlayerState, cancellationTokenSource.Token))
                     continue;
 
-                await SendRemotePowerEvent(socket, wsId, oppoClientHolder, state, cancellationTokenWrapper);
+                await SendRemotePowerEvent(socket, wsId, oppoClientHolder, state, cancellationTokenSource.Token);
             }
         }
         finally
@@ -227,7 +227,7 @@ internal sealed partial class UnfoldedCircleWebSocketHandler
         string wsId,
         OppoClientHolder oppoClientHolder,
         MediaPlayerStateChangedEventMessageDataAttributes mediaPlayerState,
-        CancellationTokenWrapper cancellationTokenWrapper)
+        CancellationToken cancellationToken)
     {
         var stateHash = mediaPlayerState.GetHashCode();
         int clientHashCode = oppoClientHolder.ClientKey.GetHashCode();
@@ -242,7 +242,7 @@ internal sealed partial class UnfoldedCircleWebSocketHandler
                 oppoClientHolder.ClientKey.EntityId,
                 EntityType.MediaPlayer),
             wsId,
-            cancellationTokenWrapper.ApplicationStopping);
+            cancellationToken);
         return true;
     }
 
@@ -250,7 +250,7 @@ internal sealed partial class UnfoldedCircleWebSocketHandler
         string wsId,
         OppoClientHolder oppoClientHolder,
         State state,
-        CancellationTokenWrapper cancellationTokenWrapper)
+        CancellationToken cancellationToken)
     {
         int clientHashCode = oppoClientHolder.ClientKey.GetHashCode();
         if (PreviousRemoteStatesMap.TryGetValue(clientHashCode, out var previousState) &&
@@ -269,7 +269,7 @@ internal sealed partial class UnfoldedCircleWebSocketHandler
                 oppoClientHolder.ClientKey.EntityId,
                 EntityType.Remote),
             wsId,
-            cancellationTokenWrapper.ApplicationStopping);
+            cancellationToken);
     }
 
     private static (Models.Shared.RepeatMode? RepeatMode, bool? shuffle) GetRepeatMode(OppoResult<CurrentRepeatMode> repeatModeResponse) =>
