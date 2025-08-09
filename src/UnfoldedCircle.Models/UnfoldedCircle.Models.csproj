@@ -12,12 +12,6 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\UnfoldedCircle.Generators.Attributes\UnfoldedCircle.Generators.Attributes.csproj" />
-        <ProjectReference Include="..\UnfoldedCircle.Generators\UnfoldedCircle.Generators.csproj"
-                          OutputItemType="Analyzer" ReferenceOutputAssembly="false"  />
-    </ItemGroup>
-
-    <ItemGroup>
       <None Remove="UnfoldedCircle.Models.csproj.DotSettings" />
     </ItemGroup>
 
@@ -26,6 +20,7 @@
         <PrivateAssets>all</PrivateAssets>
         <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       </PackageReference>
+      <PackageReference Include="Theodicean.SourceGenerators" Version="0.0.1-pre4" PrivateAssets="all" ExcludeAssets="runtime" />
     </ItemGroup>
 
 </Project>
