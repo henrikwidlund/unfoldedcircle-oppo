@@ -1,6 +1,5 @@
 using System.ComponentModel.DataAnnotations;
-
-using UnfoldedCircle.Generators;
+using Theodicean.SourceGenerators;
 
 namespace UnfoldedCircle.Models.Shared;
 

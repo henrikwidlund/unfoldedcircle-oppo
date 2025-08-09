@@ -6,10 +6,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnfoldedCircle.Server", "sr
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnfoldedCircle.Models", "src\UnfoldedCircle.Models\UnfoldedCircle.Models.csproj", "{0711E68A-D059-465C-9839-82DE2711E646}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnfoldedCircle.Generators", "src\UnfoldedCircle.Generators\UnfoldedCircle.Generators.csproj", "{13005994-9F43-4C45-95D8-7775641DB827}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnfoldedCircle.Generators.Attributes", "src\UnfoldedCircle.Generators.Attributes\UnfoldedCircle.Generators.Attributes.csproj", "{90A3F6E2-92E1-4A7E-B133-C6EB45CE5D03}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "GitHub", "GitHub", "{56E7AF97-2E80-4603-ACBD-08DA2CC05CAF}"
 	ProjectSection(SolutionItems) = preProject
 		.github\workflows\github-release.yml = .github\workflows\github-release.yml
@@ -31,11 +27,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Build", "Build", "{52814D42
 		publish.sh = publish.sh
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnfoldedCircle.Generators.Tests", "tests\UnfoldedCircle.Generators.Tests\UnfoldedCircle.Generators.Tests.csproj", "{F45B3E62-12F4-4303-B492-46E6C83BC2E3}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{2B6E3B2B-BF21-4BD6-B2A6-FA0C8583C2BA}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{D532581F-D87C-4F40-B28C-701083BA6A02}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -55,27 +47,12 @@ Global
 		{0711E68A-D059-465C-9839-82DE2711E646}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0711E68A-D059-465C-9839-82DE2711E646}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0711E68A-D059-465C-9839-82DE2711E646}.Release|Any CPU.Build.0 = Release|Any CPU
-		{13005994-9F43-4C45-95D8-7775641DB827}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{13005994-9F43-4C45-95D8-7775641DB827}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{13005994-9F43-4C45-95D8-7775641DB827}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{13005994-9F43-4C45-95D8-7775641DB827}.Release|Any CPU.Build.0 = Release|Any CPU
-		{90A3F6E2-92E1-4A7E-B133-C6EB45CE5D03}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{90A3F6E2-92E1-4A7E-B133-C6EB45CE5D03}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{90A3F6E2-92E1-4A7E-B133-C6EB45CE5D03}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{90A3F6E2-92E1-4A7E-B133-C6EB45CE5D03}.Release|Any CPU.Build.0 = Release|Any CPU
-		{F45B3E62-12F4-4303-B492-46E6C83BC2E3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{F45B3E62-12F4-4303-B492-46E6C83BC2E3}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{F45B3E62-12F4-4303-B492-46E6C83BC2E3}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{F45B3E62-12F4-4303-B492-46E6C83BC2E3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{56E7AF97-2E80-4603-ACBD-08DA2CC05CAF} = {FF85200F-5EFF-4EE1-94A1-70B1408780A6}
 		{52814D42-AE03-466D-A779-5B32AC41EAB3} = {FF85200F-5EFF-4EE1-94A1-70B1408780A6}
 		{20F98644-EB26-4C2C-B7ED-707F4BD7CDC3} = {2B6E3B2B-BF21-4BD6-B2A6-FA0C8583C2BA}
-		{13005994-9F43-4C45-95D8-7775641DB827} = {2B6E3B2B-BF21-4BD6-B2A6-FA0C8583C2BA}
-		{90A3F6E2-92E1-4A7E-B133-C6EB45CE5D03} = {2B6E3B2B-BF21-4BD6-B2A6-FA0C8583C2BA}
 		{0711E68A-D059-465C-9839-82DE2711E646} = {2B6E3B2B-BF21-4BD6-B2A6-FA0C8583C2BA}
 		{3C479BB9-1822-4BEB-9959-5D62C531EA6D} = {2B6E3B2B-BF21-4BD6-B2A6-FA0C8583C2BA}
-		{F45B3E62-12F4-4303-B492-46E6C83BC2E3} = {D532581F-D87C-4F40-B28C-701083BA6A02}
 	EndGlobalSection
 EndGlobal
