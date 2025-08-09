@@ -702,3 +702,8 @@ exclude:
   - name: MA0048
   - name: MA0051
   - name: MA0020
+  - name: All
+    paths:
+      - "**/*.g.cs"
+      - "**/obj/**"
+      - "**/bin/**"
