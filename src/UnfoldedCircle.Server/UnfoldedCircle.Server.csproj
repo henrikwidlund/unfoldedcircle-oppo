@@ -52,11 +52,11 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Henrik.Makaretu.Dns.Multicast" Version="0.0.1-pre4" />
         <PackageReference Include="Meziantou.Analyzer" Version="2.0.212">
           <PrivateAssets>all</PrivateAssets>
           <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
+        <PackageReference Include="Theodicean.Makaretu.Dns.Multicast" Version="0.0.1" />
     </ItemGroup>
 
 </Project>
