@@ -97,6 +97,7 @@ You can customize the log levels by either modifying the `appsettings.json` file
     "Logging": {
         "LogLevel": {
           "UnfoldedCircle.Server": "Information",
+          "UnfoldedCircle.OppoBluRay": "Information",
           "Oppo": "Information",
           "Makaretu.Dns": "Warning"
         }
@@ -108,6 +109,7 @@ You can customize the log levels by either modifying the `appsettings.json` file
 
 Same adjustments to log levels can be made by setting environment variables.
 - `Logging__LogLevel__UnfoldedCircle.Server` = `Information`
+- `Logging__LogLevel__UnfoldedCircle.OppoBluRay` = `Information`
 - `Logging__LogLevel__Oppo` = `Information`
 - `Logging__LogLevel__Makaretu.Dns` = `Warning`
 
@@ -122,13 +124,13 @@ Execute `publish.sh` script to build the application for the remote. This will p
 Execute the following from the root of the repository:
 
 ```sh
-docker build -f src/UnfoldedCircle.Server/Dockerfile -t oppo .
+docker build -f src/UnfoldedCircle.OppoBluRay/Dockerfile -t oppo .
 ```
 
 ### dotnet CLI
 
 ```sh
-dotnet publish ./src/UnfoldedCircle.Server/UnfoldedCircle.Server.csproj -c Release --self-contained -o ./publish
+dotnet publish ./src/UnfoldedCircle.OppoBluRay/UnfoldedCircle.BluRayPlayer.csproj -c Release --self-contained -o ./publish
 ```
 
 This will produce a self-contained binary in the `publish` directory in the root of the repository.

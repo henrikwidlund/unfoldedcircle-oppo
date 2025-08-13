@@ -96,7 +96,6 @@ public partial class OppoWebSocketHandler
     }
 
     private async Task<OppoClientHolder?> TryGetOppoClientHolder(
-        string wsId,
         OppoConfigurationItem entity,
         CancellationToken cancellationToken)
     {

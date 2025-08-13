@@ -190,7 +190,7 @@ public partial class OppoWebSocketHandler(
 
         await _configurationService.UpdateConfigurationAsync(configuration, cancellationToken);
 
-        var oppoClientHolder = await TryGetOppoClientHolder(wsId, entity, cancellationToken);
+        var oppoClientHolder = await TryGetOppoClientHolder(entity, cancellationToken);
         if (oppoClientHolder is not null && await oppoClientHolder.Client.IsConnectedAsync())
         {
             return new OnSetupResult(entity, true);
@@ -928,7 +928,6 @@ public partial class OppoWebSocketHandler(
                 CurrentRepeatMode.RepeatTitle => (Models.Shared.RepeatMode.One, false),
                 CurrentRepeatMode.Shuffle => (Models.Shared.RepeatMode.Off, true),
                 CurrentRepeatMode.Random => (Models.Shared.RepeatMode.Off, true),
-                CurrentRepeatMode.Unknown => (Models.Shared.RepeatMode.Off, false),
                 _ => (Models.Shared.RepeatMode.Off, false)
             };
 
