@@ -998,7 +998,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         }
         catch (Exception e)
         {
-            _logger.LogError(e, "Failed to send command");
+            _logger.LogError(e, "Failed to send command.");
             return OppoResultCore.FalseResult;
         }
         finally
