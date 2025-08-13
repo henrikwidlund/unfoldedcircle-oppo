@@ -73240,13 +73240,13 @@
       "versionControlProvenance": [
         {
           "repositoryUri": "https://github.com/henrikwidlund/unfoldedcircle-oppo.git",
-          "revisionId": "bff5b58ea84c6c8058ed5826f5a07a3a8b3c2859",
+          "revisionId": "f70e8c35f896494461cc7052f5e6ad89f8fc6e95",
           "branch": "main",
           "properties": {
             "repoUrl": "https://github.com/henrikwidlund/unfoldedcircle-oppo.git",
-            "lastAuthorName": "Henrik Widlund",
+            "lastAuthorName": "dependabot[bot]",
             "vcsType": "Git",
-            "lastAuthorEmail": "4659350+henrikwidlund@users.noreply.github.com"
+            "lastAuthorEmail": "49699333+dependabot[bot]@users.noreply.github.com"
           }
         }
       ],
@@ -73254,21 +73254,7 @@
       "artifacts": [
         {
           "location": {
-            "uri": "src/UnfoldedCircle.Models/Sync/AuthRequestMsgData.cs",
-            "uriBaseId": "solutionDir"
-          },
-          "hashes": {}
-        },
-        {
-          "location": {
-            "uri": "src/UnfoldedCircle.Server/Dns/MDnsBackgroundService.cs",
-            "uriBaseId": "solutionDir"
-          },
-          "hashes": {}
-        },
-        {
-          "location": {
-            "uri": "src/UnfoldedCircle.Server/Oppo/OppoConstants.cs",
+            "uri": "src/UnfoldedCircle.OppoBluRay/OppoEntity/OppoConstants.cs",
             "uriBaseId": "solutionDir"
           },
           "hashes": {}
@@ -73296,13 +73282,6 @@
         },
         {
           "location": {
-            "uri": "src/UnfoldedCircle.Server/WebSocket/UnfoldedCircleWebSocketHandler.MediaUpdate.cs",
-            "uriBaseId": "solutionDir"
-          },
-          "hashes": {}
-        },
-        {
-          "location": {
             "uri": "src/Oppo/OppoClientFactory.cs",
             "uriBaseId": "solutionDir"
           },
@@ -73310,42 +73289,14 @@
         },
         {
           "location": {
-            "uri": "src/UnfoldedCircle.Server/AlbumCover/AlbumCoverService.cs",
+            "uri": "src/UnfoldedCircle.OppoBluRay/AlbumCover/AlbumCoverService.cs",
             "uriBaseId": "solutionDir"
           },
           "hashes": {}
         },
         {
           "location": {
-            "uri": "src/UnfoldedCircle.Server/Configuration/ConfigurationService.cs",
-            "uriBaseId": "solutionDir"
-          },
-          "hashes": {}
-        },
-        {
-          "location": {
-            "uri": "src/UnfoldedCircle.Server/WebSocket/UnfoldedCircleMiddleware.cs",
-            "uriBaseId": "solutionDir"
-          },
-          "hashes": {}
-        },
-        {
-          "location": {
-            "uri": "src/UnfoldedCircle.Server/WebSocket/UnfoldedCircleWebSocketHandler.cs",
-            "uriBaseId": "solutionDir"
-          },
-          "hashes": {}
-        },
-        {
-          "location": {
-            "uri": "src/UnfoldedCircle.Models/Events/MediaPlayerStateChangedEventMessageDataAttributes.cs",
-            "uriBaseId": "solutionDir"
-          },
-          "hashes": {}
-        },
-        {
-          "location": {
-            "uri": "src/UnfoldedCircle.Models/Sync/Enums/RemoteCommandIdConstants.cs",
+            "uri": "src/UnfoldedCircle.OppoBluRay/WebSocket/OppoWebSocketHandler.cs",
             "uriBaseId": "solutionDir"
           },
           "hashes": {}
@@ -73356,128 +73307,9 @@
             "uriBaseId": "solutionDir"
           },
           "hashes": {}
-        },
-        {
-          "location": {
-            "uri": "src/UnfoldedCircle.Models/Sync/EntityCommandParams.cs",
-            "uriBaseId": "solutionDir"
-          },
-          "hashes": {}
-        },
-        {
-          "location": {
-            "uri": "src/UnfoldedCircle.Models/Sync/AuthRequestMsg.cs",
-            "uriBaseId": "solutionDir"
-          },
-          "hashes": {}
         }
       ],
       "results": [
-        {
-          "ruleId": "ClassNeverInstantiated.Global",
-          "ruleIndex": 329,
-          "kind": "fail",
-          "level": "note",
-          "message": {
-            "text": "Record 'AuthRequestMsgData' is never instantiated"
-          },
-          "locations": [
-            {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "src/UnfoldedCircle.Models/Sync/AuthRequestMsgData.cs",
-                  "uriBaseId": "solutionDir"
-                },
-                "region": {
-                  "startLine": 3,
-                  "startColumn": 15,
-                  "endLine": 3,
-                  "endColumn": 33,
-                  "charOffset": 53,
-                  "charLength": 18,
-                  "snippet": {
-                    "text": "AuthRequestMsgData"
-                  }
-                },
-                "contextRegion": {
-                  "startLine": 2,
-                  "startColumn": 1,
-                  "endLine": 4,
-                  "endColumn": 2,
-                  "charOffset": 38,
-                  "charLength": 35,
-                  "snippet": {
-                    "text": "\npublic record AuthRequestMsgData\n{"
-                  }
-                }
-              }
-            }
-          ],
-          "partialFingerprints": {
-            "equalIndicator/v1": "D5454B9779E4967E6799D1E7053C02ACD9325A039A22A414044BC364111C16F7"
-          },
-          "baselineState": "new",
-          "properties": {
-            "qodanaSeverity": "Moderate",
-            "tags": [
-              "C#",
-              ".NET 9.0"
-            ]
-          }
-        },
-        {
-          "ruleId": "ConvertToPrimaryConstructor",
-          "ruleIndex": 376,
-          "kind": "fail",
-          "level": "note",
-          "message": {
-            "text": "Convert into primary constructor"
-          },
-          "locations": [
-            {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "src/UnfoldedCircle.Server/Dns/MDnsBackgroundService.cs",
-                  "uriBaseId": "solutionDir",
-                  "index": 1
-                },
-                "region": {
-                  "startLine": 14,
-                  "startColumn": 12,
-                  "endLine": 14,
-                  "endColumn": 33,
-                  "charOffset": 452,
-                  "charLength": 21,
-                  "snippet": {
-                    "text": "MDnsBackgroundService"
-                  }
-                },
-                "contextRegion": {
-                  "startLine": 13,
-                  "startColumn": 1,
-                  "endLine": 15,
-                  "endColumn": 6,
-                  "charOffset": 440,
-                  "charLength": 143,
-                  "snippet": {
-                    "text": "\n    public MDnsBackgroundService(IConfiguration configuration, ILoggerFactory loggerFactory, IConfigurationService configurationService)\n    {"
-                  }
-                }
-              }
-            }
-          ],
-          "partialFingerprints": {
-            "equalIndicator/v1": "170DDFE72784607BA7A6BE04E3B001DFFDB738BE970770E65FFBDE2146B1B497"
-          },
-          "baselineState": "new",
-          "properties": {
-            "qodanaSeverity": "Moderate",
-            "tags": [
-              "C#",
-              ".NET 9.0"
-            ]
-          }
-        },
         {
           "ruleId": "InconsistentNaming",
           "ruleIndex": 2215,
@@ -73490,16 +73322,15 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/UnfoldedCircle.Server/Oppo/OppoConstants.cs",
-                  "uriBaseId": "solutionDir",
-                  "index": 2
+                  "uri": "src/UnfoldedCircle.OppoBluRay/OppoEntity/OppoConstants.cs",
+                  "uriBaseId": "solutionDir"
                 },
                 "region": {
                   "startLine": 24,
                   "startColumn": 31,
                   "endLine": 24,
                   "endColumn": 41,
-                  "charOffset": 1112,
+                  "charOffset": 1119,
                   "charLength": 10,
                   "snippet": {
                     "text": "ARCHDMIOut"
@@ -73510,7 +73341,7 @@
                   "startColumn": 1,
                   "endLine": 25,
                   "endColumn": 6,
-                  "charOffset": 1032,
+                  "charOffset": 1039,
                   "charLength": 115,
                   "snippet": {
                     "text": "        internal const string HDMIIn = \"HDMI IN\";\n        internal const string ARCHDMIOut = \"ARC: HDMI OUT\";\n    }"
@@ -73522,7 +73353,7 @@
           "partialFingerprints": {
             "equalIndicator/v1": "DE7D113E316E8705CF1DB3D3CDB67FE983C47BF2BEF0FF0226AAA742DA716B03"
           },
-          "baselineState": "new",
+          "baselineState": "unchanged",
           "properties": {
             "qodanaSeverity": "Moderate",
             "tags": [
@@ -73543,16 +73374,15 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/UnfoldedCircle.Server/Oppo/OppoConstants.cs",
-                  "uriBaseId": "solutionDir",
-                  "index": 2
+                  "uri": "src/UnfoldedCircle.OppoBluRay/OppoEntity/OppoConstants.cs",
+                  "uriBaseId": "solutionDir"
                 },
                 "region": {
                   "startLine": 18,
                   "startColumn": 31,
                   "endLine": 18,
                   "endColumn": 42,
-                  "charOffset": 769,
+                  "charOffset": 776,
                   "charLength": 11,
                   "snippet": {
                     "text": "ARCHDMIOut1"
@@ -73563,7 +73393,7 @@
                   "startColumn": 1,
                   "endLine": 19,
                   "endColumn": 64,
-                  "charOffset": 682,
+                  "charOffset": 689,
                   "charLength": 184,
                   "snippet": {
                     "text": "        internal const string HDMIBack = \"HDMI IN-BACK\";\n        internal const string ARCHDMIOut1 = \"ARC on HDMI OUT1\";\n        internal const string ARCHDMIOut2 = \"ARC on HDMI OUT2\";"
@@ -73575,7 +73405,7 @@
           "partialFingerprints": {
             "equalIndicator/v1": "63FB030E8AFA1C1298C23A77153A422DDAB981B1E94714ED150EE4D86B100330"
           },
-          "baselineState": "new",
+          "baselineState": "unchanged",
           "properties": {
             "qodanaSeverity": "Moderate",
             "tags": [
@@ -73596,16 +73426,15 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/UnfoldedCircle.Server/Oppo/OppoConstants.cs",
-                  "uriBaseId": "solutionDir",
-                  "index": 2
+                  "uri": "src/UnfoldedCircle.OppoBluRay/OppoEntity/OppoConstants.cs",
+                  "uriBaseId": "solutionDir"
                 },
                 "region": {
                   "startLine": 19,
                   "startColumn": 31,
                   "endLine": 19,
                   "endColumn": 42,
-                  "charOffset": 833,
+                  "charOffset": 840,
                   "charLength": 11,
                   "snippet": {
                     "text": "ARCHDMIOut2"
@@ -73616,7 +73445,7 @@
                   "startColumn": 1,
                   "endLine": 20,
                   "endColumn": 54,
-                  "charOffset": 739,
+                  "charOffset": 746,
                   "charLength": 181,
                   "snippet": {
                     "text": "        internal const string ARCHDMIOut1 = \"ARC on HDMI OUT1\";\n        internal const string ARCHDMIOut2 = \"ARC on HDMI OUT2\";\n        internal const string Optical = \"OPTICAL IN\";"
@@ -73628,7 +73457,7 @@
           "partialFingerprints": {
             "equalIndicator/v1": "875158E4C7D9743AAF960E320B19E41560D1A03887EE13216EFA133FC1810DDB"
           },
-          "baselineState": "new",
+          "baselineState": "unchanged",
           "properties": {
             "qodanaSeverity": "Moderate",
             "tags": [
@@ -73649,16 +73478,15 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/UnfoldedCircle.Server/Oppo/OppoConstants.cs",
-                  "uriBaseId": "solutionDir",
-                  "index": 2
+                  "uri": "src/UnfoldedCircle.OppoBluRay/OppoEntity/OppoConstants.cs",
+                  "uriBaseId": "solutionDir"
                 },
                 "region": {
                   "startLine": 17,
                   "startColumn": 31,
                   "endLine": 17,
                   "endColumn": 39,
-                  "charOffset": 712,
+                  "charOffset": 719,
                   "charLength": 8,
                   "snippet": {
                     "text": "HDMIBack"
@@ -73669,7 +73497,7 @@
                   "startColumn": 1,
                   "endLine": 18,
                   "endColumn": 64,
-                  "charOffset": 619,
+                  "charOffset": 626,
                   "charLength": 183,
                   "snippet": {
                     "text": "        internal const string HDMIFront = \"HDMI/MHL IN-FRONT\";\n        internal const string HDMIBack = \"HDMI IN-BACK\";\n        internal const string ARCHDMIOut1 = \"ARC on HDMI OUT1\";"
@@ -73681,7 +73509,7 @@
           "partialFingerprints": {
             "equalIndicator/v1": "D30502DD8AF8C2419C47EEAB9D9C4A6D88E892F163B74023E2B5E4F8B81CE9AF"
           },
-          "baselineState": "new",
+          "baselineState": "unchanged",
           "properties": {
             "qodanaSeverity": "Moderate",
             "tags": [
@@ -73702,16 +73530,15 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/UnfoldedCircle.Server/Oppo/OppoConstants.cs",
-                  "uriBaseId": "solutionDir",
-                  "index": 2
+                  "uri": "src/UnfoldedCircle.OppoBluRay/OppoEntity/OppoConstants.cs",
+                  "uriBaseId": "solutionDir"
                 },
                 "region": {
                   "startLine": 16,
                   "startColumn": 31,
                   "endLine": 16,
                   "endColumn": 40,
-                  "charOffset": 649,
+                  "charOffset": 656,
                   "charLength": 9,
                   "snippet": {
                     "text": "HDMIFront"
@@ -73722,7 +73549,7 @@
                   "startColumn": 1,
                   "endLine": 17,
                   "endColumn": 57,
-                  "charOffset": 556,
+                  "charOffset": 563,
                   "charLength": 182,
                   "snippet": {
                     "text": "        internal const string BluRayPlayer = \"Blu-Ray Player\";\n        internal const string HDMIFront = \"HDMI/MHL IN-FRONT\";\n        internal const string HDMIBack = \"HDMI IN-BACK\";"
@@ -73734,7 +73561,7 @@
           "partialFingerprints": {
             "equalIndicator/v1": "64E4FA77C23137AE4C28699B9CC7A476B391A895FBE014160D8BE00A3B20A5AF"
           },
-          "baselineState": "new",
+          "baselineState": "unchanged",
           "properties": {
             "qodanaSeverity": "Moderate",
             "tags": [
@@ -73755,16 +73582,15 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/UnfoldedCircle.Server/Oppo/OppoConstants.cs",
-                  "uriBaseId": "solutionDir",
-                  "index": 2
+                  "uri": "src/UnfoldedCircle.OppoBluRay/OppoEntity/OppoConstants.cs",
+                  "uriBaseId": "solutionDir"
                 },
                 "region": {
                   "startLine": 23,
                   "startColumn": 31,
                   "endLine": 23,
                   "endColumn": 37,
-                  "charOffset": 1062,
+                  "charOffset": 1069,
                   "charLength": 6,
                   "snippet": {
                     "text": "HDMIIn"
@@ -73775,7 +73601,7 @@
                   "startColumn": 1,
                   "endLine": 24,
                   "endColumn": 60,
-                  "charOffset": 975,
+                  "charOffset": 982,
                   "charLength": 166,
                   "snippet": {
                     "text": "        internal const string USBAudio = \"USB AUDIO IN\";\n        internal const string HDMIIn = \"HDMI IN\";\n        internal const string ARCHDMIOut = \"ARC: HDMI OUT\";"
@@ -73787,7 +73613,7 @@
           "partialFingerprints": {
             "equalIndicator/v1": "41DD28EE2BBA71544AEB7164C8B0A3B16968EFC38B9C500F0D37CE2CE0C858E2"
           },
-          "baselineState": "new",
+          "baselineState": "unchanged",
           "properties": {
             "qodanaSeverity": "Moderate",
             "tags": [
@@ -73810,7 +73636,7 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/Oppo10XCommand.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 3
+                  "index": 1
                 },
                 "region": {
                   "startLine": 408,
@@ -73840,7 +73666,7 @@
           "partialFingerprints": {
             "equalIndicator/v1": "269463FCCA45CBB3A440E1E961CE646AB5B7CFCB26F182EFE14074089DFAF28E"
           },
-          "baselineState": "new",
+          "baselineState": "unchanged",
           "properties": {
             "qodanaSeverity": "Moderate",
             "tags": [
@@ -73863,7 +73689,7 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/Oppo20XCommand.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 4
+                  "index": 2
                 },
                 "region": {
                   "startLine": 465,
@@ -73893,7 +73719,7 @@
           "partialFingerprints": {
             "equalIndicator/v1": "8B08E154663D5203507B11564A8189527A60BCEC53A3D278E5E702AB4BD60E4A"
           },
-          "baselineState": "new",
+          "baselineState": "unchanged",
           "properties": {
             "qodanaSeverity": "Moderate",
             "tags": [
@@ -73916,7 +73742,7 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/Oppo20XCommand.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 4
+                  "index": 2
                 },
                 "region": {
                   "startLine": 466,
@@ -73946,7 +73772,7 @@
           "partialFingerprints": {
             "equalIndicator/v1": "777598AF13F9DAFC6AFA0E8FF87A5004A4CD83986B682E22B5A582B073B157FD"
           },
-          "baselineState": "new",
+          "baselineState": "unchanged",
           "properties": {
             "qodanaSeverity": "Moderate",
             "tags": [
@@ -73969,7 +73795,7 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/Oppo10XCommand.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 3
+                  "index": 1
                 },
                 "region": {
                   "startLine": 409,
@@ -73999,7 +73825,7 @@
           "partialFingerprints": {
             "equalIndicator/v1": "3D3772B2AC168D40B35FF9C8D9BECECFAA0B6FF7D24AAF6ADA0456CF716212FE"
           },
-          "baselineState": "new",
+          "baselineState": "unchanged",
           "properties": {
             "qodanaSeverity": "Moderate",
             "tags": [
@@ -74022,7 +73848,7 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/Oppo20XCommand.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 4
+                  "index": 2
                 },
                 "region": {
                   "startLine": 462,
@@ -74052,7 +73878,7 @@
           "partialFingerprints": {
             "equalIndicator/v1": "6AB6D633B8D586EAC4E1BD8E1DE4DD1337B97EF5E5B54A45111307D6CCFED90F"
           },
-          "baselineState": "new",
+          "baselineState": "unchanged",
           "properties": {
             "qodanaSeverity": "Moderate",
             "tags": [
@@ -74075,7 +73901,7 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/Oppo20XCommand.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 4
+                  "index": 2
                 },
                 "region": {
                   "startLine": 463,
@@ -74105,7 +73931,7 @@
           "partialFingerprints": {
             "equalIndicator/v1": "1689A357426D5FD4FDEA68F8B2D436399EA60F2A39942F42B1DFBCCA96FEC6E2"
           },
-          "baselineState": "new",
+          "baselineState": "unchanged",
           "properties": {
             "qodanaSeverity": "Moderate",
             "tags": [
@@ -74128,7 +73954,7 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/Oppo20XCommand.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 4
+                  "index": 2
                 },
                 "region": {
                   "startLine": 464,
@@ -74158,7 +73984,7 @@
           "partialFingerprints": {
             "equalIndicator/v1": "4B69BC3887A6A75C62DEDE572FA33139A5CB25A69F38B890EB113DB6E0B705D9"
           },
-          "baselineState": "new",
+          "baselineState": "unchanged",
           "properties": {
             "qodanaSeverity": "Moderate",
             "tags": [
@@ -74181,7 +74007,7 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/Oppo20XCommand.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 4
+                  "index": 2
                 },
                 "region": {
                   "startLine": 461,
@@ -74211,7 +74037,7 @@
           "partialFingerprints": {
             "equalIndicator/v1": "7081BDEE14C3C2F66876BEEB93E1FE21F1D6171847DB82D3120067FC2AD441EF"
           },
-          "baselineState": "new",
+          "baselineState": "unchanged",
           "properties": {
             "qodanaSeverity": "Moderate",
             "tags": [
@@ -74234,7 +74060,7 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/Oppo20XCommand.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 4
+                  "index": 2
                 },
                 "region": {
                   "startLine": 472,
@@ -74264,7 +74090,7 @@
           "partialFingerprints": {
             "equalIndicator/v1": "A15CA1B9839B9805172C05223736EE9AA84D2A8CA015EF9CE3A6477B30703DA1"
           },
-          "baselineState": "new",
+          "baselineState": "unchanged",
           "properties": {
             "qodanaSeverity": "Moderate",
             "tags": [
@@ -74287,7 +74113,7 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/Oppo20XCommand.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 4
+                  "index": 2
                 },
                 "region": {
                   "startLine": 471,
@@ -74317,7 +74143,7 @@
           "partialFingerprints": {
             "equalIndicator/v1": "6D0CC3438EC4BB0B3D8CDC329EB0308A527F57431D03DE51511AFFDB54738513"
           },
-          "baselineState": "new",
+          "baselineState": "unchanged",
           "properties": {
             "qodanaSeverity": "Moderate",
             "tags": [
@@ -74340,7 +74166,7 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/Oppo20XCommand.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 4
+                  "index": 2
                 },
                 "region": {
                   "startLine": 470,
@@ -74370,7 +74196,7 @@
           "partialFingerprints": {
             "equalIndicator/v1": "3F92A7247D35FC28F6D7AC01604BAA1F5002AA8B42FF287CA165127BF43742E7"
           },
-          "baselineState": "new",
+          "baselineState": "unchanged",
           "properties": {
             "qodanaSeverity": "Moderate",
             "tags": [
@@ -74393,7 +74219,7 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/Oppo20XCommand.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 4
+                  "index": 2
                 },
                 "region": {
                   "startLine": 469,
@@ -74423,7 +74249,7 @@
           "partialFingerprints": {
             "equalIndicator/v1": "E951DA7521D71049F88BF8116E58A380F4B98FBCFBCD1B00C912A11B46212E98"
           },
-          "baselineState": "new",
+          "baselineState": "unchanged",
           "properties": {
             "qodanaSeverity": "Moderate",
             "tags": [
@@ -74446,7 +74272,7 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/Oppo10XCommand.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 3
+                  "index": 1
                 },
                 "region": {
                   "startLine": 407,
@@ -74476,7 +74302,7 @@
           "partialFingerprints": {
             "equalIndicator/v1": "3EB3F44EA77175A2B07C3DC22FBDE26917A0926AE54527039B5EA5E69F406598"
           },
-          "baselineState": "new",
+          "baselineState": "unchanged",
           "properties": {
             "qodanaSeverity": "Moderate",
             "tags": [
@@ -74499,7 +74325,7 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/Oppo20XCommand.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 4
+                  "index": 2
                 },
                 "region": {
                   "startLine": 467,
@@ -74529,7 +74355,7 @@
           "partialFingerprints": {
             "equalIndicator/v1": "F2AD80DA7806EEDAF5123CA9D5E6F7FDA84FA6054C85A63047B2A92F64D3404D"
           },
-          "baselineState": "new",
+          "baselineState": "unchanged",
           "properties": {
             "qodanaSeverity": "Moderate",
             "tags": [
@@ -74552,7 +74378,7 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/Oppo20XCommand.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 4
+                  "index": 2
                 },
                 "region": {
                   "startLine": 468,
@@ -74582,7 +74408,7 @@
           "partialFingerprints": {
             "equalIndicator/v1": "84752B92C1C62BD6794266C4E637E793B4B11494A52B4DBFC008E057F2154428"
           },
-          "baselineState": "new",
+          "baselineState": "unchanged",
           "properties": {
             "qodanaSeverity": "Moderate",
             "tags": [
@@ -74605,7 +74431,7 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/Oppo10XCommand.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 3
+                  "index": 1
                 },
                 "region": {
                   "startLine": 411,
@@ -74635,7 +74461,7 @@
           "partialFingerprints": {
             "equalIndicator/v1": "CE18C9B422080616670B15D52E2A36D51E04C0944F1CC0DE3A94FE8B8FCAF43C"
           },
-          "baselineState": "new",
+          "baselineState": "unchanged",
           "properties": {
             "qodanaSeverity": "Moderate",
             "tags": [
@@ -74658,7 +74484,7 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/Oppo20XCommand.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 4
+                  "index": 2
                 },
                 "region": {
                   "startLine": 455,
@@ -74688,7 +74514,7 @@
           "partialFingerprints": {
             "equalIndicator/v1": "75D854982809F93FA69D1F89D9C5CA9BD07E79FE2069D48E7DEE6B38049EB0E0"
           },
-          "baselineState": "new",
+          "baselineState": "unchanged",
           "properties": {
             "qodanaSeverity": "Moderate",
             "tags": [
@@ -74711,7 +74537,7 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/Oppo10XCommand.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 3
+                  "index": 1
                 },
                 "region": {
                   "startLine": 405,
@@ -74741,7 +74567,7 @@
           "partialFingerprints": {
             "equalIndicator/v1": "3E5D83B75E9233245BB77ED0FE77D5B4B9D63704FA3FE595281D353B629A77BE"
           },
-          "baselineState": "new",
+          "baselineState": "unchanged",
           "properties": {
             "qodanaSeverity": "Moderate",
             "tags": [
@@ -74764,7 +74590,7 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/Oppo10XCommand.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 3
+                  "index": 1
                 },
                 "region": {
                   "startLine": 406,
@@ -74794,7 +74620,7 @@
           "partialFingerprints": {
             "equalIndicator/v1": "4DAD63AF9368F4A943C96DA574C9C671780C0AA69CCD31A8884A537D5957E10E"
           },
-          "baselineState": "new",
+          "baselineState": "unchanged",
           "properties": {
             "qodanaSeverity": "Moderate",
             "tags": [
@@ -74817,7 +74643,7 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/Oppo10XCommand.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 3
+                  "index": 1
                 },
                 "region": {
                   "startLine": 410,
@@ -74847,7 +74673,7 @@
           "partialFingerprints": {
             "equalIndicator/v1": "F0D04B9165A7FB91B62D5332CEB18E4404AF3A51064478733E80488C97722C68"
           },
-          "baselineState": "new",
+          "baselineState": "unchanged",
           "properties": {
             "qodanaSeverity": "Moderate",
             "tags": [
@@ -74870,7 +74696,7 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/Oppo20XCommand.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 4
+                  "index": 2
                 },
                 "region": {
                   "startLine": 456,
@@ -74900,7 +74726,7 @@
           "partialFingerprints": {
             "equalIndicator/v1": "AE169AB851D708FD3C9EC754C3C0E061FD519C40743B6B64E84308485FAD3789"
           },
-          "baselineState": "new",
+          "baselineState": "unchanged",
           "properties": {
             "qodanaSeverity": "Moderate",
             "tags": [
@@ -74923,7 +74749,7 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/Oppo20XCommand.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 4
+                  "index": 2
                 },
                 "region": {
                   "startLine": 457,
@@ -74953,7 +74779,7 @@
           "partialFingerprints": {
             "equalIndicator/v1": "418F310F96FD7CFD200CD1E4440C33DE353625D5BB2556C7BC490CBE463B08A1"
           },
-          "baselineState": "new",
+          "baselineState": "unchanged",
           "properties": {
             "qodanaSeverity": "Moderate",
             "tags": [
@@ -74976,7 +74802,7 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/Oppo20XCommand.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 4
+                  "index": 2
                 },
                 "region": {
                   "startLine": 458,
@@ -75006,7 +74832,7 @@
           "partialFingerprints": {
             "equalIndicator/v1": "27C44E956A3AD3995C400872F489C132677A51B4C8C763EC305255EF46C7674E"
           },
-          "baselineState": "new",
+          "baselineState": "unchanged",
           "properties": {
             "qodanaSeverity": "Moderate",
             "tags": [
@@ -75029,7 +74855,7 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/Oppo20XCommand.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 4
+                  "index": 2
                 },
                 "region": {
                   "startLine": 459,
@@ -75059,7 +74885,7 @@
           "partialFingerprints": {
             "equalIndicator/v1": "877A61D01F6DC451D4947D2070CC8A58BD5A3BE2AA6B06726657A98D4EC1FA40"
           },
-          "baselineState": "new",
+          "baselineState": "unchanged",
           "properties": {
             "qodanaSeverity": "Moderate",
             "tags": [
@@ -75082,7 +74908,7 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/Oppo20XCommand.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 4
+                  "index": 2
                 },
                 "region": {
                   "startLine": 460,
@@ -75112,7 +74938,7 @@
           "partialFingerprints": {
             "equalIndicator/v1": "69255A4DCFD2A5019CB70429FB39EC6698952BAF08F663F29E81B094515FEAF6"
           },
-          "baselineState": "new",
+          "baselineState": "unchanged",
           "properties": {
             "qodanaSeverity": "Moderate",
             "tags": [
@@ -75133,16 +74959,15 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/UnfoldedCircle.Server/Oppo/OppoConstants.cs",
-                  "uriBaseId": "solutionDir",
-                  "index": 2
+                  "uri": "src/UnfoldedCircle.OppoBluRay/OppoEntity/OppoConstants.cs",
+                  "uriBaseId": "solutionDir"
                 },
                 "region": {
                   "startLine": 22,
                   "startColumn": 31,
                   "endLine": 22,
                   "endColumn": 39,
-                  "charOffset": 1005,
+                  "charOffset": 1012,
                   "charLength": 8,
                   "snippet": {
                     "text": "USBAudio"
@@ -75153,7 +74978,7 @@
                   "startColumn": 1,
                   "endLine": 23,
                   "endColumn": 50,
-                  "charOffset": 921,
+                  "charOffset": 928,
                   "charLength": 160,
                   "snippet": {
                     "text": "        internal const string Coaxial = \"COAXIAL IN\";\n        internal const string USBAudio = \"USB AUDIO IN\";\n        internal const string HDMIIn = \"HDMI IN\";"
@@ -75165,7 +74990,7 @@
           "partialFingerprints": {
             "equalIndicator/v1": "A1DF5CFDA561CE8E6C71A9B210ECE1499B852C73B42DE09285E7018B0BED8C22"
           },
-          "baselineState": "new",
+          "baselineState": "unchanged",
           "properties": {
             "qodanaSeverity": "Moderate",
             "tags": [
@@ -75188,7 +75013,7 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/OppoClient.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 5
+                  "index": 3
                 },
                 "region": {
                   "startLine": 791,
@@ -75218,60 +75043,7 @@
           "partialFingerprints": {
             "equalIndicator/v1": "EC2B9F8AFE5CBAF843961CF001266CB1680B989E1A93F5FBAA911D624E0DD622"
           },
-          "baselineState": "new",
-          "properties": {
-            "qodanaSeverity": "High",
-            "tags": [
-              "C#",
-              ".NET 9.0"
-            ]
-          }
-        },
-        {
-          "ruleId": "RedundantSwitchExpressionArms",
-          "ruleIndex": 2508,
-          "kind": "fail",
-          "level": "warning",
-          "message": {
-            "text": "Redundant switch expression arm"
-          },
-          "locations": [
-            {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "src/UnfoldedCircle.Server/WebSocket/UnfoldedCircleWebSocketHandler.MediaUpdate.cs",
-                  "uriBaseId": "solutionDir",
-                  "index": 6
-                },
-                "region": {
-                  "startLine": 287,
-                  "startColumn": 17,
-                  "endLine": 287,
-                  "endColumn": 84,
-                  "charOffset": 15035,
-                  "charLength": 67,
-                  "snippet": {
-                    "text": "CurrentRepeatMode.Unknown => (Models.Shared.RepeatMode.Off, false),"
-                  }
-                },
-                "contextRegion": {
-                  "startLine": 286,
-                  "startColumn": 1,
-                  "endLine": 288,
-                  "endColumn": 59,
-                  "charOffset": 14937,
-                  "charLength": 224,
-                  "snippet": {
-                    "text": "                CurrentRepeatMode.Random => (Models.Shared.RepeatMode.Off, true),\n                CurrentRepeatMode.Unknown => (Models.Shared.RepeatMode.Off, false),\n                _ => (Models.Shared.RepeatMode.Off, false)"
-                  }
-                }
-              }
-            }
-          ],
-          "partialFingerprints": {
-            "equalIndicator/v1": "615D733DA25397BE73DB31F79126EE2E652FBA7CACB8B3BD1F11175426E2310D"
-          },
-          "baselineState": "new",
+          "baselineState": "unchanged",
           "properties": {
             "qodanaSeverity": "High",
             "tags": [
@@ -75294,7 +75066,7 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/OppoClient.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 5
+                  "index": 3
                 },
                 "region": {
                   "startLine": 15,
@@ -75324,7 +75096,7 @@
           "partialFingerprints": {
             "equalIndicator/v1": "BDF793DFE40554BB9B6E9519E5A1FEC933D12CA67CFBD3740FFDFAF593A1ED48"
           },
-          "baselineState": "new",
+          "baselineState": "unchanged",
           "properties": {
             "qodanaSeverity": "Moderate",
             "tags": [
@@ -75347,7 +75119,7 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/OppoClient.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 5
+                  "index": 3
                 },
                 "region": {
                   "startLine": 17,
@@ -75377,7 +75149,7 @@
           "partialFingerprints": {
             "equalIndicator/v1": "7A04FB7D9FBEF19D6E44D499D2F4D4691F150D66E377241DE3167691B4CF3F37"
           },
-          "baselineState": "new",
+          "baselineState": "unchanged",
           "properties": {
             "qodanaSeverity": "Moderate",
             "tags": [
@@ -75400,7 +75172,7 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/OppoClientFactory.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 7
+                  "index": 4
                 },
                 "region": {
                   "startLine": 9,
@@ -75430,7 +75202,7 @@
           "partialFingerprints": {
             "equalIndicator/v1": "535937EC68D2AFE9AB9766A8ED37148CCBBB7B8AEA10532219744FC1258F7138"
           },
-          "baselineState": "new",
+          "baselineState": "unchanged",
           "properties": {
             "qodanaSeverity": "Moderate",
             "tags": [
@@ -75453,7 +75225,7 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/OppoClientFactory.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 7
+                  "index": 4
                 },
                 "region": {
                   "startLine": 10,
@@ -75483,7 +75255,7 @@
           "partialFingerprints": {
             "equalIndicator/v1": "39D030675593948A4E6A94F5D4426A49DF274DD77692C2B7B837AA0BCB428D0D"
           },
-          "baselineState": "new",
+          "baselineState": "unchanged",
           "properties": {
             "qodanaSeverity": "Moderate",
             "tags": [
@@ -75504,16 +75276,16 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/UnfoldedCircle.Server/AlbumCover/AlbumCoverService.cs",
+                  "uri": "src/UnfoldedCircle.OppoBluRay/AlbumCover/AlbumCoverService.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 8
+                  "index": 5
                 },
                 "region": {
                   "startLine": 19,
                   "startColumn": 5,
                   "endLine": 19,
                   "endColumn": 58,
-                  "charOffset": 504,
+                  "charOffset": 512,
                   "charLength": 53,
                   "snippet": {
                     "text": "private readonly HttpClient _httpClient = httpClient;"
@@ -75524,7 +75296,7 @@
                   "startColumn": 1,
                   "endLine": 20,
                   "endColumn": 62,
-                  "charOffset": 498,
+                  "charOffset": 506,
                   "charLength": 121,
                   "snippet": {
                     "text": "{\n    private readonly HttpClient _httpClient = httpClient;\n    private readonly IMemoryCache _memoryCache = memoryCache;"
@@ -75536,7 +75308,7 @@
           "partialFingerprints": {
             "equalIndicator/v1": "A87D97C3D588712EA133D465C96822AF5456CB90B0A93220BDA4F858ED2AD0D1"
           },
-          "baselineState": "new",
+          "baselineState": "unchanged",
           "properties": {
             "qodanaSeverity": "Moderate",
             "tags": [
@@ -75557,16 +75329,16 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/UnfoldedCircle.Server/AlbumCover/AlbumCoverService.cs",
+                  "uri": "src/UnfoldedCircle.OppoBluRay/AlbumCover/AlbumCoverService.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 8
+                  "index": 5
                 },
                 "region": {
                   "startLine": 20,
                   "startColumn": 5,
                   "endLine": 20,
                   "endColumn": 62,
-                  "charOffset": 562,
+                  "charOffset": 570,
                   "charLength": 57,
                   "snippet": {
                     "text": "private readonly IMemoryCache _memoryCache = memoryCache;"
@@ -75577,7 +75349,7 @@
                   "startColumn": 1,
                   "endLine": 21,
                   "endColumn": 66,
-                  "charOffset": 500,
+                  "charOffset": 508,
                   "charLength": 185,
                   "snippet": {
                     "text": "    private readonly HttpClient _httpClient = httpClient;\n    private readonly IMemoryCache _memoryCache = memoryCache;\n    private readonly ILogger<AlbumCoverService> _logger = logger;"
@@ -75589,7 +75361,7 @@
           "partialFingerprints": {
             "equalIndicator/v1": "1F52B4E2C2CC6D452C092DD87BE6A119546F91C883FD82FA728FB12BF289BFDC"
           },
-          "baselineState": "new",
+          "baselineState": "unchanged",
           "properties": {
             "qodanaSeverity": "Moderate",
             "tags": [
@@ -75610,16 +75382,16 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/UnfoldedCircle.Server/AlbumCover/AlbumCoverService.cs",
+                  "uri": "src/UnfoldedCircle.OppoBluRay/AlbumCover/AlbumCoverService.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 8
+                  "index": 5
                 },
                 "region": {
                   "startLine": 21,
                   "startColumn": 5,
                   "endLine": 21,
                   "endColumn": 66,
-                  "charOffset": 624,
+                  "charOffset": 632,
                   "charLength": 61,
                   "snippet": {
                     "text": "private readonly ILogger<AlbumCoverService> _logger = logger;"
@@ -75630,7 +75402,7 @@
                   "startColumn": 1,
                   "endLine": 22,
                   "endColumn": 76,
-                  "charOffset": 558,
+                  "charOffset": 566,
                   "charLength": 203,
                   "snippet": {
                     "text": "    private readonly IMemoryCache _memoryCache = memoryCache;\n    private readonly ILogger<AlbumCoverService> _logger = logger;\n    private static readonly TimeSpan CacheDuration = TimeSpan.FromHours(3);"
@@ -75642,643 +75414,7 @@
           "partialFingerprints": {
             "equalIndicator/v1": "4598705BE7BF3681DD3C3F969D445345061E585E7CE2125C61FF1B0E3E95BA7A"
           },
-          "baselineState": "new",
-          "properties": {
-            "qodanaSeverity": "Moderate",
-            "tags": [
-              "C#",
-              ".NET 9.0"
-            ]
-          }
-        },
-        {
-          "ruleId": "ReplaceWithPrimaryConstructorParameter",
-          "ruleIndex": 2569,
-          "kind": "fail",
-          "level": "note",
-          "message": {
-            "text": "Replace with primary constructor parameter"
-          },
-          "locations": [
-            {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "src/UnfoldedCircle.Server/Configuration/ConfigurationService.cs",
-                  "uriBaseId": "solutionDir",
-                  "index": 9
-                },
-                "region": {
-                  "startLine": 9,
-                  "startColumn": 5,
-                  "endLine": 9,
-                  "endColumn": 68,
-                  "charOffset": 224,
-                  "charLength": 63,
-                  "snippet": {
-                    "text": "private readonly IConfiguration _configuration = configuration;"
-                  }
-                },
-                "contextRegion": {
-                  "startLine": 8,
-                  "startColumn": 1,
-                  "endLine": 10,
-                  "endColumn": 35,
-                  "charOffset": 218,
-                  "charLength": 104,
-                  "snippet": {
-                    "text": "{\n    private readonly IConfiguration _configuration = configuration;\n    private string? _ucConfigHome;"
-                  }
-                }
-              }
-            }
-          ],
-          "partialFingerprints": {
-            "equalIndicator/v1": "C1970C5FA225139D9F8252D2EC5EC7CE08AEAE4D4B90C9D7D6D44F400793D97C"
-          },
-          "baselineState": "new",
-          "properties": {
-            "qodanaSeverity": "Moderate",
-            "tags": [
-              "C#",
-              ".NET 9.0"
-            ]
-          }
-        },
-        {
-          "ruleId": "ReplaceWithPrimaryConstructorParameter",
-          "ruleIndex": 2569,
-          "kind": "fail",
-          "level": "note",
-          "message": {
-            "text": "Replace with primary constructor parameter"
-          },
-          "locations": [
-            {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "src/UnfoldedCircle.Server/WebSocket/UnfoldedCircleMiddleware.cs",
-                  "uriBaseId": "solutionDir",
-                  "index": 10
-                },
-                "region": {
-                  "startLine": 12,
-                  "startColumn": 5,
-                  "endLine": 12,
-                  "endColumn": 118,
-                  "charOffset": 367,
-                  "charLength": 113,
-                  "snippet": {
-                    "text": "private readonly UnfoldedCircleWebSocketHandler _unfoldedCircleWebSocketHandler = unfoldedCircleWebSocketHandler;"
-                  }
-                },
-                "contextRegion": {
-                  "startLine": 11,
-                  "startColumn": 1,
-                  "endLine": 13,
-                  "endColumn": 90,
-                  "charOffset": 361,
-                  "charLength": 209,
-                  "snippet": {
-                    "text": "{\n    private readonly UnfoldedCircleWebSocketHandler _unfoldedCircleWebSocketHandler = unfoldedCircleWebSocketHandler;\n    private readonly IHostApplicationLifetime _applicationLifetime = applicationLifetime;"
-                  }
-                }
-              }
-            }
-          ],
-          "partialFingerprints": {
-            "equalIndicator/v1": "594DE124CD91156583ECCF54B25748E62DA6ADA745C76E56948AE529027785FF"
-          },
-          "baselineState": "new",
-          "properties": {
-            "qodanaSeverity": "Moderate",
-            "tags": [
-              "C#",
-              ".NET 9.0"
-            ]
-          }
-        },
-        {
-          "ruleId": "ReplaceWithPrimaryConstructorParameter",
-          "ruleIndex": 2569,
-          "kind": "fail",
-          "level": "note",
-          "message": {
-            "text": "Replace with primary constructor parameter"
-          },
-          "locations": [
-            {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "src/UnfoldedCircle.Server/WebSocket/UnfoldedCircleMiddleware.cs",
-                  "uriBaseId": "solutionDir",
-                  "index": 10
-                },
-                "region": {
-                  "startLine": 13,
-                  "startColumn": 5,
-                  "endLine": 13,
-                  "endColumn": 90,
-                  "charOffset": 485,
-                  "charLength": 85,
-                  "snippet": {
-                    "text": "private readonly IHostApplicationLifetime _applicationLifetime = applicationLifetime;"
-                  }
-                },
-                "contextRegion": {
-                  "startLine": 12,
-                  "startColumn": 1,
-                  "endLine": 14,
-                  "endColumn": 68,
-                  "charOffset": 363,
-                  "charLength": 275,
-                  "snippet": {
-                    "text": "    private readonly UnfoldedCircleWebSocketHandler _unfoldedCircleWebSocketHandler = unfoldedCircleWebSocketHandler;\n    private readonly IHostApplicationLifetime _applicationLifetime = applicationLifetime;\n    private readonly ILoggerFactory _loggerFactory = loggerFactory;"
-                  }
-                }
-              }
-            }
-          ],
-          "partialFingerprints": {
-            "equalIndicator/v1": "93C769A9EA220597D6B56B68439023EE1B275681F780454DF688425BBDCC4859"
-          },
-          "baselineState": "new",
-          "properties": {
-            "qodanaSeverity": "Moderate",
-            "tags": [
-              "C#",
-              ".NET 9.0"
-            ]
-          }
-        },
-        {
-          "ruleId": "ReplaceWithPrimaryConstructorParameter",
-          "ruleIndex": 2569,
-          "kind": "fail",
-          "level": "note",
-          "message": {
-            "text": "Replace with primary constructor parameter"
-          },
-          "locations": [
-            {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "src/UnfoldedCircle.Server/WebSocket/UnfoldedCircleMiddleware.cs",
-                  "uriBaseId": "solutionDir",
-                  "index": 10
-                },
-                "region": {
-                  "startLine": 14,
-                  "startColumn": 5,
-                  "endLine": 14,
-                  "endColumn": 68,
-                  "charOffset": 575,
-                  "charLength": 63,
-                  "snippet": {
-                    "text": "private readonly ILoggerFactory _loggerFactory = loggerFactory;"
-                  }
-                },
-                "contextRegion": {
-                  "startLine": 13,
-                  "startColumn": 1,
-                  "endLine": 15,
-                  "endColumn": 73,
-                  "charOffset": 481,
-                  "charLength": 230,
-                  "snippet": {
-                    "text": "    private readonly IHostApplicationLifetime _applicationLifetime = applicationLifetime;\n    private readonly ILoggerFactory _loggerFactory = loggerFactory;\n    private readonly ILogger<UnfoldedCircleMiddleware> _logger = logger;"
-                  }
-                }
-              }
-            }
-          ],
-          "partialFingerprints": {
-            "equalIndicator/v1": "841322F1108944A62DBD9CC94A48691198C866917C4CADC07DA69808F8018F39"
-          },
-          "baselineState": "new",
-          "properties": {
-            "qodanaSeverity": "Moderate",
-            "tags": [
-              "C#",
-              ".NET 9.0"
-            ]
-          }
-        },
-        {
-          "ruleId": "ReplaceWithPrimaryConstructorParameter",
-          "ruleIndex": 2569,
-          "kind": "fail",
-          "level": "note",
-          "message": {
-            "text": "Replace with primary constructor parameter"
-          },
-          "locations": [
-            {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "src/UnfoldedCircle.Server/WebSocket/UnfoldedCircleMiddleware.cs",
-                  "uriBaseId": "solutionDir",
-                  "index": 10
-                },
-                "region": {
-                  "startLine": 15,
-                  "startColumn": 5,
-                  "endLine": 15,
-                  "endColumn": 73,
-                  "charOffset": 643,
-                  "charLength": 68,
-                  "snippet": {
-                    "text": "private readonly ILogger<UnfoldedCircleMiddleware> _logger = logger;"
-                  }
-                },
-                "contextRegion": {
-                  "startLine": 14,
-                  "startColumn": 1,
-                  "endLine": 16,
-                  "endColumn": 1,
-                  "charOffset": 571,
-                  "charLength": 141,
-                  "snippet": {
-                    "text": "    private readonly ILoggerFactory _loggerFactory = loggerFactory;\n    private readonly ILogger<UnfoldedCircleMiddleware> _logger = logger;\n"
-                  }
-                }
-              }
-            }
-          ],
-          "partialFingerprints": {
-            "equalIndicator/v1": "1D39DDBE7D719D65CB3DA0FF515D172594C988E7EBA9A751E770AF537C6378CA"
-          },
-          "baselineState": "new",
-          "properties": {
-            "qodanaSeverity": "Moderate",
-            "tags": [
-              "C#",
-              ".NET 9.0"
-            ]
-          }
-        },
-        {
-          "ruleId": "ReplaceWithPrimaryConstructorParameter",
-          "ruleIndex": 2569,
-          "kind": "fail",
-          "level": "note",
-          "message": {
-            "text": "Replace with primary constructor parameter"
-          },
-          "locations": [
-            {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "src/UnfoldedCircle.Server/WebSocket/UnfoldedCircleWebSocketHandler.cs",
-                  "uriBaseId": "solutionDir",
-                  "index": 11
-                },
-                "region": {
-                  "startLine": 20,
-                  "startColumn": 5,
-                  "endLine": 20,
-                  "endColumn": 80,
-                  "charOffset": 537,
-                  "charLength": 75,
-                  "snippet": {
-                    "text": "private readonly IOppoClientFactory _oppoClientFactory = oppoClientFactory;"
-                  }
-                },
-                "contextRegion": {
-                  "startLine": 19,
-                  "startColumn": 1,
-                  "endLine": 21,
-                  "endColumn": 89,
-                  "charOffset": 531,
-                  "charLength": 170,
-                  "snippet": {
-                    "text": "{\n    private readonly IOppoClientFactory _oppoClientFactory = oppoClientFactory;\n    private readonly IConfigurationService _configurationService = configurationService;"
-                  }
-                }
-              }
-            }
-          ],
-          "partialFingerprints": {
-            "equalIndicator/v1": "A2DF2C58A29682BF1C94BEE49184CDCC5D5DC296A19CDAB0E452DE32EC246CE1"
-          },
-          "baselineState": "new",
-          "properties": {
-            "qodanaSeverity": "Moderate",
-            "tags": [
-              "C#",
-              ".NET 9.0"
-            ]
-          }
-        },
-        {
-          "ruleId": "ReplaceWithPrimaryConstructorParameter",
-          "ruleIndex": 2569,
-          "kind": "fail",
-          "level": "note",
-          "message": {
-            "text": "Replace with primary constructor parameter"
-          },
-          "locations": [
-            {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "src/UnfoldedCircle.Server/WebSocket/UnfoldedCircleWebSocketHandler.cs",
-                  "uriBaseId": "solutionDir",
-                  "index": 11
-                },
-                "region": {
-                  "startLine": 21,
-                  "startColumn": 5,
-                  "endLine": 21,
-                  "endColumn": 89,
-                  "charOffset": 617,
-                  "charLength": 84,
-                  "snippet": {
-                    "text": "private readonly IConfigurationService _configurationService = configurationService;"
-                  }
-                },
-                "contextRegion": {
-                  "startLine": 20,
-                  "startColumn": 1,
-                  "endLine": 22,
-                  "endColumn": 80,
-                  "charOffset": 533,
-                  "charLength": 248,
-                  "snippet": {
-                    "text": "    private readonly IOppoClientFactory _oppoClientFactory = oppoClientFactory;\n    private readonly IConfigurationService _configurationService = configurationService;\n    private readonly IAlbumCoverService _albumCoverService = albumCoverService;"
-                  }
-                }
-              }
-            }
-          ],
-          "partialFingerprints": {
-            "equalIndicator/v1": "323050B32513B0983113EB6F8932302C1C465A635769F336E9A331B5BC898D17"
-          },
-          "baselineState": "new",
-          "properties": {
-            "qodanaSeverity": "Moderate",
-            "tags": [
-              "C#",
-              ".NET 9.0"
-            ]
-          }
-        },
-        {
-          "ruleId": "ReplaceWithPrimaryConstructorParameter",
-          "ruleIndex": 2569,
-          "kind": "fail",
-          "level": "note",
-          "message": {
-            "text": "Replace with primary constructor parameter"
-          },
-          "locations": [
-            {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "src/UnfoldedCircle.Server/WebSocket/UnfoldedCircleWebSocketHandler.cs",
-                  "uriBaseId": "solutionDir",
-                  "index": 11
-                },
-                "region": {
-                  "startLine": 22,
-                  "startColumn": 5,
-                  "endLine": 22,
-                  "endColumn": 80,
-                  "charOffset": 706,
-                  "charLength": 75,
-                  "snippet": {
-                    "text": "private readonly IAlbumCoverService _albumCoverService = albumCoverService;"
-                  }
-                },
-                "contextRegion": {
-                  "startLine": 21,
-                  "startColumn": 1,
-                  "endLine": 23,
-                  "endColumn": 79,
-                  "charOffset": 613,
-                  "charLength": 247,
-                  "snippet": {
-                    "text": "    private readonly IConfigurationService _configurationService = configurationService;\n    private readonly IAlbumCoverService _albumCoverService = albumCoverService;\n    private readonly ILogger<UnfoldedCircleWebSocketHandler> _logger = logger;"
-                  }
-                }
-              }
-            }
-          ],
-          "partialFingerprints": {
-            "equalIndicator/v1": "786B54B269A01571B60DB687A9089CE91631B3B64AF30122F1F4B9CC70D5646C"
-          },
-          "baselineState": "new",
-          "properties": {
-            "qodanaSeverity": "Moderate",
-            "tags": [
-              "C#",
-              ".NET 9.0"
-            ]
-          }
-        },
-        {
-          "ruleId": "ReplaceWithPrimaryConstructorParameter",
-          "ruleIndex": 2569,
-          "kind": "fail",
-          "level": "note",
-          "message": {
-            "text": "Replace with primary constructor parameter"
-          },
-          "locations": [
-            {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "src/UnfoldedCircle.Server/WebSocket/UnfoldedCircleWebSocketHandler.cs",
-                  "uriBaseId": "solutionDir",
-                  "index": 11
-                },
-                "region": {
-                  "startLine": 23,
-                  "startColumn": 5,
-                  "endLine": 23,
-                  "endColumn": 79,
-                  "charOffset": 786,
-                  "charLength": 74,
-                  "snippet": {
-                    "text": "private readonly ILogger<UnfoldedCircleWebSocketHandler> _logger = logger;"
-                  }
-                },
-                "contextRegion": {
-                  "startLine": 22,
-                  "startColumn": 1,
-                  "endLine": 24,
-                  "endColumn": 1,
-                  "charOffset": 702,
-                  "charLength": 159,
-                  "snippet": {
-                    "text": "    private readonly IAlbumCoverService _albumCoverService = albumCoverService;\n    private readonly ILogger<UnfoldedCircleWebSocketHandler> _logger = logger;\n"
-                  }
-                }
-              }
-            }
-          ],
-          "partialFingerprints": {
-            "equalIndicator/v1": "2303B13941972CFF90CEF6F85C894E706CA36AA6CCA4FF9C063215C70DBF0883"
-          },
-          "baselineState": "new",
-          "properties": {
-            "qodanaSeverity": "Moderate",
-            "tags": [
-              "C#",
-              ".NET 9.0"
-            ]
-          }
-        },
-        {
-          "ruleId": "TypeWithSuspiciousEqualityIsUsedInRecord.Global",
-          "ruleIndex": 2692,
-          "kind": "fail",
-          "level": "warning",
-          "message": {
-            "text": "Type with suspicious equality is used as a member of a record type"
-          },
-          "locations": [
-            {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "src/UnfoldedCircle.Models/Events/MediaPlayerStateChangedEventMessageDataAttributes.cs",
-                  "uriBaseId": "solutionDir",
-                  "index": 12
-                },
-                "region": {
-                  "startLine": 64,
-                  "startColumn": 12,
-                  "endLine": 64,
-                  "endColumn": 21,
-                  "charOffset": 2202,
-                  "charLength": 9,
-                  "snippet": {
-                    "text": "string[]?"
-                  }
-                },
-                "contextRegion": {
-                  "startLine": 63,
-                  "startColumn": 1,
-                  "endLine": 65,
-                  "endColumn": 5,
-                  "charOffset": 2125,
-                  "charLength": 117,
-                  "snippet": {
-                    "text": "    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]\n    public string[]? SourceList { get; init; }\n    "
-                  }
-                }
-              }
-            }
-          ],
-          "partialFingerprints": {
-            "equalIndicator/v1": "99C98B251F208966C2B7EB35E0D2330B99C947E74228E4E577FE106AB146640E"
-          },
-          "baselineState": "new",
-          "properties": {
-            "qodanaSeverity": "High",
-            "tags": [
-              "C#",
-              ".NET 9.0"
-            ]
-          }
-        },
-        {
-          "ruleId": "TypeWithSuspiciousEqualityIsUsedInRecord.Global",
-          "ruleIndex": 2692,
-          "kind": "fail",
-          "level": "warning",
-          "message": {
-            "text": "Type with suspicious equality is used as a member of a record type"
-          },
-          "locations": [
-            {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "src/UnfoldedCircle.Models/Events/MediaPlayerStateChangedEventMessageDataAttributes.cs",
-                  "uriBaseId": "solutionDir",
-                  "index": 12
-                },
-                "region": {
-                  "startLine": 72,
-                  "startColumn": 12,
-                  "endLine": 72,
-                  "endColumn": 21,
-                  "charOffset": 2504,
-                  "charLength": 9,
-                  "snippet": {
-                    "text": "string[]?"
-                  }
-                },
-                "contextRegion": {
-                  "startLine": 71,
-                  "startColumn": 1,
-                  "endLine": 73,
-                  "endColumn": 2,
-                  "charOffset": 2427,
-                  "charLength": 117,
-                  "snippet": {
-                    "text": "    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]\n    public string[]? SoundModeList { get; init; }\n}"
-                  }
-                }
-              }
-            }
-          ],
-          "partialFingerprints": {
-            "equalIndicator/v1": "39ADF17FD40D97171B4FCDA28B96DF5658F899313FDE94F965B7AFC871936797"
-          },
-          "baselineState": "new",
-          "properties": {
-            "qodanaSeverity": "High",
-            "tags": [
-              "C#",
-              ".NET 9.0"
-            ]
-          }
-        },
-        {
-          "ruleId": "UnusedMember.Global",
-          "ruleIndex": 2717,
-          "kind": "fail",
-          "level": "note",
-          "message": {
-            "text": "Constant 'Voice' is never used"
-          },
-          "locations": [
-            {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "src/UnfoldedCircle.Models/Sync/Enums/RemoteCommandIdConstants.cs",
-                  "uriBaseId": "solutionDir",
-                  "index": 13
-                },
-                "region": {
-                  "startLine": 10,
-                  "startColumn": 25,
-                  "endLine": 10,
-                  "endColumn": 30,
-                  "charOffset": 303,
-                  "charLength": 5,
-                  "snippet": {
-                    "text": "Voice"
-                  }
-                },
-                "contextRegion": {
-                  "startLine": 9,
-                  "startColumn": 1,
-                  "endLine": 11,
-                  "endColumn": 46,
-                  "charOffset": 240,
-                  "charLength": 125,
-                  "snippet": {
-                    "text": "    public const string Back = \"BACK\";\n    public const string Voice = \"VOICE\";\n    public const string CursorUp = \"DPAD_UP\";"
-                  }
-                }
-              }
-            }
-          ],
-          "partialFingerprints": {
-            "equalIndicator/v1": "6E16AA77AFA8CDDD73A7299B8AE4C2D73191F9C1FC288EBA3E2F4F3B3FA03FBB"
-          },
-          "baselineState": "new",
+          "baselineState": "unchanged",
           "properties": {
             "qodanaSeverity": "Moderate",
             "tags": [
@@ -76301,7 +75437,7 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/Oppo10XCommand.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 3
+                  "index": 1
                 },
                 "region": {
                   "startLine": 323,
@@ -76331,7 +75467,7 @@
           "partialFingerprints": {
             "equalIndicator/v1": "EF145432904AF582F6805821260FEF2520A6C7D085C090AE1A234C01BABD5AD4"
           },
-          "baselineState": "new",
+          "baselineState": "unchanged",
           "properties": {
             "qodanaSeverity": "Moderate",
             "tags": [
@@ -76354,7 +75490,7 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/Oppo20XCommand.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 4
+                  "index": 2
                 },
                 "region": {
                   "startLine": 352,
@@ -76384,7 +75520,7 @@
           "partialFingerprints": {
             "equalIndicator/v1": "6A3F242C499AD7054117C04AE2EE2439A04DC03893A1A62065CCC027B166BA13"
           },
-          "baselineState": "new",
+          "baselineState": "unchanged",
           "properties": {
             "qodanaSeverity": "Moderate",
             "tags": [
@@ -76407,7 +75543,7 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/Oppo10XCommand.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 3
+                  "index": 1
                 },
                 "region": {
                   "startLine": 334,
@@ -76437,7 +75573,7 @@
           "partialFingerprints": {
             "equalIndicator/v1": "E15B7B710E6C4D78EA204237BAB7C45F3801228C5CA05DD62C4AF718E37BC625"
           },
-          "baselineState": "new",
+          "baselineState": "unchanged",
           "properties": {
             "qodanaSeverity": "Moderate",
             "tags": [
@@ -76460,7 +75596,7 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/Oppo20XCommand.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 4
+                  "index": 2
                 },
                 "region": {
                   "startLine": 363,
@@ -76490,7 +75626,7 @@
           "partialFingerprints": {
             "equalIndicator/v1": "2DE3919872FE88CA29235424F0806D459755718C88C41784995B492FF409B2A6"
           },
-          "baselineState": "new",
+          "baselineState": "unchanged",
           "properties": {
             "qodanaSeverity": "Moderate",
             "tags": [
@@ -76513,7 +75649,7 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/Oppo10XCommand.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 3
+                  "index": 1
                 },
                 "region": {
                   "startLine": 313,
@@ -76543,7 +75679,7 @@
           "partialFingerprints": {
             "equalIndicator/v1": "351353CF81D8D389FB86FD4A9EF30AE1BBD102D7DA775822DB98B46C3105C6F6"
           },
-          "baselineState": "new",
+          "baselineState": "unchanged",
           "properties": {
             "qodanaSeverity": "Moderate",
             "tags": [
@@ -76566,7 +75702,7 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/Oppo20XCommand.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 4
+                  "index": 2
                 },
                 "region": {
                   "startLine": 342,
@@ -76596,7 +75732,7 @@
           "partialFingerprints": {
             "equalIndicator/v1": "1AB965FE7B26C26640A20E31F2CE81B272CB7D38B0111A47BCD7D46319E23E31"
           },
-          "baselineState": "new",
+          "baselineState": "unchanged",
           "properties": {
             "qodanaSeverity": "Moderate",
             "tags": [
@@ -76606,12 +75742,12 @@
           }
         },
         {
-          "ruleId": "UnusedMember.Global",
-          "ruleIndex": 2717,
+          "ruleId": "InconsistentNaming",
+          "ruleIndex": 2215,
           "kind": "fail",
           "level": "note",
           "message": {
-            "text": "Field 'SetHDMIResolution1080I' is never used"
+            "text": "Name 'SetHDMIResolution1080I' does not match rule 'public_static_readonly_fields_should_be_pascalcase'. Suggested name is 'SetHdmiResolution1080I'."
           },
           "locations": [
             {
@@ -76619,7 +75755,7 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/Oppo10XCommand.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 3
+                  "index": 1
                 },
                 "region": {
                   "startLine": 408,
@@ -76649,7 +75785,7 @@
           "partialFingerprints": {
             "equalIndicator/v1": "269463FCCA45CBB3A440E1E961CE646AB5B7CFCB26F182EFE14074089DFAF28E"
           },
-          "baselineState": "new",
+          "baselineState": "unchanged",
           "properties": {
             "qodanaSeverity": "Moderate",
             "tags": [
@@ -76659,12 +75795,12 @@
           }
         },
         {
-          "ruleId": "UnusedMember.Global",
-          "ruleIndex": 2717,
+          "ruleId": "InconsistentNaming",
+          "ruleIndex": 2215,
           "kind": "fail",
           "level": "note",
           "message": {
-            "text": "Field 'SetHDMIResolution1080I50' is never used"
+            "text": "Name 'SetHDMIResolution1080I50' does not match rule 'public_static_readonly_fields_should_be_pascalcase'. Suggested name is 'SetHdmiResolution1080I50'."
           },
           "locations": [
             {
@@ -76672,7 +75808,7 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/Oppo20XCommand.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 4
+                  "index": 2
                 },
                 "region": {
                   "startLine": 465,
@@ -76702,7 +75838,7 @@
           "partialFingerprints": {
             "equalIndicator/v1": "8B08E154663D5203507B11564A8189527A60BCEC53A3D278E5E702AB4BD60E4A"
           },
-          "baselineState": "new",
+          "baselineState": "unchanged",
           "properties": {
             "qodanaSeverity": "Moderate",
             "tags": [
@@ -76712,12 +75848,12 @@
           }
         },
         {
-          "ruleId": "UnusedMember.Global",
-          "ruleIndex": 2717,
+          "ruleId": "InconsistentNaming",
+          "ruleIndex": 2215,
           "kind": "fail",
           "level": "note",
           "message": {
-            "text": "Field 'SetHDMIResolution1080I60' is never used"
+            "text": "Name 'SetHDMIResolution1080I60' does not match rule 'public_static_readonly_fields_should_be_pascalcase'. Suggested name is 'SetHdmiResolution1080I60'."
           },
           "locations": [
             {
@@ -76725,7 +75861,7 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/Oppo20XCommand.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 4
+                  "index": 2
                 },
                 "region": {
                   "startLine": 466,
@@ -76755,7 +75891,7 @@
           "partialFingerprints": {
             "equalIndicator/v1": "777598AF13F9DAFC6AFA0E8FF87A5004A4CD83986B682E22B5A582B073B157FD"
           },
-          "baselineState": "new",
+          "baselineState": "unchanged",
           "properties": {
             "qodanaSeverity": "Moderate",
             "tags": [
@@ -76765,12 +75901,12 @@
           }
         },
         {
-          "ruleId": "UnusedMember.Global",
-          "ruleIndex": 2717,
+          "ruleId": "InconsistentNaming",
+          "ruleIndex": 2215,
           "kind": "fail",
           "level": "note",
           "message": {
-            "text": "Field 'SetHDMIResolution1080P' is never used"
+            "text": "Name 'SetHDMIResolution1080P' does not match rule 'public_static_readonly_fields_should_be_pascalcase'. Suggested name is 'SetHdmiResolution1080P'."
           },
           "locations": [
             {
@@ -76778,7 +75914,7 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/Oppo10XCommand.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 3
+                  "index": 1
                 },
                 "region": {
                   "startLine": 409,
@@ -76808,7 +75944,7 @@
           "partialFingerprints": {
             "equalIndicator/v1": "3D3772B2AC168D40B35FF9C8D9BECECFAA0B6FF7D24AAF6ADA0456CF716212FE"
           },
-          "baselineState": "new",
+          "baselineState": "unchanged",
           "properties": {
             "qodanaSeverity": "Moderate",
             "tags": [
@@ -76818,12 +75954,12 @@
           }
         },
         {
-          "ruleId": "UnusedMember.Global",
-          "ruleIndex": 2717,
+          "ruleId": "InconsistentNaming",
+          "ruleIndex": 2215,
           "kind": "fail",
           "level": "note",
           "message": {
-            "text": "Field 'SetHDMIResolution1080P24' is never used"
+            "text": "Name 'SetHDMIResolution1080P24' does not match rule 'public_static_readonly_fields_should_be_pascalcase'. Suggested name is 'SetHdmiResolution1080P24'."
           },
           "locations": [
             {
@@ -76831,7 +75967,7 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/Oppo20XCommand.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 4
+                  "index": 2
                 },
                 "region": {
                   "startLine": 462,
@@ -76861,7 +75997,7 @@
           "partialFingerprints": {
             "equalIndicator/v1": "6AB6D633B8D586EAC4E1BD8E1DE4DD1337B97EF5E5B54A45111307D6CCFED90F"
           },
-          "baselineState": "new",
+          "baselineState": "unchanged",
           "properties": {
             "qodanaSeverity": "Moderate",
             "tags": [
@@ -76871,12 +76007,12 @@
           }
         },
         {
-          "ruleId": "UnusedMember.Global",
-          "ruleIndex": 2717,
+          "ruleId": "InconsistentNaming",
+          "ruleIndex": 2215,
           "kind": "fail",
           "level": "note",
           "message": {
-            "text": "Field 'SetHDMIResolution1080P50' is never used"
+            "text": "Name 'SetHDMIResolution1080P50' does not match rule 'public_static_readonly_fields_should_be_pascalcase'. Suggested name is 'SetHdmiResolution1080P50'."
           },
           "locations": [
             {
@@ -76884,7 +76020,7 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/Oppo20XCommand.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 4
+                  "index": 2
                 },
                 "region": {
                   "startLine": 463,
@@ -76914,7 +76050,7 @@
           "partialFingerprints": {
             "equalIndicator/v1": "1689A357426D5FD4FDEA68F8B2D436399EA60F2A39942F42B1DFBCCA96FEC6E2"
           },
-          "baselineState": "new",
+          "baselineState": "unchanged",
           "properties": {
             "qodanaSeverity": "Moderate",
             "tags": [
@@ -76924,12 +76060,12 @@
           }
         },
         {
-          "ruleId": "UnusedMember.Global",
-          "ruleIndex": 2717,
+          "ruleId": "InconsistentNaming",
+          "ruleIndex": 2215,
           "kind": "fail",
           "level": "note",
           "message": {
-            "text": "Field 'SetHDMIResolution1080P60' is never used"
+            "text": "Name 'SetHDMIResolution1080P60' does not match rule 'public_static_readonly_fields_should_be_pascalcase'. Suggested name is 'SetHdmiResolution1080P60'."
           },
           "locations": [
             {
@@ -76937,7 +76073,7 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/Oppo20XCommand.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 4
+                  "index": 2
                 },
                 "region": {
                   "startLine": 464,
@@ -76967,7 +76103,7 @@
           "partialFingerprints": {
             "equalIndicator/v1": "4B69BC3887A6A75C62DEDE572FA33139A5CB25A69F38B890EB113DB6E0B705D9"
           },
-          "baselineState": "new",
+          "baselineState": "unchanged",
           "properties": {
             "qodanaSeverity": "Moderate",
             "tags": [
@@ -76977,12 +76113,12 @@
           }
         },
         {
-          "ruleId": "UnusedMember.Global",
-          "ruleIndex": 2717,
+          "ruleId": "InconsistentNaming",
+          "ruleIndex": 2215,
           "kind": "fail",
           "level": "note",
           "message": {
-            "text": "Field 'SetHDMIResolution1080PAuto' is never used"
+            "text": "Name 'SetHDMIResolution1080PAuto' does not match rule 'public_static_readonly_fields_should_be_pascalcase'. Suggested name is 'SetHdmiResolution1080PAuto'."
           },
           "locations": [
             {
@@ -76990,7 +76126,7 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/Oppo20XCommand.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 4
+                  "index": 2
                 },
                 "region": {
                   "startLine": 461,
@@ -77020,7 +76156,7 @@
           "partialFingerprints": {
             "equalIndicator/v1": "7081BDEE14C3C2F66876BEEB93E1FE21F1D6171847DB82D3120067FC2AD441EF"
           },
-          "baselineState": "new",
+          "baselineState": "unchanged",
           "properties": {
             "qodanaSeverity": "Moderate",
             "tags": [
@@ -77030,12 +76166,12 @@
           }
         },
         {
-          "ruleId": "UnusedMember.Global",
-          "ruleIndex": 2717,
+          "ruleId": "InconsistentNaming",
+          "ruleIndex": 2215,
           "kind": "fail",
           "level": "note",
           "message": {
-            "text": "Field 'SetHDMIResolution480I' is never used"
+            "text": "Name 'SetHDMIResolution480I' does not match rule 'public_static_readonly_fields_should_be_pascalcase'. Suggested name is 'SetHdmiResolution480I'."
           },
           "locations": [
             {
@@ -77043,7 +76179,7 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/Oppo20XCommand.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 4
+                  "index": 2
                 },
                 "region": {
                   "startLine": 472,
@@ -77073,7 +76209,7 @@
           "partialFingerprints": {
             "equalIndicator/v1": "A15CA1B9839B9805172C05223736EE9AA84D2A8CA015EF9CE3A6477B30703DA1"
           },
-          "baselineState": "new",
+          "baselineState": "unchanged",
           "properties": {
             "qodanaSeverity": "Moderate",
             "tags": [
@@ -77083,12 +76219,12 @@
           }
         },
         {
-          "ruleId": "UnusedMember.Global",
-          "ruleIndex": 2717,
+          "ruleId": "InconsistentNaming",
+          "ruleIndex": 2215,
           "kind": "fail",
           "level": "note",
           "message": {
-            "text": "Field 'SetHDMIResolution480P' is never used"
+            "text": "Name 'SetHDMIResolution480P' does not match rule 'public_static_readonly_fields_should_be_pascalcase'. Suggested name is 'SetHdmiResolution480P'."
           },
           "locations": [
             {
@@ -77096,7 +76232,7 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/Oppo20XCommand.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 4
+                  "index": 2
                 },
                 "region": {
                   "startLine": 471,
@@ -77126,7 +76262,7 @@
           "partialFingerprints": {
             "equalIndicator/v1": "6D0CC3438EC4BB0B3D8CDC329EB0308A527F57431D03DE51511AFFDB54738513"
           },
-          "baselineState": "new",
+          "baselineState": "unchanged",
           "properties": {
             "qodanaSeverity": "Moderate",
             "tags": [
@@ -77136,12 +76272,12 @@
           }
         },
         {
-          "ruleId": "UnusedMember.Global",
-          "ruleIndex": 2717,
+          "ruleId": "InconsistentNaming",
+          "ruleIndex": 2215,
           "kind": "fail",
           "level": "note",
           "message": {
-            "text": "Field 'SetHDMIResolution576I' is never used"
+            "text": "Name 'SetHDMIResolution576I' does not match rule 'public_static_readonly_fields_should_be_pascalcase'. Suggested name is 'SetHdmiResolution576I'."
           },
           "locations": [
             {
@@ -77149,7 +76285,7 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/Oppo20XCommand.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 4
+                  "index": 2
                 },
                 "region": {
                   "startLine": 470,
@@ -77179,7 +76315,7 @@
           "partialFingerprints": {
             "equalIndicator/v1": "3F92A7247D35FC28F6D7AC01604BAA1F5002AA8B42FF287CA165127BF43742E7"
           },
-          "baselineState": "new",
+          "baselineState": "unchanged",
           "properties": {
             "qodanaSeverity": "Moderate",
             "tags": [
@@ -77189,12 +76325,12 @@
           }
         },
         {
-          "ruleId": "UnusedMember.Global",
-          "ruleIndex": 2717,
+          "ruleId": "InconsistentNaming",
+          "ruleIndex": 2215,
           "kind": "fail",
           "level": "note",
           "message": {
-            "text": "Field 'SetHDMIResolution576P' is never used"
+            "text": "Name 'SetHDMIResolution576P' does not match rule 'public_static_readonly_fields_should_be_pascalcase'. Suggested name is 'SetHdmiResolution576P'."
           },
           "locations": [
             {
@@ -77202,7 +76338,7 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/Oppo20XCommand.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 4
+                  "index": 2
                 },
                 "region": {
                   "startLine": 469,
@@ -77232,7 +76368,7 @@
           "partialFingerprints": {
             "equalIndicator/v1": "E951DA7521D71049F88BF8116E58A380F4B98FBCFBCD1B00C912A11B46212E98"
           },
-          "baselineState": "new",
+          "baselineState": "unchanged",
           "properties": {
             "qodanaSeverity": "Moderate",
             "tags": [
@@ -77242,12 +76378,12 @@
           }
         },
         {
-          "ruleId": "UnusedMember.Global",
-          "ruleIndex": 2717,
+          "ruleId": "InconsistentNaming",
+          "ruleIndex": 2215,
           "kind": "fail",
           "level": "note",
           "message": {
-            "text": "Field 'SetHDMIResolution720P' is never used"
+            "text": "Name 'SetHDMIResolution720P' does not match rule 'public_static_readonly_fields_should_be_pascalcase'. Suggested name is 'SetHdmiResolution720P'."
           },
           "locations": [
             {
@@ -77255,7 +76391,7 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/Oppo10XCommand.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 3
+                  "index": 1
                 },
                 "region": {
                   "startLine": 407,
@@ -77285,7 +76421,7 @@
           "partialFingerprints": {
             "equalIndicator/v1": "3EB3F44EA77175A2B07C3DC22FBDE26917A0926AE54527039B5EA5E69F406598"
           },
-          "baselineState": "new",
+          "baselineState": "unchanged",
           "properties": {
             "qodanaSeverity": "Moderate",
             "tags": [
@@ -77295,12 +76431,12 @@
           }
         },
         {
-          "ruleId": "UnusedMember.Global",
-          "ruleIndex": 2717,
+          "ruleId": "InconsistentNaming",
+          "ruleIndex": 2215,
           "kind": "fail",
           "level": "note",
           "message": {
-            "text": "Field 'SetHDMIResolution720P50' is never used"
+            "text": "Name 'SetHDMIResolution720P50' does not match rule 'public_static_readonly_fields_should_be_pascalcase'. Suggested name is 'SetHdmiResolution720P50'."
           },
           "locations": [
             {
@@ -77308,7 +76444,7 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/Oppo20XCommand.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 4
+                  "index": 2
                 },
                 "region": {
                   "startLine": 467,
@@ -77338,7 +76474,7 @@
           "partialFingerprints": {
             "equalIndicator/v1": "F2AD80DA7806EEDAF5123CA9D5E6F7FDA84FA6054C85A63047B2A92F64D3404D"
           },
-          "baselineState": "new",
+          "baselineState": "unchanged",
           "properties": {
             "qodanaSeverity": "Moderate",
             "tags": [
@@ -77348,12 +76484,12 @@
           }
         },
         {
-          "ruleId": "UnusedMember.Global",
-          "ruleIndex": 2717,
+          "ruleId": "InconsistentNaming",
+          "ruleIndex": 2215,
           "kind": "fail",
           "level": "note",
           "message": {
-            "text": "Field 'SetHDMIResolution720P60' is never used"
+            "text": "Name 'SetHDMIResolution720P60' does not match rule 'public_static_readonly_fields_should_be_pascalcase'. Suggested name is 'SetHdmiResolution720P60'."
           },
           "locations": [
             {
@@ -77361,7 +76497,7 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/Oppo20XCommand.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 4
+                  "index": 2
                 },
                 "region": {
                   "startLine": 468,
@@ -77391,7 +76527,7 @@
           "partialFingerprints": {
             "equalIndicator/v1": "84752B92C1C62BD6794266C4E637E793B4B11494A52B4DBFC008E057F2154428"
           },
-          "baselineState": "new",
+          "baselineState": "unchanged",
           "properties": {
             "qodanaSeverity": "Moderate",
             "tags": [
@@ -77401,12 +76537,12 @@
           }
         },
         {
-          "ruleId": "UnusedMember.Global",
-          "ruleIndex": 2717,
+          "ruleId": "InconsistentNaming",
+          "ruleIndex": 2215,
           "kind": "fail",
           "level": "note",
           "message": {
-            "text": "Field 'SetHDMIResolutionAuto' is never used"
+            "text": "Name 'SetHDMIResolutionAuto' does not match rule 'public_static_readonly_fields_should_be_pascalcase'. Suggested name is 'SetHdmiResolutionAuto'."
           },
           "locations": [
             {
@@ -77414,7 +76550,7 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/Oppo10XCommand.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 3
+                  "index": 1
                 },
                 "region": {
                   "startLine": 411,
@@ -77444,7 +76580,7 @@
           "partialFingerprints": {
             "equalIndicator/v1": "CE18C9B422080616670B15D52E2A36D51E04C0944F1CC0DE3A94FE8B8FCAF43C"
           },
-          "baselineState": "new",
+          "baselineState": "unchanged",
           "properties": {
             "qodanaSeverity": "Moderate",
             "tags": [
@@ -77454,12 +76590,12 @@
           }
         },
         {
-          "ruleId": "UnusedMember.Global",
-          "ruleIndex": 2717,
+          "ruleId": "InconsistentNaming",
+          "ruleIndex": 2215,
           "kind": "fail",
           "level": "note",
           "message": {
-            "text": "Field 'SetHDMIResolutionAuto' is never used"
+            "text": "Name 'SetHDMIResolutionAuto' does not match rule 'public_static_readonly_fields_should_be_pascalcase'. Suggested name is 'SetHdmiResolutionAuto'."
           },
           "locations": [
             {
@@ -77467,7 +76603,7 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/Oppo20XCommand.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 4
+                  "index": 2
                 },
                 "region": {
                   "startLine": 455,
@@ -77497,7 +76633,7 @@
           "partialFingerprints": {
             "equalIndicator/v1": "75D854982809F93FA69D1F89D9C5CA9BD07E79FE2069D48E7DEE6B38049EB0E0"
           },
-          "baselineState": "new",
+          "baselineState": "unchanged",
           "properties": {
             "qodanaSeverity": "Moderate",
             "tags": [
@@ -77507,12 +76643,12 @@
           }
         },
         {
-          "ruleId": "UnusedMember.Global",
-          "ruleIndex": 2717,
+          "ruleId": "InconsistentNaming",
+          "ruleIndex": 2215,
           "kind": "fail",
           "level": "note",
           "message": {
-            "text": "Field 'SetHDMIResolutionSDI' is never used"
+            "text": "Name 'SetHDMIResolutionSDI' does not match rule 'public_static_readonly_fields_should_be_pascalcase'. Suggested name is 'SetHdmiResolutionSdi'."
           },
           "locations": [
             {
@@ -77520,7 +76656,7 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/Oppo10XCommand.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 3
+                  "index": 1
                 },
                 "region": {
                   "startLine": 405,
@@ -77550,7 +76686,7 @@
           "partialFingerprints": {
             "equalIndicator/v1": "3E5D83B75E9233245BB77ED0FE77D5B4B9D63704FA3FE595281D353B629A77BE"
           },
-          "baselineState": "new",
+          "baselineState": "unchanged",
           "properties": {
             "qodanaSeverity": "Moderate",
             "tags": [
@@ -77560,12 +76696,12 @@
           }
         },
         {
-          "ruleId": "UnusedMember.Global",
-          "ruleIndex": 2717,
+          "ruleId": "InconsistentNaming",
+          "ruleIndex": 2215,
           "kind": "fail",
           "level": "note",
           "message": {
-            "text": "Field 'SetHDMIResolutionSDP' is never used"
+            "text": "Name 'SetHDMIResolutionSDP' does not match rule 'public_static_readonly_fields_should_be_pascalcase'. Suggested name is 'SetHdmiResolutionSdp'."
           },
           "locations": [
             {
@@ -77573,7 +76709,7 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/Oppo10XCommand.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 3
+                  "index": 1
                 },
                 "region": {
                   "startLine": 406,
@@ -77603,7 +76739,7 @@
           "partialFingerprints": {
             "equalIndicator/v1": "4DAD63AF9368F4A943C96DA574C9C671780C0AA69CCD31A8884A537D5957E10E"
           },
-          "baselineState": "new",
+          "baselineState": "unchanged",
           "properties": {
             "qodanaSeverity": "Moderate",
             "tags": [
@@ -77613,12 +76749,12 @@
           }
         },
         {
-          "ruleId": "UnusedMember.Global",
-          "ruleIndex": 2717,
+          "ruleId": "InconsistentNaming",
+          "ruleIndex": 2215,
           "kind": "fail",
           "level": "note",
           "message": {
-            "text": "Field 'SetHDMIResolutionSource' is never used"
+            "text": "Name 'SetHDMIResolutionSource' does not match rule 'public_static_readonly_fields_should_be_pascalcase'. Suggested name is 'SetHdmiResolutionSource'."
           },
           "locations": [
             {
@@ -77626,7 +76762,7 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/Oppo10XCommand.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 3
+                  "index": 1
                 },
                 "region": {
                   "startLine": 410,
@@ -77656,7 +76792,7 @@
           "partialFingerprints": {
             "equalIndicator/v1": "F0D04B9165A7FB91B62D5332CEB18E4404AF3A51064478733E80488C97722C68"
           },
-          "baselineState": "new",
+          "baselineState": "unchanged",
           "properties": {
             "qodanaSeverity": "Moderate",
             "tags": [
@@ -77666,12 +76802,12 @@
           }
         },
         {
-          "ruleId": "UnusedMember.Global",
-          "ruleIndex": 2717,
+          "ruleId": "InconsistentNaming",
+          "ruleIndex": 2215,
           "kind": "fail",
           "level": "note",
           "message": {
-            "text": "Field 'SetHDMIResolutionSource' is never used"
+            "text": "Name 'SetHDMIResolutionSource' does not match rule 'public_static_readonly_fields_should_be_pascalcase'. Suggested name is 'SetHdmiResolutionSource'."
           },
           "locations": [
             {
@@ -77679,7 +76815,7 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/Oppo20XCommand.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 4
+                  "index": 2
                 },
                 "region": {
                   "startLine": 456,
@@ -77709,7 +76845,7 @@
           "partialFingerprints": {
             "equalIndicator/v1": "AE169AB851D708FD3C9EC754C3C0E061FD519C40743B6B64E84308485FAD3789"
           },
-          "baselineState": "new",
+          "baselineState": "unchanged",
           "properties": {
             "qodanaSeverity": "Moderate",
             "tags": [
@@ -77719,12 +76855,12 @@
           }
         },
         {
-          "ruleId": "UnusedMember.Global",
-          "ruleIndex": 2717,
+          "ruleId": "InconsistentNaming",
+          "ruleIndex": 2215,
           "kind": "fail",
           "level": "note",
           "message": {
-            "text": "Field 'SetHDMIResolutionUHDAuto' is never used"
+            "text": "Name 'SetHDMIResolutionUHDAuto' does not match rule 'public_static_readonly_fields_should_be_pascalcase'. Suggested name is 'SetHdmiResolutionUhdAuto'."
           },
           "locations": [
             {
@@ -77732,7 +76868,7 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/Oppo20XCommand.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 4
+                  "index": 2
                 },
                 "region": {
                   "startLine": 457,
@@ -77762,7 +76898,7 @@
           "partialFingerprints": {
             "equalIndicator/v1": "418F310F96FD7CFD200CD1E4440C33DE353625D5BB2556C7BC490CBE463B08A1"
           },
-          "baselineState": "new",
+          "baselineState": "unchanged",
           "properties": {
             "qodanaSeverity": "Moderate",
             "tags": [
@@ -77772,12 +76908,12 @@
           }
         },
         {
-          "ruleId": "UnusedMember.Global",
-          "ruleIndex": 2717,
+          "ruleId": "InconsistentNaming",
+          "ruleIndex": 2215,
           "kind": "fail",
           "level": "note",
           "message": {
-            "text": "Field 'SetHDMIResolutionUHDUHD24' is never used"
+            "text": "Name 'SetHDMIResolutionUHDUHD24' does not match rule 'public_static_readonly_fields_should_be_pascalcase'. Suggested name is 'SetHdmiResolutionUhduhd24'."
           },
           "locations": [
             {
@@ -77785,7 +76921,7 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/Oppo20XCommand.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 4
+                  "index": 2
                 },
                 "region": {
                   "startLine": 458,
@@ -77815,7 +76951,7 @@
           "partialFingerprints": {
             "equalIndicator/v1": "27C44E956A3AD3995C400872F489C132677A51B4C8C763EC305255EF46C7674E"
           },
-          "baselineState": "new",
+          "baselineState": "unchanged",
           "properties": {
             "qodanaSeverity": "Moderate",
             "tags": [
@@ -77825,12 +76961,12 @@
           }
         },
         {
-          "ruleId": "UnusedMember.Global",
-          "ruleIndex": 2717,
+          "ruleId": "InconsistentNaming",
+          "ruleIndex": 2215,
           "kind": "fail",
           "level": "note",
           "message": {
-            "text": "Field 'SetHDMIResolutionUHDUHD50' is never used"
+            "text": "Name 'SetHDMIResolutionUHDUHD50' does not match rule 'public_static_readonly_fields_should_be_pascalcase'. Suggested name is 'SetHdmiResolutionUhduhd50'."
           },
           "locations": [
             {
@@ -77838,7 +76974,7 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/Oppo20XCommand.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 4
+                  "index": 2
                 },
                 "region": {
                   "startLine": 459,
@@ -77868,7 +77004,7 @@
           "partialFingerprints": {
             "equalIndicator/v1": "877A61D01F6DC451D4947D2070CC8A58BD5A3BE2AA6B06726657A98D4EC1FA40"
           },
-          "baselineState": "new",
+          "baselineState": "unchanged",
           "properties": {
             "qodanaSeverity": "Moderate",
             "tags": [
@@ -77878,12 +77014,12 @@
           }
         },
         {
-          "ruleId": "UnusedMember.Global",
-          "ruleIndex": 2717,
+          "ruleId": "InconsistentNaming",
+          "ruleIndex": 2215,
           "kind": "fail",
           "level": "note",
           "message": {
-            "text": "Field 'SetHDMIResolutionUHDUHD60' is never used"
+            "text": "Name 'SetHDMIResolutionUHDUHD60' does not match rule 'public_static_readonly_fields_should_be_pascalcase'. Suggested name is 'SetHdmiResolutionUhduhd60'."
           },
           "locations": [
             {
@@ -77891,7 +77027,7 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/Oppo20XCommand.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 4
+                  "index": 2
                 },
                 "region": {
                   "startLine": 460,
@@ -77921,7 +77057,7 @@
           "partialFingerprints": {
             "equalIndicator/v1": "69255A4DCFD2A5019CB70429FB39EC6698952BAF08F663F29E81B094515FEAF6"
           },
-          "baselineState": "new",
+          "baselineState": "unchanged",
           "properties": {
             "qodanaSeverity": "Moderate",
             "tags": [
@@ -77944,7 +77080,7 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/Oppo10XCommand.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 3
+                  "index": 1
                 },
                 "region": {
                   "startLine": 403,
@@ -77974,7 +77110,7 @@
           "partialFingerprints": {
             "equalIndicator/v1": "70608E07A48285A06887BD997D9E8EC889456818C18D52EFF6EB9D063CE10C01"
           },
-          "baselineState": "new",
+          "baselineState": "unchanged",
           "properties": {
             "qodanaSeverity": "Moderate",
             "tags": [
@@ -77997,7 +77133,7 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/Oppo20XCommand.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 4
+                  "index": 2
                 },
                 "region": {
                   "startLine": 453,
@@ -78027,7 +77163,7 @@
           "partialFingerprints": {
             "equalIndicator/v1": "F8DE9C332372C4A0C549668D75F2EE7CAC90B4DFBD282D2E3DD761165948D257"
           },
-          "baselineState": "new",
+          "baselineState": "unchanged",
           "properties": {
             "qodanaSeverity": "Moderate",
             "tags": [
@@ -78050,7 +77186,7 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/Oppo10XCommand.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 3
+                  "index": 1
                 },
                 "region": {
                   "startLine": 393,
@@ -78080,7 +77216,7 @@
           "partialFingerprints": {
             "equalIndicator/v1": "4E80ED826791E6B9248EFA5AD837BDD2AC436CBEF0E615C6B9833516BD1F7824"
           },
-          "baselineState": "new",
+          "baselineState": "unchanged",
           "properties": {
             "qodanaSeverity": "Moderate",
             "tags": [
@@ -78103,7 +77239,7 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/Oppo20XCommand.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 4
+                  "index": 2
                 },
                 "region": {
                   "startLine": 443,
@@ -78133,7 +77269,7 @@
           "partialFingerprints": {
             "equalIndicator/v1": "59FC11BCD6FDAACB25DC568D8C4AE2530FBC44C74625986E0D5148012E78E913"
           },
-          "baselineState": "new",
+          "baselineState": "unchanged",
           "properties": {
             "qodanaSeverity": "Moderate",
             "tags": [
@@ -78156,7 +77292,7 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/Oppo10XCommand.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 3
+                  "index": 1
                 },
                 "region": {
                   "startLine": 398,
@@ -78186,7 +77322,7 @@
           "partialFingerprints": {
             "equalIndicator/v1": "3B0DC7E7FBBBFBA894226E421886869356D5D44A312ACB652E556399CF0647C9"
           },
-          "baselineState": "new",
+          "baselineState": "unchanged",
           "properties": {
             "qodanaSeverity": "Moderate",
             "tags": [
@@ -78209,7 +77345,7 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/Oppo20XCommand.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 4
+                  "index": 2
                 },
                 "region": {
                   "startLine": 448,
@@ -78239,7 +77375,7 @@
           "partialFingerprints": {
             "equalIndicator/v1": "5CA09547FEA3ACF5E20137D52EE4FE4D1CDB391AF1E05DA1A7994C8CFB234351"
           },
-          "baselineState": "new",
+          "baselineState": "unchanged",
           "properties": {
             "qodanaSeverity": "Moderate",
             "tags": [
@@ -78262,7 +77398,7 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/IOppoClient.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 14
+                  "index": 7
                 },
                 "region": {
                   "startLine": 289,
@@ -78292,7 +77428,7 @@
           "partialFingerprints": {
             "equalIndicator/v1": "1E187B80604420435137851DFCBD4C676D3C361909A2EA59DAC58653482B40F6"
           },
-          "baselineState": "new",
+          "baselineState": "unchanged",
           "properties": {
             "qodanaSeverity": "Moderate",
             "tags": [
@@ -78315,7 +77451,7 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/IOppoClient.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 14
+                  "index": 7
                 },
                 "region": {
                   "startLine": 375,
@@ -78345,7 +77481,7 @@
           "partialFingerprints": {
             "equalIndicator/v1": "E8E5E035B4E3602890ED80D7D870932EAF386CF579FE5C77BEB7889DAA2B21C6"
           },
-          "baselineState": "new",
+          "baselineState": "unchanged",
           "properties": {
             "qodanaSeverity": "Moderate",
             "tags": [
@@ -78355,312 +77491,48 @@
           }
         },
         {
-          "ruleId": "UnusedMember.Global",
-          "ruleIndex": 2717,
+          "ruleId": "ReplaceWithPrimaryConstructorParameter",
+          "ruleIndex": 2569,
           "kind": "fail",
           "level": "note",
           "message": {
-            "text": "Property 'MediaPosition' is never used"
+            "text": "Replace with primary constructor parameter"
           },
           "locations": [
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/UnfoldedCircle.Models/Sync/EntityCommandParams.cs",
+                  "uri": "src/UnfoldedCircle.OppoBluRay/WebSocket/OppoWebSocketHandler.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 15
+                  "index": 6
                 },
                 "region": {
-                  "startLine": 11,
-                  "startColumn": 18,
-                  "endLine": 11,
-                  "endColumn": 31,
-                  "charOffset": 249,
-                  "charLength": 13,
-                  "snippet": {
-                    "text": "MediaPosition"
-                  }
-                },
-                "contextRegion": {
-                  "startLine": 10,
-                  "startColumn": 1,
-                  "endLine": 12,
-                  "endColumn": 5,
-                  "charOffset": 191,
-                  "charLength": 91,
-                  "snippet": {
-                    "text": "    [JsonPropertyName(\"media_position\")]\n    public uint? MediaPosition { get; init; }\n    "
-                  }
-                }
-              }
-            }
-          ],
-          "partialFingerprints": {
-            "equalIndicator/v1": "EA0C944CEEC19EA629C3EFD7108DD75321EEE266918389F12EE3C0F99DF64A30"
-          },
-          "baselineState": "new",
-          "properties": {
-            "qodanaSeverity": "Moderate",
-            "tags": [
-              "C#",
-              ".NET 9.0"
-            ]
-          }
-        },
-        {
-          "ruleId": "UnusedMember.Global",
-          "ruleIndex": 2717,
-          "kind": "fail",
-          "level": "note",
-          "message": {
-            "text": "Property 'Mode' is never used"
-          },
-          "locations": [
-            {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "src/UnfoldedCircle.Models/Sync/EntityCommandParams.cs",
-                  "uriBaseId": "solutionDir",
-                  "index": 15
-                },
-                "region": {
-                  "startLine": 20,
-                  "startColumn": 20,
-                  "endLine": 20,
-                  "endColumn": 24,
-                  "charOffset": 495,
-                  "charLength": 4,
-                  "snippet": {
-                    "text": "Mode"
-                  }
-                },
-                "contextRegion": {
-                  "startLine": 19,
-                  "startColumn": 1,
-                  "endLine": 21,
-                  "endColumn": 5,
-                  "charOffset": 445,
-                  "charLength": 74,
-                  "snippet": {
-                    "text": "    [JsonPropertyName(\"mode\")]\n    public string? Mode { get; init; }\n    "
-                  }
-                }
-              }
-            }
-          ],
-          "partialFingerprints": {
-            "equalIndicator/v1": "BAB782C597AB46009C88BB96F91F8FA2D175E07F38FD759201A525E96CC2009D"
-          },
-          "baselineState": "new",
-          "properties": {
-            "qodanaSeverity": "Moderate",
-            "tags": [
-              "C#",
-              ".NET 9.0"
-            ]
-          }
-        },
-        {
-          "ruleId": "UnusedMember.Global",
-          "ruleIndex": 2717,
-          "kind": "fail",
-          "level": "note",
-          "message": {
-            "text": "Property 'Repeat' is never used"
-          },
-          "locations": [
-            {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "src/UnfoldedCircle.Models/Sync/EntityCommandParams.cs",
-                  "uriBaseId": "solutionDir",
-                  "index": 15
-                },
-                "region": {
-                  "startLine": 14,
-                  "startColumn": 24,
-                  "endLine": 14,
-                  "endColumn": 30,
-                  "charOffset": 339,
-                  "charLength": 6,
-                  "snippet": {
-                    "text": "Repeat"
-                  }
-                },
-                "contextRegion": {
-                  "startLine": 13,
-                  "startColumn": 1,
-                  "endLine": 15,
-                  "endColumn": 5,
-                  "charOffset": 283,
-                  "charLength": 82,
-                  "snippet": {
-                    "text": "    [JsonPropertyName(\"repeat\")]\n    public RepeatMode? Repeat { get; init; }\n    "
-                  }
-                }
-              }
-            }
-          ],
-          "partialFingerprints": {
-            "equalIndicator/v1": "6F29B8C8EE064215C018ED7A603363F882D9EED98C132F325C3D2360C0F159EC"
-          },
-          "baselineState": "new",
-          "properties": {
-            "qodanaSeverity": "Moderate",
-            "tags": [
-              "C#",
-              ".NET 9.0"
-            ]
-          }
-        },
-        {
-          "ruleId": "UnusedMember.Global",
-          "ruleIndex": 2717,
-          "kind": "fail",
-          "level": "note",
-          "message": {
-            "text": "Property 'Shuffle' is never used"
-          },
-          "locations": [
-            {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "src/UnfoldedCircle.Models/Sync/EntityCommandParams.cs",
-                  "uriBaseId": "solutionDir",
-                  "index": 15
-                },
-                "region": {
-                  "startLine": 17,
-                  "startColumn": 18,
-                  "endLine": 17,
-                  "endColumn": 25,
-                  "charOffset": 417,
-                  "charLength": 7,
-                  "snippet": {
-                    "text": "Shuffle"
-                  }
-                },
-                "contextRegion": {
-                  "startLine": 16,
-                  "startColumn": 1,
-                  "endLine": 18,
-                  "endColumn": 5,
-                  "charOffset": 366,
-                  "charLength": 78,
-                  "snippet": {
-                    "text": "    [JsonPropertyName(\"shuffle\")]\n    public bool? Shuffle { get; init; }\n    "
-                  }
-                }
-              }
-            }
-          ],
-          "partialFingerprints": {
-            "equalIndicator/v1": "316A217E388BF3372335832433E1ED5BEB10C4A7915806DEDC4444E228386B21"
-          },
-          "baselineState": "new",
-          "properties": {
-            "qodanaSeverity": "Moderate",
-            "tags": [
-              "C#",
-              ".NET 9.0"
-            ]
-          }
-        },
-        {
-          "ruleId": "UnusedMember.Global",
-          "ruleIndex": 2717,
-          "kind": "fail",
-          "level": "note",
-          "message": {
-            "text": "Property 'Source' is never used"
-          },
-          "locations": [
-            {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "src/UnfoldedCircle.Models/Sync/EntityCommandParams.cs",
-                  "uriBaseId": "solutionDir",
-                  "index": 15
-                },
-                "region": {
-                  "startLine": 23,
-                  "startColumn": 20,
-                  "endLine": 23,
-                  "endColumn": 26,
-                  "charOffset": 572,
-                  "charLength": 6,
-                  "snippet": {
-                    "text": "Source"
-                  }
-                },
-                "contextRegion": {
-                  "startLine": 22,
-                  "startColumn": 1,
-                  "endLine": 24,
-                  "endColumn": 2,
-                  "charOffset": 520,
+                  "startLine": 32,
+                  "startColumn": 5,
+                  "endLine": 32,
+                  "endColumn": 80,
+                  "charOffset": 1153,
                   "charLength": 75,
                   "snippet": {
-                    "text": "    [JsonPropertyName(\"source\")]\n    public string? Source { get; init; }\n}"
-                  }
-                }
-              }
-            }
-          ],
-          "partialFingerprints": {
-            "equalIndicator/v1": "B1AE6835B87FE5AA7ED73037F190E3460A228C88AC9C85B1231709D4D60C368C"
-          },
-          "baselineState": "new",
-          "properties": {
-            "qodanaSeverity": "Moderate",
-            "tags": [
-              "C#",
-              ".NET 9.0"
-            ]
-          }
-        },
-        {
-          "ruleId": "UnusedMember.Global",
-          "ruleIndex": 2717,
-          "kind": "fail",
-          "level": "note",
-          "message": {
-            "text": "Property 'Token' is never used"
-          },
-          "locations": [
-            {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "src/UnfoldedCircle.Models/Sync/AuthRequestMsgData.cs",
-                  "uriBaseId": "solutionDir"
-                },
-                "region": {
-                  "startLine": 6,
-                  "startColumn": 28,
-                  "endLine": 6,
-                  "endColumn": 33,
-                  "charOffset": 133,
-                  "charLength": 5,
-                  "snippet": {
-                    "text": "Token"
+                    "text": "private readonly IOppoClientFactory _oppoClientFactory = oppoClientFactory;"
                   }
                 },
                 "contextRegion": {
-                  "startLine": 5,
+                  "startLine": 31,
                   "startColumn": 1,
-                  "endLine": 7,
-                  "endColumn": 2,
-                  "charOffset": 74,
-                  "charLength": 81,
+                  "endLine": 33,
+                  "endColumn": 80,
+                  "charOffset": 1147,
+                  "charLength": 161,
                   "snippet": {
-                    "text": "    [JsonPropertyName(\"token\")]\n    public required string Token { get; init; }\n}"
+                    "text": "{\n    private readonly IOppoClientFactory _oppoClientFactory = oppoClientFactory;\n    private readonly IAlbumCoverService _albumCoverService = albumCoverService;"
                   }
                 }
               }
             }
           ],
           "partialFingerprints": {
-            "equalIndicator/v1": "E856F6DF5462FB6E76F6DE31FC288570B9049D91BDD2A65AB4105259E4566F08"
+            "equalIndicator/v1": "B6D4B22B0E5E8DBC3CAD0E4DF92560DF9FC5D3B5D0CFF76B46CB30F0B407290B"
           },
           "baselineState": "new",
           "properties": {
@@ -78672,154 +77544,48 @@
           }
         },
         {
-          "ruleId": "UnusedMember.Global",
-          "ruleIndex": 2717,
+          "ruleId": "ReplaceWithPrimaryConstructorParameter",
+          "ruleIndex": 2569,
           "kind": "fail",
           "level": "note",
           "message": {
-            "text": "Property 'Volume' is never used"
+            "text": "Replace with primary constructor parameter"
           },
           "locations": [
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/UnfoldedCircle.Models/Sync/EntityCommandParams.cs",
+                  "uri": "src/UnfoldedCircle.OppoBluRay/WebSocket/OppoWebSocketHandler.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 15
+                  "index": 6
                 },
                 "region": {
-                  "startLine": 8,
-                  "startColumn": 20,
-                  "endLine": 8,
-                  "endColumn": 26,
-                  "charOffset": 164,
-                  "charLength": 6,
+                  "startLine": 33,
+                  "startColumn": 5,
+                  "endLine": 33,
+                  "endColumn": 80,
+                  "charOffset": 1233,
+                  "charLength": 75,
                   "snippet": {
-                    "text": "Volume"
+                    "text": "private readonly IAlbumCoverService _albumCoverService = albumCoverService;"
                   }
                 },
                 "contextRegion": {
-                  "startLine": 7,
+                  "startLine": 32,
                   "startColumn": 1,
-                  "endLine": 9,
-                  "endColumn": 5,
-                  "charOffset": 112,
-                  "charLength": 78,
+                  "endLine": 34,
+                  "endColumn": 1,
+                  "charOffset": 1149,
+                  "charLength": 160,
                   "snippet": {
-                    "text": "    [JsonPropertyName(\"volume\")]\n    public ushort? Volume { get; init; }\n    "
+                    "text": "    private readonly IOppoClientFactory _oppoClientFactory = oppoClientFactory;\n    private readonly IAlbumCoverService _albumCoverService = albumCoverService;\n"
                   }
                 }
               }
             }
           ],
           "partialFingerprints": {
-            "equalIndicator/v1": "4A000C184C99EDB023E507C4A8C954C57BCB1B8D05116583F4836D958DFD30B8"
-          },
-          "baselineState": "new",
-          "properties": {
-            "qodanaSeverity": "Moderate",
-            "tags": [
-              "C#",
-              ".NET 9.0"
-            ]
-          }
-        },
-        {
-          "ruleId": "UnusedType.Global",
-          "ruleIndex": 2731,
-          "kind": "fail",
-          "level": "note",
-          "message": {
-            "text": "Record 'AuthRequestMsg' is never used"
-          },
-          "locations": [
-            {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "src/UnfoldedCircle.Models/Sync/AuthRequestMsg.cs",
-                  "uriBaseId": "solutionDir",
-                  "index": 16
-                },
-                "region": {
-                  "startLine": 3,
-                  "startColumn": 15,
-                  "endLine": 3,
-                  "endColumn": 29,
-                  "charOffset": 53,
-                  "charLength": 14,
-                  "snippet": {
-                    "text": "AuthRequestMsg"
-                  }
-                },
-                "contextRegion": {
-                  "startLine": 2,
-                  "startColumn": 1,
-                  "endLine": 3,
-                  "endColumn": 62,
-                  "charOffset": 38,
-                  "charLength": 62,
-                  "snippet": {
-                    "text": "\npublic record AuthRequestMsg : CommonReq<AuthRequestMsgData>;"
-                  }
-                }
-              }
-            }
-          ],
-          "partialFingerprints": {
-            "equalIndicator/v1": "10473B037E28C709C736E55AE5E27D12A29E6CACAE8485DC3603C942246C5038"
-          },
-          "baselineState": "new",
-          "properties": {
-            "qodanaSeverity": "Moderate",
-            "tags": [
-              "C#",
-              ".NET 9.0"
-            ]
-          }
-        },
-        {
-          "ruleId": "UnusedType.Global",
-          "ruleIndex": 2731,
-          "kind": "fail",
-          "level": "note",
-          "message": {
-            "text": "Record 'EntityCommandParams' is never used"
-          },
-          "locations": [
-            {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "src/UnfoldedCircle.Models/Sync/EntityCommandParams.cs",
-                  "uriBaseId": "solutionDir",
-                  "index": 15
-                },
-                "region": {
-                  "startLine": 5,
-                  "startColumn": 15,
-                  "endLine": 5,
-                  "endColumn": 34,
-                  "charOffset": 90,
-                  "charLength": 19,
-                  "snippet": {
-                    "text": "EntityCommandParams"
-                  }
-                },
-                "contextRegion": {
-                  "startLine": 4,
-                  "startColumn": 1,
-                  "endLine": 6,
-                  "endColumn": 2,
-                  "charOffset": 75,
-                  "charLength": 36,
-                  "snippet": {
-                    "text": "\npublic record EntityCommandParams\n{"
-                  }
-                }
-              }
-            }
-          ],
-          "partialFingerprints": {
-            "equalIndicator/v1": "D30BE2C02EE9CF8A8D0D9D522CC336FC93CB7FE29A8FC41C4A24344CC3C0BDF0"
+            "equalIndicator/v1": "DE046CF0BE38AA5A2C1CBF4960D31EC191286318D06009CC1E773B9DB44AC70C"
           },
           "baselineState": "new",
           "properties": {
@@ -78832,10 +77598,10 @@
         }
       ],
       "automationDetails": {
-        "id": "QDNETC/qodana/2025-08-09",
-        "guid": "e045beaf-fa6a-42d9-bf7f-483cdf516543",
+        "id": "QDNETC/qodana/2025-08-13",
+        "guid": "38cbf9dc-5edd-4c14-8d55-0950411e8675",
         "properties": {
-          "jobUrl": "https://github.com/henrikwidlund/unfoldedcircle-oppo/actions/runs/16852398194"
+          "jobUrl": "https://github.com/henrikwidlund/unfoldedcircle-oppo/actions/runs/16948164886"
         }
       },
       "newlineSequences": [
