@@ -6,7 +6,7 @@ updates:
       interval: "daily"
 
   - package-ecosystem: "docker"
-    directory: "/src/UnfoldedCircle.Server/"
+    directory: "/src/UnfoldedCircle.OppoBluRay/"
     schedule:
       interval: "daily"
 

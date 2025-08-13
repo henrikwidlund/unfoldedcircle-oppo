@@ -1,3 +1,0 @@
-namespace UnfoldedCircle.Models.Events;
-
-public abstract record StateChangedEventMessageDataAttributes;
