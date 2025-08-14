@@ -21,6 +21,8 @@ This repository contains the server code for hosting an Oppo Blu-ray integration
 ### Supported features limitations
 
 - All features are supported for the UDP-20X series.
+- The Oppo players only allows one connection at a time, so if you have multiple remotes or other systems connected to the same player,
+the will keep getting disconnected and commands will fail.
 
 | Feature            | Oppo BDP-83/93/95 | Oppo UDP-10X |
 |--------------------|-------------------|--------------|
