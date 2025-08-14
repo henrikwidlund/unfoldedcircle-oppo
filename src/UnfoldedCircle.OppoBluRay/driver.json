@@ -20,7 +20,7 @@
     },
     "settings": [
       {
-        "id": "device_name",
+        "id": "entity_name",
         "field": {
           "text": { }
         },
