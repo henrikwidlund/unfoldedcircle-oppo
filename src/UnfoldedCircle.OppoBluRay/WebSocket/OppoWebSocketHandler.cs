@@ -157,10 +157,10 @@ public partial class OppoWebSocketHandler(
                                         ? chapterOrMovieLengthValue.Equals(OppoConstants.ChapterLengthValue, StringComparison.OrdinalIgnoreCase)
                                         : null;
 
-        var entity = configuration.Entities.Find(x => string.Equals(x.DeviceId, deviceId, StringComparison.Ordinal));
+        var entity = configuration.Entities.Find(x => x.EntityId.Equals(host, StringComparison.Ordinal));
         if (entity is null)
         {
-            _logger.LogInformation("Adding configuration for device ID '{DeviceId}'", deviceId);
+            _logger.LogInformation("Adding configuration for entity_id '{EntityId}'", host);
             entity = new OppoConfigurationItem
             {
                 Host = host,
@@ -174,7 +174,7 @@ public partial class OppoWebSocketHandler(
         }
         else
         {
-            _logger.LogInformation("Updating configuration for device ID '{DeviceId}'", deviceId);
+            _logger.LogInformation("Updating configuration for entity_id '{EntityId}'", deviceId);
             configuration.Entities.Remove(entity);
             entity = entity with
             {
@@ -193,10 +193,10 @@ public partial class OppoWebSocketHandler(
         var oppoClientHolder = await TryGetOppoClientHolder(entity, cancellationToken);
         if (oppoClientHolder is not null && await oppoClientHolder.Client.IsConnectedAsync())
         {
-            return new OnSetupResult(entity, true);
+            return new OnSetupResult(entity, SetupDriverResult.Finalized);
         }
 
-        return new OnSetupResult(entity, false);
+        return new OnSetupResult(entity, SetupDriverResult.Error);
 
         static OppoModel GetOppoModel(Dictionary<string, string> msgDataSetupData)
         {
@@ -224,10 +224,11 @@ public partial class OppoWebSocketHandler(
             };
     }
 
-    protected override ValueTask OnSetupDriverUserData(SetDriverUserDataMsg payload, string wsId, CancellationToken cancellationToken) => ValueTask.CompletedTask;
+    protected override ValueTask OnSetupDriverUserData(System.Net.WebSockets.WebSocket socket, SetDriverUserDataMsg payload, string wsId, CancellationToken cancellationToken)
+        => ValueTask.CompletedTask;
 
-    protected override MediaPlayerEntityCommandMsgData<OppoCommandId> DeserializeMediaPlayerCommandPayload(JsonDocument jsonDocument)
-        => jsonDocument.Deserialize(OppoJsonSerializerContext.Instance.MediaPlayerEntityCommandMsgDataOppoCommandId)!;
+    protected override MediaPlayerEntityCommandMsgData<OppoCommandId>? DeserializeMediaPlayerCommandPayload(JsonDocument jsonDocument)
+        => jsonDocument.Deserialize(OppoJsonSerializerContext.Instance.MediaPlayerEntityCommandMsgDataOppoCommandId);
 
     protected override ValueTask OnConnect(ConnectEvent payload, string wsId, CancellationToken cancellationToken) => ValueTask.CompletedTask;
 
