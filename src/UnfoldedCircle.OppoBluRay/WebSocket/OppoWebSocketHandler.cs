@@ -34,18 +34,19 @@ public partial class OppoWebSocketHandler(
 
     protected override FrozenSet<EntityType> SupportedEntityTypes { get; } = [EntityType.MediaPlayer, EntityType.Remote];
 
-    protected override async ValueTask<DeviceState> OnGetDeviceState(GetDeviceStateMsg payload, string wsId, CancellationToken cancellationToken)
-    {
-        OppoClientHolder? oppoClientHolder = await TryGetOppoClientHolder(wsId, payload.MsgData.DeviceId, IdentifierType.DeviceId, cancellationToken);
-        return await GetDeviceState(oppoClientHolder);
-    }
+    protected override ValueTask<DeviceState> OnGetDeviceState(GetDeviceStateMsg payload, string wsId, CancellationToken cancellationToken)
+        => ValueTask.FromResult(DeviceState.Connected);
 
-    protected override async ValueTask<DeviceState> GetDeviceState(OppoConfigurationItem entity,
+
+    protected override async ValueTask<EntityState> GetEntityState(OppoConfigurationItem entity,
         string wsId,
         CancellationToken cancellationToken)
     {
         var oppoClientHolder = await TryGetOppoClientHolder(wsId, entity.EntityId, IdentifierType.EntityId, cancellationToken);
-        return await GetDeviceState(oppoClientHolder);
+        if (oppoClientHolder is null)
+            return EntityState.Disconnected;
+
+        return await oppoClientHolder.Client.IsConnectedAsync() ? EntityState.Connected : EntityState.Disconnected;
     }
 
     protected override async ValueTask<IReadOnlyCollection<AvailableEntity>> OnGetAvailableEntities(GetAvailableEntitiesMsg payload, string wsId, CancellationToken cancellationToken)
