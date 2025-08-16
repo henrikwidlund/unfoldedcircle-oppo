@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Remove old oppo.tar.gz if it exists
-rm -f ./unfoldedcircle-oppo.tar.gz
+# Remove old unfolded-circle-oppo.tar.gz if it exists
+rm -f ./unfolded-circle-oppo.tar.gz
 
 # Remove old publish directory if it exists
 rm -rf ./publish
@@ -38,7 +38,7 @@ cp ./*.pdb ./driverdir/bin/
 
 # Package the driver directory into a tarball
 cd ./driverdir || exit
-tar -czvf ../../unfoldedcircle-oppo.tar.gz ./*
+tar -czvf ../../unfolded-circle-oppo.tar.gz ./*
 
 # Remove the output directory
 rm -rf ../../publish

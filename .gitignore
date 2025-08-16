@@ -361,6 +361,6 @@ filter.txt
 
 publish
 driver
-unfoldedcircle-oppo.tar.gz
+unfolded-circle-oppo*.tar.gz
 .run
 configured_entities.json
