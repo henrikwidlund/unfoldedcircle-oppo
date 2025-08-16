@@ -23,6 +23,12 @@ mkdir -p driverdir
 # Create bin, config, and data folders in the driver directory
 mkdir -p ./driverdir/bin ./driverdir/config ./driverdir/data
 
+date=$(date -u +"%Y-%m-%d")
+unprefixed_version=$(date -u +"%Y.%m.%d")
+jq --arg version "$unprefixed_version" --arg date "$date" \
+  '.version = $version | .release_date = $date' \
+  ./driver.json > tmp.json && mv tmp.json ./driver.json
+
 # Copy driver.json to the root of the driver directory
 cp ./driver.json ./driverdir/
 

@@ -42,8 +42,13 @@ jobs:
         shell: bash
         run: |
           tag=$(git describe --tags --abbrev=0)
-          # Build everything
+          date=$(date -u +"%Y-%m-%d")
           ASSEMBLY_VERSION="${tag//v}"
+          jq --arg version "$ASSEMBLY_VERSION" --arg date "$date" \
+            '.version = $version | .release_date = $date' \
+            src/UnfoldedCircle.OppoBluRay/driver.json > tmp.json && mv tmp.json src/UnfoldedCircle.OppoBluRay/driver.json
+          
+          # Build everything
           if [ "${{ matrix.kind }}" == "linux-x64" ] || [ "${{ matrix.kind }}" == "linux-arm64" ]; then
             release_name="unfolded-circle-oppo-$tag-${{ matrix.target }}"
             

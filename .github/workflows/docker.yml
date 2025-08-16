@@ -25,6 +25,17 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Prepare driver.json
+        if: github.event_name != 'pull_request'
+        shell: bash
+        run: |
+          tag=$(git describe --tags --abbrev=0)
+          date=$(date -u +"%Y-%m-%d")
+          unprefixed_version="${tag//v}"
+          jq --arg version "$unprefixed_version" --arg date "$date" \
+            '.version = $version | .release_date = $date' \
+            src/UnfoldedCircle.OppoBluRay/driver.json > tmp.json && mv tmp.json src/UnfoldedCircle.OppoBluRay/driver.json
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
