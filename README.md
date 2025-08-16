@@ -64,14 +64,13 @@ the will keep getting disconnected and commands will fail.
 
 ## Installing on the remote
 
-1. Download the latest release.
-2. Browse to your remote's IP address.
-3. Click on `Core-API REST`. 
-4. Find the POST endpoint `/intg/install`
-5. Click on `Try it out`.
-6. Choose the file you downloaded (`unfoldedcircle-oppo.tar.gz`).
-7. Click on `Execute` and wait for the integration to be uploaded and installed. 
-8. Go to the regular page in the web configurator for integrations and configure the integration.
+1. Download `unfolded-circle-oppo-[version]-remote.tar.gz` from the release page
+2. Open the remote's Web Configurator
+3. Click on `Integrations`
+4. Click on `Add new` and then `Install custom`
+5. Choose the file in step 1 (`unfolded-circle-oppo-[version]-remote.tar.gz`)
+6. Make sure that your device is turned on
+7. Click on the newly installed integration and follow the on-screen instructions
 
 ## Configuration
 
