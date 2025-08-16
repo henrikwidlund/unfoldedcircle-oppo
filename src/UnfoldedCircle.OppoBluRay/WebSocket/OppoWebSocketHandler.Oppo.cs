@@ -1,6 +1,5 @@
 using Oppo;
 
-using UnfoldedCircle.Models.Shared;
 using UnfoldedCircle.OppoBluRay.Configuration;
 using UnfoldedCircle.Server.Extensions;
 
@@ -190,29 +189,6 @@ public partial class OppoWebSocketHandler
         }
 
         return true;
-    }
-
-    private async ValueTask<DeviceState> GetDeviceState(OppoClientHolder? oppoClientHolder)
-    {
-        if (oppoClientHolder is null)
-            return DeviceState.Disconnected;
-
-        try
-        {
-            using var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(9));
-            while (!cancellationTokenSource.IsCancellationRequested)
-            {
-                if (await oppoClientHolder.Client.IsConnectedAsync())
-                    return DeviceState.Connected;
-            }
-
-            return DeviceState.Disconnected;
-        }
-        catch (Exception e)
-        {
-            _logger.LogError(e, "Failed to get device state");
-            return DeviceState.Error;
-        }
     }
 
     private sealed record OppoClientHolder(IOppoClient Client, in OppoClientKey ClientKey);
