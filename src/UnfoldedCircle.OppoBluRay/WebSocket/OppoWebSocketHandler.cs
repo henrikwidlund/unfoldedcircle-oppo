@@ -144,8 +144,8 @@ public partial class OppoWebSocketHandler(
         string wsId,
         CancellationToken cancellationToken)
     {
-        var configuration = await _configurationService.GetConfigurationAsync(cancellationToken);
-        var driverMetadata = await _configurationService.GetDriverMetadataAsync(cancellationToken);
+        var configuration = await _configurationService.GetConfiguration(cancellationToken);
+        var driverMetadata = await _configurationService.GetDriverMetadata(cancellationToken);
         var host = payload.MsgData.SetupData[OppoConstants.IpAddressKey];
         var oppoModel = GetOppoModel(payload.MsgData.SetupData);
         var entityName = payload.MsgData.SetupData.GetValueOrNull(OppoConstants.EntityName, $"{driverMetadata.Name["en"]} ({GetOppoModelName(oppoModel)}) - {host}");
@@ -189,7 +189,7 @@ public partial class OppoWebSocketHandler(
 
         configuration.Entities.Add(entity);
 
-        await _configurationService.UpdateConfigurationAsync(configuration, cancellationToken);
+        await _configurationService.UpdateConfiguration(configuration, cancellationToken);
 
         var oppoClientHolder = await TryGetOppoClientHolder(entity, cancellationToken);
         if (oppoClientHolder is not null && await oppoClientHolder.Client.IsConnectedAsync())
