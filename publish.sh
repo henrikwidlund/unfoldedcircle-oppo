@@ -23,6 +23,7 @@ mkdir -p driverdir
 # Create bin, config, and data folders in the driver directory
 mkdir -p ./driverdir/bin ./driverdir/config ./driverdir/data
 
+# Modify driver.json with the current date and version
 date=$(date -u +"%Y-%m-%d")
 unprefixed_version=$(date -u +"%Y.%m.%d")
 jq --arg version "$unprefixed_version" --arg date "$date" \
