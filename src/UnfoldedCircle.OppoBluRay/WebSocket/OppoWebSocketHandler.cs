@@ -62,7 +62,7 @@ public partial class OppoWebSocketHandler(
         {
             foreach (var oppoClientHolder in oppoClientHolders)
             {
-                if (await oppoClientHolder.Client.IsConnectedAsync())
+                if (!IsBroadcastingEvents(oppoClientHolder.ClientKey.EntityId) && await oppoClientHolder.Client.IsConnectedAsync())
                     _ = HandleEventUpdatesAsync(socket, oppoClientHolder.ClientKey.EntityId, wsId, cancellationTokenWrapper);
 
                 await SendMessageAsync(socket,
@@ -655,9 +655,10 @@ public partial class OppoWebSocketHandler(
         return powerStateResponse;
     }
 
-    private static readonly ConcurrentDictionary<string, bool> BroadcastingEvents = new(StringComparer.Ordinal);
     private static readonly ConcurrentDictionary<int, int> PreviousMediaStatesMap = new();
     private static readonly ConcurrentDictionary<int, State> PreviousRemoteStatesMap = new();
+
+    private readonly SemaphoreSlim _broadcastSemaphoreSlim = new(1, 1);
 
     protected override async Task HandleEventUpdatesAsync(System.Net.WebSockets.WebSocket socket, string entityId, string wsId, CancellationTokenWrapper cancellationTokenWrapper)
     {
@@ -674,13 +675,29 @@ public partial class OppoWebSocketHandler(
             return;
         }
 
-        if (BroadcastingEvents.TryGetValue(entityId, out var broadcastingEvents) && broadcastingEvents)
+        if (await _broadcastSemaphoreSlim.WaitAsync(TimeSpan.FromSeconds(1), cancellationTokenSource.Token))
         {
-            _logger.LogDebug("{WSId} Media updates already running for {EntityId}", wsId, entityId);
+            try
+            {
+                if (IsBroadcastingEvents(entityId))
+                {
+                    _logger.LogDebug("{WSId} Events already running for {EntityId}", wsId, entityId);
+                    return;
+                }
+
+                AddEntityIdToBroadcastingEvents(entityId);
+            }
+            finally
+            {
+                _broadcastSemaphoreSlim.Release();
+            }
+        }
+        else
+        {
+            _logger.LogError("{WSId} Could not acquire semaphore for broadcasting events for {EntityId}. Will not start broadcasting.",
+                wsId, entityId);
             return;
         }
-
-        BroadcastingEvents.AddOrUpdate(wsId, true, static (_, _) => true);
 
         using var periodicTimer = new PeriodicTimer(TimeSpan.FromSeconds(1));
 
@@ -837,7 +854,16 @@ public partial class OppoWebSocketHandler(
         }
         finally
         {
-            BroadcastingEvents.TryRemove(wsId, out _);
+            bool acquiredLock = await _broadcastSemaphoreSlim.WaitAsync(TimeSpan.FromSeconds(1), cancellationTokenSource.Token);
+            try
+            {
+                RemoveEntityIdToBroadcastingEvents(entityId);
+            }
+            finally
+            {
+                if (acquiredLock)
+                    _broadcastSemaphoreSlim.Release();
+            }
         }
 
         _logger.LogDebug("{WSId} Stopping media updates for {DeviceId}", wsId, oppoClientHolder.Client.GetHost());
