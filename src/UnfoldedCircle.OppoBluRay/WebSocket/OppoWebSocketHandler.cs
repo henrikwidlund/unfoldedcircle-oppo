@@ -954,8 +954,7 @@ public partial class OppoWebSocketHandler(
                 CurrentRepeatMode.RepeatChapter => (Models.Shared.RepeatMode.One, false),
                 CurrentRepeatMode.RepeatAll => (Models.Shared.RepeatMode.All, false),
                 CurrentRepeatMode.RepeatTitle => (Models.Shared.RepeatMode.One, false),
-                CurrentRepeatMode.Shuffle => (Models.Shared.RepeatMode.Off, true),
-                CurrentRepeatMode.Random => (Models.Shared.RepeatMode.Off, true),
+                CurrentRepeatMode.Shuffle or CurrentRepeatMode.Random => (Models.Shared.RepeatMode.Off, true),
                 _ => (Models.Shared.RepeatMode.Off, false)
             };
 
