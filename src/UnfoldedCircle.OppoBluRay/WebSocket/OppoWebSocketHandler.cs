@@ -679,13 +679,11 @@ public partial class OppoWebSocketHandler(
         {
             try
             {
-                if (IsBroadcastingEvents(entityId))
+                if (IsBroadcastingEvents(entityId) || !TryAddEntityIdToBroadcastingEvents(entityId))
                 {
                     _logger.LogDebug("{WSId} Events already running for {EntityId}", wsId, entityId);
                     return;
                 }
-
-                AddEntityIdToBroadcastingEvents(entityId);
             }
             finally
             {
