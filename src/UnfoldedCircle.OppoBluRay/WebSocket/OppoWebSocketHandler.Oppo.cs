@@ -7,7 +7,7 @@ namespace UnfoldedCircle.OppoBluRay.WebSocket;
 
 public partial class OppoWebSocketHandler
 {
-    private async Task<OppoClientKey?> TryGetOppoClientKey(
+    private async Task<OppoClientKey?> TryGetOppoClientKeyAsync(
         string wsId,
         IdentifierType identifierType,
         string? identifier,
@@ -48,7 +48,7 @@ public partial class OppoWebSocketHandler
             entity.EntityId, entity.DeviceId);
     }
 
-    private async Task<OppoClientKey[]?> TryGetOppoClientKeys(
+    private async Task<OppoClientKey[]?> TryGetOppoClientKeysAsync(
         string wsId,
         CancellationToken cancellationToken)
     {
@@ -71,13 +71,13 @@ public partial class OppoWebSocketHandler
         EntityId
     }
 
-    private async Task<OppoClientHolder?> TryGetOppoClientHolder(
+    private async Task<OppoClientHolder?> TryGetOppoClientHolderAsync(
         string wsId,
         string? identifier,
         IdentifierType identifierType,
         CancellationToken cancellationToken)
     {
-        var oppoClientKey = await TryGetOppoClientKey(wsId, identifierType, identifier, cancellationToken);
+        var oppoClientKey = await TryGetOppoClientKeyAsync(wsId, identifierType, identifier, cancellationToken);
         if (oppoClientKey is null)
             return null;
 
@@ -94,7 +94,7 @@ public partial class OppoWebSocketHandler
         return oppoClient is null ? null : new OppoClientHolder(oppoClient, oppoClientKey.Value);
     }
 
-    private async Task<OppoClientHolder?> TryGetOppoClientHolder(
+    private async Task<OppoClientHolder?> TryGetOppoClientHolderAsync(
         OppoConfigurationItem entity,
         CancellationToken cancellationToken)
     {
@@ -117,7 +117,7 @@ public partial class OppoWebSocketHandler
         string wsId,
         CancellationToken cancellationToken)
     {
-        var oppoClientKeys = await TryGetOppoClientKeys(wsId, cancellationToken);
+        var oppoClientKeys = await TryGetOppoClientKeysAsync(wsId, cancellationToken);
         if (oppoClientKeys is not { Length: > 0 })
             return null;
 
@@ -145,7 +145,7 @@ public partial class OppoWebSocketHandler
         return oppoClients;
     }
 
-    private async Task<List<OppoConfigurationItem>?> GetEntities(
+    private async Task<List<OppoConfigurationItem>?> GetEntitiesAsync(
         string wsId,
         string? deviceId,
         CancellationToken cancellationToken)
@@ -171,12 +171,12 @@ public partial class OppoWebSocketHandler
         return configuration.Entities;
     }
 
-    private async ValueTask<bool> TryDisconnectOppoClients(
+    private async ValueTask<bool> TryDisconnectOppoClientsAsync(
         string wsId,
         string? deviceId,
         CancellationToken cancellationToken)
     {
-        var oppoClientKeys = await TryGetOppoClientKeys(wsId, cancellationToken);
+        var oppoClientKeys = await TryGetOppoClientKeysAsync(wsId, cancellationToken);
         if (oppoClientKeys is not { Length: > 0 })
             return false;
 

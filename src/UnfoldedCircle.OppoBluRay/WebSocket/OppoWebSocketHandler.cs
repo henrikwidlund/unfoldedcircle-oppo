@@ -42,7 +42,7 @@ public partial class OppoWebSocketHandler(
         string wsId,
         CancellationToken cancellationToken)
     {
-        var oppoClientHolder = await TryGetOppoClientHolder(wsId, entity.EntityId, IdentifierType.EntityId, cancellationToken);
+        var oppoClientHolder = await TryGetOppoClientHolderAsync(wsId, entity.EntityId, IdentifierType.EntityId, cancellationToken);
         if (oppoClientHolder is null)
             return EntityState.Disconnected;
 
@@ -51,7 +51,7 @@ public partial class OppoWebSocketHandler(
 
     protected override async ValueTask<IReadOnlyCollection<AvailableEntity>> OnGetAvailableEntitiesAsync(GetAvailableEntitiesMsg payload, string wsId, CancellationToken cancellationToken)
     {
-        var entities = await GetEntities(wsId, payload.MsgData.Filter?.DeviceId, cancellationToken);
+        var entities = await GetEntitiesAsync(wsId, payload.MsgData.Filter?.DeviceId, cancellationToken);
         return GetAvailableEntities(entities, payload).ToArray();
     }
 
@@ -133,7 +133,7 @@ public partial class OppoWebSocketHandler(
 
     protected override async ValueTask<EntityStateChanged[]> OnGetEntityStatesAsync(GetEntityStatesMsg payload, string wsId, CancellationToken cancellationToken)
     {
-        var entities = await GetEntities(wsId, payload.MsgData?.DeviceId, cancellationToken);
+        var entities = await GetEntitiesAsync(wsId, payload.MsgData?.DeviceId, cancellationToken);
         return entities is null
             ? []
             : OppoResponsePayloadHelpers.GetEntityStates(entities.Select(static x => new EntityIdDeviceId(x.EntityId, x.DeviceId, x.Model))).ToArray();
@@ -191,7 +191,7 @@ public partial class OppoWebSocketHandler(
 
         await _configurationService.UpdateConfigurationAsync(configuration, cancellationToken);
 
-        var oppoClientHolder = await TryGetOppoClientHolder(entity, cancellationToken);
+        var oppoClientHolder = await TryGetOppoClientHolderAsync(entity, cancellationToken);
         if (oppoClientHolder is not null && await oppoClientHolder.Client.IsConnectedAsync())
         {
             return new OnSetupResult(entity, SetupDriverResult.Finalized);
@@ -234,7 +234,7 @@ public partial class OppoWebSocketHandler(
     protected override ValueTask OnConnectAsync(ConnectEvent payload, string wsId, CancellationToken cancellationToken) => ValueTask.CompletedTask;
 
     protected override ValueTask<bool> OnDisconnectAsync(DisconnectEvent payload, string wsId, CancellationToken cancellationToken)
-        => TryDisconnectOppoClients(wsId, payload.MsgData?.DeviceId, cancellationToken);
+        => TryDisconnectOppoClientsAsync(wsId, payload.MsgData?.DeviceId, cancellationToken);
 
     protected override ValueTask OnAbortDriverSetupAsync(AbortDriverSetupEvent payload, string wsId, CancellationToken cancellationToken)
         => ValueTask.CompletedTask;
@@ -250,13 +250,13 @@ public partial class OppoWebSocketHandler(
 
     protected override async ValueTask<bool> IsEntityReachableAsync(string wsId, string entityId, CancellationToken cancellationToken)
     {
-        var oppoClientHolder = await TryGetOppoClientHolder(wsId, entityId, IdentifierType.EntityId, cancellationToken);
+        var oppoClientHolder = await TryGetOppoClientHolderAsync(wsId, entityId, IdentifierType.EntityId, cancellationToken);
         return oppoClientHolder is not null && await oppoClientHolder.Client.IsConnectedAsync();
     }
 
     protected override async ValueTask<EntityCommandResult> OnMediaPlayerCommandAsync(System.Net.WebSockets.WebSocket socket, MediaPlayerEntityCommandMsgData<OppoCommandId> payload, string wsId, CancellationTokenWrapper cancellationTokenWrapper)
     {
-        var oppoClientHolder = await TryGetOppoClientHolder(wsId, payload.MsgData.EntityId, IdentifierType.EntityId, cancellationTokenWrapper.RequestAborted);
+        var oppoClientHolder = await TryGetOppoClientHolderAsync(wsId, payload.MsgData.EntityId, IdentifierType.EntityId, cancellationTokenWrapper.RequestAborted);
         if (oppoClientHolder is null)
         {
             _logger.LogWarning("[{WSId}] WS: Could not find Oppo client for entity ID '{EntityId}'", wsId, payload.MsgData.EntityId);
@@ -265,8 +265,8 @@ public partial class OppoWebSocketHandler(
 
         OppoResult<PowerState>? powerState = payload.MsgData.CommandId switch
         {
-            OppoCommandId.On => await HandlePowerOn(oppoClientHolder, cancellationTokenWrapper),
-            OppoCommandId.Off => await HandlePowerOff(oppoClientHolder, cancellationTokenWrapper),
+            OppoCommandId.On => await HandlePowerOnAsync(oppoClientHolder, cancellationTokenWrapper),
+            OppoCommandId.Off => await HandlePowerOffAsync(oppoClientHolder, cancellationTokenWrapper),
             OppoCommandId.Toggle => await oppoClientHolder.Client.PowerToggleAsync(cancellationTokenWrapper.RequestAborted),
             _ => null
         };
@@ -536,7 +536,7 @@ public partial class OppoWebSocketHandler(
 
     protected override async ValueTask<EntityCommandResult> OnRemoteCommandAsync(System.Net.WebSockets.WebSocket socket, RemoteEntityCommandMsgData payload, string command, string wsId, CancellationTokenWrapper cancellationTokenWrapper)
     {
-        var oppoClientHolder = await TryGetOppoClientHolder(wsId, payload.MsgData.EntityId, IdentifierType.EntityId, cancellationTokenWrapper.RequestAborted);
+        var oppoClientHolder = await TryGetOppoClientHolderAsync(wsId, payload.MsgData.EntityId, IdentifierType.EntityId, cancellationTokenWrapper.RequestAborted);
         if (oppoClientHolder is null)
         {
             _logger.LogWarning("[{WSId}] WS: Could not find Oppo client for entity ID '{EntityId}'", wsId, payload.MsgData.EntityId);
@@ -547,8 +547,8 @@ public partial class OppoWebSocketHandler(
         var cancellationToken = cancellationTokenWrapper.RequestAborted;
         OppoResult<PowerState>? powerState = command switch
         {
-            _ when command.Equals(RemoteButtonConstants.On, StringComparison.OrdinalIgnoreCase) => await HandlePowerOn(oppoClientHolder, cancellationTokenWrapper),
-            _ when command.Equals(RemoteButtonConstants.Off, StringComparison.OrdinalIgnoreCase) => await HandlePowerOff(oppoClientHolder, cancellationTokenWrapper),
+            _ when command.Equals(RemoteButtonConstants.On, StringComparison.OrdinalIgnoreCase) => await HandlePowerOnAsync(oppoClientHolder, cancellationTokenWrapper),
+            _ when command.Equals(RemoteButtonConstants.Off, StringComparison.OrdinalIgnoreCase) => await HandlePowerOffAsync(oppoClientHolder, cancellationTokenWrapper),
             _ when command.Equals(RemoteButtonConstants.Toggle, StringComparison.OrdinalIgnoreCase) => await client.PowerToggleAsync(cancellationToken),
             _ => null
         };
@@ -635,7 +635,7 @@ public partial class OppoWebSocketHandler(
         return result ? EntityCommandResult.Other : EntityCommandResult.Failure;
     }
 
-    private static async ValueTask<OppoResult<PowerState>> HandlePowerOn(OppoClientHolder oppoClientHolder, CancellationTokenWrapper cancellationTokenWrapper)
+    private static async ValueTask<OppoResult<PowerState>> HandlePowerOnAsync(OppoClientHolder oppoClientHolder, CancellationTokenWrapper cancellationTokenWrapper)
     {
         cancellationTokenWrapper.EnsureNonCancelledBroadcastCancellationTokenSource();
         var powerStateResponse = await oppoClientHolder.Client.PowerOnAsync(cancellationTokenWrapper.RequestAborted);
@@ -645,7 +645,7 @@ public partial class OppoWebSocketHandler(
         return powerStateResponse;
     }
 
-    private static async ValueTask<OppoResult<PowerState>> HandlePowerOff(OppoClientHolder oppoClientHolder, CancellationTokenWrapper cancellationTokenWrapper)
+    private static async ValueTask<OppoResult<PowerState>> HandlePowerOffAsync(OppoClientHolder oppoClientHolder, CancellationTokenWrapper cancellationTokenWrapper)
     {
         // Power commands can be flaky, so we try twice
         var powerStateResponse = await oppoClientHolder.Client.PowerOffAsync(cancellationTokenWrapper.RequestAborted);
@@ -701,7 +701,7 @@ public partial class OppoWebSocketHandler(
 
         using var periodicTimer = new PeriodicTimer(TimeSpan.FromSeconds(1));
 
-        var oppoClientHolder = await TryGetOppoClientHolder(wsId, entityId, IdentifierType.EntityId, cancellationTokenWrapper.RequestAborted);
+        var oppoClientHolder = await TryGetOppoClientHolderAsync(wsId, entityId, IdentifierType.EntityId, cancellationTokenWrapper.RequestAborted);
         if (oppoClientHolder is null)
         {
             _logger.LogWarning("[{WSId}] WS: Could not find Oppo client for entity ID '{EntityId}'", wsId, entityId);
@@ -741,10 +741,10 @@ public partial class OppoWebSocketHandler(
                 if (oppoClientHolder is { ClientKey.UseMediaEvents: false })
                 {
                     newMediaPlayerState = new MediaPlayerStateChangedEventMessageDataAttributes { State = state };
-                    if (!await SendMediaPlayerEvent(socket, wsId, oppoClientHolder, newMediaPlayerState, cancellationTokenSource.Token))
+                    if (!await SendMediaPlayerEventAsync(socket, wsId, oppoClientHolder, newMediaPlayerState, cancellationTokenSource.Token))
                         continue;
 
-                    await SendRemotePowerEvent(socket, wsId, oppoClientHolder, state, cancellationTokenSource.Token);
+                    await SendRemotePowerEventAsync(socket, wsId, oppoClientHolder, state, cancellationTokenSource.Token);
 
                     continue;
                 }
@@ -846,10 +846,10 @@ public partial class OppoWebSocketHandler(
                     Muted = volumeResponse?.Result.Muted
                 };
 
-                if (!await SendMediaPlayerEvent(socket, wsId, oppoClientHolder, newMediaPlayerState, cancellationTokenSource.Token))
+                if (!await SendMediaPlayerEventAsync(socket, wsId, oppoClientHolder, newMediaPlayerState, cancellationTokenSource.Token))
                     continue;
 
-                await SendRemotePowerEvent(socket, wsId, oppoClientHolder, state, cancellationTokenSource.Token);
+                await SendRemotePowerEventAsync(socket, wsId, oppoClientHolder, state, cancellationTokenSource.Token);
             }
         }
         finally
@@ -895,7 +895,7 @@ public partial class OppoWebSocketHandler(
         }
     }
 
-    private async Task<bool> SendMediaPlayerEvent(System.Net.WebSockets.WebSocket socket,
+    private async Task<bool> SendMediaPlayerEventAsync(System.Net.WebSockets.WebSocket socket,
         string wsId,
         OppoClientHolder oppoClientHolder,
         MediaPlayerStateChangedEventMessageDataAttributes mediaPlayerState,
@@ -918,7 +918,7 @@ public partial class OppoWebSocketHandler(
         return true;
     }
 
-    private async Task SendRemotePowerEvent(System.Net.WebSockets.WebSocket socket,
+    private async Task SendRemotePowerEventAsync(System.Net.WebSockets.WebSocket socket,
         string wsId,
         OppoClientHolder oppoClientHolder,
         State state,
