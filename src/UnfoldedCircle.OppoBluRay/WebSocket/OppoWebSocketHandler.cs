@@ -34,11 +34,11 @@ public partial class OppoWebSocketHandler(
 
     protected override FrozenSet<EntityType> SupportedEntityTypes { get; } = [EntityType.MediaPlayer, EntityType.Remote];
 
-    protected override ValueTask<DeviceState> OnGetDeviceState(GetDeviceStateMsg payload, string wsId, CancellationToken cancellationToken)
+    protected override ValueTask<DeviceState> OnGetDeviceStateAsync(GetDeviceStateMsg payload, string wsId, CancellationToken cancellationToken)
         => ValueTask.FromResult(DeviceState.Connected);
 
 
-    protected override async ValueTask<EntityState> GetEntityState(OppoConfigurationItem entity,
+    protected override async ValueTask<EntityState> GetEntityStateAsync(OppoConfigurationItem entity,
         string wsId,
         CancellationToken cancellationToken)
     {
@@ -49,13 +49,13 @@ public partial class OppoWebSocketHandler(
         return await oppoClientHolder.Client.IsConnectedAsync() ? EntityState.Connected : EntityState.Disconnected;
     }
 
-    protected override async ValueTask<IReadOnlyCollection<AvailableEntity>> OnGetAvailableEntities(GetAvailableEntitiesMsg payload, string wsId, CancellationToken cancellationToken)
+    protected override async ValueTask<IReadOnlyCollection<AvailableEntity>> OnGetAvailableEntitiesAsync(GetAvailableEntitiesMsg payload, string wsId, CancellationToken cancellationToken)
     {
         var entities = await GetEntities(wsId, payload.MsgData.Filter?.DeviceId, cancellationToken);
         return GetAvailableEntities(entities, payload).ToArray();
     }
 
-    protected override async ValueTask OnSubscribeEvents(System.Net.WebSockets.WebSocket socket, CommonReq payload, string wsId, CancellationTokenWrapper cancellationTokenWrapper)
+    protected override async ValueTask OnSubscribeEventsAsync(System.Net.WebSockets.WebSocket socket, CommonReq payload, string wsId, CancellationTokenWrapper cancellationTokenWrapper)
     {
         var oppoClientHolders = await TryGetOppoClientHolders(wsId, cancellationTokenWrapper.RequestAborted);
         if (oppoClientHolders is { Count: > 0 })
@@ -63,9 +63,9 @@ public partial class OppoWebSocketHandler(
             foreach (var oppoClientHolder in oppoClientHolders)
             {
                 if (await oppoClientHolder.Client.IsConnectedAsync())
-                    _ = HandleEventUpdates(socket, oppoClientHolder.ClientKey.EntityId, wsId, cancellationTokenWrapper);
+                    _ = HandleEventUpdatesAsync(socket, oppoClientHolder.ClientKey.EntityId, wsId, cancellationTokenWrapper);
 
-                await SendAsync(socket,
+                await SendMessageAsync(socket,
                     ResponsePayloadHelpers.CreateStateChangedResponsePayload(
                         new MediaPlayerStateChangedEventMessageDataAttributes { SourceList = OppoEntitySettings.SourceList[oppoClientHolder.ClientKey.Model] },
                         oppoClientHolder.ClientKey.HostName,
@@ -77,7 +77,7 @@ public partial class OppoWebSocketHandler(
         }
     }
 
-    protected override ValueTask OnUnsubscribeEvents(UnsubscribeEventsMsg payload, string wsId, CancellationToken cancellationToken)
+    protected override ValueTask OnUnsubscribeEventsAsync(UnsubscribeEventsMsg payload, string wsId, CancellationToken cancellationToken)
         => ValueTask.CompletedTask;
 
     private static IEnumerable<AvailableEntity> GetAvailableEntities(
@@ -131,7 +131,7 @@ public partial class OppoWebSocketHandler(
             Options = OppoEntitySettings.RemoteOptions
         };
 
-    protected override async ValueTask<EntityStateChanged[]> OnGetEntityStates(GetEntityStatesMsg payload, string wsId, CancellationToken cancellationToken)
+    protected override async ValueTask<EntityStateChanged[]> OnGetEntityStatesAsync(GetEntityStatesMsg payload, string wsId, CancellationToken cancellationToken)
     {
         var entities = await GetEntities(wsId, payload.MsgData?.DeviceId, cancellationToken);
         return entities is null
@@ -139,13 +139,13 @@ public partial class OppoWebSocketHandler(
             : OppoResponsePayloadHelpers.GetEntityStates(entities.Select(static x => new EntityIdDeviceId(x.EntityId, x.DeviceId, x.Model))).ToArray();
     }
 
-    protected override async ValueTask<OnSetupResult?> OnSetupDriver(
+    protected override async ValueTask<OnSetupResult?> OnSetupDriverAsync(
         SetupDriverMsg payload,
         string wsId,
         CancellationToken cancellationToken)
     {
-        var configuration = await _configurationService.GetConfiguration(cancellationToken);
-        var driverMetadata = await _configurationService.GetDriverMetadata(cancellationToken);
+        var configuration = await _configurationService.GetConfigurationAsync(cancellationToken);
+        var driverMetadata = await _configurationService.GetDriverMetadataAsync(cancellationToken);
         var host = payload.MsgData.SetupData[OppoConstants.IpAddressKey];
         var oppoModel = GetOppoModel(payload.MsgData.SetupData);
         var entityName = payload.MsgData.SetupData.GetValueOrNull(OppoConstants.EntityName, $"{driverMetadata.Name["en"]} ({GetOppoModelName(oppoModel)}) - {host}");
@@ -189,7 +189,7 @@ public partial class OppoWebSocketHandler(
 
         configuration.Entities.Add(entity);
 
-        await _configurationService.UpdateConfiguration(configuration, cancellationToken);
+        await _configurationService.UpdateConfigurationAsync(configuration, cancellationToken);
 
         var oppoClientHolder = await TryGetOppoClientHolder(entity, cancellationToken);
         if (oppoClientHolder is not null && await oppoClientHolder.Client.IsConnectedAsync())
@@ -225,36 +225,36 @@ public partial class OppoWebSocketHandler(
             };
     }
 
-    protected override ValueTask OnSetupDriverUserData(System.Net.WebSockets.WebSocket socket, SetDriverUserDataMsg payload, string wsId, CancellationToken cancellationToken)
+    protected override ValueTask OnSetupDriverUserDataAsync(System.Net.WebSockets.WebSocket socket, SetDriverUserDataMsg payload, string wsId, CancellationToken cancellationToken)
         => ValueTask.CompletedTask;
 
     protected override MediaPlayerEntityCommandMsgData<OppoCommandId>? DeserializeMediaPlayerCommandPayload(JsonDocument jsonDocument)
         => jsonDocument.Deserialize(OppoJsonSerializerContext.Instance.MediaPlayerEntityCommandMsgDataOppoCommandId);
 
-    protected override ValueTask OnConnect(ConnectEvent payload, string wsId, CancellationToken cancellationToken) => ValueTask.CompletedTask;
+    protected override ValueTask OnConnectAsync(ConnectEvent payload, string wsId, CancellationToken cancellationToken) => ValueTask.CompletedTask;
 
-    protected override ValueTask<bool> OnDisconnect(DisconnectEvent payload, string wsId, CancellationToken cancellationToken)
+    protected override ValueTask<bool> OnDisconnectAsync(DisconnectEvent payload, string wsId, CancellationToken cancellationToken)
         => TryDisconnectOppoClients(wsId, payload.MsgData?.DeviceId, cancellationToken);
 
-    protected override ValueTask OnAbortDriverSetup(AbortDriverSetupEvent payload, string wsId, CancellationToken cancellationToken)
+    protected override ValueTask OnAbortDriverSetupAsync(AbortDriverSetupEvent payload, string wsId, CancellationToken cancellationToken)
         => ValueTask.CompletedTask;
 
-    protected override ValueTask OnEnterStandby(EnterStandbyEvent payload, string wsId, CancellationToken cancellationToken)
+    protected override ValueTask OnEnterStandbyAsync(EnterStandbyEvent payload, string wsId, CancellationToken cancellationToken)
     {
         _oppoClientFactory.TryDisposeAllClients();
         return ValueTask.CompletedTask;
     }
 
-    protected override ValueTask OnExitStandby(ExitStandbyEvent payload, string wsId, CancellationToken cancellationToken)
+    protected override ValueTask OnExitStandbyAsync(ExitStandbyEvent payload, string wsId, CancellationToken cancellationToken)
         => ValueTask.CompletedTask;
 
-    protected override async ValueTask<bool> IsEntityReachable(string wsId, string entityId, CancellationToken cancellationToken)
+    protected override async ValueTask<bool> IsEntityReachableAsync(string wsId, string entityId, CancellationToken cancellationToken)
     {
         var oppoClientHolder = await TryGetOppoClientHolder(wsId, entityId, IdentifierType.EntityId, cancellationToken);
         return oppoClientHolder is not null && await oppoClientHolder.Client.IsConnectedAsync();
     }
 
-    protected override async ValueTask<EntityCommandResult> OnMediaPlayerCommand(System.Net.WebSockets.WebSocket socket, MediaPlayerEntityCommandMsgData<OppoCommandId> payload, string wsId, CancellationTokenWrapper cancellationTokenWrapper)
+    protected override async ValueTask<EntityCommandResult> OnMediaPlayerCommandAsync(System.Net.WebSockets.WebSocket socket, MediaPlayerEntityCommandMsgData<OppoCommandId> payload, string wsId, CancellationTokenWrapper cancellationTokenWrapper)
     {
         var oppoClientHolder = await TryGetOppoClientHolder(wsId, payload.MsgData.EntityId, IdentifierType.EntityId, cancellationTokenWrapper.RequestAborted);
         if (oppoClientHolder is null)
@@ -534,7 +534,7 @@ public partial class OppoWebSocketHandler(
         return success ? EntityCommandResult.Other : EntityCommandResult.Failure;
     }
 
-    protected override async ValueTask<EntityCommandResult> OnRemoteCommand(System.Net.WebSockets.WebSocket socket, RemoteEntityCommandMsgData payload, string command, string wsId, CancellationTokenWrapper cancellationTokenWrapper)
+    protected override async ValueTask<EntityCommandResult> OnRemoteCommandAsync(System.Net.WebSockets.WebSocket socket, RemoteEntityCommandMsgData payload, string command, string wsId, CancellationTokenWrapper cancellationTokenWrapper)
     {
         var oppoClientHolder = await TryGetOppoClientHolder(wsId, payload.MsgData.EntityId, IdentifierType.EntityId, cancellationTokenWrapper.RequestAborted);
         if (oppoClientHolder is null)
@@ -659,7 +659,7 @@ public partial class OppoWebSocketHandler(
     private static readonly ConcurrentDictionary<int, int> PreviousMediaStatesMap = new();
     private static readonly ConcurrentDictionary<int, State> PreviousRemoteStatesMap = new();
 
-    protected override async Task HandleEventUpdates(System.Net.WebSockets.WebSocket socket, string entityId, string wsId, CancellationTokenWrapper cancellationTokenWrapper)
+    protected override async Task HandleEventUpdatesAsync(System.Net.WebSockets.WebSocket socket, string entityId, string wsId, CancellationTokenWrapper cancellationTokenWrapper)
     {
         if (!IsSocketSubscribedToEvents(wsId))
         {
@@ -674,7 +674,7 @@ public partial class OppoWebSocketHandler(
             return;
         }
 
-        if (BroadcastingEvents.TryGetValue(wsId, out var broadcastingEvents) && broadcastingEvents)
+        if (BroadcastingEvents.TryGetValue(entityId, out var broadcastingEvents) && broadcastingEvents)
         {
             _logger.LogDebug("{WSId} Media updates already running for {EntityId}", wsId, entityId);
             return;
@@ -882,7 +882,7 @@ public partial class OppoWebSocketHandler(
             return false;
 
         PreviousMediaStatesMap[clientHashCode] = stateHash;
-        await SendAsync(socket,
+        await SendMessageAsync(socket,
             ResponsePayloadHelpers.CreateStateChangedResponsePayload(
                 mediaPlayerState,
                 oppoClientHolder.ClientKey.EntityId,
@@ -904,7 +904,7 @@ public partial class OppoWebSocketHandler(
             return;
 
         PreviousRemoteStatesMap[clientHashCode] = state;
-        await SendAsync(socket,
+        await SendMessageAsync(socket,
             ResponsePayloadHelpers.CreateStateChangedResponsePayload(
                 new RemoteStateChangedEventMessageDataAttributes { State = state switch
                 {

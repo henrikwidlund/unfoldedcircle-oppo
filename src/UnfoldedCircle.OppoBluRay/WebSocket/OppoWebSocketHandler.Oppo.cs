@@ -13,7 +13,7 @@ public partial class OppoWebSocketHandler
         string? identifier,
         CancellationToken cancellationToken)
     {
-        var configuration = await _configurationService.GetConfiguration(cancellationToken);
+        var configuration = await _configurationService.GetConfigurationAsync(cancellationToken);
         if (configuration.Entities.Count == 0)
         {
             _logger.LogInformation("[{WSId}] WS: No configurations found", wsId);
@@ -52,7 +52,7 @@ public partial class OppoWebSocketHandler
         string wsId,
         CancellationToken cancellationToken)
     {
-        var configuration = await _configurationService.GetConfiguration(cancellationToken);
+        var configuration = await _configurationService.GetConfigurationAsync(cancellationToken);
         if (configuration.Entities.Count == 0)
         {
             _logger.LogInformation("[{WSId}] WS: No configurations found", wsId);
@@ -150,7 +150,7 @@ public partial class OppoWebSocketHandler
         string? deviceId,
         CancellationToken cancellationToken)
     {
-        var configuration = await _configurationService.GetConfiguration(cancellationToken);
+        var configuration = await _configurationService.GetConfigurationAsync(cancellationToken);
         if (configuration.Entities.Count == 0)
         {
             _logger.LogInformation("[{WSId}] WS: No configurations found", wsId);
