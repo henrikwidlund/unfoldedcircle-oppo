@@ -62,8 +62,8 @@ public partial class OppoWebSocketHandler(
         {
             foreach (var oppoClientHolder in oppoClientHolders)
             {
-                if (!IsBroadcastingEvents(oppoClientHolder.ClientKey.EntityId) && await oppoClientHolder.Client.IsConnectedAsync())
-                    _ = HandleEventUpdatesAsync(socket, oppoClientHolder.ClientKey.EntityId, wsId, cancellationTokenWrapper);
+                _ = Task.Factory.StartNew(() => HandleEventUpdatesAsync(socket, oppoClientHolder.ClientKey.EntityId, wsId, cancellationTokenWrapper),
+                    TaskCreationOptions.LongRunning);
 
                 await SendMessageAsync(socket,
                     ResponsePayloadHelpers.CreateStateChangedResponsePayload(
