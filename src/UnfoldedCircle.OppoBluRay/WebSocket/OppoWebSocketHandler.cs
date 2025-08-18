@@ -158,7 +158,7 @@ public partial class OppoWebSocketHandler(
                                         ? chapterOrMovieLengthValue.Equals(OppoConstants.ChapterLengthValue, StringComparison.OrdinalIgnoreCase)
                                         : null;
 
-        var entity = configuration.Entities.Find(x => x.EntityId.Equals(host, StringComparison.Ordinal));
+        var entity = configuration.Entities.Find(x => x.EntityId.Equals(host, StringComparison.OrdinalIgnoreCase));
         if (entity is null)
         {
             _logger.LogInformation("Adding configuration for entity_id '{EntityId}'", host);
@@ -259,7 +259,7 @@ public partial class OppoWebSocketHandler(
         var oppoClientHolder = await TryGetOppoClientHolderAsync(wsId, payload.MsgData.EntityId, IdentifierType.EntityId, cancellationTokenWrapper.RequestAborted);
         if (oppoClientHolder is null)
         {
-            _logger.LogWarning("[{WSId}] WS: Could not find Oppo client for entity ID '{EntityId}'", wsId, payload.MsgData.EntityId);
+            _logger.LogWarning("[{WSId}] WS: Could not find Oppo client for entity ID '{EntityId}'", wsId, payload.MsgData.EntityId.GetBaseIdentifier());
             return EntityCommandResult.Failure;
         }
 
@@ -539,7 +539,7 @@ public partial class OppoWebSocketHandler(
         var oppoClientHolder = await TryGetOppoClientHolderAsync(wsId, payload.MsgData.EntityId, IdentifierType.EntityId, cancellationTokenWrapper.RequestAborted);
         if (oppoClientHolder is null)
         {
-            _logger.LogWarning("[{WSId}] WS: Could not find Oppo client for entity ID '{EntityId}'", wsId, payload.MsgData.EntityId);
+            _logger.LogWarning("[{WSId}] WS: Could not find Oppo client for entity ID '{EntityId}'", wsId, payload.MsgData.EntityId.GetBaseIdentifier());
             return EntityCommandResult.Failure;
         }
 

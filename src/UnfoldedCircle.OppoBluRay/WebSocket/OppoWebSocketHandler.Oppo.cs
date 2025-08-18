@@ -25,10 +25,10 @@ public partial class OppoWebSocketHandler
         var entity = identifierType switch
         {
             IdentifierType.DeviceId => !string.IsNullOrWhiteSpace(localIdentifier)
-                ? configuration.Entities.Find(x => string.Equals(x.DeviceId, localIdentifier, StringComparison.Ordinal))
+                ? configuration.Entities.Find(x => string.Equals(x.DeviceId, localIdentifier, StringComparison.OrdinalIgnoreCase))
                 : configuration.Entities[0],
             IdentifierType.EntityId => !string.IsNullOrWhiteSpace(localIdentifier)
-                ? configuration.Entities.Find(x => string.Equals(x.EntityId, localIdentifier, StringComparison.Ordinal))
+                ? configuration.Entities.Find(x => string.Equals(x.EntityId, localIdentifier, StringComparison.OrdinalIgnoreCase))
                 : null,
             _ => throw new ArgumentOutOfRangeException(nameof(identifierType), identifierType, null)
         };
@@ -160,7 +160,7 @@ public partial class OppoWebSocketHandler
         if (!string.IsNullOrEmpty(deviceId))
         {
             var localDeviceId = deviceId.GetBaseIdentifier();
-            var entity = configuration.Entities.Find(x => string.Equals(x.DeviceId, localDeviceId, StringComparison.Ordinal));
+            var entity = configuration.Entities.Find(x => string.Equals(x.DeviceId, localDeviceId, StringComparison.OrdinalIgnoreCase));
             if (entity is not null)
                 return [entity];
 
@@ -180,9 +180,10 @@ public partial class OppoWebSocketHandler
         if (oppoClientKeys is not { Length: > 0 })
             return false;
 
+        var localDeviceId = deviceId.GetNullableBaseIdentifier();
         foreach (var oppoClientKey in oppoClientKeys)
         {
-            if (!string.IsNullOrEmpty(deviceId) && !string.Equals(oppoClientKey.DeviceId, deviceId, StringComparison.Ordinal))
+            if (!string.IsNullOrEmpty(localDeviceId) && !string.Equals(oppoClientKey.DeviceId, localDeviceId, StringComparison.OrdinalIgnoreCase))
                 continue;
 
             _oppoClientFactory.TryDisposeClient(oppoClientKey);
