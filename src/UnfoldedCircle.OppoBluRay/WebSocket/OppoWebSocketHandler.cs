@@ -99,6 +99,17 @@ public partial class OppoWebSocketHandler(
                 }
             }
         }
+
+        // If no specific device or entity was specified, dispose all clients for this websocket ID.
+        if (payload.MsgData is { DeviceId: null, EntityIds: null } &&
+            await TryGetOppoClientKeysAsync(wsId, cancellationTokenWrapper.ApplicationStopping) is { } oppoClientKeys)
+        {
+            foreach (var oppoClientKey in oppoClientKeys)
+            {
+                RemoveEntityIdToBroadcastingEvents(oppoClientKey.EntityId, cancellationTokenWrapper);
+                _oppoClientFactory.TryDisposeClient(oppoClientKey);
+            }
+        }
     }
 
     private static IEnumerable<AvailableEntity> GetAvailableEntities(

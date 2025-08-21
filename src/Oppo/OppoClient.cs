@@ -25,7 +25,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         _ => throw new InvalidOperationException($"Model {model} is not supported.")
     };
     
-    private readonly TcpClient _tcpClient = new();
+    private TcpClient _tcpClient = new();
     private readonly SemaphoreSlim _semaphore = new(1, 1);
     private readonly TimeSpan _timeout = TimeSpan.FromSeconds(1);
     private readonly StringBuilder _stringBuilder = new();
@@ -975,6 +975,14 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
             if (_logger.IsEnabled(LogLevel.Trace))
                 _logger.LogTrace("Sending command '{Command}'", Encoding.ASCII.GetString(command));
 
+            if (Interlocked.CompareExchange(ref _failedResponseCount, 0, 2) > 2)
+            {
+                _logger.LogWarning("{Caller} - Too many failed responses, resetting connection", caller);
+                _tcpClient.Close();
+                _tcpClient = new TcpClient();
+                await IsConnectedAsync();
+            }
+
             var networkStream = _tcpClient.GetStream();
             await networkStream.WriteAsync(command, cancellationToken);
 
@@ -1103,10 +1111,13 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         
         public static OppoResultCore SuccessResult(string response) => new(true, response);
     }
-    
+
+    private uint _failedResponseCount;
+
     private TEnum LogError<TEnum>(string response, TEnum returnValue, [CallerMemberName]string? callerMemberName = null)
         where TEnum : Enum
     {
+        Interlocked.Increment(ref _failedResponseCount);
         _logger.LogError("{CallerMemberName} failed. Response was {Response}", callerMemberName, response);
         return returnValue;
     }
