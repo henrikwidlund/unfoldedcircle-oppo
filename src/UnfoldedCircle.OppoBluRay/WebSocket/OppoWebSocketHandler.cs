@@ -75,14 +75,14 @@ public partial class OppoWebSocketHandler(
         }
     }
 
-    protected override async ValueTask OnUnsubscribeEventsAsync(UnsubscribeEventsMsg payload, string wsId, CancellationToken cancellationToken)
+    protected override async ValueTask OnUnsubscribeEventsAsync(UnsubscribeEventsMsg payload, string wsId, CancellationTokenWrapper cancellationTokenWrapper)
     {
         if (!string.IsNullOrEmpty(payload.MsgData?.DeviceId))
         {
-            var oppoClientKey = await TryGetOppoClientKeyAsync(wsId, IdentifierType.DeviceId, payload.MsgData.DeviceId, cancellationToken);
+            var oppoClientKey = await TryGetOppoClientKeyAsync(wsId, IdentifierType.DeviceId, payload.MsgData.DeviceId, cancellationTokenWrapper.RequestAborted);
             if (oppoClientKey is not null)
             {
-                RemoveEntityIdToBroadcastingEvents(oppoClientKey.Value.EntityId);
+                RemoveEntityIdToBroadcastingEvents(oppoClientKey.Value.EntityId, cancellationTokenWrapper);
                 _oppoClientFactory.TryDisposeClient(oppoClientKey.Value);
             }
         }
@@ -91,10 +91,10 @@ public partial class OppoWebSocketHandler(
         {
             foreach (string msgDataEntityId in payload.MsgData.EntityIds)
             {
-                var oppoClientKey = await TryGetOppoClientKeyAsync(wsId, IdentifierType.EntityId, msgDataEntityId, cancellationToken);
+                var oppoClientKey = await TryGetOppoClientKeyAsync(wsId, IdentifierType.EntityId, msgDataEntityId, cancellationTokenWrapper.RequestAborted);
                 if (oppoClientKey is not null)
                 {
-                    RemoveEntityIdToBroadcastingEvents(oppoClientKey.Value.EntityId);
+                    RemoveEntityIdToBroadcastingEvents(oppoClientKey.Value.EntityId, cancellationTokenWrapper);
                     _oppoClientFactory.TryDisposeClient(oppoClientKey.Value);
                 }
             }

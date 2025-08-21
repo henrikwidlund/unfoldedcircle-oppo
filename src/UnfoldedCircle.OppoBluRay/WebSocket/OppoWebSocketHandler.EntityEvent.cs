@@ -35,7 +35,7 @@ public partial class OppoWebSocketHandler
         {
             try
             {
-                if (IsBroadcastingEvents(entityId) || !TryAddEntityIdToBroadcastingEvents(entityId))
+                if (IsBroadcastingEvents(entityId) || !TryAddEntityIdToBroadcastingEvents(entityId, cancellationTokenWrapper))
                 {
                     _logger.LogDebug("{WSId} Events already running for {EntityId}", wsId, entityId);
                     return;
@@ -224,7 +224,7 @@ public partial class OppoWebSocketHandler
             bool acquiredLock = await _broadcastSemaphoreSlim.WaitAsync(TimeSpan.FromSeconds(1), cancellationTokenSource.Token);
             try
             {
-                RemoveEntityIdToBroadcastingEvents(entityId);
+                RemoveEntityIdToBroadcastingEvents(entityId, cancellationTokenWrapper);
             }
             finally
             {
