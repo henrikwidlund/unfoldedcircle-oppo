@@ -79,7 +79,7 @@ public partial class OppoWebSocketHandler(
     {
         if (!string.IsNullOrEmpty(payload.MsgData?.DeviceId))
         {
-            var oppoClientKey = await TryGetOppoClientKeyAsync(wsId, IdentifierType.DeviceId, payload.MsgData.DeviceId, cancellationTokenWrapper.RequestAborted);
+            var oppoClientKey = await TryGetOppoClientKeyAsync(wsId, IdentifierType.DeviceId, payload.MsgData.DeviceId, cancellationTokenWrapper.ApplicationStopping);
             if (oppoClientKey is not null)
             {
                 RemoveEntityIdToBroadcastingEvents(oppoClientKey.Value.EntityId, cancellationTokenWrapper);
@@ -91,7 +91,7 @@ public partial class OppoWebSocketHandler(
         {
             foreach (string msgDataEntityId in payload.MsgData.EntityIds)
             {
-                var oppoClientKey = await TryGetOppoClientKeyAsync(wsId, IdentifierType.EntityId, msgDataEntityId, cancellationTokenWrapper.RequestAborted);
+                var oppoClientKey = await TryGetOppoClientKeyAsync(wsId, IdentifierType.EntityId, msgDataEntityId, cancellationTokenWrapper.ApplicationStopping);
                 if (oppoClientKey is not null)
                 {
                     RemoveEntityIdToBroadcastingEvents(oppoClientKey.Value.EntityId, cancellationTokenWrapper);
