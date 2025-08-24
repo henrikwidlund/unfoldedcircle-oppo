@@ -176,11 +176,23 @@ public partial class OppoWebSocketHandler(
     protected override ValueTask<SetupDriverUserDataResult> OnSetupDriverUserDataConfirmAsync(System.Net.WebSockets.WebSocket socket, SetDriverUserDataMsg payload, string wsId, CancellationToken cancellationToken)
         => ValueTask.FromResult(SetupDriverUserDataResult.Finalized);
 
-    protected override SettingsPage CreateNewEntitySettingsPage()
+    protected override SettingsPage CreateNewEntitySettingsPage() => CreateSettingsPage(null);
+
+    protected override SettingsPage CreateReconfigureEntitySettingsPage(OppoConfigurationItem configurationItem)
     {
-        return new SettingsPage
+        var settingsPage = CreateSettingsPage(configurationItem);
+        return settingsPage with
         {
-            Title = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { ["en"] = "Add a new device" },
+            Settings = settingsPage.Settings.Where(static x =>
+                !x.Id.Equals(OppoConstants.IpAddressKey, StringComparison.OrdinalIgnoreCase) &&
+                !x.Id.Equals(OppoConstants.EntityName, StringComparison.OrdinalIgnoreCase)).ToArray()
+        };
+    }
+
+    private static SettingsPage CreateSettingsPage(OppoConfigurationItem? configurationItem) =>
+        new()
+        {
+            Title = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { ["en"] = configurationItem == null ? "Add a new device" : "Reconfigure device" },
             Settings = [
                 new Setting
                 {
@@ -198,7 +210,8 @@ public partial class OppoWebSocketHandler(
                     {
                         Text = new ValueRegex
                         {
-                            RegEx = OppoConstants.IpAddressRegex
+                            RegEx = OppoConstants.IpAddressRegex,
+                            Value = configurationItem?.Host
                         }
                     },
                     Label = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { ["en"] = "Enter the IP address of the Oppo player (mandatory)" }
@@ -231,99 +244,8 @@ public partial class OppoWebSocketHandler(
                                     Label = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { ["en"] = GetOppoModelName(OppoModel.UDP205) },
                                     Value = nameof(OppoModel.UDP205)
                                 }
-                            ]
-                        }
-                    },
-                    Label = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { ["en"] = "Select the model of your Oppo player (mandatory)" }
-                },
-                new Setting
-                {
-                    Id = OppoConstants.UseMediaEventsKey,
-                    Field = new SettingTypeCheckbox
-                    {
-                        Checkbox = new SettingTypeCheckboxInner
-                        {
-                            Value = false
-                        }
-                    },
-                    Label = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { ["en"] = "Use Media Events? This enables playback information at the expense of updates every second" }
-                },
-                new Setting
-                {
-                    Id = OppoConstants.ChapterOrMovieLengthKey,
-                    Field = new SettingTypeDropdown
-                    {
-                        Dropdown = new SettingTypeDropdownInner
-                        {
-                            Value = OppoConstants.MovieLengthValue,
-                            Items = [
-                                new SettingTypeDropdownItem
-                                {
-                                    Label = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { ["en"] = "Chapter Length" },
-                                    Value = OppoConstants.ChapterLengthValue
-                                },
-                                new SettingTypeDropdownItem
-                                {
-                                    Label = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { ["en"] = "Movie Length" },
-                                    Value = OppoConstants.MovieLengthValue
-                                }
-                            ]
-                        }
-                    },
-                    Label = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { ["en"] = "Use chapter or movie length for progress bar (only applicable if Media Events is enabled)?" }
-                }
-            ]
-        };
-    }
-
-    protected override SettingsPage CreateReconfigureEntitySettingsPage(OppoConfigurationItem configurationItem)
-    {
-        return new SettingsPage
-        {
-            Title = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { ["en"] = "Reconfigure device" },
-            Settings = [
-                new Setting
-                {
-                    Id = OppoConstants.EntityName,
-                    Field = new SettingTypeText
-                    {
-                        Text = new ValueRegex
-                        {
-                            Value = configurationItem.EntityName
-                        }
-                    },
-                    Label = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { ["en"] = "Enter the name of the Oppo player (optional)" }
-                },
-                new Setting
-                {
-                    Id = OppoConstants.OppoModelKey,
-                    Field = new SettingTypeDropdown
-                    {
-                        Dropdown = new SettingTypeDropdownInner
-                        {
-                            Items = [
-                                new SettingTypeDropdownItem
-                                {
-                                    Label = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { ["en"] = GetOppoModelName(OppoModel.BDP8395) },
-                                    Value = nameof(OppoModel.BDP8395)
-                                },
-                                new SettingTypeDropdownItem
-                                {
-                                    Label = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { ["en"] = GetOppoModelName(OppoModel.BDP10X) },
-                                    Value = nameof(OppoModel.BDP10X)
-                                },
-                                new SettingTypeDropdownItem
-                                {
-                                    Label = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { ["en"] = GetOppoModelName(OppoModel.UDP203) },
-                                    Value = nameof(OppoModel.UDP203)
-                                },
-                                new SettingTypeDropdownItem
-                                {
-                                    Label = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { ["en"] = GetOppoModelName(OppoModel.UDP205) },
-                                    Value = nameof(OppoModel.UDP205)
-                                }
                             ],
-                            Value = configurationItem.Model.ToString()
+                            Value = configurationItem?.Model.ToString()
                         }
                     },
                     Label = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { ["en"] = "Select the model of your Oppo player (mandatory)" }
@@ -335,7 +257,7 @@ public partial class OppoWebSocketHandler(
                     {
                         Checkbox = new SettingTypeCheckboxInner
                         {
-                            Value = configurationItem.UseMediaEvents
+                            Value = configurationItem?.UseMediaEvents ?? false
                         }
                     },
                     Label = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { ["en"] = "Use Media Events? This enables playback information at the expense of updates every second" }
@@ -347,7 +269,7 @@ public partial class OppoWebSocketHandler(
                     {
                         Dropdown = new SettingTypeDropdownInner
                         {
-                            Value = configurationItem.UseChapterLengthForMovies ? OppoConstants.ChapterLengthValue : OppoConstants.MovieLengthValue,
+                            Value = configurationItem?.UseChapterLengthForMovies == true ? OppoConstants.ChapterLengthValue : OppoConstants.MovieLengthValue,
                             Items = [
                                 new SettingTypeDropdownItem
                                 {
@@ -366,7 +288,6 @@ public partial class OppoWebSocketHandler(
                 }
             ]
         };
-    }
 
     protected override async ValueTask<SetupDriverUserDataResult> HandleEntityReconfigured(System.Net.WebSockets.WebSocket socket,
         SetDriverUserDataMsg payload,
@@ -375,7 +296,6 @@ public partial class OppoWebSocketHandler(
         CancellationToken cancellationToken)
     {
         var oppoModel = GetOppoModel(payload.MsgData.InputValues!);
-        var entityName = payload.MsgData.InputValues!.GetValueOrNull(OppoConstants.EntityName, configurationItem.EntityName);
         var useMediaEvents = payload.MsgData.InputValues!.TryGetValue(OppoConstants.UseMediaEventsKey, out var useMediaEventsValue) &&
                                useMediaEventsValue.Equals(bool.TrueString, StringComparison.OrdinalIgnoreCase);
 
@@ -384,7 +304,6 @@ public partial class OppoWebSocketHandler(
 
         var newConfigurationItem = configurationItem with
         {
-            EntityName = entityName,
             Model = oppoModel,
             UseMediaEvents = useMediaEvents,
             UseChapterLengthForMovies = useChapterLengthForMovies
