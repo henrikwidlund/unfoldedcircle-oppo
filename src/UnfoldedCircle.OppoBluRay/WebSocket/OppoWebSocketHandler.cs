@@ -210,8 +210,7 @@ public partial class OppoWebSocketHandler(
                     {
                         Text = new ValueRegex
                         {
-                            RegEx = OppoConstants.IpAddressRegex,
-                            Value = configurationItem?.Host
+                            RegEx = OppoConstants.IpAddressRegex
                         }
                     },
                     Label = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { ["en"] = "Enter the IP address of the Oppo player (mandatory)" }
