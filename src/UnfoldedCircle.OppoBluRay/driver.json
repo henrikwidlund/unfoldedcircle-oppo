@@ -16,100 +16,20 @@
   },
   "setup_data_schema": {
     "title": {
-      "en": "Enter Details"
+      "en": "Setup Process"
     },
     "settings": [
       {
-        "id": "entity_name",
+        "id": "disclaimer_1",
         "field": {
-          "text": { }
-        },
-        "label": {
-          "en": "Enter the name of the Oppo player (optional)"
-        }
-      },
-      {
-        "id": "ip_address",
-        "field": {
-          "text": {
-            "value": "",
-            "regex": "^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)|(([0-9a-fA-F]{1,4}:){7,7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,7}:|([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})|:((:[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(:[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]{1,}|::(ffff(:0{1,4}){0,1}:){0,1}((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])|([0-9a-fA-F]{1,4}:){1,4}:((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9]))$"
+          "label": {
+            "value": {
+              "en": "You will be guided through the setup process to connect to your Oppo Blu-ray player."
+            }
           }
         },
         "label": {
-          "en": "Enter the IP address of the Oppo player (mandatory)"
-        }
-      },
-      {
-        "id": "oppo_model",
-        "field": {
-          "dropdown": {
-            "items": [
-              {
-                "id": "BDP8395",
-                "label": {
-                  "en": "BDP-83, 93 and 95"
-                }
-              },
-              {
-                "id": "BDP10X",
-                "label": {
-                  "en": "BDP-103 and 105"
-                }
-              },
-              {
-                "id": "UDP203",
-                "label": {
-                  "en": "UDP-203"
-                }
-              },
-              {
-                "id": "UDP205",
-                "label": {
-                  "en": "UDP-205"
-                }
-              }
-            ]
-          }
-        },
-        "label": {
-          "en": "Select the model of your Oppo player (mandatory)"
-        }
-      },
-      {
-        "id": "use_media_events",
-        "field": {
-          "checkbox": {
-            "value": false
-          }
-        },
-        "label": {
-          "en": "Use Media Events? This enables playback information at the expense of updates every second"
-        }
-      },
-      {
-        "id": "chapter_or_movie_length",
-        "field": {
-          "dropdown": {
-            "value": "movie_length",
-            "items": [
-              {
-                "id": "movie_length",
-                "label": {
-                  "en": "Movie Length"
-                }
-              },
-              {
-                "id": "chapter_length",
-                "label": {
-                  "en": "Chapter Length"
-                }
-              }
-            ]
-          }
-        },
-        "label": {
-          "en": "Use chapter or movie length for progress bar (only applicable if Media Events is enabled)?"
+          "en": ""
         }
       }
     ]
