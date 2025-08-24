@@ -94,25 +94,6 @@ public partial class OppoWebSocketHandler
         return oppoClient is null ? null : new OppoClientHolder(oppoClient, oppoClientKey.Value);
     }
 
-    private async Task<OppoClientHolder?> TryGetOppoClientHolderAsync(
-        OppoConfigurationItem entity,
-        CancellationToken cancellationToken)
-    {
-        var oppoClientKey = GetOppoClientKey(entity);
-
-        var oppoClient = await _oppoClientFactory.TryGetOrCreateClient(oppoClientKey, cancellationToken);
-        if (oppoClient is null)
-            return null;
-
-        if (await oppoClient.IsConnectedAsync())
-            return new OppoClientHolder(oppoClient, oppoClientKey);
-
-        _oppoClientFactory.TryDisposeClient(oppoClientKey);
-        oppoClient = await _oppoClientFactory.TryGetOrCreateClient(oppoClientKey, cancellationToken);
-
-        return oppoClient is null ? null : new OppoClientHolder(oppoClient, oppoClientKey);
-    }
-
     private async Task<List<OppoClientHolder>?> TryGetOppoClientHolders(
         string wsId,
         CancellationToken cancellationToken)
