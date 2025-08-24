@@ -42,12 +42,6 @@ public partial class OppoWebSocketHandler
         return null;
     }
 
-    private static OppoClientKey GetOppoClientKey(OppoConfigurationItem entity)
-    {
-        return new OppoClientKey(entity.Host, entity.Model, entity.UseMediaEvents, entity.UseChapterLengthForMovies,
-            entity.EntityId, entity.DeviceId);
-    }
-
     private async Task<OppoClientKey[]?> TryGetOppoClientKeysAsync(
         string wsId,
         CancellationToken cancellationToken)

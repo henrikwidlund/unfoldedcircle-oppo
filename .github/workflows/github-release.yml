@@ -44,7 +44,7 @@ jobs:
           tag=$(git describe --tags --abbrev=0)
           date=$(date -u +"%Y-%m-%d")
           ASSEMBLY_VERSION="${tag//v}"
-          driver_version=${ASSEMBLY_VERSION%%-*}"
+          driver_version="${ASSEMBLY_VERSION%%-*}"
           jq --arg version "$driver_version" --arg date "$date" \
             '.version = $version | .release_date = $date' \
             src/UnfoldedCircle.OppoBluRay/driver.json > tmp.json && mv tmp.json src/UnfoldedCircle.OppoBluRay/driver.json
