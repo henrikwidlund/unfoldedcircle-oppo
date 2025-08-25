@@ -15,7 +15,6 @@ using UnfoldedCircle.OppoBluRay.Response;
 using UnfoldedCircle.Server.Configuration;
 using UnfoldedCircle.Server.DependencyInjection;
 using UnfoldedCircle.Server.Extensions;
-using UnfoldedCircle.Server.Json;
 using UnfoldedCircle.Server.Response;
 using UnfoldedCircle.Server.WebSocket;
 
@@ -313,34 +312,8 @@ public partial class OppoWebSocketHandler(
         configuration.Entities.Add(newConfigurationItem);
         await _configurationService.UpdateConfigurationAsync(configuration, cancellationToken);
 
-        await SendMessageAsync(socket, CreateDeviceSetupChangeUserInputResponsePayload(), wsId, cancellationToken);
-        return SetupDriverUserDataResult.Handled;
-        // return await GetSetupResultForClient(wsId, newConfigurationItem.EntityId, cancellationToken);
+        return await GetSetupResultForClient(wsId, newConfigurationItem.EntityId, cancellationToken);
     }
-
-    public static byte[] CreateDeviceSetupChangeUserInputResponsePayload() =>
-        JsonSerializer.SerializeToUtf8Bytes(new DriverSetupChangeEvent
-        {
-            Kind = "event",
-            Msg = "driver_setup_change",
-            Cat = "DEVICE",
-            TimeStamp = DateTime.UtcNow,
-            MsgData = new DriverSetupChange
-            {
-                State = DriverSetupChangeState.WaitUserAction,
-                EventType = DriverSetupChangeEventType.Setup,
-                RequireUserAction = new RequireUserAction
-                {
-                    Confirmation = new ConfirmationPage
-                    {
-                        Title = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
-                        {
-                            ["en"] = "All done."
-                        }
-                    }
-                }
-            }
-        }, UnfoldedCircleJsonSerializerContext.Default.DriverSetupChangeEvent);
 
     private static OppoModel GetOppoModel(Dictionary<string, string> msgDataSetupData)
     {
@@ -424,9 +397,7 @@ public partial class OppoWebSocketHandler(
 
         await _configurationService.UpdateConfigurationAsync(configuration, cancellationToken);
 
-        await SendMessageAsync(socket, CreateDeviceSetupChangeUserInputResponsePayload(), wsId, cancellationToken);
-        return SetupDriverUserDataResult.Handled;
-        // return await GetSetupResultForClient(wsId, entity.EntityId, cancellationToken);
+        return await GetSetupResultForClient(wsId, entity.EntityId, cancellationToken);
     }
 
     protected override MediaPlayerEntityCommandMsgData<OppoCommandId>? DeserializeMediaPlayerCommandPayload(JsonDocument jsonDocument)
