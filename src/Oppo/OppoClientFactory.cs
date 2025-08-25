@@ -18,7 +18,7 @@ public class OppoClientFactory(ILoggerFactory loggerFactory, ILogger<OppoClientF
         if (_clients.TryGetValue(clientKeyHash, out var client))
             return client;
 
-        if (await _semaphoreSlim.WaitAsync(TimeSpan.FromSeconds(10), cancellationToken))
+        if (await _semaphoreSlim.WaitAsync(TimeSpan.FromSeconds(5), cancellationToken))
         {
             try
             {

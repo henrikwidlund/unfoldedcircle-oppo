@@ -934,7 +934,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         if (_tcpClient.Connected)
             return _tcpClient.Connected;
 
-        var acquired = await _semaphore.WaitAsync(timeout ?? TimeSpan.FromSeconds(9));
+        var acquired = await _semaphore.WaitAsync(timeout ?? TimeSpan.FromSeconds(5));
         if (!acquired)
             return _tcpClient.Connected;
 
@@ -943,7 +943,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
             if (_tcpClient.Connected)
                 return _tcpClient.Connected;
 
-            using var cancellationTokenSource = new CancellationTokenSource(timeout ?? TimeSpan.FromSeconds(10));
+            using var cancellationTokenSource = new CancellationTokenSource(timeout ?? TimeSpan.FromSeconds(3));
             await _tcpClient.ConnectAsync(_hostName, _port, cancellationTokenSource.Token);
             return _tcpClient.Connected;
         }
