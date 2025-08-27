@@ -53,9 +53,13 @@ public partial class OppoWebSocketHandler(
         return GetAvailableEntities(entities, payload).ToArray();
     }
 
-    protected override async ValueTask OnSubscribeEventsAsync(System.Net.WebSockets.WebSocket socket, CommonReq payload, string wsId, CancellationTokenWrapper cancellationTokenWrapper)
+    protected override async ValueTask OnSubscribeEventsAsync(System.Net.WebSockets.WebSocket socket,
+        CommonReq payload,
+        string wsId,
+        CancellationTokenWrapper cancellationTokenWrapper,
+        CancellationToken commandCancellationToken)
     {
-        var oppoClientHolders = await TryGetOppoClientHolders(wsId, cancellationTokenWrapper.RequestAborted);
+        var oppoClientHolders = await TryGetOppoClientHolders(wsId, commandCancellationToken);
         if (oppoClientHolders is { Count: > 0 })
         {
             foreach (var oppoClientHolder in oppoClientHolders)
@@ -70,7 +74,7 @@ public partial class OppoWebSocketHandler(
                         EntityType.MediaPlayer
                     ),
                     wsId,
-                    cancellationTokenWrapper.RequestAborted);
+                    commandCancellationToken);
             }
         }
     }
@@ -176,11 +180,16 @@ public partial class OppoWebSocketHandler(
     protected override ValueTask<SetupDriverUserDataResult> OnSetupDriverUserDataConfirmAsync(System.Net.WebSockets.WebSocket socket, SetDriverUserDataMsg payload, string wsId, CancellationToken cancellationToken)
         => ValueTask.FromResult(SetupDriverUserDataResult.Finalized);
 
-    protected override SettingsPage CreateNewEntitySettingsPage() => CreateSettingsPage(null);
-
-    protected override SettingsPage CreateReconfigureEntitySettingsPage(OppoConfigurationItem configurationItem)
+    protected override async ValueTask<SettingsPage> CreateNewEntitySettingsPageAsync(CancellationToken cancellationToken)
     {
-        var settingsPage = CreateSettingsPage(configurationItem);
+        var configuration = await _configurationService.GetConfigurationAsync(cancellationToken);
+        return CreateSettingsPage(null, configuration.MaxMessageHandlingWaitTimeInSeconds ?? 9.5);
+    }
+
+    protected override async ValueTask<SettingsPage> CreateReconfigureEntitySettingsPageAsync(OppoConfigurationItem configurationItem, CancellationToken cancellationToken)
+    {
+        var configuration = await _configurationService.GetConfigurationAsync(cancellationToken);
+        var settingsPage = CreateSettingsPage(configurationItem, configuration.MaxMessageHandlingWaitTimeInSeconds ?? 9.5);
         return settingsPage with
         {
             Settings = settingsPage.Settings.Where(static x =>
@@ -189,7 +198,7 @@ public partial class OppoWebSocketHandler(
         };
     }
 
-    private static SettingsPage CreateSettingsPage(OppoConfigurationItem? configurationItem) =>
+    private static SettingsPage CreateSettingsPage(OppoConfigurationItem? configurationItem, double maxMessageHandlingWaitTimeInSeconds) =>
         new()
         {
             Title = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { ["en"] = configurationItem == null ? "Add a new device" : "Reconfigure device" },
@@ -284,6 +293,21 @@ public partial class OppoWebSocketHandler(
                         }
                     },
                     Label = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { ["en"] = "Use chapter or movie length for progress bar (only applicable if Media Events is enabled)?" }
+                },
+                new Setting
+                {
+                    Id = OppoConstants.MaxMessageHandlingWaitTimeInSecondsKey,
+                    Field = new SettingTypeNumber
+                    {
+                        Number = new SettingTypeNumberInner
+                        {
+                            Value = maxMessageHandlingWaitTimeInSeconds,
+                            Min = 0.1,
+                            Max = 9.5,
+                            Decimals = 1
+                        }
+                    },
+                    Label = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { ["en"] = "Enter the max wait time for a message to be processed (global setting)" }
                 }
             ]
         };
