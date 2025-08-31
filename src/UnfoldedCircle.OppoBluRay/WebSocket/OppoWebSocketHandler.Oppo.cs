@@ -20,8 +20,7 @@ public partial class OppoWebSocketHandler
             return null;
         }
 
-        var localIdentifier = identifier?.AsMemory();
-        localIdentifier = localIdentifier.GetNullableBaseIdentifier();
+        var localIdentifier = identifier?.AsMemory().GetBaseIdentifier();
 
         var entity = identifierType switch
         {
@@ -29,7 +28,7 @@ public partial class OppoWebSocketHandler
                 ? configuration.Entities.Find(x => x.DeviceId?.AsMemory().Span.Equals(localIdentifier.Value.Span, StringComparison.OrdinalIgnoreCase) == true)
                 : configuration.Entities[0],
             IdentifierType.EntityId => localIdentifier is { Span.IsEmpty: false }
-                ? configuration.Entities.Find(x => x.DeviceId?.AsMemory().Span.Equals(localIdentifier.Value.Span, StringComparison.OrdinalIgnoreCase) == true)
+                ? configuration.Entities.Find(x => x.EntityId.AsMemory().Span.Equals(localIdentifier.Value.Span, StringComparison.OrdinalIgnoreCase) == true)
                 : null,
             _ => throw new ArgumentOutOfRangeException(nameof(identifierType), identifierType, null)
         };
@@ -156,8 +155,7 @@ public partial class OppoWebSocketHandler
         if (oppoClientKeys is not { Length: > 0 })
             return false;
 
-        var localDeviceId = deviceId?.AsMemory();
-        localDeviceId = localDeviceId.GetNullableBaseIdentifier();
+        var localDeviceId = deviceId?.AsMemory().GetBaseIdentifier();
         foreach (var oppoClientKey in oppoClientKeys)
         {
             if (localDeviceId is not null && !localDeviceId.Value.Span.IsEmpty &&
