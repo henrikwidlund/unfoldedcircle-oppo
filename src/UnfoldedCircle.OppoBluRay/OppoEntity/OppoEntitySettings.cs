@@ -198,7 +198,7 @@ public static class OppoEntitySettings
             new DeviceButtonMapping { Button = RemoteButton.Home, ShortPress = new EntityCommand { CmdId = RemoteButtonConstants.Home } },
             new DeviceButtonMapping { Button = RemoteButton.Back, ShortPress = new EntityCommand { CmdId = RemoteButtonConstants.Back } },
             new DeviceButtonMapping { Button = RemoteButton.DpadUp, ShortPress = new EntityCommand { CmdId = RemoteButtonConstants.DpadUp } },
-            new DeviceButtonMapping { Button = RemoteButton.DpadDown, ShortPress = new EntityCommand { CmdId = RemoteButtonConstants.DpadRight } },
+            new DeviceButtonMapping { Button = RemoteButton.DpadDown, ShortPress = new EntityCommand { CmdId = RemoteButtonConstants.DpadDown } },
             new DeviceButtonMapping { Button = RemoteButton.DpadLeft, ShortPress = new EntityCommand { CmdId = RemoteButtonConstants.DpadLeft } },
             new DeviceButtonMapping { Button = RemoteButton.DpadRight, ShortPress = new EntityCommand { CmdId = RemoteButtonConstants.DpadRight } },
             new DeviceButtonMapping { Button = RemoteButton.DpadMiddle, ShortPress = new EntityCommand { CmdId = RemoteButtonConstants.DpadMiddle } },
