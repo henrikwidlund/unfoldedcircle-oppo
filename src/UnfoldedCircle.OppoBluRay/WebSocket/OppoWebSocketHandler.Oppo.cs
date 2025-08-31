@@ -20,15 +20,16 @@ public partial class OppoWebSocketHandler
             return null;
         }
 
-        var localIdentifier = identifier.GetNullableBaseIdentifier();
+        var localIdentifier = identifier?.AsMemory();
+        localIdentifier = localIdentifier.GetNullableBaseIdentifier();
 
         var entity = identifierType switch
         {
-            IdentifierType.DeviceId => !string.IsNullOrWhiteSpace(localIdentifier)
-                ? configuration.Entities.Find(x => string.Equals(x.DeviceId, localIdentifier, StringComparison.OrdinalIgnoreCase))
+            IdentifierType.DeviceId => localIdentifier is { Span.IsEmpty: false }
+                ? configuration.Entities.Find(x => x.DeviceId?.AsMemory().Span.Equals(localIdentifier.Value.Span, StringComparison.OrdinalIgnoreCase) == true)
                 : configuration.Entities[0],
-            IdentifierType.EntityId => !string.IsNullOrWhiteSpace(localIdentifier)
-                ? configuration.Entities.Find(x => string.Equals(x.EntityId, localIdentifier, StringComparison.OrdinalIgnoreCase))
+            IdentifierType.EntityId => localIdentifier is { Span.IsEmpty: false }
+                ? configuration.Entities.Find(x => x.DeviceId?.AsMemory().Span.Equals(localIdentifier.Value.Span, StringComparison.OrdinalIgnoreCase) == true)
                 : null,
             _ => throw new ArgumentOutOfRangeException(nameof(identifierType), identifierType, null)
         };
@@ -134,8 +135,8 @@ public partial class OppoWebSocketHandler
 
         if (!string.IsNullOrEmpty(deviceId))
         {
-            var localDeviceId = deviceId.GetBaseIdentifier();
-            var entity = configuration.Entities.Find(x => string.Equals(x.DeviceId, localDeviceId, StringComparison.OrdinalIgnoreCase));
+            var localDeviceId = deviceId.AsMemory().GetBaseIdentifier();
+            var entity = configuration.Entities.Find(x => x.DeviceId?.AsMemory().Span.Equals(localDeviceId.Span, StringComparison.OrdinalIgnoreCase) == true);
             if (entity is not null)
                 return [entity];
 
@@ -155,10 +156,12 @@ public partial class OppoWebSocketHandler
         if (oppoClientKeys is not { Length: > 0 })
             return false;
 
-        var localDeviceId = deviceId.GetNullableBaseIdentifier();
+        var localDeviceId = deviceId?.AsMemory();
+        localDeviceId = localDeviceId.GetNullableBaseIdentifier();
         foreach (var oppoClientKey in oppoClientKeys)
         {
-            if (!string.IsNullOrEmpty(localDeviceId) && !string.Equals(oppoClientKey.DeviceId, localDeviceId, StringComparison.OrdinalIgnoreCase))
+            if (localDeviceId is not null && !localDeviceId.Value.Span.IsEmpty &&
+                oppoClientKey.DeviceId is not null && !oppoClientKey.DeviceId.AsSpan().Equals(localDeviceId.Value.Span, StringComparison.OrdinalIgnoreCase))
                 continue;
 
             _oppoClientFactory.TryDisposeClient(oppoClientKey);

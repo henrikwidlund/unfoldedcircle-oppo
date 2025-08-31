@@ -35,7 +35,8 @@ public partial class OppoWebSocketHandler
         {
             try
             {
-                if (IsBroadcastingEvents(entityId) || !TryAddEntityIdToBroadcastingEvents(entityId, cancellationTokenWrapper))
+                var entityIdSpan = entityId.AsSpan();
+                if (IsBroadcastingEvents(entityIdSpan) || !TryAddEntityIdToBroadcastingEvents(entityIdSpan, cancellationTokenWrapper))
                 {
                     _logger.LogDebug("{WSId} Events already running for {EntityId}", wsId, entityId);
                     return;

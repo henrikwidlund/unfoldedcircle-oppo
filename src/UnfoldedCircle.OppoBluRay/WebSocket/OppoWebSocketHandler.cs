@@ -127,8 +127,15 @@ public partial class OppoWebSocketHandler(
         var hasEntityTypeFilter = payload.MsgData.Filter?.EntityType is not null;
         foreach (var unfoldedCircleConfigurationItem in entities)
         {
-            if (hasDeviceIdFilter && !string.Equals(unfoldedCircleConfigurationItem.DeviceId, payload.MsgData.Filter!.DeviceId.GetNullableBaseIdentifier(), StringComparison.OrdinalIgnoreCase))
-                continue;
+            if (hasDeviceIdFilter)
+            {
+                var configDeviceId = unfoldedCircleConfigurationItem.DeviceId?.AsMemory();
+                // we have a device id filter, so if the config device id is null, there is no match
+                if (configDeviceId is null)
+                    continue;
+                if (!configDeviceId.Value.Span.Equals(payload.MsgData.Filter!.DeviceId.AsSpan().GetBaseIdentifier(), StringComparison.OrdinalIgnoreCase))
+                    continue;
+            }
 
             if (hasEntityTypeFilter)
             {
