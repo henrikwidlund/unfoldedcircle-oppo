@@ -76,7 +76,7 @@ public static class OppoEntitySettings
 
     private static readonly FrozenSet<string> RemoteSimpleCommands = [
         MediaPlayerCommandIdConstants.PlayPause,
-        MediaPlayerCommandIdConstants.Stop,
+        RemoteButtonConstants.Stop,
         RemoteButtonConstants.Previous,
         RemoteButtonConstants.Next,
         MediaPlayerCommandIdConstants.FastForward,
@@ -107,7 +107,7 @@ public static class OppoEntitySettings
         RemoteButtonConstants.Yellow,
         RemoteButtonConstants.Blue,
         RemoteButtonConstants.Home,
-        MediaPlayerCommandIdConstants.ContextMenu,
+        RemoteButtonConstants.Menu,
         MediaPlayerCommandIdConstants.Info,
         RemoteButtonConstants.Back,
         MediaPlayerCommandIdConstants.OpenClose,
@@ -218,18 +218,15 @@ public static class OppoEntitySettings
                 ShortPress = new EntityCommand { CmdId = RemoteButtonConstants.Previous },
                 LongPress = new EntityCommand { CmdId = MediaPlayerCommandIdConstants.Rewind }
             },
-            new DeviceButtonMapping
-            {
-                Button = RemoteButton.Play,
-                ShortPress = new EntityCommand { CmdId = MediaPlayerCommandIdConstants.PlayPause },
-                LongPress = new EntityCommand { CmdId = MediaPlayerCommandIdConstants.Stop }
-            },
+            new DeviceButtonMapping { Button = RemoteButton.Play, ShortPress = new EntityCommand { CmdId = MediaPlayerCommandIdConstants.PlayPause } },
+            new DeviceButtonMapping { Button = RemoteButton.Stop, ShortPress = new EntityCommand { CmdId = RemoteButtonConstants.Stop } },
             new DeviceButtonMapping
             {
                 Button = RemoteButton.Next,
                 ShortPress = new EntityCommand { CmdId = RemoteButtonConstants.Next },
                 LongPress = new EntityCommand { CmdId = MediaPlayerCommandIdConstants.FastForward }
-            }
+            },
+            new DeviceButtonMapping { Button = RemoteButton.Menu, ShortPress = new EntityCommand { CmdId = RemoteButtonConstants.Menu } }
         ],
         SimpleCommands = RemoteSimpleCommands,
         UserInterface = new UserInterface

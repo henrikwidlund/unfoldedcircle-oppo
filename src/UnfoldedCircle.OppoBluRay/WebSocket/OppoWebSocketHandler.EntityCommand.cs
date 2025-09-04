@@ -320,7 +320,8 @@ public partial class OppoWebSocketHandler
         var result = command switch
         {
             _ when command.Equals(MediaPlayerCommandIdConstants.PlayPause, StringComparison.OrdinalIgnoreCase) => await client.PauseAsync(commandCancellationToken),
-            _ when command.Equals(MediaPlayerCommandIdConstants.Stop, StringComparison.OrdinalIgnoreCase) => await client.StopAsync(commandCancellationToken),
+            _ when command.Equals(RemoteButtonConstants.Stop, StringComparison.OrdinalIgnoreCase) => await client.StopAsync(commandCancellationToken),
+            _ when command.Equals(RemoteButtonConstants.Menu, StringComparison.OrdinalIgnoreCase) => await client.TopMenuAsync(commandCancellationToken),
             _ when command.Equals(RemoteButtonConstants.Previous, StringComparison.OrdinalIgnoreCase) => await client.PreviousAsync(commandCancellationToken),
             _ when command.Equals(RemoteButtonConstants.Next, StringComparison.OrdinalIgnoreCase) => await client.NextAsync(commandCancellationToken),
             _ when command.Equals(MediaPlayerCommandIdConstants.FastForward, StringComparison.OrdinalIgnoreCase) => (bool)await client.ForwardAsync(commandCancellationToken),
