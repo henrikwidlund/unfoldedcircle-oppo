@@ -119,6 +119,7 @@ public static class OppoEntitySettings
         EntitySettingsConstants.Dimmer,
         EntitySettingsConstants.PureAudioToggle,
         EntitySettingsConstants.Clear,
+        EntitySettingsConstants.InfoToggle,
         EntitySettingsConstants.TopMenu,
         EntitySettingsConstants.PopUpMenu,
         EntitySettingsConstants.Pause,
