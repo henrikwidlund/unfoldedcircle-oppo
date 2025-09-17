@@ -241,8 +241,13 @@ public partial class OppoWebSocketHandler(
                             Items = [
                                 new SettingTypeDropdownItem
                                 {
-                                    Label = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { ["en"] = GetOppoModelName(OppoModel.BDP8395) },
-                                    Value = nameof(OppoModel.BDP8395)
+                                    Label = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { ["en"] = GetOppoModelName(OppoModel.BDP83) },
+                                    Value = nameof(OppoModel.BDP83)
+                                },
+                                new SettingTypeDropdownItem
+                                {
+                                    Label = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { ["en"] = GetOppoModelName(OppoModel.BDP9X) },
+                                    Value = nameof(OppoModel.BDP9X)
                                 },
                                 new SettingTypeDropdownItem
                                 {
@@ -352,7 +357,8 @@ public partial class OppoWebSocketHandler(
         {
             return oppoModel switch
             {
-                _ when oppoModel.Equals(nameof(OppoModel.BDP8395), StringComparison.OrdinalIgnoreCase) => OppoModel.BDP8395,
+                _ when oppoModel.Equals(nameof(OppoModel.BDP83), StringComparison.OrdinalIgnoreCase) => OppoModel.BDP83,
+                _ when oppoModel.Equals(nameof(OppoModel.BDP9X), StringComparison.OrdinalIgnoreCase) => OppoModel.BDP9X,
                 _ when oppoModel.Equals(nameof(OppoModel.BDP10X), StringComparison.OrdinalIgnoreCase) => OppoModel.BDP10X,
                 _ when oppoModel.Equals(nameof(OppoModel.UDP203), StringComparison.OrdinalIgnoreCase) => OppoModel.UDP203,
                 _ => OppoModel.UDP205
@@ -373,7 +379,8 @@ public partial class OppoWebSocketHandler(
     private static string GetOppoModelName(in OppoModel oppoModel) =>
         oppoModel switch
         {
-            OppoModel.BDP8395 => "BDP-83/95",
+            OppoModel.BDP83 => "BDP-83",
+            OppoModel.BDP9X => "BDP-9X",
             OppoModel.BDP10X => "BDP-10X",
             OppoModel.UDP203 => "UDP-203",
             _ => "UDP-205"

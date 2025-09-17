@@ -149,7 +149,8 @@ public enum CurrentRepeatMode
 public enum OppoModel
 {
     // ReSharper disable InconsistentNaming
-    BDP8395,
+    BDP83,
+    BDP9X,
     BDP10X,
     UDP203,
     UDP205

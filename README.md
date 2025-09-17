@@ -24,7 +24,7 @@ This repository contains the server code for hosting an Oppo Blu-ray integration
 - The Oppo players only allows one connection at a time, so if you have multiple remotes or other systems connected to the same player,
 the will keep getting disconnected and commands will fail.
 
-| Feature            | Oppo BDP-83/93/95 | Oppo UDP-10X |
+| Feature            | Oppo BDP-83/93/95 | Oppo BDP-10X |
 |--------------------|-------------------|--------------|
 | Option Command     | ❌                 | ✔️           |
 | 3D Switching       | ❌                 | ✔️           |
@@ -51,8 +51,9 @@ the will keep getting disconnected and commands will fail.
 | Service      | Port  | Protocol   |
 |--------------|-------|------------|
 | Server       | 9001* | HTTP (TCP) |
-| Oppo UDP-83  | 19999 | TCP        |
-| Oppo UDP-10X | 48360 | TCP        |
+| Oppo BDP-83  | 19999 | TCP        |
+| Oppo BDP-9X  | 48360 | TCP        |
+| Oppo BDP-10X | 48360 | TCP        |
 | Oppo UDP-20X | 23    | TCP        |
 
 \* Server port can be adjusted by specifying the desired port with the `UC_INTEGRATION_HTTP_PORT` environment variable.
