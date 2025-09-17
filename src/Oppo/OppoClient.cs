@@ -19,8 +19,8 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
     private readonly bool _is20XModel = model is OppoModel.UDP203 or OppoModel.UDP205;
     private readonly ushort _port = model switch
     {
-        OppoModel.BDP8395 => 19999,
-        OppoModel.BDP10X => 48360,
+        OppoModel.BDP83 => 19999,
+        OppoModel.BDP9X or OppoModel.BDP10X => 48360,
         OppoModel.UDP203 or OppoModel.UDP205 => 23,
         _ => throw new InvalidOperationException($"Model {model} is not supported.")
     };
@@ -477,15 +477,15 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         (await SendCommand(_is20XModel ? Oppo20XCommand.SubtitleHold : Oppo10XCommand.SubtitleHold, cancellationToken)).Success;
 
     public async ValueTask<bool> OptionAsync(CancellationToken cancellationToken = default) =>
-        _model is not OppoModel.BDP8395 &&
+        _model is not OppoModel.BDP83 and not OppoModel.BDP9X &&
         (await SendCommand(_is20XModel ? Oppo20XCommand.Option : Oppo10XCommand.Option, cancellationToken)).Success;
 
     public async ValueTask<bool> ThreeDAsync(CancellationToken cancellationToken = default) =>
-        _model is not OppoModel.BDP8395 &&
+        _model is not OppoModel.BDP83 and not OppoModel.BDP9X &&
         (await SendCommand(_is20XModel ? Oppo20XCommand.ThreeD : Oppo10XCommand.ThreeD, cancellationToken)).Success;
 
     public async ValueTask<bool> PictureAdjustmentAsync(CancellationToken cancellationToken = default) =>
-        _model is not OppoModel.BDP8395 &&
+        _model is not OppoModel.BDP83 and not OppoModel.BDP9X &&
         (await SendCommand(_is20XModel ? Oppo20XCommand.PictureAdjustment : Oppo10XCommand.PictureAdjustment, cancellationToken)).Success;
 
     public async ValueTask<bool> HDRAsync(CancellationToken cancellationToken = default) =>
@@ -738,7 +738,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
 
     public async ValueTask<OppoResult<InputSource>> QueryInputSourceAsync(CancellationToken cancellationToken = default)
     {
-        if (_model is OppoModel.BDP8395)
+        if (_model is OppoModel.BDP83 or OppoModel.BDP9X)
             return false;
         
         var result = await SendCommand(_is20XModel ? Oppo20XQueryCommand.QueryInputSource : Oppo10XQueryCommand.QueryInputSource,
