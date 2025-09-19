@@ -143,6 +143,8 @@ public static class OppoEntitySettings
 
     public static readonly FrozenDictionary<OppoModel, string[]> SourceList = new Dictionary<OppoModel, string[]>
     {
+        [OppoModel.BDP83] = [],
+        [OppoModel.BDP9X] = [],
         [OppoModel.BDP10X] =
         [
             OppoConstants.InputSource.BluRayPlayer,
