@@ -304,6 +304,7 @@ public partial class OppoWebSocketHandler
             _ when command.Equals(RemoteButtonConstants.On, StringComparison.OrdinalIgnoreCase) => await HandlePowerOnAsync(oppoClientHolder, cancellationTokenWrapper, commandCancellationToken),
             _ when command.Equals(RemoteButtonConstants.Off, StringComparison.OrdinalIgnoreCase) => await HandlePowerOffAsync(oppoClientHolder, commandCancellationToken),
             _ when command.Equals(RemoteButtonConstants.Toggle, StringComparison.OrdinalIgnoreCase) => await client.PowerToggleAsync(commandCancellationToken),
+            _ when command.Equals(RemoteButtonConstants.Power, StringComparison.OrdinalIgnoreCase) => await client.PowerToggleAsync(commandCancellationToken),
             _ => null
         };
 
@@ -358,7 +359,6 @@ public partial class OppoWebSocketHandler
             _ when command.Equals(MediaPlayerCommandIdConstants.Eject, StringComparison.OrdinalIgnoreCase) => (bool)await client.EjectToggleAsync(commandCancellationToken),
             _ when command.Equals(MediaPlayerCommandIdConstants.Subtitle, StringComparison.OrdinalIgnoreCase) => await client.SubtitleAsync(commandCancellationToken),
             _ when command.Equals(MediaPlayerCommandIdConstants.Settings, StringComparison.OrdinalIgnoreCase) => await client.SetupAsync(commandCancellationToken),
-            _ when command.Equals(RemoteButtonConstants.Power, StringComparison.OrdinalIgnoreCase) => (bool)await client.PowerToggleAsync(commandCancellationToken),
             _ when command.Equals(EntitySettingsConstants.Dimmer, StringComparison.OrdinalIgnoreCase) => (bool)await client.DimmerAsync(commandCancellationToken),
             _ when command.Equals(EntitySettingsConstants.PureAudioToggle, StringComparison.OrdinalIgnoreCase) => (bool)await client.PureAudioToggleAsync(commandCancellationToken),
             _ when command.Equals(EntitySettingsConstants.Clear, StringComparison.OrdinalIgnoreCase) => await client.ClearAsync(commandCancellationToken),
