@@ -32,7 +32,8 @@ public class OppoClientFactory(ILoggerFactory loggerFactory, ILogger<OppoClientF
             }
             catch (Exception e)
             {
-                _logger.LogError(e, "Failed to create client {ClientKey}", oppoClientKey);
+                if (_logger.IsEnabled(LogLevel.Error))
+                    _logger.LogError(e, "Failed to create client {ClientKey}", oppoClientKey);
                 return null;
             }
             finally
@@ -41,7 +42,8 @@ public class OppoClientFactory(ILoggerFactory loggerFactory, ILogger<OppoClientF
             }
         }
 
-        _logger.LogWarning("Failed to acquire semaphore for client creation: {ClientKey}", oppoClientKey);
+        if (_logger.IsEnabled(LogLevel.Warning))
+            _logger.LogWarning("Failed to acquire semaphore for client creation: {ClientKey}", oppoClientKey);
         return null;
     }
     
@@ -54,7 +56,8 @@ public class OppoClientFactory(ILoggerFactory loggerFactory, ILogger<OppoClientF
         }
         catch (Exception e)
         {
-            _logger.LogError(e, "Failed to dispose client {ClientKey}", oppoClientKey);
+            if (_logger.IsEnabled(LogLevel.Error))
+                _logger.LogError(e, "Failed to dispose client {ClientKey}", oppoClientKey);
             throw;
         }
     }
@@ -69,7 +72,8 @@ public class OppoClientFactory(ILoggerFactory loggerFactory, ILogger<OppoClientF
             }
             catch (Exception e)
             {
-                _logger.LogError(e, "Failed to dispose client {ClientKey}", client.Key);
+                if (_logger.IsEnabled(LogLevel.Error))
+                    _logger.LogError(e, "Failed to dispose client {ClientKey}", client.Key);
             }
         }
         

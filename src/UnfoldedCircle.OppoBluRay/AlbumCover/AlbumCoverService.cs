@@ -44,7 +44,8 @@ internal sealed class AlbumCoverService(
                         return coverUri;
                 }
 
-                _logger.LogDebug("No album cover found for {Artist} - {Album}", artist, album);
+                if (_logger.IsEnabled(LogLevel.Debug))
+                    _logger.LogDebug("No album cover found for {Artist} - {Album}", artist, album);
                 return null;
             });
         }
@@ -66,7 +67,8 @@ internal sealed class AlbumCoverService(
                     return coverUri;
             }
 
-            _logger.LogDebug("No album cover found for {Artist} - {Album}", artist, album);
+            if (_logger.IsEnabled(LogLevel.Debug))
+                _logger.LogDebug("No album cover found for {Artist} - {Album}", artist, album);
             return null;
         });
     }
@@ -86,7 +88,8 @@ internal sealed class AlbumCoverService(
                 return await response.Content.ReadFromJsonAsync(jsonTypeInfo, cancellationToken);
 
             var responseContent = await response.Content.ReadAsStringAsync(cancellationToken);
-            _logger.LogError("Failed to fetch {Url}: {StatusCode} - {Content}", url, response.StatusCode, responseContent);
+            if (_logger.IsEnabled(LogLevel.Error))
+                _logger.LogError("Failed to fetch {Url}: {StatusCode} - {Content}", url, response.StatusCode, responseContent);
             return null;
         }
         catch (OperationCanceledException)
@@ -95,7 +98,9 @@ internal sealed class AlbumCoverService(
         }
         catch (Exception e)
         {
-            _logger.LogError(e, "Failed to fetch {Url}", url);
+            if (_logger.IsEnabled(LogLevel.Error))
+                _logger.LogError(e, "Failed to fetch {Url}", url);
+
             return null;
         }
     }
@@ -114,7 +119,9 @@ internal sealed class AlbumCoverService(
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to fetch album cover for {ReleaseId}", releaseId);
+            if (_logger.IsEnabled(LogLevel.Error))
+                _logger.LogError(ex, "Failed to fetch album cover for {ReleaseId}", releaseId);
+
             return null;
         }
     }
