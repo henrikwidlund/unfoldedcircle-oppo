@@ -953,7 +953,8 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         }
         catch (Exception e)
         {
-            _logger.LogError(e, "Failed to connect to Oppo player at {Host}:{Port}", _hostName, _port);
+            if (_logger.IsEnabled(LogLevel.Error))
+                _logger.LogError(e, "Failed to connect to Oppo player at {Host}:{Port}", _hostName, _port);
         }
         finally
         {
@@ -977,7 +978,9 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
 
             if (Interlocked.CompareExchange(ref _failedResponseCount, 0, 2) > 2)
             {
-                _logger.LogWarning("{Caller} - Too many failed responses, resetting connection", caller);
+                if (_logger.IsEnabled(LogLevel.Warning))
+                    _logger.LogWarning("{Caller} - Too many failed responses, resetting connection", caller);
+
                 _tcpClient.Close();
                 _tcpClient = new TcpClient();
                 await IsConnectedAsync();
@@ -996,17 +999,20 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
 
             if (response is { Length: 0 })
             {
-                _logger.LogDebug("{Caller} - Command not valid at this time", caller);
+                if (_logger.IsEnabled(LogLevel.Debug))
+                    _logger.LogDebug("{Caller} - Command not valid at this time", caller);
                 return OppoResultCore.FalseResult;
             }
 
-            _logger.LogError("{Caller} - Failed to send command. Response was '{Response}'", caller, response);
+            if (_logger.IsEnabled(LogLevel.Error))
+                _logger.LogError("{Caller} - Failed to send command. Response was '{Response}'", caller, response);
 
             return OppoResultCore.FalseResult;
         }
         catch (Exception e)
         {
-            _logger.LogError(e, "Failed to send command.");
+            if (_logger.IsEnabled(LogLevel.Error))
+                _logger.LogError(e, "Failed to send command.");
             return OppoResultCore.FalseResult;
         }
         finally
@@ -1118,7 +1124,8 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         where TEnum : Enum
     {
         Interlocked.Increment(ref _failedResponseCount);
-        _logger.LogError("{CallerMemberName} failed. Response was {Response}", callerMemberName, response);
+        if (_logger.IsEnabled(LogLevel.Error))
+            _logger.LogError("{CallerMemberName} failed. Response was {Response}", callerMemberName, response);
         return returnValue;
     }
     

@@ -60,7 +60,7 @@ the will keep getting disconnected and commands will fail.
 
 ### Development
 
-- [dotnet 9 SDK](https://dotnet.microsoft.com/download/dotnet/9.0).
+- [dotnet 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0).
 - or [Docker](https://www.docker.com/get-started).
 
 ## Installing on the remote

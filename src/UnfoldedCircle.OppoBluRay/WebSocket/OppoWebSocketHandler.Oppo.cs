@@ -16,7 +16,8 @@ public partial class OppoWebSocketHandler
         var configuration = await _configurationService.GetConfigurationAsync(cancellationToken);
         if (configuration.Entities.Count == 0)
         {
-            _logger.LogInformation("[{WSId}] WS: No configurations found", wsId);
+            if (_logger.IsEnabled(LogLevel.Information))
+                _logger.LogInformation("[{WSId}] WS: No configurations found", wsId);
             return null;
         }
 
@@ -25,10 +26,10 @@ public partial class OppoWebSocketHandler
         var entity = identifierType switch
         {
             IdentifierType.DeviceId => localIdentifier is { Span.IsEmpty: false }
-                ? configuration.Entities.Find(x => x.DeviceId?.AsMemory().Span.Equals(localIdentifier.Value.Span, StringComparison.OrdinalIgnoreCase) is true)
+                ? configuration.Entities.FirstOrDefault(x => x.DeviceId?.AsMemory().Span.Equals(localIdentifier.Value.Span, StringComparison.OrdinalIgnoreCase) is true)
                 : configuration.Entities[0],
             IdentifierType.EntityId => localIdentifier is { Span.IsEmpty: false }
-                ? configuration.Entities.Find(x => x.EntityId.AsMemory().Span.Equals(localIdentifier.Value.Span, StringComparison.OrdinalIgnoreCase))
+                ? configuration.Entities.FirstOrDefault(x => x.EntityId.AsMemory().Span.Equals(localIdentifier.Value.Span, StringComparison.OrdinalIgnoreCase))
                 : null,
             _ => throw new ArgumentOutOfRangeException(nameof(identifierType), identifierType, null)
         };
@@ -37,8 +38,9 @@ public partial class OppoWebSocketHandler
             return new OppoClientKey(entity.Host, entity.Model, entity.UseMediaEvents, entity.UseChapterLengthForMovies,
                 entity.EntityId, entity.DeviceId);
 
-        _logger.LogInformation("[{WSId}] WS: No configuration found for identifier '{Identifier}' with type {Type}",
-            wsId, localIdentifier, identifierType.ToString());
+        if (_logger.IsEnabled(LogLevel.Information))
+            _logger.LogInformation("[{WSId}] WS: No configuration found for identifier '{Identifier}' with type {Type}",
+                wsId, localIdentifier, identifierType.ToString());
         return null;
     }
 
@@ -49,7 +51,8 @@ public partial class OppoWebSocketHandler
         var configuration = await _configurationService.GetConfigurationAsync(cancellationToken);
         if (configuration.Entities.Count == 0)
         {
-            _logger.LogInformation("[{WSId}] WS: No configurations found", wsId);
+            if (_logger.IsEnabled(LogLevel.Information))
+                _logger.LogInformation("[{WSId}] WS: No configurations found", wsId);
             return null;
         }
 
@@ -128,18 +131,20 @@ public partial class OppoWebSocketHandler
         var configuration = await _configurationService.GetConfigurationAsync(cancellationToken);
         if (configuration.Entities.Count == 0)
         {
-            _logger.LogInformation("[{WSId}] WS: No configurations found", wsId);
+            if (_logger.IsEnabled(LogLevel.Information))
+                _logger.LogInformation("[{WSId}] WS: No configurations found", wsId);
             return null;
         }
 
         if (!string.IsNullOrEmpty(deviceId))
         {
             var localDeviceId = deviceId.AsMemory().GetBaseIdentifier();
-            var entity = configuration.Entities.Find(x => x.DeviceId?.AsMemory().Span.Equals(localDeviceId.Span, StringComparison.OrdinalIgnoreCase) == true);
+            var entity = configuration.Entities.FirstOrDefault(x => x.DeviceId?.AsMemory().Span.Equals(localDeviceId.Span, StringComparison.OrdinalIgnoreCase) == true);
             if (entity is not null)
                 return [entity];
 
-            _logger.LogInformation("[{WSId}] WS: No configuration found for device ID '{DeviceId}'", wsId, localDeviceId);
+            if (_logger.IsEnabled(LogLevel.Information))
+                _logger.LogInformation("[{WSId}] WS: No configuration found for device ID '{DeviceId}'", wsId, localDeviceId);
             return null;
         }
 

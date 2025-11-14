@@ -402,10 +402,11 @@ public partial class OppoWebSocketHandler(
                                         ? chapterOrMovieLengthValue.Equals(OppoConstants.ChapterLengthValue, StringComparison.OrdinalIgnoreCase)
                                         : null;
 
-        var entity = configuration.Entities.Find(x => x.EntityId.Equals(host, StringComparison.OrdinalIgnoreCase));
+        var entity = configuration.Entities.FirstOrDefault(x => x.EntityId.Equals(host, StringComparison.OrdinalIgnoreCase));
         if (entity is null)
         {
-            _logger.LogInformation("Adding configuration for entity_id '{EntityId}'", host);
+            if (_logger.IsEnabled(LogLevel.Information))
+                _logger.LogInformation("Adding configuration for entity_id '{EntityId}'", host);
             entity = new OppoConfigurationItem
             {
                 Host = host,
@@ -419,7 +420,8 @@ public partial class OppoWebSocketHandler(
         }
         else
         {
-            _logger.LogInformation("Updating configuration for entity_id '{EntityId}'", deviceId);
+            if (_logger.IsEnabled(LogLevel.Information))
+                _logger.LogInformation("Updating configuration for entity_id '{EntityId}'", deviceId);
             configuration.Entities.Remove(entity);
             entity = entity with
             {
