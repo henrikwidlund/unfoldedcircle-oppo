@@ -52,7 +52,7 @@ jobs:
           if [ "${{ matrix.kind }}" == "linux-x64" ] || [ "${{ matrix.kind }}" == "linux-arm64" ]; then
             release_name="unfolded-circle-oppo-$tag-${{ matrix.target }}"
             
-            dotnet publish ./src/UnfoldedCircle.OppoBluRay/UnfoldedCircle.OppoBluRay.csproj -r ${{ matrix.target }} -c Release -p:PublishUsingAot=true -o ./publish -p:Version="$ASSEMBLY_VERSION"
+            dotnet publish ./src/UnfoldedCircle.OppoBluRay/UnfoldedCircle.OppoBluRay.csproj -r ${{ matrix.target }} -c Release -o ./publish -p:Version="$ASSEMBLY_VERSION" -p:PublishAot=true
             tar -czvf "${release_name}.tar.gz" -C ./publish .
             
             if [ "${{ matrix.target }}" == "linux-arm64" ]; then
@@ -74,12 +74,12 @@ jobs:
             for target_arch in "x64" "arm64"; do
               target="${{ matrix.target }}-$target_arch"
               release_name="unfolded-circle-oppo-$tag-$target"
-              publish_aot=false
-              if [ "$target_arch" == "x64" ]; then
-                  publish_aot=true
+              if [ "$target_arch" == "arm64" ]; then
+                dotnet publish ./src/UnfoldedCircle.OppoBluRay/UnfoldedCircle.OppoBluRay.csproj -r $target -c Release -o ./publish -p:Version="$ASSEMBLY_VERSION"
+              else
+                dotnet publish ./src/UnfoldedCircle.OppoBluRay/UnfoldedCircle.OppoBluRay.csproj -r $target -c Release -o ./publish -p:Version="$ASSEMBLY_VERSION" -p:PublishAot=true
               fi
               
-              dotnet publish ./src/UnfoldedCircle.OppoBluRay/UnfoldedCircle.OppoBluRay.csproj -r $target -c Release -p:PublishUsingAot="$publish_aot" -o ./publish -p:Version="$ASSEMBLY_VERSION"
               if [ "${{ matrix.kind }}" == "windows" ]; then
                 # Pack to zip for Windows
                 7z a -tzip "${release_name}.zip" "./publish/*"
