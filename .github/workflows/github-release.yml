@@ -72,7 +72,7 @@ jobs:
             rm -r "./driverdir"
           fi
           
-          if [ "${{ matrix.kind }}" == "windows-x64" ||  "${{ matrix.kind }}" == "windows-arm64" ]; then
+          if [ "${{ matrix.kind }}" = "windows-x64" ] || [ "${{ matrix.kind }}" = "windows-arm64" ]; then
             # Pack to zip for Windows
             7z a -tzip "${release_name}.zip" "./publish/*"
           else
