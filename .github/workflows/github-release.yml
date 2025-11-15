@@ -12,7 +12,7 @@ jobs:
       contents: write
     strategy:
       matrix:
-        kind: [ 'linux-x64', 'linux-arm64', 'macos', 'windows' ]
+        kind: [ 'linux-x64', 'linux-arm64', 'macos-x64', 'macos-arm64', 'windows-x64', 'windows-arm64' ]
         include:
           - kind: linux-x64
             os: ubuntu-latest
@@ -20,12 +20,18 @@ jobs:
           - kind: linux-arm64
             os: ubuntu-24.04-arm
             target: linux-arm64
-          - kind: macos
+          - kind: macos-x64
+            os: macos-15-intel
+            target: osx-x64
+          - kind: macos-arm64
             os: macos-latest
-            target: osx
-          - kind: windows
+            target: osx-arm64
+          - kind: windows-x64
             os: windows-latest
-            target: win
+            target: win-x64
+          - kind: windows-arm64
+            os: windows-11-arm
+            target: win-arm64
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout
@@ -49,49 +55,35 @@ jobs:
             src/UnfoldedCircle.OppoBluRay/driver.json > tmp.json && mv tmp.json src/UnfoldedCircle.OppoBluRay/driver.json
           
           # Build everything
-          if [ "${{ matrix.kind }}" == "linux-x64" ] || [ "${{ matrix.kind }}" == "linux-arm64" ]; then
-            release_name="unfolded-circle-oppo-$tag-${{ matrix.target }}"
-            
-            dotnet publish ./src/UnfoldedCircle.OppoBluRay/UnfoldedCircle.OppoBluRay.csproj -r ${{ matrix.target }} -c Release -o ./publish -p:Version="$ASSEMBLY_VERSION" -p:PublishAot=true
-            tar -czvf "${release_name}.tar.gz" -C ./publish .
-            
-            if [ "${{ matrix.target }}" == "linux-arm64" ]; then
-              mkdir driverdir && mkdir driverdir/bin && mkdir driverdir/config && mkdir driverdir/data
-              cp publish/driver.json driverdir/driver.json
-              cp ./oppo.png ./driverdir/oppo.png
-              cp publish/appsettings*.json driverdir/bin/
-              
-              cp publish/driver driverdir/bin/
-              
-              tar -czvf unfolded-circle-oppo-$tag-remote.tar.gz -C ./driverdir .
-              
-              # Delete output directory
-              rm -r "./driverdir"
-            fi
+          release_name="unfolded-circle-oppo-$tag-${{ matrix.target }}"
+          
+          dotnet publish ./src/UnfoldedCircle.OppoBluRay/UnfoldedCircle.OppoBluRay.csproj -r ${{ matrix.target }} -c Release -o ./publish -p:Version="$ASSEMBLY_VERSION" -p:PublishAot=true
+          if [ "${{ matrix.target }}" == "linux-arm64" ]; then
+            mkdir driverdir && mkdir driverdir/bin && mkdir driverdir/config && mkdir driverdir/data
+            cp publish/driver.json driverdir/driver.json
+            cp ./oppo.png ./driverdir/oppo.png
+            cp publish/appsettings*.json driverdir/bin/
+          
+            cp publish/driver driverdir/bin/
+            cp publish/driver.dbg driverdir/bin/
+          
+            tar -czvf unfolded-circle-oppo-$tag-remote.tar.gz -C ./driverdir .
+          
             # Delete output directory
-            rm -r "./publish"
-          else
-            for target_arch in "x64" "arm64"; do
-              target="${{ matrix.target }}-$target_arch"
-              release_name="unfolded-circle-oppo-$tag-$target"
-              if [ "$target_arch" == "arm64" ]; then
-                dotnet publish ./src/UnfoldedCircle.OppoBluRay/UnfoldedCircle.OppoBluRay.csproj -r $target -c Release -o ./publish -p:Version="$ASSEMBLY_VERSION"
-              else
-                dotnet publish ./src/UnfoldedCircle.OppoBluRay/UnfoldedCircle.OppoBluRay.csproj -r $target -c Release -o ./publish -p:Version="$ASSEMBLY_VERSION" -p:PublishAot=true
-              fi
-              
-              if [ "${{ matrix.kind }}" == "windows" ]; then
-                # Pack to zip for Windows
-                7z a -tzip "${release_name}.zip" "./publish/*"
-              else
-                # Pack tar.gz for non-Windows
-                tar -czvf "${release_name}.tar.gz" -C ./publish .
-              fi
-              
-              # Delete output directory
-              rm -r "./publish"
-            done
+            rm -r "./driverdir"
           fi
+          
+          if [ "${{ matrix.kind }}" = "windows-x64" ] || [ "${{ matrix.kind }}" = "windows-arm64" ]; then
+            # Pack to zip for Windows
+            7z a -tzip "${release_name}.zip" "./publish/*"
+          else
+            # Pack tar.gz for non-Windows
+            tar -czvf "${release_name}.tar.gz" -C ./publish .
+          fi
+          
+          # Delete output directory
+          rm -r "./publish"
+
       - name: Publish
         uses: softprops/action-gh-release@5be0e66d93ac7ed76da52eca8bb058f665c3a5fe
         with:
