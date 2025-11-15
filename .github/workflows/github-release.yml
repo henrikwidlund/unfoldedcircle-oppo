@@ -65,6 +65,7 @@ jobs:
             cp publish/appsettings*.json driverdir/bin/
           
             cp publish/driver driverdir/bin/
+            cp publish/driver.dbg driverdir/bin/
           
             tar -czvf unfolded-circle-oppo-$tag-remote.tar.gz -C ./driverdir .
           
