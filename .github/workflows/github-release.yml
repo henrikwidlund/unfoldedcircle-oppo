@@ -12,21 +12,21 @@ jobs:
       contents: write
     strategy:
       matrix:
-        kind: [ 'linux-x64', 'linux-arm64', 'macos-x64', 'macos-arm64', 'windows-x64', 'windows-arm64' ]
+        kind: [ 'linux-amd64', 'linux-arm64', 'macos-amd64', 'macos-arm64', 'windows-amd64', 'windows-arm64' ]
         include:
-          - kind: linux-x64
+          - kind: linux-amd64
             os: ubuntu-latest
             target: linux-x64
           - kind: linux-arm64
             os: ubuntu-24.04-arm
             target: linux-arm64
-          - kind: macos-x64
+          - kind: macos-amd64
             os: macos-15-intel
             target: osx-x64
           - kind: macos-arm64
             os: macos-latest
             target: osx-arm64
-          - kind: windows-x64
+          - kind: windows-amd64
             os: windows-latest
             target: win-x64
           - kind: windows-arm64
@@ -55,7 +55,7 @@ jobs:
             src/UnfoldedCircle.OppoBluRay/driver.json > tmp.json && mv tmp.json src/UnfoldedCircle.OppoBluRay/driver.json
           
           # Build everything
-          release_name="unfolded-circle-oppo-$tag-${{ matrix.target }}"
+          release_name="unfolded-circle-oppo-$tag-${{ matrix.kind }}"
           
           dotnet publish ./src/UnfoldedCircle.OppoBluRay/UnfoldedCircle.OppoBluRay.csproj -r ${{ matrix.target }} -c Release -o ./publish -p:Version="$ASSEMBLY_VERSION" -p:PublishAot=true
           if [ "${{ matrix.target }}" == "linux-arm64" ]; then
