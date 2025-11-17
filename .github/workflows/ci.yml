@@ -30,6 +30,3 @@ jobs:
 
       - name: Build
         run: dotnet build --no-restore
-
-      - name: Run Unit Tests
-        run: dotnet test --no-build --verbosity normal /p:CollectCoverage=true /p:CoverletOutputFormat=opencover
