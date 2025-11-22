@@ -10,6 +10,7 @@ using UnfoldedCircle.Models.Sync;
 using UnfoldedCircle.OppoBluRay.AlbumCover;
 using UnfoldedCircle.OppoBluRay.Configuration;
 using UnfoldedCircle.OppoBluRay.Json;
+using UnfoldedCircle.OppoBluRay.Logging;
 using UnfoldedCircle.OppoBluRay.OppoEntity;
 using UnfoldedCircle.OppoBluRay.Response;
 using UnfoldedCircle.Server.Configuration;
@@ -405,8 +406,7 @@ public partial class OppoWebSocketHandler(
         var entity = configuration.Entities.FirstOrDefault(x => x.EntityId.Equals(host, StringComparison.OrdinalIgnoreCase));
         if (entity is null)
         {
-            if (_logger.IsEnabled(LogLevel.Information))
-                _logger.LogInformation("Adding configuration for entity_id '{EntityId}'", host);
+            _logger.AddingConfiguration(host);
             entity = new OppoConfigurationItem
             {
                 Host = host,
@@ -420,8 +420,7 @@ public partial class OppoWebSocketHandler(
         }
         else
         {
-            if (_logger.IsEnabled(LogLevel.Information))
-                _logger.LogInformation("Updating configuration for entity_id '{EntityId}'", deviceId);
+            _logger.UpdatingConfiguration(deviceId);
             configuration.Entities.Remove(entity);
             entity = entity with
             {

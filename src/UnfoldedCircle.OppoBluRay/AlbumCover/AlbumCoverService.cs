@@ -3,6 +3,7 @@ using System.Text.Json.Serialization.Metadata;
 using Microsoft.Extensions.Caching.Memory;
 
 using UnfoldedCircle.OppoBluRay.Json;
+using UnfoldedCircle.OppoBluRay.Logging;
 
 namespace UnfoldedCircle.OppoBluRay.AlbumCover;
 
@@ -44,8 +45,7 @@ internal sealed class AlbumCoverService(
                         return coverUri;
                 }
 
-                if (_logger.IsEnabled(LogLevel.Debug))
-                    _logger.LogDebug("No album cover found for {Artist} - {Album}", artist, album);
+                _logger.NoAlbumCoverFound(artist, album);
                 return null;
             });
         }
@@ -67,8 +67,7 @@ internal sealed class AlbumCoverService(
                     return coverUri;
             }
 
-            if (_logger.IsEnabled(LogLevel.Debug))
-                _logger.LogDebug("No album cover found for {Artist} - {Album}", artist, album);
+            _logger.NoAlbumCoverFound(artist, album);
             return null;
         });
     }
@@ -88,8 +87,7 @@ internal sealed class AlbumCoverService(
                 return await response.Content.ReadFromJsonAsync(jsonTypeInfo, cancellationToken);
 
             var responseContent = await response.Content.ReadAsStringAsync(cancellationToken);
-            if (_logger.IsEnabled(LogLevel.Error))
-                _logger.LogError("Failed to fetch {Url}: {StatusCode} - {Content}", url, response.StatusCode, responseContent);
+            _logger.FailedToFetchUrl(url, response.StatusCode, responseContent);
             return null;
         }
         catch (OperationCanceledException)
@@ -98,8 +96,7 @@ internal sealed class AlbumCoverService(
         }
         catch (Exception e)
         {
-            if (_logger.IsEnabled(LogLevel.Error))
-                _logger.LogError(e, "Failed to fetch {Url}", url);
+            _logger.FailedToFetchUrlException(e, url);
 
             return null;
         }
@@ -119,8 +116,7 @@ internal sealed class AlbumCoverService(
         }
         catch (Exception ex)
         {
-            if (_logger.IsEnabled(LogLevel.Error))
-                _logger.LogError(ex, "Failed to fetch album cover for {ReleaseId}", releaseId);
+            _logger.FailedToFetchAlbumCover(ex, releaseId);
 
             return null;
         }

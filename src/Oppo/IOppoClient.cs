@@ -397,5 +397,5 @@ public interface IOppoClient : IDisposable
     /// <summary>
     /// Get the host or IP address of the client.
     /// </summary>
-    string GetHost();
+    string HostName { get; }
 }

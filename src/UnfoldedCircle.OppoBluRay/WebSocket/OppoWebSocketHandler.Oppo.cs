@@ -1,6 +1,7 @@
 using Oppo;
 
 using UnfoldedCircle.OppoBluRay.Configuration;
+using UnfoldedCircle.OppoBluRay.Logging;
 using UnfoldedCircle.Server.Extensions;
 
 namespace UnfoldedCircle.OppoBluRay.WebSocket;
@@ -16,8 +17,7 @@ public partial class OppoWebSocketHandler
         var configuration = await _configurationService.GetConfigurationAsync(cancellationToken);
         if (configuration.Entities.Count == 0)
         {
-            if (_logger.IsEnabled(LogLevel.Information))
-                _logger.LogInformation("[{WSId}] WS: No configurations found", wsId);
+            _logger.NoConfigurationsFound(wsId);
             return null;
         }
 
@@ -38,9 +38,7 @@ public partial class OppoWebSocketHandler
             return new OppoClientKey(entity.Host, entity.Model, entity.UseMediaEvents, entity.UseChapterLengthForMovies,
                 entity.EntityId, entity.DeviceId);
 
-        if (_logger.IsEnabled(LogLevel.Information))
-            _logger.LogInformation("[{WSId}] WS: No configuration found for identifier '{Identifier}' with type {Type}",
-                wsId, localIdentifier, identifierType.ToString());
+        _logger.NoConfigurationFoundForIdentifier(wsId, localIdentifier ?? default, identifierType);
         return null;
     }
 
@@ -51,8 +49,7 @@ public partial class OppoWebSocketHandler
         var configuration = await _configurationService.GetConfigurationAsync(cancellationToken);
         if (configuration.Entities.Count == 0)
         {
-            if (_logger.IsEnabled(LogLevel.Information))
-                _logger.LogInformation("[{WSId}] WS: No configurations found", wsId);
+            _logger.NoConfigurationsFound(wsId);
             return null;
         }
 
@@ -62,7 +59,7 @@ public partial class OppoWebSocketHandler
             .ToArray();
     }
 
-    private enum IdentifierType
+    internal enum IdentifierType
     {
         DeviceId,
         EntityId
@@ -131,8 +128,7 @@ public partial class OppoWebSocketHandler
         var configuration = await _configurationService.GetConfigurationAsync(cancellationToken);
         if (configuration.Entities.Count == 0)
         {
-            if (_logger.IsEnabled(LogLevel.Information))
-                _logger.LogInformation("[{WSId}] WS: No configurations found", wsId);
+            _logger.NoConfigurationsFound(wsId);
             return null;
         }
 
@@ -143,8 +139,7 @@ public partial class OppoWebSocketHandler
             if (entity is not null)
                 return [entity];
 
-            if (_logger.IsEnabled(LogLevel.Information))
-                _logger.LogInformation("[{WSId}] WS: No configuration found for device ID '{DeviceId}'", wsId, localDeviceId);
+            _logger.NoConfigurationFoundForDeviceId(wsId, localDeviceId);
             return null;
         }
 

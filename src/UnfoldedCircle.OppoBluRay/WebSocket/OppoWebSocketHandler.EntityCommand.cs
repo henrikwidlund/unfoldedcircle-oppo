@@ -1,6 +1,7 @@
 using Oppo;
 
 using UnfoldedCircle.Models.Sync;
+using UnfoldedCircle.OppoBluRay.Logging;
 using UnfoldedCircle.OppoBluRay.OppoEntity;
 using UnfoldedCircle.Server.Extensions;
 using UnfoldedCircle.Server.WebSocket;
@@ -18,8 +19,7 @@ public partial class OppoWebSocketHandler
         var oppoClientHolder = await TryGetOppoClientHolderAsync(wsId, payload.MsgData.EntityId, IdentifierType.EntityId, commandCancellationToken);
         if (oppoClientHolder is null)
         {
-            if (_logger.IsEnabled(LogLevel.Warning))
-                _logger.LogWarning("[{WSId}] WS: Could not find Oppo client for entity ID '{EntityId}'", wsId, payload.MsgData.EntityId.AsMemory().GetBaseIdentifier());
+            _logger.CouldNotFindOppoClientForEntityId(wsId, payload.MsgData.EntityId.AsMemory().GetBaseIdentifier());
             return EntityCommandResult.Failure;
         }
 
@@ -295,8 +295,7 @@ public partial class OppoWebSocketHandler
         var oppoClientHolder = await TryGetOppoClientHolderAsync(wsId, payload.MsgData.EntityId, IdentifierType.EntityId, commandCancellationToken);
         if (oppoClientHolder is null)
         {
-            if (_logger.IsEnabled(LogLevel.Warning))
-                _logger.LogWarning("[{WSId}] WS: Could not find Oppo client for entity ID '{EntityId}'", wsId, payload.MsgData.EntityId.AsMemory().GetBaseIdentifier());
+            _logger.CouldNotFindOppoClientForEntityId(wsId, payload.MsgData.EntityId.AsMemory().GetBaseIdentifier());
             return EntityCommandResult.Failure;
         }
 

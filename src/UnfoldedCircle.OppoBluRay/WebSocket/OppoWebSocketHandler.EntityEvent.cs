@@ -4,6 +4,7 @@ using Oppo;
 
 using UnfoldedCircle.Models.Events;
 using UnfoldedCircle.Models.Shared;
+using UnfoldedCircle.OppoBluRay.Logging;
 using UnfoldedCircle.OppoBluRay.OppoEntity;
 using UnfoldedCircle.Server.Response;
 using UnfoldedCircle.Server.WebSocket;
@@ -20,16 +21,14 @@ public partial class OppoWebSocketHandler
     {
         if (!IsSocketSubscribedToEvents(wsId))
         {
-            if (_logger.IsEnabled(LogLevel.Debug))
-                _logger.LogDebug("{WSId} Subscribe events not called", wsId);
+            _logger.SubscribeEventsNotCalled(wsId);
             return;
         }
 
         var cancellationTokenSource = cancellationTokenWrapper.GetCurrentBroadcastCancellationTokenSource();
         if (cancellationTokenSource is null || cancellationTokenSource.IsCancellationRequested)
         {
-            if (_logger.IsEnabled(LogLevel.Debug))
-                _logger.LogDebug("{WSId} Broadcast token is cancelled {IsCancellationRequested}", wsId, cancellationTokenSource?.IsCancellationRequested);
+            _logger.BroadcastTokenCancelled(wsId, cancellationTokenSource?.IsCancellationRequested);
             return;
         }
 
@@ -40,8 +39,7 @@ public partial class OppoWebSocketHandler
                 var entityIdSpan = entityId.AsSpan();
                 if (IsBroadcastingEvents(entityIdSpan) || !TryAddEntityIdToBroadcastingEvents(entityIdSpan, cancellationTokenWrapper))
                 {
-                    if (_logger.IsEnabled(LogLevel.Debug))
-                        _logger.LogDebug("{WSId} Events already running for {EntityId}", wsId, entityId);
+                    _logger.EventsAlreadyRunning(wsId, entityId);
                     return;
                 }
             }
@@ -52,9 +50,7 @@ public partial class OppoWebSocketHandler
         }
         else
         {
-            if (_logger.IsEnabled(LogLevel.Error))
-                _logger.LogError("{WSId} Could not acquire semaphore for broadcasting events for {EntityId}. Will not start broadcasting.",
-                    wsId, entityId);
+            _logger.CouldNotAcquireSemaphore(wsId, entityId);
             return;
         }
 
@@ -63,19 +59,16 @@ public partial class OppoWebSocketHandler
         var oppoClientHolder = await TryGetOppoClientHolderAsync(wsId, entityId, IdentifierType.EntityId, cancellationTokenWrapper.RequestAborted);
         if (oppoClientHolder is null)
         {
-            if (_logger.IsEnabled(LogLevel.Warning))
-                _logger.LogWarning("[{WSId}] WS: Could not find Oppo client for entity ID '{EntityId}'", wsId, entityId);
+            _logger.CouldNotFindOppoClientForEntityId(wsId, entityId.AsMemory());
             return;
         }
 
-        if (_logger.IsEnabled(LogLevel.Debug))
-            _logger.LogDebug("{WSId} Trying to get OppoClientHolder.", wsId);
+        _logger.TryingToGetOppoClientHolder(wsId);
         while (await periodicTimer.WaitForNextTickAsync(cancellationTokenSource.Token))
         {
             if (!IsBroadcastingEvents(entityId))
             {
-                if (_logger.IsEnabled(LogLevel.Debug))
-                    _logger.LogDebug("{WSId} No longer subscribed to events for {EntityId}. Stopping event updates.", wsId, entityId);
+                _logger.NoLongerSubscribedToEvents(wsId, entityId);
                 return;
             }
 
@@ -83,22 +76,20 @@ public partial class OppoWebSocketHandler
                 break;
         }
 
-        if (_logger.IsEnabled(LogLevel.Debug))
-            _logger.LogDebug("{WSId} Starting events for {DeviceId}", wsId, oppoClientHolder.Client.GetHost());
+        _logger.StartingEventsForDevice(wsId, oppoClientHolder.Client.HostName);
         try
         {
             while (await periodicTimer.WaitForNextTickAsync(cancellationTokenSource.Token))
             {
                 if (!IsBroadcastingEvents(entityId))
                 {
-                    if (_logger.IsEnabled(LogLevel.Debug))
-                        _logger.LogDebug("{WSId} No longer subscribed to events for {EntityId}. Stopping event updates.", wsId, entityId);
+                    _logger.NoLongerSubscribedToEvents(wsId, entityId);
                     return;
                 }
 
                 var connected = await oppoClientHolder.Client.IsConnectedAsync();
-                if (!connected && _logger.IsEnabled(LogLevel.Debug))
-                    _logger.LogDebug("{WSId} Client not connected. {@ClientKey}", wsId, oppoClientHolder.ClientKey);
+                if (!connected)
+                    _logger.ClientNotConnected(wsId, oppoClientHolder.ClientKey);
 
                 OppoResult<PowerState>? powerStatusResponse;
                 if (connected)
@@ -243,8 +234,7 @@ public partial class OppoWebSocketHandler
             }
         }
 
-        if (_logger.IsEnabled(LogLevel.Debug))
-            _logger.LogDebug("{WSId} Stopping media updates for {DeviceId}", wsId, oppoClientHolder.Client.GetHost());
+        _logger.StoppingMediaUpdates(wsId, oppoClientHolder.Client.HostName);
         return;
 
         static string? ReplaceStarWithEllipsis(string? input) =>
