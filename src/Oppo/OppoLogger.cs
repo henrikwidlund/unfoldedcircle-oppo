@@ -21,13 +21,13 @@ internal static partial class OppoLogger
         new EventId(3, nameof(FailedToDisposeClient)),
         "Failed to dispose client {ClientKey}");
 
-    public static void FailedToDisposeClient(this ILogger logger, Exception exception, in OppoClientKey clientKey) =>
-        _failedToDisposeClient(logger, clientKey, exception);
-
     private static readonly Action<ILogger, int, Exception> _failedToDisposeClientInt = LoggerMessage.Define<int>(
         LogLevel.Error,
         new EventId(4, nameof(FailedToDisposeClient)),
         "Failed to dispose client {ClientKey}");
+
+    public static void FailedToDisposeClient(this ILogger logger, Exception exception, in OppoClientKey clientKey) =>
+        _failedToDisposeClient(logger, clientKey, exception);
 
     public static void FailedToDisposeClient(this ILogger logger, Exception exception, in int clientKey) =>
         _failedToDisposeClientInt(logger, clientKey, exception);
