@@ -123,12 +123,12 @@ internal sealed class AlbumCoverService(
     }
 }
 
-internal record ArtistAlbumsResponse(
+internal sealed record ArtistAlbumsResponse(
     [property: JsonPropertyName("releases")]
     ArtistAlbumsReleases[] Releases
 );
 
-internal record ArtistAlbumsReleases(
+internal sealed record ArtistAlbumsReleases(
     [property: JsonPropertyName("id")]
     string Id,
     
@@ -136,12 +136,12 @@ internal record ArtistAlbumsReleases(
     int Score
 );
 
-internal record ArtistTrackResponse(
+internal sealed record ArtistTrackResponse(
     [property: JsonPropertyName("recordings")]
     Recordings[] Recordings
 );
 
-internal record Recordings(
+internal sealed record Recordings(
     [property: JsonPropertyName("id")]
     string Id,
     [property: JsonPropertyName("score")]
@@ -150,7 +150,7 @@ internal record Recordings(
     RecordingsRelease[] Releases
 );
 
-internal record RecordingsRelease(
+internal sealed record RecordingsRelease(
     [property: JsonPropertyName("id")]
     string Id
 );
