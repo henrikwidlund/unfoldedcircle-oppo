@@ -1,0 +1,22 @@
+<Solution>
+  <Folder Name="/Solution Items/">
+    <File Path=".editorconfig" />
+    <File Path="README.md" />
+  </Folder>
+  <Folder Name="/Solution Items/Build/">
+    <File Path="publish.sh" />
+  </Folder>
+  <Folder Name="/Solution Items/GitHub/">
+    <File Path=".github/dependabot.yml" />
+    <File Path=".github/workflows/ci.yml" />
+    <File Path=".github/workflows/dependency-review.yml" />
+    <File Path=".github/workflows/docker.yml" />
+    <File Path=".github/workflows/github-release.yml" />
+    <File Path=".github/workflows/qodana_code_quality.yml" />
+    <File Path=".github/workflows/sonarqube.yml" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/Oppo/Oppo.csproj" />
+    <Project Path="src/UnfoldedCircle.OppoBluRay/UnfoldedCircle.OppoBluRay.csproj" />
+  </Folder>
+</Solution>
