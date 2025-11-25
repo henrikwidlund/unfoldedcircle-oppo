@@ -7,7 +7,7 @@ using UnfoldedCircle.Models.Sync;
 namespace UnfoldedCircle.OppoBluRay.OppoEntity;
 
 [JsonConverter(typeof(OppoCommandIdJsonConverter))]
-public enum OppoCommandId
+public enum OppoCommandId : sbyte
 {
     /// <summary>
     /// Switch on media player.

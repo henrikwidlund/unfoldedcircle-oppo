@@ -30,9 +30,8 @@ internal static class OppoResponsePayloadHelpers
         }
     }
 
-    private static MediaPlayerEntityAttribute[] GetMediaPlayerAttributes(in OppoModel model)
-    {
-        return model switch
+    private static MediaPlayerEntityAttribute[] GetMediaPlayerAttributes(in OppoModel model) =>
+        model switch
         {
             OppoModel.BDP83 or OppoModel.BDP9X =>
             [
@@ -77,5 +76,4 @@ internal static class OppoResponsePayloadHelpers
             ],
             _ => throw new ArgumentOutOfRangeException(nameof(model), model, null)
         };
-    }
 }

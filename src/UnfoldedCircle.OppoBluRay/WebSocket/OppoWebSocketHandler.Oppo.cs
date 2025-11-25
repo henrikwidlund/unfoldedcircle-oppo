@@ -59,7 +59,7 @@ public partial class OppoWebSocketHandler
             .ToArray();
     }
 
-    internal enum IdentifierType
+    internal enum IdentifierType : sbyte
     {
         DeviceId,
         EntityId

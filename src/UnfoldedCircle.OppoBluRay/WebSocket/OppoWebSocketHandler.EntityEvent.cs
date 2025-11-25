@@ -91,11 +91,9 @@ public partial class OppoWebSocketHandler
                 if (!connected)
                     _logger.ClientNotConnected(wsId, oppoClientHolder.ClientKey);
 
-                OppoResult<PowerState>? powerStatusResponse;
-                if (connected)
-                    powerStatusResponse = await oppoClientHolder.Client.QueryPowerStatusAsync(cancellationTokenSource.Token);
-                else
-                    powerStatusResponse = null;
+                OppoResult<PowerState>? powerStatusResponse = connected
+                    ? await oppoClientHolder.Client.QueryPowerStatusAsync(cancellationTokenSource.Token)
+                    : null;
 
                 var state = powerStatusResponse switch
                 {
@@ -240,27 +238,24 @@ public partial class OppoWebSocketHandler
         static string? ReplaceStarWithEllipsis(string? input) =>
             string.IsNullOrWhiteSpace(input) ? input : input.Replace('*', '…');
 
-        static string? GetInputSource(in OppoResult<InputSource>? inputSourceResponse)
-        {
-            if (inputSourceResponse is not { Success: true })
-                return null;
-
-            return inputSourceResponse.Value.Result switch
-            {
-                InputSource.Unknown => null,
-                InputSource.BluRayPlayer => OppoConstants.InputSource.BluRayPlayer,
-                InputSource.HDMIIn => OppoConstants.InputSource.HDMIIn,
-                InputSource.ARCHDMIOut => OppoConstants.InputSource.ARCHDMIOut,
-                InputSource.Optical => OppoConstants.InputSource.Optical,
-                InputSource.Coaxial => OppoConstants.InputSource.Coaxial,
-                InputSource.USBAudio => OppoConstants.InputSource.USBAudio,
-                InputSource.HDMIFront => OppoConstants.InputSource.HDMIFront,
-                InputSource.HDMIBack => OppoConstants.InputSource.HDMIBack,
-                InputSource.ARCHDMIOut1 => OppoConstants.InputSource.ARCHDMIOut1,
-                InputSource.ARCHDMIOut2 => OppoConstants.InputSource.ARCHDMIOut2,
-                _ => null
-            };
-        }
+        static string? GetInputSource(in OppoResult<InputSource>? inputSourceResponse) =>
+            inputSourceResponse is not { Success: true }
+                ? null
+                : inputSourceResponse.Value.Result switch
+                {
+                    InputSource.Unknown => null,
+                    InputSource.BluRayPlayer => OppoConstants.InputSource.BluRayPlayer,
+                    InputSource.HDMIIn => OppoConstants.InputSource.HDMIIn,
+                    InputSource.ARCHDMIOut => OppoConstants.InputSource.ARCHDMIOut,
+                    InputSource.Optical => OppoConstants.InputSource.Optical,
+                    InputSource.Coaxial => OppoConstants.InputSource.Coaxial,
+                    InputSource.USBAudio => OppoConstants.InputSource.USBAudio,
+                    InputSource.HDMIFront => OppoConstants.InputSource.HDMIFront,
+                    InputSource.HDMIBack => OppoConstants.InputSource.HDMIBack,
+                    InputSource.ARCHDMIOut1 => OppoConstants.InputSource.ARCHDMIOut1,
+                    InputSource.ARCHDMIOut2 => OppoConstants.InputSource.ARCHDMIOut2,
+                    _ => null
+                };
     }
 
     private async Task<bool> SendMediaPlayerEventAsync(System.Net.WebSockets.WebSocket socket,

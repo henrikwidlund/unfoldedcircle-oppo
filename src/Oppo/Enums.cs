@@ -1,20 +1,20 @@
 namespace Oppo;
 
-public enum PowerState
+public enum PowerState : sbyte
 {
     On = 1,
     Off,
     Unknown
 }
 
-public enum TrayState
+public enum TrayState : sbyte
 {
     Open = 1,
     Closed,
     Unknown
 }
 
-public enum DimmerState
+public enum DimmerState : sbyte
 {
     On = 1,
     Dim,
@@ -22,14 +22,14 @@ public enum DimmerState
     Unknown
 }
 
-public enum PureAudioState
+public enum PureAudioState : sbyte
 {
     On = 1,
     Off,
     Unknown
 }
 
-public enum MuteState
+public enum MuteState : sbyte
 {
     On = 1,
     Off,
@@ -37,7 +37,7 @@ public enum MuteState
 }
 
 // ReSharper disable InconsistentNaming
-public enum ABReplayState
+public enum ABReplayState : sbyte
 {
     A = 1,
     AB,
@@ -46,7 +46,7 @@ public enum ABReplayState
 }
 // ReSharper restore InconsistentNaming
 
-public enum RepeatState
+public enum RepeatState : sbyte
 {
     RepeatChapter = 1,
     RepeatTitle,
@@ -54,7 +54,7 @@ public enum RepeatState
     Unknown
 }
 
-public enum RepeatMode
+public enum RepeatMode : sbyte
 {
     /// <summary>
     /// Only used if return value is unknown. Do not use this value to set the repeat mode.
@@ -92,7 +92,7 @@ public enum RepeatMode
     Random
 }
 
-public enum PlaybackStatus
+public enum PlaybackStatus : sbyte
 {
     Unknown,
     Play,
@@ -116,7 +116,7 @@ public enum PlaybackStatus
     Close
 }
 
-public enum DiscType
+public enum DiscType : sbyte
 {
     // ReSharper disable InconsistentNaming
     BlueRayMovie = 1,
@@ -134,7 +134,7 @@ public enum DiscType
     // ReSharper restore InconsistentNaming
 }
 
-public enum CurrentRepeatMode
+public enum CurrentRepeatMode : sbyte
 {
     Unknown,
     Off,
@@ -146,7 +146,7 @@ public enum CurrentRepeatMode
     Random
 }
 
-public enum OppoModel
+public enum OppoModel : sbyte
 {
     // ReSharper disable InconsistentNaming
     BDP83,
@@ -157,7 +157,24 @@ public enum OppoModel
     // ReSharper restore InconsistentNaming
 }
 
-public enum InputSource
+public static class OppoModelExtensions
+{
+    extension(OppoModel model)
+    {
+        public string ToStringFast() =>
+            model switch
+            {
+                OppoModel.BDP83 => nameof(OppoModel.BDP83),
+                OppoModel.BDP9X => nameof(OppoModel.BDP9X),
+                OppoModel.BDP10X => nameof(OppoModel.BDP10X),
+                OppoModel.UDP203 => nameof(OppoModel.UDP203),
+                OppoModel.UDP205 => nameof(OppoModel.UDP205),
+                _ => "Unknown"
+            };
+    }
+}
+
+public enum InputSource : sbyte
 {
     // ReSharper disable InconsistentNaming
     Unknown,
