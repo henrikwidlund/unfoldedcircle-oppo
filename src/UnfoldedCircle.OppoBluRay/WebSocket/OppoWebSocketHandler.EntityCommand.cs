@@ -292,8 +292,7 @@ public partial class OppoWebSocketHandler
         CancellationTokenWrapper cancellationTokenWrapper,
         CancellationToken commandCancellationToken)
     {
-        var oppoClientHolder = await TryGetOppoClientHolderAsync(wsId, payload.MsgData.EntityId, IdentifierType.EntityId, commandCancellationToken);
-        if (oppoClientHolder is null)
+        if (await TryGetOppoClientHolderAsync(wsId, payload.MsgData.EntityId, IdentifierType.EntityId, commandCancellationToken) is not { } oppoClientHolder)
         {
             _logger.CouldNotFindOppoClientForEntityId(wsId, payload.MsgData.EntityId.AsMemory().GetBaseIdentifier());
             return EntityCommandResult.Failure;

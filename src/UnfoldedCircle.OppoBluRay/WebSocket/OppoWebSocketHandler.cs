@@ -49,10 +49,7 @@ public partial class OppoWebSocketHandler(
     }
 
     protected override async ValueTask<IReadOnlyCollection<AvailableEntity>> OnGetAvailableEntitiesAsync(GetAvailableEntitiesMsg payload, string wsId, CancellationToken cancellationToken)
-    {
-        var entities = await GetEntitiesAsync(wsId, payload.MsgData.Filter?.DeviceId, cancellationToken);
-        return GetAvailableEntities(entities, payload).ToArray();
-    }
+        => GetAvailableEntities(await GetEntitiesAsync(wsId, payload.MsgData.Filter?.DeviceId, cancellationToken), payload).ToArray();
 
     protected override async ValueTask OnSubscribeEventsAsync(System.Net.WebSockets.WebSocket socket,
         CommonReq payload,
@@ -60,8 +57,7 @@ public partial class OppoWebSocketHandler(
         CancellationTokenWrapper cancellationTokenWrapper,
         CancellationToken commandCancellationToken)
     {
-        var oppoClientHolders = await TryGetOppoClientHolders(wsId, commandCancellationToken);
-        if (oppoClientHolders is { Count: > 0 })
+        if (await TryGetOppoClientHolders(wsId, commandCancellationToken) is { Count: > 0 } oppoClientHolders)
         {
             foreach (var oppoClientHolder in oppoClientHolders)
             {
@@ -266,7 +262,7 @@ public partial class OppoWebSocketHandler(
                                     Value = nameof(OppoModel.UDP205)
                                 }
                             ],
-                            Value = configurationItem?.Model.ToString()
+                            Value = configurationItem?.Model.ToStringFast()
                         }
                     },
                     Label = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { ["en"] = "Select the model of your Oppo player (mandatory)" }
@@ -352,30 +348,23 @@ public partial class OppoWebSocketHandler(
         return await GetSetupResultForClient(wsId, newConfigurationItem.EntityId, cancellationToken);
     }
 
-    private static OppoModel GetOppoModel(Dictionary<string, string> msgDataSetupData)
-    {
-        if (msgDataSetupData.TryGetValue(OppoConstants.OppoModelKey, out var oppoModel))
-        {
-            return oppoModel switch
+    private static OppoModel GetOppoModel(Dictionary<string, string> msgDataSetupData) =>
+        msgDataSetupData.TryGetValue(OppoConstants.OppoModelKey, out var oppoModel)
+            ? oppoModel switch
             {
                 _ when oppoModel.Equals(nameof(OppoModel.BDP83), StringComparison.OrdinalIgnoreCase) => OppoModel.BDP83,
                 _ when oppoModel.Equals(nameof(OppoModel.BDP9X), StringComparison.OrdinalIgnoreCase) => OppoModel.BDP9X,
                 _ when oppoModel.Equals(nameof(OppoModel.BDP10X), StringComparison.OrdinalIgnoreCase) => OppoModel.BDP10X,
                 _ when oppoModel.Equals(nameof(OppoModel.UDP203), StringComparison.OrdinalIgnoreCase) => OppoModel.UDP203,
                 _ => OppoModel.UDP205
-            };
-        }
+            }
+            : OppoModel.UDP203;
 
-        return OppoModel.UDP203;
-    }
-
-    private async ValueTask<SetupDriverUserDataResult> GetSetupResultForClient(string wsId, string entityId, CancellationToken cancellationToken)
-    {
-        var oppoClientHolder = await TryGetOppoClientHolderAsync(wsId, entityId, IdentifierType.EntityId, cancellationToken);
-        return oppoClientHolder is not null && await oppoClientHolder.Client.IsConnectedAsync()
+    private async ValueTask<SetupDriverUserDataResult> GetSetupResultForClient(string wsId, string entityId, CancellationToken cancellationToken) =>
+        await TryGetOppoClientHolderAsync(wsId, entityId, IdentifierType.EntityId, cancellationToken) is { } oppoClientHolder
+        && await oppoClientHolder.Client.IsConnectedAsync()
             ? SetupDriverUserDataResult.Finalized
             : SetupDriverUserDataResult.Error;
-    }
 
     private static string GetOppoModelName(in OppoModel oppoModel) =>
         oppoModel switch
@@ -459,9 +448,7 @@ public partial class OppoWebSocketHandler(
     protected override ValueTask OnExitStandbyAsync(ExitStandbyEvent payload, string wsId, CancellationToken cancellationToken)
         => ValueTask.CompletedTask;
 
-    protected override async ValueTask<bool> IsEntityReachableAsync(string wsId, string entityId, CancellationToken cancellationToken)
-    {
-        var oppoClientHolder = await TryGetOppoClientHolderAsync(wsId, entityId, IdentifierType.EntityId, cancellationToken);
-        return oppoClientHolder is not null && await oppoClientHolder.Client.IsConnectedAsync();
-    }
+    protected override async ValueTask<bool> IsEntityReachableAsync(string wsId, string entityId, CancellationToken cancellationToken) =>
+        await TryGetOppoClientHolderAsync(wsId, entityId, IdentifierType.EntityId, cancellationToken) is { } oppoClientHolder
+        && await oppoClientHolder.Client.IsConnectedAsync();
 }
