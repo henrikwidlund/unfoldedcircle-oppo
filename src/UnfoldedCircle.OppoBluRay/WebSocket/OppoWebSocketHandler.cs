@@ -126,11 +126,11 @@ public partial class OppoWebSocketHandler(
         {
             if (hasDeviceIdFilter)
             {
-                var configDeviceId = unfoldedCircleConfigurationItem.DeviceId?.AsMemory();
+                var configDeviceId = unfoldedCircleConfigurationItem.DeviceId.AsSpan();
                 // we have a device id filter, so if the config device id is null, there is no match
-                if (configDeviceId is null)
+                if (configDeviceId.IsEmpty)
                     continue;
-                if (!configDeviceId.Value.Span.Equals(payload.MsgData.Filter!.DeviceId.AsSpan().GetBaseIdentifier(), StringComparison.OrdinalIgnoreCase))
+                if (!configDeviceId.Equals(payload.MsgData.Filter!.DeviceId.AsSpan().GetBaseIdentifier(), StringComparison.OrdinalIgnoreCase))
                     continue;
             }
 
