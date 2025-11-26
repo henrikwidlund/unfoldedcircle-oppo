@@ -945,16 +945,10 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
 
             return await DoConnect(true);
         }
-        catch (Exception e)
-        {
-            _logger.FailedToConnectToOppoPlayer(e, _hostName, _port);
-        }
         finally
         {
             _semaphore.Release();
         }
-
-        return _tcpClient.Connected;
 
         async ValueTask<bool> DoConnect(bool allowRetry)
         {
