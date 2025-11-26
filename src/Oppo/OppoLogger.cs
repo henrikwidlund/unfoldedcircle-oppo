@@ -72,4 +72,8 @@ internal static partial class OppoLogger
     [LoggerMessage(EventId = 12, EventName = nameof(CallerMemberFailed), Level = LogLevel.Error,
         Message = "{CallerMemberName} failed. Response was {Response}")]
     public static partial void CallerMemberFailed(this ILogger logger, string? callerMemberName, string response);
+
+    [LoggerMessage(EventId = 13, EventName = nameof(RetryingConnectionAfterSocketException), Level = LogLevel.Warning,
+        Message = "Retrying connection to Oppo player after SocketException (host: {Host}, port: {Port})")]
+    public static partial void RetryingConnectionAfterSocketException(this ILogger logger, string host, in int port);
 }

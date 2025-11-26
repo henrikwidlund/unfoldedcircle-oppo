@@ -971,6 +971,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
             catch (SocketException) when (allowRetry)
             {
                 // Network stack might not be ready, wait a bit and try one more time
+                _logger.RetryingConnectionAfterSocketException(_hostName, _port);
                 await Task.Delay(500);
                 return await DoConnect(false);
             }
