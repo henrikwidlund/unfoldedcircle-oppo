@@ -943,13 +943,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
             if (_tcpClient.Connected)
                 return _tcpClient.Connected;
 
-            using var cancellationTokenSource = new CancellationTokenSource(timeout ?? TimeSpan.FromSeconds(3));
-            await _tcpClient.ConnectAsync(_hostName, _port, cancellationTokenSource.Token);
-            return _tcpClient.Connected;
-        }
-        catch (OperationCanceledException)
-        {
-            // nothing to do here, ignore
+            return await DoConnect(true);
         }
         catch (Exception e)
         {
@@ -961,6 +955,32 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         }
 
         return _tcpClient.Connected;
+
+        async ValueTask<bool> DoConnect(bool allowRetry)
+        {
+            try
+            {
+                using var cancellationTokenSource = new CancellationTokenSource(timeout ?? TimeSpan.FromSeconds(3));
+                await _tcpClient.ConnectAsync(_hostName, _port, cancellationTokenSource.Token);
+                return _tcpClient.Connected;
+            }
+            catch (OperationCanceledException)
+            {
+                // nothing to do here, ignore
+            }
+            catch (SocketException) when (allowRetry)
+            {
+                // Network stack might not be ready, wait a bit and try one more time
+                await Task.Delay(500);
+                return await DoConnect(false);
+            }
+            catch (Exception e)
+            {
+                _logger.FailedToConnectToOppoPlayer(e, _hostName, _port);
+            }
+
+            return _tcpClient.Connected;
+        }
     }
 
     public string HostName => _hostName;
