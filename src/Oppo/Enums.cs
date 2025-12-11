@@ -196,3 +196,27 @@ public enum InputSource : sbyte
     ARCHDMIOut2
     // ReSharper restore InconsistentNaming
 }
+
+public enum VerboseMode : sbyte
+{
+    /// <summary>
+    /// Set Verbose Mode to off
+    /// </summary>
+    Off = 1,
+
+    /// <summary>
+    /// Commands are echoed back in the response
+    /// </summary>
+    /// <remarks>Not available for 20x series.</remarks>
+    EchoCommandsInResponse,
+
+    /// <summary>
+    /// Enable unsolicited status updates. Only major status changes are reported.
+    /// </summary>
+    ModeUnsolicitedStatusUpdates,
+
+    /// <summary>
+    /// Enable detailed status updates. When content is playing, the player sends out playback time updates every second.
+    /// </summary>
+    DetailedStatus
+}

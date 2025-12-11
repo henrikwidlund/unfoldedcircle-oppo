@@ -27,6 +27,9 @@ public class OppoClientFactory(ILoggerFactory loggerFactory, ILogger<OppoClientF
 
                 _oppoClientLogger ??= _loggerFactory.CreateLogger<OppoClient>();
                 client = new OppoClient(oppoClientKey.HostName, oppoClientKey.Model, _oppoClientLogger);
+                if (await client.IsConnectedAsync(TimeSpan.FromSeconds(2)))
+                    await client.SetVerboseMode(VerboseMode.Off, cancellationToken);
+
                 _clients[clientKeyHash] = client;
                 return client;
             }

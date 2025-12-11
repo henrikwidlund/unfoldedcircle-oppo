@@ -6,6 +6,7 @@ using UnfoldedCircle.Models.Sync;
 
 namespace UnfoldedCircle.OppoBluRay.OppoEntity;
 
+[EnumJsonConverter<OppoCommandId>(CaseSensitive = false, PropertyName = "cmd_id")]
 [JsonConverter(typeof(OppoCommandIdJsonConverter))]
 public enum OppoCommandId : sbyte
 {
@@ -400,6 +401,5 @@ public enum OppoCommandId : sbyte
     GaplessPlay
 }
 
-[EnumJsonConverter(typeof(OppoCommandId), CaseSensitive = false, PropertyName = "cmd_id")]
 // ReSharper disable once RedundantExtendsListEntry For some reason code won't compile without adding this explicit inheritance on this specific converter - all other work
 public partial class OppoCommandIdJsonConverter : JsonConverter<OppoCommandId>;
