@@ -929,6 +929,29 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         };
     }
 
+    public async ValueTask<OppoResult<bool>> SetVerboseMode(VerboseMode verboseMode, CancellationToken cancellationToken = default)
+    {
+        var command = verboseMode switch
+        {
+            VerboseMode.Off => _is20XModel ? Oppo20XAdvancedCommand.SetVerboseModeOff : Oppo10XAdvancedCommand.SetVerboseModeOff,
+            VerboseMode.EchoCommandsInResponse => _is20XModel ? throw new InvalidOperationException("EchoCommandsInResponse is not supported on 20X models") : Oppo10XAdvancedCommand.SetVerboseEchoCommandsInResponse,
+            VerboseMode.ModeUnsolicitedStatusUpdates => _is20XModel ? Oppo20XAdvancedCommand.SetVerboseModeUnsolicitedStatusUpdates : Oppo10XAdvancedCommand.SetVerboseModeUnsolicitedStatusUpdates,
+            VerboseMode.DetailedStatus => _is20XModel ? Oppo20XAdvancedCommand.SetVerboseModeDetailedStatus : Oppo10XAdvancedCommand.SetVerboseModeDetailedStatus,
+            _ => throw new ArgumentOutOfRangeException(nameof(verboseMode), verboseMode, "Unknown verbose mode")
+        };
+
+        var result = await SendCommand(command, cancellationToken);
+        return result.Success switch
+        {
+            false => false,
+            _ => new OppoResult<bool>
+            {
+                Success = true,
+                Result = true
+            }
+        };
+    }
+
     public async ValueTask<bool> IsConnectedAsync(TimeSpan? timeout = null)
     {
         if (_tcpClient.Connected)

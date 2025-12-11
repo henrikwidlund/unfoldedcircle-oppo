@@ -390,6 +390,11 @@ public interface IOppoClient : IDisposable
     ValueTask<OppoResult<string>> QueryTrackPerformerAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Set verbose mode.
+    /// </summary>
+    ValueTask<OppoResult<bool>> SetVerboseMode(VerboseMode verboseMode, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Check if the client is connected.
     /// </summary>
     ValueTask<bool> IsConnectedAsync(TimeSpan? timeout = null);
