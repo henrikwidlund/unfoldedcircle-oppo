@@ -441,7 +441,12 @@ internal static class Oppo20XAdvancedCommand
     /// Set Verbose Mode to off
     /// </summary>
     public static readonly byte[] SetVerboseModeOff = "#SVM 0\r"u8.ToArray();
-    
+
+    /// <summary>
+    /// Commands are echoed back in the response
+    /// </summary>
+    public static readonly byte[] SetVerboseEchoCommandsInResponse = "#SVM 1\r"u8.ToArray();
+
     /// <summary>
     /// Enable unsolicited status updates. Only major status changes are reported.
     /// </summary>
