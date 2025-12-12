@@ -940,6 +940,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
             _ => throw new ArgumentOutOfRangeException(nameof(verboseMode), verboseMode, "Unknown verbose mode")
         };
 
+        // Do not use SendCommandWithRetry here to avoid infinite loop
         var result = await SendCommand(command, cancellationToken);
         return result.Success switch
         {
@@ -1065,7 +1066,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
     private async ValueTask<OppoResultCore> SendCommandWithRetry(byte[] command, CancellationToken cancellationToken, [CallerMemberName] string? caller = null)
     {
         var result = await SendCommand(command, cancellationToken, caller);
-        if (! result.InvalidVerboseLevel)
+        if (!result.InvalidVerboseLevel)
             return result;
 
         var verboseMode = await SetVerboseMode(VerboseMode.Off, cancellationToken);
