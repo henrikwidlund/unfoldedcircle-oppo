@@ -392,7 +392,7 @@ public interface IOppoClient : IDisposable
     /// <summary>
     /// Set verbose mode.
     /// </summary>
-    ValueTask<OppoResult<bool>> SetVerboseMode(VerboseMode verboseMode, CancellationToken cancellationToken = default);
+    ValueTask<OppoResult<VerboseMode>> SetVerboseMode(VerboseMode verboseMode, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Check if the client is connected.

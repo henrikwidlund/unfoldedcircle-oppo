@@ -199,15 +199,16 @@ public enum InputSource : sbyte
 
 public enum VerboseMode : sbyte
 {
+    Unknown,
+
     /// <summary>
     /// Set Verbose Mode to off
     /// </summary>
-    Off = 1,
+    Off,
 
     /// <summary>
     /// Commands are echoed back in the response
     /// </summary>
-    /// <remarks>Not available for 20x series.</remarks>
     EchoCommandsInResponse,
 
     /// <summary>
