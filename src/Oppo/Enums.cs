@@ -209,7 +209,6 @@ public enum VerboseMode : sbyte
     /// <summary>
     /// Commands are echoed back in the response
     /// </summary>
-    /// <remarks>Not available for 20x series.</remarks>
     EchoCommandsInResponse,
 
     /// <summary>
