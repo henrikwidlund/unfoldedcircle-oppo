@@ -317,7 +317,13 @@ public interface IOppoClient : IDisposable
     /// Query playback status
     /// </summary>
     ValueTask<OppoResult<PlaybackStatus>> QueryPlaybackStatusAsync(CancellationToken cancellationToken = default);
-    
+
+    /// <summary>
+    /// Query HDMI resolution
+    /// </summary>
+    ValueTask<OppoResult<HDMIResolution>> QueryHDMIResolutionAsync(CancellationToken cancellationToken = default);
+
+
     /// <summary>
     /// Query Track/Title elapsed time
     /// </summary>
@@ -352,7 +358,32 @@ public interface IOppoClient : IDisposable
     /// Query disc type
     /// </summary>
     ValueTask<OppoResult<DiscType>> QueryDiscTypeAsync(CancellationToken cancellationToken = default);
-    
+
+    /// <summary>
+    /// Query audio type
+    /// </summary>
+    ValueTask<OppoResult<string>> QueryAudioTypeAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Query subtitle type
+    /// </summary>
+    ValueTask<OppoResult<string>> QuerySubtitleTypeAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Query 3D Status
+    /// </summary>
+    ValueTask<OppoResult<bool>> QueryThreeDStatusAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Query HDR Status
+    /// </summary>
+    ValueTask<OppoResult<HDRStatus>> QueryHDRStatusAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Query aspect ratio setting
+    /// </summary>
+    ValueTask<OppoResult<AspectRatio>> QueryAspectRatioAsync(CancellationToken cancellationToken = default);
+
     /// <summary>
     /// Query Repeat Mode
     /// </summary>
@@ -388,6 +419,11 @@ public interface IOppoClient : IDisposable
     /// Query track performer
     /// </summary>
     ValueTask<OppoResult<string>> QueryTrackPerformerAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Query aspect ratio setting
+    /// </summary>
+    ValueTask<OppoResult<string>> QueryMediaFileFormatAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Set verbose mode.
