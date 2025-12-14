@@ -55,10 +55,11 @@
           <PrivateAssets>all</PrivateAssets>
           <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Theodicean.SourceGenerators" Version="0.0.2" PrivateAssets="all" ExcludeAssets="runtime">
+        <PackageReference Include="NetEscapades.EnumGenerators.Interceptors" Version="1.0.0-beta16" PrivateAssets="all" ExcludeAssets="runtime" />
+        <PackageReference Include="Theodicean.SourceGenerators" Version="0.0.3-pre03" PrivateAssets="all" ExcludeAssets="runtime">
             <IncludeAssets>compile; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Theodicean.UnfoldedCircle.Server" Version="0.0.5" />
+        <PackageReference Include="Theodicean.UnfoldedCircle.Server" Version="0.0.6-pre01" />
     </ItemGroup>
 
 </Project>
