@@ -362,7 +362,32 @@ internal static class Oppo20XQueryCommand
     // ReSharper disable InconsistentNaming
     public static readonly byte[] QueryHDMIResolution = "#QHD\r"u8.ToArray();
     // ReSharper restore InconsistentNaming
-    
+
+    /// <summary>
+    /// Query audio type
+    /// </summary>
+    public static readonly byte[] QueryAudioType = "#QAT\r"u8.ToArray();
+
+    /// <summary>
+    /// Query subtitle type
+    /// </summary>
+    public static readonly byte[] QuerySubtitleType = "#QST\r"u8.ToArray();
+
+    /// <summary>
+    /// Query 3D Status
+    /// </summary>
+    public static readonly byte[] QueryThreeDStatus = "#Q3D\r"u8.ToArray();
+
+    /// <summary>
+    /// Query HDR Status
+    /// </summary>
+    public static readonly byte[] QueryHDRStatus = "#QHS\r"u8.ToArray();
+
+    /// <summary>
+    /// Query aspect ratio setting
+    /// </summary>
+    public static readonly byte[] QueryAspectRatio = "#QAR\r"u8.ToArray();
+
     /// <summary>
     /// Query playback status
     /// </summary>

@@ -32,7 +32,7 @@ public partial class OppoWebSocketHandler(
     private readonly IOppoClientFactory _oppoClientFactory = oppoClientFactory;
     private readonly IAlbumCoverService _albumCoverService = albumCoverService;
 
-    protected override FrozenSet<EntityType> SupportedEntityTypes { get; } = [EntityType.MediaPlayer, EntityType.Remote];
+    protected override FrozenSet<EntityType> SupportedEntityTypes { get; } = [EntityType.MediaPlayer, EntityType.Remote, EntityType.Sensor];
 
     protected override ValueTask<DeviceState> OnGetDeviceStateAsync(GetDeviceStateMsg payload, string wsId, CancellationToken cancellationToken)
         => ValueTask.FromResult(DeviceState.Connected);
@@ -65,10 +65,9 @@ public partial class OppoWebSocketHandler(
                     TaskCreationOptions.LongRunning);
 
                 await SendMessageAsync(socket,
-                    ResponsePayloadHelpers.CreateStateChangedResponsePayload(
+                    ResponsePayloadHelpers.CreateMediaPlayerStateChangedResponsePayload(
                         new MediaPlayerStateChangedEventMessageDataAttributes { SourceList = OppoEntitySettings.SourceList[oppoClientHolder.ClientKey.Model] },
-                        oppoClientHolder.ClientKey.HostName,
-                        EntityType.MediaPlayer
+                        oppoClientHolder.ClientKey.HostName
                     ),
                     wsId,
                     commandCancellationToken);
@@ -113,7 +112,7 @@ public partial class OppoWebSocketHandler(
         }
     }
 
-    private static IEnumerable<AvailableEntity> GetAvailableEntities(
+    private IEnumerable<AvailableEntity> GetAvailableEntities(
         List<OppoConfigurationItem>? entities,
         GetAvailableEntitiesMsg payload)
     {
@@ -136,15 +135,29 @@ public partial class OppoWebSocketHandler(
 
             if (hasEntityTypeFilter)
             {
-                if (payload.MsgData.Filter!.EntityType == EntityType.MediaPlayer)
-                    yield return GetMediaPlayerEntity(unfoldedCircleConfigurationItem);
-                else if (payload.MsgData.Filter.EntityType == EntityType.Remote)
-                    yield return GetRemoteEntity(unfoldedCircleConfigurationItem);
+                if (payload.MsgData.Filter?.EntityType is null)
+                    continue;
+
+                switch (payload.MsgData.Filter.EntityType)
+                {
+                    case EntityType.MediaPlayer:
+                        yield return GetMediaPlayerEntity(unfoldedCircleConfigurationItem);
+                        break;
+                    case EntityType.Remote:
+                        yield return GetRemoteEntity(unfoldedCircleConfigurationItem);
+                        break;
+                    case EntityType.Sensor:
+                        foreach (var oppoSensorType in SensorHelpers.GetOppoSensorTypes(unfoldedCircleConfigurationItem.Model))
+                            yield return GetSensorEntity(unfoldedCircleConfigurationItem, oppoSensorType);
+                        break;
+                }
             }
             else
             {
                 yield return GetMediaPlayerEntity(unfoldedCircleConfigurationItem);
                 yield return GetRemoteEntity(unfoldedCircleConfigurationItem);
+                foreach (var oppoSensorType in SensorHelpers.GetOppoSensorTypes(unfoldedCircleConfigurationItem.Model))
+                    yield return GetSensorEntity(unfoldedCircleConfigurationItem, oppoSensorType);
             }
         }
 
@@ -171,6 +184,20 @@ public partial class OppoWebSocketHandler(
                 Features = OppoEntitySettings.RemoteFeatures,
                 Options = OppoEntitySettings.RemoteOptions
             };
+
+        SensorAvailableEntity GetSensorEntity(OppoConfigurationItem configurationItem, in OppoSensorType sensorType)
+        {
+            var sensorSuffix = sensorType.ToStringFast();
+            RegisterSensor(configurationItem.EntityId.GetBaseIdentifier(), sensorSuffix);
+            return new SensorAvailableEntity
+            {
+                EntityId = configurationItem.EntityId.GetIdentifier(EntityType.Sensor, sensorSuffix),
+                EntityType = EntityType.Sensor,
+                Name = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { ["en"] = $"{configurationItem.EntityName} {sensorType.ToStringFast(true)}" },
+                DeviceId = configurationItem.DeviceId.GetNullableIdentifier(EntityType.Sensor),
+                DeviceClass = DeviceClass.Custom
+            };
+        }
     }
 
     protected override async ValueTask<EntityStateChanged[]> OnGetEntityStatesAsync(GetEntityStatesMsg payload, string wsId, CancellationToken cancellationToken)

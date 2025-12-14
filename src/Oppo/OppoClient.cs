@@ -531,7 +531,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         
         return result.Success switch
         {
-            false => new OppoResult<RepeatMode> { Success = false },
+            false => false,
             _ => new OppoResult<RepeatMode>
             {
                 Success = true,
@@ -559,7 +559,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         
         return result.Success switch
         {
-            false => new OppoResult<ushort> { Success = false },
+            false => false,
             _ => new OppoResult<ushort>
             {
                 Success = ushort.TryParse(result.Response.AsSpan()[4..], out var newVolume),
@@ -655,6 +655,43 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         };
     }
 
+    public async ValueTask<OppoResult<HDMIResolution>> QueryHDMIResolutionAsync(CancellationToken cancellationToken = default)
+    {
+        var result = await SendCommandWithRetry(_is20XModel ? Oppo20XQueryCommand.QueryHDMIResolution : Oppo10XQueryCommand.QueryHDMIResolution,
+            cancellationToken);
+
+        return result.Success switch
+        {
+            false => false,
+            _ => new OppoResult<HDMIResolution>
+            {
+                Success = true,
+                Result = result.Response switch
+                {
+                    "@OK 480I" => HDMIResolution.R480i,
+                    "@OK 480P" => HDMIResolution.R480p,
+                    "@OK 576I" => HDMIResolution.R576i,
+                    "@OK 576P" => HDMIResolution.R576p,
+                    "@OK 720P50" => HDMIResolution.R720p50,
+                    "@OK 720P60" => HDMIResolution.R720p60,
+                    "@OK 1080I50" => HDMIResolution.R1080i50,
+                    "@OK 1080I60" => HDMIResolution.R1080i60,
+                    "@OK 1080P24" => HDMIResolution.R1080p24,
+                    "@OK 1080P50" => HDMIResolution.R1080p50,
+                    "@OK 1080P60" => HDMIResolution.R1080p60,
+                    "@OK 1080PAUTO" => HDMIResolution.R1080PAuto,
+                    "@OK UHD24" => HDMIResolution.RUltraHDp24,
+                    "@OK UHD50" => HDMIResolution.RUltraHDp50,
+                    "@OK UHD60" => HDMIResolution.RUltraHDp60,
+                    "@OK UHD_AUTO" => HDMIResolution.RUltraHDAuto,
+                    "@OK AUTO" => HDMIResolution.Auto,
+                    "@OK Source Direct" => HDMIResolution.SourceDirect,
+                    _ => LogError(result.Response, HDMIResolution.Unknown)
+                }
+            }
+        };
+    }
+
     public ValueTask<OppoResult<uint>> QueryTrackOrTitleElapsedTimeAsync(CancellationToken cancellationToken = default)
         => QueryTimeAsync(_is20XModel ? Oppo20XQueryCommand.QueryTrackOrTitleElapsedTime : Oppo10XQueryCommand.QueryTrackOrTitleElapsedTime,
             cancellationToken);
@@ -705,6 +742,117 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
                     // Pre 20X models
                     "@OK HDCD" => DiscType.HDCD,
                     _ => LogError(result.Response, DiscType.UnknownDisc)
+                }
+            }
+        };
+    }
+
+    public async ValueTask<OppoResult<string>> QueryAudioTypeAsync(CancellationToken cancellationToken = default)
+    {
+        var result = await SendCommandWithRetry(_is20XModel ? Oppo20XQueryCommand.QueryAudioType : Oppo10XQueryCommand.QueryAudioType, cancellationToken);
+
+        return result.Success switch
+        {
+            false => false,
+            _ => new OppoResult<string>
+            {
+                Success = true,
+                Result = result.Response[4..]
+            }
+        };
+    }
+
+    public async ValueTask<OppoResult<string>> QuerySubtitleTypeAsync(CancellationToken cancellationToken = default)
+    {
+        var result = await SendCommandWithRetry(_is20XModel ? Oppo20XQueryCommand.QuerySubtitleType : Oppo10XQueryCommand.QuerySubtitleType,
+            cancellationToken);
+
+        return result.Success switch
+        {
+            false => false,
+            _ => new OppoResult<string>
+            {
+                Success = true,
+                Result = result.Response[4..]
+            }
+        };
+    }
+
+    public async ValueTask<OppoResult<bool>> QueryThreeDStatusAsync(CancellationToken cancellationToken = default)
+    {
+        if (!_is20XModel)
+            return false;
+
+        var result = await SendCommandWithRetry(Oppo20XQueryCommand.QueryThreeDStatus, cancellationToken);
+
+        return result.Success switch
+        {
+            false => false,
+            _ => new OppoResult<bool>
+            {
+                Success = true,
+                Result = result.Response switch
+                {
+                    "@OK 2D" => false,
+                    "@OK 3D" => true,
+                    _ => false
+                }
+            }
+        };
+    }
+
+    public async ValueTask<OppoResult<HDRStatus>> QueryHDRStatusAsync(CancellationToken cancellationToken = default)
+    {
+        if (!_is20XModel)
+            return false;
+
+        var result = await SendCommandWithRetry(Oppo20XQueryCommand.QueryHDRStatus, cancellationToken);
+
+        return result.Success switch
+        {
+            false => false,
+            _ => new OppoResult<HDRStatus>
+            {
+                Success = true,
+                Result = result.Response switch
+                {
+                    "@OK HDR" => HDRStatus.HDR,
+                    "@OK SDR" => HDRStatus.SDR,
+                    "@OK DOV" => HDRStatus.DolbyVision,
+                    _ => LogError(result.Response, HDRStatus.Unknown)
+                }
+            }
+        };
+    }
+
+    public async ValueTask<OppoResult<AspectRatio>> QueryAspectRatioAsync(CancellationToken cancellationToken = default)
+    {
+        if (!_is20XModel)
+            return false;
+
+        var result = await SendCommandWithRetry(Oppo20XQueryCommand.QueryAspectRatio, cancellationToken);
+
+        return result.Success switch
+        {
+            false => false,
+            _ => new OppoResult<AspectRatio>
+            {
+                Success = true,
+                Result = result.Response switch
+                {
+                    "@OK 16WW" => AspectRatio.A16WW,
+                    "@OK 16AW" => AspectRatio.A16AW,
+                    "@OK 16A4" => AspectRatio.A169A,
+                    "@OK 21M0" => AspectRatio.A21M0,
+                    "@OK 21M1" => AspectRatio.A21M1,
+                    "@OK 21M2" => AspectRatio.A21M2,
+                    "@OK 21F0" => AspectRatio.A21F0,
+                    "@OK 21F1" => AspectRatio.A21F1,
+                    "@OK 21F2" => AspectRatio.A21F2,
+                    "@OK 21C0" => AspectRatio.A21C0,
+                    "@OK 21C1" => AspectRatio.A21C1,
+                    "@OK 21C2" => AspectRatio.A21C2,
+                    _ => LogError(result.Response, AspectRatio.Unknown)
                 }
             }
         };

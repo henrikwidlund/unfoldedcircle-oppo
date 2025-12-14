@@ -333,6 +333,16 @@ internal static class Oppo10XQueryCommand
     // ReSharper disable InconsistentNaming
     public static readonly byte[] QueryHDMIResolution = "REMOTE QHD"u8.ToArray();
     // ReSharper restore InconsistentNaming
+
+    /// <summary>
+    /// Query audio type
+    /// </summary>
+    public static readonly byte[] QueryAudioType = "REMOTE QAT"u8.ToArray();
+
+    /// <summary>
+    /// Query subtitle type
+    /// </summary>
+    public static readonly byte[] QuerySubtitleType = "REMOTE QST"u8.ToArray();
     
     /// <summary>
     /// Query playback status

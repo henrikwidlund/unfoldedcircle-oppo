@@ -27,6 +27,18 @@ internal static class OppoResponsePayloadHelpers
                 Attributes = [RemoteEntityAttribute.State],
                 DeviceId = entityIdDeviceId.DeviceId.GetNullableIdentifier(EntityType.Remote)
             };
+
+            foreach (var oppoSensorType in SensorHelpers.GetOppoSensorTypes(entityIdDeviceId.Model))
+            {
+                var suffix = oppoSensorType.ToStringFast();
+                yield return new SensorEntityStateChanged
+                {
+                    EntityId = entityIdDeviceId.EntityId.GetIdentifier(EntityType.Sensor, suffix),
+                    EntityType = EntityType.Sensor,
+                    Attributes = [SensorEntityAttribute.State, SensorEntityAttribute.Unit, SensorEntityAttribute.Value],
+                    DeviceId = entityIdDeviceId.DeviceId.GetNullableIdentifier(EntityType.Sensor, suffix)
+                };
+            }
         }
     }
 
