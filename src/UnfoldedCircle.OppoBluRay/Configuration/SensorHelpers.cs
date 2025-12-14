@@ -10,7 +10,7 @@ internal static class SensorHelpers
 
     private static readonly FrozenSet<OppoSensorType> Non20XSensorTypes = (new[]
     {
-        OppoSensorType.DiscType, OppoSensorType.InputSource, OppoSensorType.HDMIResolution, OppoSensorType.AudioType, OppoSensorType.SubTitleType
+        OppoSensorType.DiscType, OppoSensorType.InputSource, OppoSensorType.HDMIResolution, OppoSensorType.AudioType, OppoSensorType.SubtitleType
     }).ToFrozenSet();
 
     public static IReadOnlySet<OppoSensorType> GetOppoSensorTypes(in OppoModel oppoModel) =>

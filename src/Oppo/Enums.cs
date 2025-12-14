@@ -221,7 +221,7 @@ public enum InputSource : sbyte
     USBAudio,
     
     // pre 20x models
-    [Display(Name = "HDMI Frot")]
+    [Display(Name = "HDMI Front")]
     HDMIFront,
 
     [Display(Name = "HDMI Back")]

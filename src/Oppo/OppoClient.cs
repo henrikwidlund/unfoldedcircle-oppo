@@ -749,7 +749,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
 
     public async ValueTask<OppoResult<string>> QueryAudioTypeAsync(CancellationToken cancellationToken = default)
     {
-        var result = await  SendCommandWithRetry(_is20XModel ? Oppo20XQueryCommand.QueryAudioType : Oppo10XQueryCommand.QueryAudioType, cancellationToken);
+        var result = await SendCommandWithRetry(_is20XModel ? Oppo20XQueryCommand.QueryAudioType : Oppo10XQueryCommand.QueryAudioType, cancellationToken);
 
         return result.Success switch
         {

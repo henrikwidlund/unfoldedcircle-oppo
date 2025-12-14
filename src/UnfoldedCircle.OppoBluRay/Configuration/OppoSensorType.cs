@@ -20,7 +20,7 @@ internal enum OppoSensorType : sbyte
     AudioType,
 
     [Display(Name = "Subtitle Type")]
-    SubTitleType,
+    SubtitleType,
 
     [Display(Name = "3D Status")]
     ThreeDStatus,

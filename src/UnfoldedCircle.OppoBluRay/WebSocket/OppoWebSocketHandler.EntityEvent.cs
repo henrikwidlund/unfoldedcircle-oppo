@@ -112,7 +112,7 @@ public partial class OppoWebSocketHandler
 
                 MediaPlayerStateChangedEventMessageDataAttributes newMediaPlayerState;
                 // Only send power state if not using media events
-                if (oppoClientHolder is { ClientKey.UseMediaEvents: true })
+                if (oppoClientHolder is { ClientKey.UseMediaEvents: false })
                 {
                     newMediaPlayerState = new MediaPlayerStateChangedEventMessageDataAttributes { State = state };
                     if (!await SendMediaPlayerEventAsync(socket, wsId, oppoClientHolder, newMediaPlayerState, cancellationTokenSource.Token))
@@ -504,7 +504,7 @@ public partial class OppoWebSocketHandler
                     Value = subtitleType ?? string.Empty
                 },
                 oppoClientHolder.ClientKey.EntityId,
-                nameof(OppoSensorType.SubTitleType)),
+                nameof(OppoSensorType.SubtitleType)),
             wsId,
             cancellationToken);
     }
