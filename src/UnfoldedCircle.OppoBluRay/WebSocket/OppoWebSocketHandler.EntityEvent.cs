@@ -155,6 +155,8 @@ public partial class OppoWebSocketHandler
                 {
                     volumeResponse = await oppoClientHolder.Client.QueryVolumeAsync(cancellationTokenSource.Token);
                     inputSourceResponse = await oppoClientHolder.Client.QueryInputSourceAsync(cancellationTokenSource.Token);
+                    discTypeResponse = await oppoClientHolder.Client.QueryDiscTypeAsync(cancellationTokenSource.Token);
+                    hdmiResolutionResponse = await oppoClientHolder.Client.QueryHDMIResolutionAsync(cancellationTokenSource.Token);
 
                     var playbackStatusResponse = await oppoClientHolder.Client.QueryPlaybackStatusAsync(cancellationTokenSource.Token);
                     state = playbackStatusResponse switch
@@ -168,8 +170,6 @@ public partial class OppoWebSocketHandler
 
                     if (playbackStatusResponse is { Result: PlaybackStatus.Play or PlaybackStatus.Pause })
                     {
-                        discTypeResponse = await oppoClientHolder.Client.QueryDiscTypeAsync(cancellationTokenSource.Token);
-
                         if (discTypeResponse.Value && discTypeResponse.Value.Result is not DiscType.UnknownDisc and not DiscType.DataDisc)
                         {
                             (repeatMode, shuffle) = GetRepeatMode(await oppoClientHolder.Client.QueryRepeatModeAsync(cancellationTokenSource.Token));
@@ -211,7 +211,6 @@ public partial class OppoWebSocketHandler
                             else
                                 coverUri = null;
 
-                            hdmiResolutionResponse = await oppoClientHolder.Client.QueryHDMIResolutionAsync(cancellationTokenSource.Token);
                             audioTypeResponse = await oppoClientHolder.Client.QueryAudioTypeAsync(cancellationTokenSource.Token);
                             subtitleTypeResponse = await oppoClientHolder.Client.QuerySubtitleTypeAsync(cancellationTokenSource.Token);
                             if (oppoClientHolder.ClientKey.Model is OppoModel.UDP203 or OppoModel.UDP205)
