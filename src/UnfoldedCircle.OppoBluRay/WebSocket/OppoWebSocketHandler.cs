@@ -187,13 +187,13 @@ public partial class OppoWebSocketHandler(
 
         SensorAvailableEntity GetSensorEntity(OppoConfigurationItem configurationItem, in OppoSensorType sensorType)
         {
-            string sensorSuffix = sensorType.ToString();
+            var sensorSuffix = sensorType.ToStringFast();
             RegisterSensor(configurationItem.EntityId.GetBaseIdentifier(), sensorSuffix);
             return new SensorAvailableEntity
             {
                 EntityId = configurationItem.EntityId.GetIdentifier(EntityType.Sensor, sensorSuffix),
                 EntityType = EntityType.Sensor,
-                Name = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { ["en"] = $"{configurationItem.EntityName} {sensorType.GetOppoSensorTypeName()}" },
+                Name = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { ["en"] = $"{configurationItem.EntityName} {sensorType.ToStringFast(true)}" },
                 DeviceId = configurationItem.DeviceId.GetNullableIdentifier(EntityType.Sensor),
                 DeviceClass = DeviceClass.Custom
             };

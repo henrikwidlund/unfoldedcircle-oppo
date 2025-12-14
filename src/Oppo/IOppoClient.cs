@@ -421,11 +421,6 @@ public interface IOppoClient : IDisposable
     ValueTask<OppoResult<string>> QueryTrackPerformerAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Query aspect ratio setting
-    /// </summary>
-    ValueTask<OppoResult<string>> QueryMediaFileFormatAsync(CancellationToken cancellationToken = default);
-
-    /// <summary>
     /// Set verbose mode.
     /// </summary>
     ValueTask<OppoResult<VerboseMode>> SetVerboseMode(VerboseMode verboseMode, CancellationToken cancellationToken = default);

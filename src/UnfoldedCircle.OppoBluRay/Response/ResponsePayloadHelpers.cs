@@ -30,7 +30,7 @@ internal static class OppoResponsePayloadHelpers
 
             foreach (var oppoSensorType in SensorHelpers.GetOppoSensorTypes(entityIdDeviceId.Model))
             {
-                string suffix = oppoSensorType.ToString();
+                var suffix = oppoSensorType.ToStringFast();
                 yield return new SensorEntityStateChanged
                 {
                     EntityId = entityIdDeviceId.EntityId.GetIdentifier(EntityType.Sensor, suffix),

@@ -458,11 +458,6 @@ internal static class Oppo20XQueryCommand
     /// Query track performer
     /// </summary>
     public static readonly byte[] QueryTrackPerformer = "#QTP\r"u8.ToArray();
-
-    /// <summary>
-    /// Query media file format
-    /// </summary>
-    public static readonly byte[] QueryMediaFileFormat = "#QFT\r"u8.ToArray();
 }
 
 internal static class Oppo20XAdvancedCommand

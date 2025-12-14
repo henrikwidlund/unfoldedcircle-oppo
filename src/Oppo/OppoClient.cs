@@ -1077,23 +1077,6 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         };
     }
 
-    public async ValueTask<OppoResult<string>> QueryMediaFileFormatAsync(CancellationToken cancellationToken = default)
-    {
-        if (!_is20XModel)
-            return false;
-
-        var result = await SendCommandWithRetry(Oppo20XQueryCommand.QueryMediaFileFormat, cancellationToken);
-        return result.Success switch
-        {
-            false => false,
-            _ => new OppoResult<string>
-            {
-                Success = true,
-                Result = result.Response[4..]
-            }
-        };
-    }
-
     public async ValueTask<OppoResult<VerboseMode>> SetVerboseMode(VerboseMode verboseMode, CancellationToken cancellationToken = default)
     {
         var command = verboseMode switch

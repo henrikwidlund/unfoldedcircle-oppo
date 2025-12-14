@@ -24,7 +24,6 @@ public partial class OppoWebSocketHandler
     private static readonly ConcurrentDictionary<int, bool?> PreviousSensorThreeDsMap = new();
     private static readonly ConcurrentDictionary<int, HDRStatus?> PreviousSensorHDRStatusMap = new();
     private static readonly ConcurrentDictionary<int, AspectRatio?> PreviousSensorAspectRatiosMap = new();
-    private static readonly ConcurrentDictionary<int, string?> PreviousSensorMediaFileFormatsMap = new();
 
     protected override async Task HandleEventUpdatesAsync(System.Net.WebSockets.WebSocket socket, string entityId, string wsId, CancellationTokenWrapper cancellationTokenWrapper)
     {
@@ -113,13 +112,23 @@ public partial class OppoWebSocketHandler
 
                 MediaPlayerStateChangedEventMessageDataAttributes newMediaPlayerState;
                 // Only send power state if not using media events
-                if (oppoClientHolder is { ClientKey.UseMediaEvents: false })
+                if (oppoClientHolder is { ClientKey.UseMediaEvents: true })
                 {
                     newMediaPlayerState = new MediaPlayerStateChangedEventMessageDataAttributes { State = state };
                     if (!await SendMediaPlayerEventAsync(socket, wsId, oppoClientHolder, newMediaPlayerState, cancellationTokenSource.Token))
                         continue;
 
                     await SendRemotePowerEventAsync(socket, wsId, oppoClientHolder, state, cancellationTokenSource.Token);
+                    await SendSensorEventAsync(socket, wsId, oppoClientHolder,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        cancellationTokenSource.Token);
 
                     continue;
                 }
@@ -141,7 +150,6 @@ public partial class OppoWebSocketHandler
                 OppoResult<bool>? threeDStatusResponse = null;
                 OppoResult<HDRStatus>? hdrStatusResponse = null;
                 OppoResult<AspectRatio>? aspectRatioResponse = null;
-                OppoResult<string>? mediaFileFormatResponse = null;
 
                 if (powerStatusResponse is { Result: PowerState.On })
                 {
@@ -211,7 +219,6 @@ public partial class OppoWebSocketHandler
                                 threeDStatusResponse = await oppoClientHolder.Client.QueryThreeDStatusAsync(cancellationTokenSource.Token);
                                 hdrStatusResponse = await oppoClientHolder.Client.QueryHDRStatusAsync(cancellationTokenSource.Token);
                                 aspectRatioResponse = await oppoClientHolder.Client.QueryAspectRatioAsync(cancellationTokenSource.Token);
-                                mediaFileFormatResponse = await oppoClientHolder.Client.QueryMediaFileFormatAsync(cancellationTokenSource.Token);
                             }
                         }
                     }
@@ -253,7 +260,6 @@ public partial class OppoWebSocketHandler
                         threeDStatusResponse?.Result,
                         hdrStatusResponse?.Result,
                         aspectRatioResponse?.Result,
-                        mediaFileFormatResponse?.Result,
                         cancellationTokenSource.Token));
             }
         }
@@ -355,7 +361,6 @@ public partial class OppoWebSocketHandler
         bool? threeDStatus,
         HDRStatus? hdrStatus,
         AspectRatio? aspectRatio,
-        string? mediaFileFormat,
         CancellationToken cancellationToken)
     {
         var clientHashCode = oppoClientHolder.ClientKey.GetHashCode();
@@ -375,9 +380,7 @@ public partial class OppoWebSocketHandler
             SendHDRStatusSensor(socket, wsId, oppoClientHolder, clientHashCode,
                 hdrStatus, cancellationToken),
             SendAspectRatioSensor(socket, wsId, oppoClientHolder, clientHashCode,
-                aspectRatio, cancellationToken),
-            SendMediaFileFormatSensor(socket, wsId, oppoClientHolder, clientHashCode,
-                mediaFileFormat, cancellationToken)
+                aspectRatio, cancellationToken)
         );
     }
 
@@ -398,7 +401,7 @@ public partial class OppoWebSocketHandler
                 new SensorStateChangedEventMessageDataAttributes<string>
                 {
                     State = SensorState.On,
-                    Value = discType?.ToString() ?? string.Empty
+                    Value = discType?.ToStringFast(true) ?? string.Empty
                 },
                 oppoClientHolder.ClientKey.EntityId,
                 nameof(OppoSensorType.DiscType)),
@@ -423,7 +426,7 @@ public partial class OppoWebSocketHandler
                 new SensorStateChangedEventMessageDataAttributes<string>
                 {
                     State = SensorState.On,
-                    Value = inputSource?.ToString() ?? string.Empty
+                    Value = inputSource?.ToStringFast(true) ?? string.Empty
                 },
                 oppoClientHolder.ClientKey.EntityId,
                 nameof(OppoSensorType.InputSource)),
@@ -448,7 +451,7 @@ public partial class OppoWebSocketHandler
                 new SensorStateChangedEventMessageDataAttributes<string>
                 {
                     State = SensorState.On,
-                    Value = hdmiResolution?.ToString() ?? string.Empty
+                    Value = hdmiResolution?.ToStringFast(true) ?? string.Empty
                 },
                 oppoClientHolder.ClientKey.EntityId,
                 nameof(OppoSensorType.HDMIResolution)),
@@ -523,7 +526,12 @@ public partial class OppoWebSocketHandler
                 new SensorStateChangedEventMessageDataAttributes<string>
                 {
                     State = SensorState.On,
-                    Value = threeD is true ? "3D" : "2D"
+                    Value = threeD switch
+                    {
+                        null => string.Empty,
+                        true => "3D",
+                        _ => "2D"
+                    }
                 },
                 oppoClientHolder.ClientKey.EntityId,
                 nameof(OppoSensorType.ThreeDStatus)),
@@ -548,7 +556,7 @@ public partial class OppoWebSocketHandler
                 new SensorStateChangedEventMessageDataAttributes<string>
                 {
                     State = SensorState.On,
-                    Value = hdrStatus?.ToString() ?? string.Empty
+                    Value = hdrStatus?.ToStringFast(true) ?? string.Empty
                 },
                 oppoClientHolder.ClientKey.EntityId,
                 nameof(OppoSensorType.HDRStatus)),
@@ -573,35 +581,10 @@ public partial class OppoWebSocketHandler
                 new SensorStateChangedEventMessageDataAttributes<string>
                 {
                     State = SensorState.On,
-                    Value = aspectRatio?.ToString() ?? string.Empty
+                    Value = aspectRatio?.ToStringFast(true) ?? string.Empty
                 },
                 oppoClientHolder.ClientKey.EntityId,
                 nameof(OppoSensorType.AspectRatio)),
-            wsId,
-            cancellationToken);
-    }
-
-    private async Task SendMediaFileFormatSensor(System.Net.WebSockets.WebSocket socket,
-        string wsId,
-        OppoClientHolder oppoClientHolder,
-        int clientHashCode,
-        string? mediaFileFormat,
-        CancellationToken cancellationToken)
-    {
-        if (PreviousSensorMediaFileFormatsMap.TryGetValue(clientHashCode, out var previousState) &&
-            string.Equals(previousState, mediaFileFormat, StringComparison.Ordinal))
-            return;
-
-        PreviousSensorMediaFileFormatsMap[clientHashCode] = mediaFileFormat;
-        await SendMessageAsync(socket,
-            ResponsePayloadHelpers.CreateSensorStateChangedResponsePayload(
-                new SensorStateChangedEventMessageDataAttributes<string>
-                {
-                    State = SensorState.On,
-                    Value = mediaFileFormat ?? string.Empty
-                },
-                oppoClientHolder.ClientKey.EntityId,
-                nameof(OppoSensorType.MediaFileFormat)),
             wsId,
             cancellationToken);
     }
