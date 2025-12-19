@@ -263,6 +263,7 @@ public enum VerboseMode : sbyte
 [EnumExtensions(MetadataSource = MetadataSource.DisplayAttribute)]
 public enum HDMIResolution : sbyte
 {
+    // ReSharper disable InconsistentNaming
     Unknown,
 
     [Display(Name = "480i")]
@@ -317,6 +318,7 @@ public enum HDMIResolution : sbyte
 
     [Display(Name = "Source Direct")]
     SourceDirect
+    // ReSharper restore InconsistentNaming
 }
 
 [EnumExtensions(MetadataSource = MetadataSource.DisplayAttribute)]
@@ -337,6 +339,7 @@ public enum HDRStatus : sbyte
 [EnumExtensions(MetadataSource = MetadataSource.DisplayAttribute)]
 public enum AspectRatio : sbyte
 {
+    // ReSharper disable InconsistentNaming
     Unknown,
 
     /// <summary>
@@ -410,4 +413,5 @@ public enum AspectRatio : sbyte
     /// </summary>
     [Display(Name = "21:9 Cropped - 21:9 Content")]
     A21C2
+    // ReSharper restore InconsistentNaming
 }

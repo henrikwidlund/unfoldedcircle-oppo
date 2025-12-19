@@ -4,42 +4,43 @@ namespace Oppo;
 
 internal static partial class OppoLogger
 {
-    private static readonly Action<ILogger, OppoClientKey, Exception> _tryGetOrCreateClientException = LoggerMessage.Define<OppoClientKey>(
+    private static readonly Action<ILogger, OppoClientKey, Exception> TryGetOrCreateClientExceptionAction = LoggerMessage.Define<OppoClientKey>(
         LogLevel.Error,
         new EventId(1, nameof(TryGetOrCreateClientException)),
         "Failed to create client {ClientKey}");
 
     public static void TryGetOrCreateClientException(this ILogger logger, Exception exception, in OppoClientKey clientKey) =>
-        _tryGetOrCreateClientException(logger, clientKey, exception);
+        TryGetOrCreateClientExceptionAction(logger, clientKey, exception);
 
     [LoggerMessage(EventId = 2, EventName = nameof(CreateClientSemaphoreFailure), Level = LogLevel.Warning,
         Message = "Failed to acquire semaphore for client creation: {ClientKey}")]
     public static partial void CreateClientSemaphoreFailure(this ILogger logger, in OppoClientKey clientKey);
 
-    private static readonly Action<ILogger, OppoClientKey, Exception> _failedToDisposeClient = LoggerMessage.Define<OppoClientKey>(
+    private static readonly Action<ILogger, OppoClientKey, Exception> FailedToDisposeClientAction = LoggerMessage.Define<OppoClientKey>(
         LogLevel.Error,
         new EventId(3, nameof(FailedToDisposeClient)),
         "Failed to dispose client {ClientKey}");
 
-    private static readonly Action<ILogger, int, Exception> _failedToDisposeClientInt = LoggerMessage.Define<int>(
+    private static readonly Action<ILogger, int, Exception> FailedToDisposeClientIntAction = LoggerMessage.Define<int>(
         LogLevel.Error,
         new EventId(4, nameof(FailedToDisposeClient)),
         "Failed to dispose client {ClientKey}");
 
+    // ReSharper disable ConvertToExtensionBlock
     public static void FailedToDisposeClient(this ILogger logger, Exception exception, in OppoClientKey clientKey) =>
-        _failedToDisposeClient(logger, clientKey, exception);
+        FailedToDisposeClientAction(logger, clientKey, exception);
 
     public static void FailedToDisposeClient(this ILogger logger, Exception exception, in int clientKey) =>
-        _failedToDisposeClientInt(logger, clientKey, exception);
+        FailedToDisposeClientIntAction(logger, clientKey, exception);
+    // ReSharper restore ConvertToExtensionBlock
 
-    // OppoClient logging methods
-    private static readonly Action<ILogger, string, int, Exception> _failedToConnectToOppoPlayer = LoggerMessage.Define<string, int>(
+    private static readonly Action<ILogger, string, int, Exception> FailedToConnectToOppoPlayerAction = LoggerMessage.Define<string, int>(
         LogLevel.Error,
         new EventId(5, nameof(FailedToConnectToOppoPlayer)),
         "Failed to connect to Oppo player at {Host}:{Port}");
 
     public static void FailedToConnectToOppoPlayer(this ILogger logger, Exception exception, string host, in int port) =>
-        _failedToConnectToOppoPlayer(logger, host, port, exception);
+        FailedToConnectToOppoPlayerAction(logger, host, port, exception);
 
     [LoggerMessage(EventId = 6, EventName = nameof(SendingCommand), Level = LogLevel.Trace,
         Message = "Sending command '{Command}'")]
@@ -61,13 +62,13 @@ internal static partial class OppoLogger
         Message = "{Caller} - Failed to send command. Response was '{Response}'")]
     public static partial void FailedToSendCommand(this ILogger logger, string? caller, string response);
 
-    private static readonly Action<ILogger, Exception> _failedToSendCommandException = LoggerMessage.Define(
+    private static readonly Action<ILogger, Exception> FailedToSendCommandExceptionAction = LoggerMessage.Define(
         LogLevel.Error,
         new EventId(11, nameof(FailedToSendCommandException)),
         "Failed to send command.");
 
     public static void FailedToSendCommandException(this ILogger logger, Exception exception) =>
-        _failedToSendCommandException(logger, exception);
+        FailedToSendCommandExceptionAction(logger, exception);
 
     [LoggerMessage(EventId = 12, EventName = nameof(CallerMemberFailed), Level = LogLevel.Error,
         Message = "{CallerMemberName} failed. Response was {Response}")]

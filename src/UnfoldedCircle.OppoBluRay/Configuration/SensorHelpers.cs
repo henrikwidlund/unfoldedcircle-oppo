@@ -6,7 +6,7 @@ namespace UnfoldedCircle.OppoBluRay.Configuration;
 
 internal static class SensorHelpers
 {
-    private static readonly FrozenSet<OppoSensorType> AllSensorTypes = OppoSensorTypeExtensions.GetValues().ToFrozenSet();
+    private static readonly FrozenSet<OppoSensorType> AllSensorTypes = OppoSensorType.GetValues().ToFrozenSet();
 
     private static readonly FrozenSet<OppoSensorType> Non20XSensorTypes = (new[]
     {

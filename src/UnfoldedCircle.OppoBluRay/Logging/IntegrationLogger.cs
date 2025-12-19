@@ -1,5 +1,3 @@
-using Microsoft.Extensions.Logging;
-
 using Oppo;
 
 using UnfoldedCircle.OppoBluRay.WebSocket;
@@ -81,20 +79,20 @@ internal static partial class IntegrationLogger
         Message = "Failed to fetch {Url}: {StatusCode} - {Content}")]
     public static partial void FailedToFetchUrl(this ILogger logger, string url, in System.Net.HttpStatusCode statusCode, string content);
 
-    private static readonly Action<ILogger, string, Exception> _failedToFetchUrlException = LoggerMessage.Define<string>(
+    private static readonly Action<ILogger, string, Exception> FailedToFetchUrlExceptionAction = LoggerMessage.Define<string>(
         LogLevel.Error,
         new EventId(18, nameof(FailedToFetchUrlException)),
         "Failed to fetch {Url}");
 
     public static void FailedToFetchUrlException(this ILogger logger, Exception exception, string url) =>
-        _failedToFetchUrlException(logger, url, exception);
+        FailedToFetchUrlExceptionAction(logger, url, exception);
 
-    private static readonly Action<ILogger, string, Exception> _failedToFetchAlbumCover = LoggerMessage.Define<string>(
+    private static readonly Action<ILogger, string, Exception> FailedToFetchAlbumCoverAction = LoggerMessage.Define<string>(
         LogLevel.Error,
         new EventId(19, nameof(FailedToFetchAlbumCover)),
         "Failed to fetch album cover for {ReleaseId}");
 
     public static void FailedToFetchAlbumCover(this ILogger logger, Exception exception, string releaseId) =>
-        _failedToFetchAlbumCover(logger, releaseId, exception);
+        FailedToFetchAlbumCoverAction(logger, releaseId, exception);
 }
 
