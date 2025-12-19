@@ -21,7 +21,7 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha }}  # to check out the actual pull request commit, not the merge commit
           fetch-depth: 0
       - name: 'Qodana Scan'
-        uses: JetBrains/qodana-action@99ec27a55aaaf5ba2fd7e5816e66231caed7a72a
+        uses: JetBrains/qodana-action@42dad391966aca8ca344ca2340a7f43a5507e9b2
         with:
           pr-mode: true
           args: --baseline,qodana.sarif.json
