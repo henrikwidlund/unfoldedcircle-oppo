@@ -17,7 +17,7 @@
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
         <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.1" />
-        <PackageReference Include="NetEscapades.EnumGenerators.Interceptors" Version="1.0.0-beta19" PrivateAssets="all" ExcludeAssets="runtime" />
+        <PackageReference Include="NetEscapades.EnumGenerators.Interceptors" Version="1.0.0-beta19" />
     </ItemGroup>
 
 </Project>
