@@ -290,6 +290,11 @@ public partial class OppoWebSocketHandler(
                                 {
                                     Label = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { ["en"] = GetOppoModelName(OppoModel.UDP205) },
                                     Value = nameof(OppoModel.UDP205)
+                                },
+                                new SettingTypeDropdownItem
+                                {
+                                    Label = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { ["en"] = GetOppoModelName(OppoModel.Magnetar) },
+                                    Value = nameof(OppoModel.Magnetar)
                                 }
                             ],
                             Value = configurationItem?.Model.ToStringFast()
@@ -386,6 +391,7 @@ public partial class OppoWebSocketHandler(
                 _ when oppoModel.Equals(nameof(OppoModel.BDP9X), StringComparison.OrdinalIgnoreCase) => OppoModel.BDP9X,
                 _ when oppoModel.Equals(nameof(OppoModel.BDP10X), StringComparison.OrdinalIgnoreCase) => OppoModel.BDP10X,
                 _ when oppoModel.Equals(nameof(OppoModel.UDP203), StringComparison.OrdinalIgnoreCase) => OppoModel.UDP203,
+                _ when oppoModel.Equals(nameof(OppoModel.Magnetar), StringComparison.OrdinalIgnoreCase) => OppoModel.Magnetar,
                 _ => OppoModel.UDP205
             }
             : OppoModel.UDP203;
@@ -403,6 +409,7 @@ public partial class OppoWebSocketHandler(
             OppoModel.BDP9X => "BDP-9X",
             OppoModel.BDP10X => "BDP-10X",
             OppoModel.UDP203 => "UDP-203",
+            OppoModel.Magnetar => "Magnetar",
             _ => "UDP-205"
         };
 

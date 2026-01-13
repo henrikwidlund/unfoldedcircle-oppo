@@ -86,6 +86,7 @@ internal static class OppoResponsePayloadHelpers
                 MediaPlayerEntityAttribute.Source,
                 MediaPlayerEntityAttribute.SourceList
             ],
+            OppoModel.Magnetar => [],
             _ => throw new ArgumentOutOfRangeException(nameof(model), model, null)
         };
 }
