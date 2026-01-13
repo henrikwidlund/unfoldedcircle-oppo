@@ -28,7 +28,7 @@ the integration will keep getting disconnected and commands will fail.
 | Feature            | Oppo BDP-83/93/95 | Oppo BDP-10X | Magnetar |
 |--------------------|-------------------|--------------|----------|
 | Option Command     | ❌                 | ✔️           | ✔️       |
-| 3D Switching       | ❌                 | ✔️           | ✔️       |
+| 3D Switching       | ❌                 | ✔️           | ❌️️      |
 | Picture Adjustment | ❌                 | ✔️           | ❌️       |
 | HDR Mode           | ❌                 | ❌️           | ✔️       |
 | Info Hold          | ❌                 | ❌️           | ❌️       |

@@ -721,7 +721,7 @@ public static class OppoEntitySettings
                             Text = "Subtitle Hold",
                             Command = new EntityCommand { CmdId = EntitySettingsConstants.SubtitleHold },
                             Location = new GridLocation { X = 3, Y = 0 },
-                            Size = new GridItemSize { Height = 1, Width = 1 }
+                            Size = new GridItemSize { Height = 1, Width = 2 }
                         },
                         new UserInterfaceItem
                         {
