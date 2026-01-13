@@ -514,7 +514,6 @@ public sealed class MagnetarClient(string hostName, ILogger<MagnetarClient> logg
         _stringBuilder.Clear();
         var pipeReader = PipeReader.Create(networkStream);
         var charBuffer = ArrayPool<char>.Shared.Rent(1024);
-        var firstWrite = true;
         using var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(3));
 
         try
@@ -533,13 +532,13 @@ public sealed class MagnetarClient(string hostName, ILogger<MagnetarClient> logg
                         var slice = buffer.Slice(0, position.Value);
                         if (slice.IsSingleSegment)
                         {
-                            WriteSpan(slice.FirstSpan, charBuffer, ref firstWrite);
+                            WriteSpan(slice.FirstSpan, charBuffer);
                         }
                         else
                         {
                             foreach (var segment in slice)
                             {
-                                WriteSpan(segment.Span, charBuffer, ref firstWrite);
+                                WriteSpan(segment.Span, charBuffer);
                             }
                         }
 
@@ -549,7 +548,7 @@ public sealed class MagnetarClient(string hostName, ILogger<MagnetarClient> logg
 
                     foreach (var segment in buffer)
                     {
-                        WriteSpan(segment.Span, charBuffer, ref firstWrite);
+                        WriteSpan(segment.Span, charBuffer);
                     }
                     pipeReader.AdvanceTo(buffer.End);
                 } while (!result.IsCompleted && !cancellationToken.IsCancellationRequested);
@@ -557,6 +556,14 @@ public sealed class MagnetarClient(string hostName, ILogger<MagnetarClient> logg
                 if (result.IsCompleted || cancellationToken.IsCancellationRequested)
                     break;
             }
+        }
+        catch (OperationCanceledException)
+        {
+            _logger.LogDebug(
+                "Waited too long for response, cancelling read. Got so far: {Response}",
+                _stringBuilder.ToString().Replace("\r", "\\r").Replace("\n", "\\n")
+            );
+
         }
         finally
         {
@@ -566,30 +573,10 @@ public sealed class MagnetarClient(string hostName, ILogger<MagnetarClient> logg
         return _stringBuilder.ToString();
     }
 
-    private void WriteSpan(in ReadOnlySpan<byte> span, char[] charBuffer, ref bool isFirstWrite)
+    private void WriteSpan(in ReadOnlySpan<byte> span, char[] charBuffer)
     {
-        if (isFirstWrite)
-        {
-            // Models prior to UDP-20X doesn't send back @OK or @ER, rather it's @(COMMAND_CODE) followed by OK|ER and then the response
-            if (!span.StartsWith("@OK "u8) && !span.StartsWith("@ER "u8))
-            {
-                _stringBuilder.Append('@');
-                int charsDecoded = Encoding.ASCII.GetChars(span[5..], charBuffer);
-                _stringBuilder.Append(charBuffer, 0, charsDecoded);
-            }
-            else
-            {
-                int charsDecoded = Encoding.ASCII.GetChars(span, charBuffer);
-                _stringBuilder.Append(charBuffer, 0, charsDecoded);
-            }
-
-            isFirstWrite = false;
-        }
-        else
-        {
-            int charsDecoded = Encoding.ASCII.GetChars(span, charBuffer);
-            _stringBuilder.Append(charBuffer, 0, charsDecoded);
-        }
+        int charsDecoded = Encoding.ASCII.GetChars(span, charBuffer);
+        _stringBuilder.Append(charBuffer, 0, charsDecoded);
     }
 
     private uint _failedResponseCount;
