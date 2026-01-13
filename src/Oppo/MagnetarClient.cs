@@ -265,7 +265,7 @@ public sealed class MagnetarClient(string hostName, ILogger<MagnetarClient> logg
 
     public async ValueTask<OppoResult<ushort?>> ForwardAsync(CancellationToken cancellationToken = default)
     {
-        var result = await SendCommandWithRetry("#FWD",null, cancellationToken);
+        var result = await SendCommandWithRetry("#FWD", null, cancellationToken);
         return result.Success;
     }
 
@@ -494,7 +494,7 @@ public sealed class MagnetarClient(string hostName, ILogger<MagnetarClient> logg
 
             await networkStream.WriteAsync(Encoding.ASCII.GetBytes(query), cancellationToken);
             await networkStream.WriteAsync(CarriageReturnLineFeed, cancellationToken);
-            response= await ReadUntilCarriageReturnAsync(networkStream, cancellationToken);
+            response = await ReadUntilCarriageReturnAsync(networkStream, cancellationToken);
             _logger.ReceivedResponse(response);
             return OppoResultCore.SuccessResult(response);
         }

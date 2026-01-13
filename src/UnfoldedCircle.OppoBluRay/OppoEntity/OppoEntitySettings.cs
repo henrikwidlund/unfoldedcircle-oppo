@@ -242,7 +242,7 @@ public static class OppoEntitySettings
         EntitySettingsConstants.Resolution,
         EntitySettingsConstants.SubtitleHold,
         EntitySettingsConstants.Option,
-        EntitySettingsConstants.Hdr,
+        EntitySettingsConstants.Hdr
     ];
 
     public static readonly FrozenDictionary<OppoModel, string[]> SourceList = new Dictionary<OppoModel, string[]>
@@ -383,7 +383,7 @@ public static class OppoEntitySettings
                         new UserInterfaceItem
                         {
                             Type = UserInterfaceItemType.Text,
-                            Text = "Pup-Up Menu",
+                            Text = "Pop-Up Menu",
                             Command = new EntityCommand { CmdId = EntitySettingsConstants.PopUpMenu },
                             Location = new GridLocation { X = 0, Y = 3 },
                             Size = new GridItemSize { Height = 1, Width = 2 }
@@ -726,7 +726,7 @@ public static class OppoEntitySettings
                         new UserInterfaceItem
                         {
                             Type = UserInterfaceItemType.Text,
-                            Text = "Pup-Up Menu",
+                            Text = "Pop-Up Menu",
                             Command = new EntityCommand { CmdId = EntitySettingsConstants.PopUpMenu },
                             Location = new GridLocation { X = 0, Y = 1 },
                             Size = new GridItemSize { Height = 1, Width = 2 }
