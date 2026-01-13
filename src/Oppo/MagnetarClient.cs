@@ -24,7 +24,7 @@ public sealed class MagnetarClient(string hostName, ILogger<MagnetarClient> logg
     // Power Toggle
     public async ValueTask<OppoResult<PowerState>> PowerToggleAsync(CancellationToken cancellationToken = default)
     {
-        var result = await SendCommandWithRetry("#POW", "#POW ?", cancellationToken);
+        var result = await SendCommand("#POW", "#POW ?", cancellationToken);
         return result.Success switch
         {
             false => false,
@@ -43,7 +43,7 @@ public sealed class MagnetarClient(string hostName, ILogger<MagnetarClient> logg
 
     public async ValueTask<OppoResult<PowerState>> PowerOnAsync(CancellationToken cancellationToken = default)
     {
-        var result = await SendCommandWithRetry("#PON", "#POW ?", cancellationToken);
+        var result = await SendCommand("#PON", "#POW ?", cancellationToken);
         return result.Success switch
         {
             false => false,
@@ -62,7 +62,7 @@ public sealed class MagnetarClient(string hostName, ILogger<MagnetarClient> logg
 
     public async ValueTask<OppoResult<PowerState>> PowerOffAsync(CancellationToken cancellationToken = default)
     {
-        var result = await SendCommandWithRetry("#POF", "#POW ?", cancellationToken);
+        var result = await SendCommand("#POF", "#POW ?", cancellationToken);
         return result.Success switch
         {
             false => false,
@@ -81,134 +81,134 @@ public sealed class MagnetarClient(string hostName, ILogger<MagnetarClient> logg
 
     public async ValueTask<OppoResult<TrayState>> EjectToggleAsync(CancellationToken cancellationToken = default)
     {
-        var result = await SendCommandWithRetry("#EJT", "#EJT ?", cancellationToken);
+        var result = await SendCommand("#EJT", "#EJT ?", cancellationToken);
         return result.Success;
     }
 
     public async ValueTask<bool> PlayAsync(CancellationToken cancellationToken = default)
     {
-        var result = await SendCommandWithRetry("#PLA", null, cancellationToken);
+        var result = await SendCommand("#PLA", null, cancellationToken);
         return result.Success;
     }
 
     public async ValueTask<bool> StopAsync(CancellationToken cancellationToken = default)
     {
-        var result = await SendCommandWithRetry("#STP", null, cancellationToken);
+        var result = await SendCommand("#STP", null, cancellationToken);
         return result.Success;
     }
 
     public async ValueTask<bool> PauseAsync(CancellationToken cancellationToken = default)
     {
-        var result = await SendCommandWithRetry("#PAU", null, cancellationToken);
+        var result = await SendCommand("#PAU", null, cancellationToken);
         return result.Success;
     }
 
     public async ValueTask<bool> NextAsync(CancellationToken cancellationToken = default)
     {
-        var result = await SendCommandWithRetry("#NXT", null, cancellationToken);
+        var result = await SendCommand("#NXT", null, cancellationToken);
         return result.Success;
     }
 
     public async ValueTask<bool> PreviousAsync(CancellationToken cancellationToken = default)
     {
-        var result = await SendCommandWithRetry("#PRE", null, cancellationToken);
+        var result = await SendCommand("#PRE", null, cancellationToken);
         return result.Success;
     }
 
     public async ValueTask<bool> UpArrowAsync(CancellationToken cancellationToken = default)
     {
-        var result = await SendCommandWithRetry("#NUP", null, cancellationToken);
+        var result = await SendCommand("#NUP", null, cancellationToken);
         return result.Success;
     }
 
     public async ValueTask<bool> DownArrowAsync(CancellationToken cancellationToken = default)
     {
-        var result = await SendCommandWithRetry("#NDN", null, cancellationToken);
+        var result = await SendCommand("#NDN", null, cancellationToken);
         return result.Success;
     }
 
     public async ValueTask<bool> LeftArrowAsync(CancellationToken cancellationToken = default)
     {
-        var result = await SendCommandWithRetry("#NLT", null, cancellationToken);
+        var result = await SendCommand("#NLT", null, cancellationToken);
         return result.Success;
     }
 
     public async ValueTask<bool> RightArrowAsync(CancellationToken cancellationToken = default)
     {
-        var result = await SendCommandWithRetry("#NRT", null, cancellationToken);
+        var result = await SendCommand("#NRT", null, cancellationToken);
         return result.Success;
     }
 
     public async ValueTask<bool> EnterAsync(CancellationToken cancellationToken = default)
     {
-        var result = await SendCommandWithRetry("#SEL", null, cancellationToken);
+        var result = await SendCommand("#SEL", null, cancellationToken);
         return result.Success;
     }
 
     public async ValueTask<bool> HomeAsync(CancellationToken cancellationToken = default)
     {
-        var result = await SendCommandWithRetry("#HOM", null, cancellationToken);
+        var result = await SendCommand("#HOM", null, cancellationToken);
         return result.Success;
     }
 
     public async ValueTask<bool> SetupAsync(CancellationToken cancellationToken = default)
     {
-        var result = await SendCommandWithRetry("#SET", "#SET ?", cancellationToken);
+        var result = await SendCommand("#SET", "#SET ?", cancellationToken);
         return result.Success;
     }
 
     public async ValueTask<bool> ReturnAsync(CancellationToken cancellationToken = default)
     {
-        var result = await SendCommandWithRetry("#RET", "#RET ?", cancellationToken);
+        var result = await SendCommand("#RET", "#RET ?", cancellationToken);
         return result.Success;
     }
 
     public async ValueTask<bool> NumericInputAsync(ushort number, CancellationToken cancellationToken = default)
     {
         if (number > 9) return false;
-        var result = await SendCommandWithRetry($"#NU{number}", null, cancellationToken);
+        var result = await SendCommand($"#NU{number}", null, cancellationToken);
         return result.Success;
     }
 
     public async ValueTask<OppoResult<DimmerState>> DimmerAsync(CancellationToken cancellationToken = default)
     {
-        var result = await SendCommandWithRetry("#DIM", "#DIM ?", cancellationToken);
+        var result = await SendCommand("#DIM", "#DIM ?", cancellationToken);
         return result.Success;
     }
 
     public async ValueTask<OppoResult<PureAudioState>> PureAudioToggleAsync(CancellationToken cancellationToken = default)
     {
-        var result = await SendCommandWithRetry("#PUR", "#PUR ?", cancellationToken);
+        var result = await SendCommand("#PUR", "#PUR ?", cancellationToken);
         return result.Success;
     }
 
     public async ValueTask<OppoResult<ushort?>> VolumeUpAsync(CancellationToken cancellationToken = default)
     {
-        var result = await SendCommandWithRetry("#VUP", "#VUP ?", cancellationToken);
+        var result = await SendCommand("#VUP", "#VUP ?", cancellationToken);
         return result.Success;
     }
 
     public async ValueTask<OppoResult<ushort?>> VolumeDownAsync(CancellationToken cancellationToken = default)
     {
-        var result = await SendCommandWithRetry("#VDN", "#VDN ?", cancellationToken);
+        var result = await SendCommand("#VDN", "#VDN ?", cancellationToken);
         return result.Success;
     }
 
     public async ValueTask<OppoResult<MuteState>> MuteToggleAsync(CancellationToken cancellationToken = default)
     {
-        var result = await SendCommandWithRetry("#MUT", "#MUT ?", cancellationToken);
+        var result = await SendCommand("#MUT", "#MUT ?", cancellationToken);
         return result.Success;
     }
 
     public async ValueTask<bool> ClearAsync(CancellationToken cancellationToken = default)
     {
-        var result = await SendCommandWithRetry("#CLR", null, cancellationToken);
+        var result = await SendCommand("#CLR", null, cancellationToken);
         return result.Success;
     }
 
     public async ValueTask<bool> GoToAsync(CancellationToken cancellationToken = default)
     {
-        var result = await SendCommandWithRetry("#GOT", null, cancellationToken);
+        var result = await SendCommand("#GOT", null, cancellationToken);
         return result.Success;
     }
 
@@ -217,121 +217,121 @@ public sealed class MagnetarClient(string hostName, ILogger<MagnetarClient> logg
 
     public async ValueTask<bool> InfoToggleAsync(CancellationToken cancellationToken = default)
     {
-        var result = await SendCommandWithRetry("#OSD", null, cancellationToken);
+        var result = await SendCommand("#OSD", null, cancellationToken);
         return result.Success;
     }
 
     public async ValueTask<bool> TopMenuAsync(CancellationToken cancellationToken = default)
     {
-        var result = await SendCommandWithRetry("#TTL", null, cancellationToken);
+        var result = await SendCommand("#TTL", null, cancellationToken);
         return result.Success;
     }
 
     public async ValueTask<bool> PopUpMenuAsync(CancellationToken cancellationToken = default)
     {
-        var result = await SendCommandWithRetry("#MNU", null, cancellationToken);
+        var result = await SendCommand("#MNU", null, cancellationToken);
         return result.Success;
     }
 
     public async ValueTask<bool> RedAsync(CancellationToken cancellationToken = default)
     {
-        var result = await SendCommandWithRetry("#RED", null, cancellationToken);
+        var result = await SendCommand("#RED", null, cancellationToken);
         return result.Success;
     }
 
     public async ValueTask<bool> GreenAsync(CancellationToken cancellationToken = default)
     {
-        var result = await SendCommandWithRetry("#GRN", null, cancellationToken);
+        var result = await SendCommand("#GRN", null, cancellationToken);
         return result.Success;
     }
 
     public async ValueTask<bool> BlueAsync(CancellationToken cancellationToken = default)
     {
-        var result = await SendCommandWithRetry("#BLU", null, cancellationToken);
+        var result = await SendCommand("#BLU", null, cancellationToken);
         return result.Success;
     }
 
     public async ValueTask<bool> YellowAsync(CancellationToken cancellationToken = default)
     {
-        var result = await SendCommandWithRetry("#YLW", null, cancellationToken);
+        var result = await SendCommand("#YLW", null, cancellationToken);
         return result.Success;
     }
 
     public async ValueTask<OppoResult<ushort?>> ReverseAsync(CancellationToken cancellationToken = default)
     {
-        var result = await SendCommandWithRetry("#REV", null, cancellationToken);
+        var result = await SendCommand("#REV", null, cancellationToken);
         return result.Success;
     }
 
     public async ValueTask<OppoResult<ushort?>> ForwardAsync(CancellationToken cancellationToken = default)
     {
-        var result = await SendCommandWithRetry("#FWD", null, cancellationToken);
+        var result = await SendCommand("#FWD", null, cancellationToken);
         return result.Success;
     }
 
     public async ValueTask<bool> AudioAsync(CancellationToken cancellationToken = default)
     {
-        var result = await SendCommandWithRetry("#AUD", null, cancellationToken);
+        var result = await SendCommand("#AUD", null, cancellationToken);
         return result.Success;
     }
 
     public async ValueTask<bool> SubtitleAsync(CancellationToken cancellationToken = default)
     {
-        var result = await SendCommandWithRetry("#SUB", null, cancellationToken);
+        var result = await SendCommand("#SUB", null, cancellationToken);
         return result.Success;
     }
 
     public async ValueTask<OppoResult<string>> AngleAsync(CancellationToken cancellationToken = default)
     {
-        var result = await SendCommandWithRetry("#ANG", "#ANG ?", cancellationToken);
+        var result = await SendCommand("#ANG", "#ANG ?", cancellationToken);
         return result.Success;
     }
 
     public async ValueTask<OppoResult<string>> ZoomAsync(CancellationToken cancellationToken = default)
     {
-        var result = await SendCommandWithRetry("#ZOM", "#ZOM ?", cancellationToken);
+        var result = await SendCommand("#ZOM", "#ZOM ?", cancellationToken);
         return result.Success;
     }
 
     public async ValueTask<OppoResult<string>> SecondaryAudioProgramAsync(CancellationToken cancellationToken = default)
     {
-        var result = await SendCommandWithRetry("#SAP", null, cancellationToken);
+        var result = await SendCommand("#SAP", null, cancellationToken);
         return result.Success;
     }
 
     public async ValueTask<OppoResult<ABReplayState>> ABReplayAsync(CancellationToken cancellationToken = default)
     {
-        var result = await SendCommandWithRetry("#ATB", "#ATB ?", cancellationToken);
+        var result = await SendCommand("#ATB", "#ATB ?", cancellationToken);
         return result.Success;
     }
 
     public async ValueTask<OppoResult<RepeatState>> RepeatAsync(CancellationToken cancellationToken = default)
     {
-        var result = await SendCommandWithRetry("#RPT", "#RPT ?", cancellationToken);
+        var result = await SendCommand("#RPT", "#RPT ?", cancellationToken);
         return result.Success;
     }
 
     public async ValueTask<OppoResult<string>> PictureInPictureAsync(CancellationToken cancellationToken = default)
     {
-        var result = await SendCommandWithRetry("#PIP", "#PIP ?", cancellationToken);
+        var result = await SendCommand("#PIP", "#PIP ?", cancellationToken);
         return result.Success;
     }
 
     public async ValueTask<bool> ResolutionAsync(CancellationToken cancellationToken = default)
     {
-        var result = await SendCommandWithRetry("#HDM", null, cancellationToken);
+        var result = await SendCommand("#HDM", null, cancellationToken);
         return result.Success;
     }
 
     public async ValueTask<bool> SubtitleHoldAsync(CancellationToken cancellationToken = default)
     {
-        var result = await SendCommandWithRetry("#SUH", null, cancellationToken);
+        var result = await SendCommand("#SUH", null, cancellationToken);
         return result.Success;
     }
 
     public async ValueTask<bool> OptionAsync(CancellationToken cancellationToken = default)
     {
-        var result = await SendCommandWithRetry("#OPT", null, cancellationToken);
+        var result = await SendCommand("#OPT", null, cancellationToken);
         return result.Success;
     }
 
@@ -340,7 +340,7 @@ public sealed class MagnetarClient(string hostName, ILogger<MagnetarClient> logg
 
     public async ValueTask<bool> HDRAsync(CancellationToken cancellationToken = default)
     {
-        var result = await SendCommandWithRetry("#HDR", null, cancellationToken);
+        var result = await SendCommand("#HDR", null, cancellationToken);
         return result.Success;
     }
 
@@ -507,16 +507,6 @@ public sealed class MagnetarClient(string hostName, ILogger<MagnetarClient> logg
         {
             _semaphore.Release();
         }
-    }
-
-    private async ValueTask<OppoResultCore> SendCommandWithRetry(string command, string? query, CancellationToken cancellationToken, [CallerMemberName] string? caller = null)
-    {
-        var result = await SendCommand(command, query, cancellationToken, caller);
-        if (!result.InvalidVerboseLevel)
-            return result;
-
-        var verboseMode = await SetVerboseMode(VerboseMode.Off, cancellationToken);
-        return !verboseMode.Success ? OppoResultCore.FalseResult : await SendCommand(command, query, cancellationToken, caller);
     }
 
     private async ValueTask<string> ReadUntilCarriageReturnAsync(NetworkStream networkStream, CancellationToken cancellationToken)
