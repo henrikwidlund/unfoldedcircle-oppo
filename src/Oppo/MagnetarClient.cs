@@ -525,7 +525,7 @@ public sealed class MagnetarClient(string hostName, ILogger<MagnetarClient> logg
 
                 do
                 {
-                    var position = buffer.PositionOf((byte)'\n');
+                    var position = buffer.PositionOf((byte)'\r');
 
                     if (position != null)
                     {
