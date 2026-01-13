@@ -174,7 +174,8 @@ public enum OppoModel : sbyte
     BDP9X,
     BDP10X,
     UDP203,
-    UDP205
+    UDP205,
+    Magnetar
     // ReSharper restore InconsistentNaming
 }
 

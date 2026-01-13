@@ -1,6 +1,5 @@
 using System.Buffers;
 using System.ComponentModel.DataAnnotations;
-using System.Diagnostics.CodeAnalysis;
 using System.IO.Pipelines;
 using System.Net.Sockets;
 using System.Runtime.CompilerServices;
@@ -1302,23 +1301,6 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
             int charsDecoded = Encoding.ASCII.GetChars(span, charBuffer);
             _stringBuilder.Append(charBuffer, 0, charsDecoded);
         }
-    }
-
-    private readonly record struct OppoResultCore(
-        bool Success,
-        string? Response)
-    {
-        public string? Response { get; } = Response;
-
-        [MemberNotNullWhen(true, nameof(Response))]
-        public bool Success { get; } = Success;
-
-        public bool InvalidVerboseLevel { get; private init; }
-        
-        public static readonly OppoResultCore FalseResult = new(false, null);
-        public static readonly OppoResultCore InvalidVerboseLevelResult = new(false, null) { InvalidVerboseLevel = true };
-        
-        public static OppoResultCore SuccessResult(string response) => new(true, response);
     }
 
     private uint _failedResponseCount;

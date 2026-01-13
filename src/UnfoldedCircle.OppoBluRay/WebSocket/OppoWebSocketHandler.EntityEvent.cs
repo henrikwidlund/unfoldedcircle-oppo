@@ -111,8 +111,8 @@ public partial class OppoWebSocketHandler
                 };
 
                 MediaPlayerStateChangedEventMessageDataAttributes newMediaPlayerState;
-                // Only send power state if not using media events
-                if (oppoClientHolder is { ClientKey.UseMediaEvents: false })
+                // Only send power state if not using media events or if Magnetar model as that manufacturer doesn't support other media info
+                if (oppoClientHolder is { ClientKey.UseMediaEvents: false } || oppoClientHolder.ClientKey.Model == OppoModel.Magnetar)
                 {
                     newMediaPlayerState = new MediaPlayerStateChangedEventMessageDataAttributes { State = state };
                     if (!await SendMediaPlayerEventAsync(socket, wsId, oppoClientHolder, newMediaPlayerState, cancellationTokenSource.Token))

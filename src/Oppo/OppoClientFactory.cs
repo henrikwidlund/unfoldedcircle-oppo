@@ -10,6 +10,7 @@ public class OppoClientFactory(ILoggerFactory loggerFactory, ILogger<OppoClientF
     private readonly ILogger<OppoClientFactory> _logger = logger;
     private readonly ConcurrentDictionary<int, IOppoClient> _clients = new();
     private ILogger<OppoClient>? _oppoClientLogger;
+    private ILogger<MagnetarClient>? _magnetarClientLogger;
     private readonly SemaphoreSlim _semaphoreSlim = new(1, 1);
 
     public async ValueTask<IOppoClient?> TryGetOrCreateClient(OppoClientKey oppoClientKey, CancellationToken cancellationToken)
@@ -25,8 +26,16 @@ public class OppoClientFactory(ILoggerFactory loggerFactory, ILogger<OppoClientF
                 if (_clients.TryGetValue(clientKeyHash, out client))
                     return client;
 
-                _oppoClientLogger ??= _loggerFactory.CreateLogger<OppoClient>();
-                client = new OppoClient(oppoClientKey.HostName, oppoClientKey.Model, _oppoClientLogger);
+                if (oppoClientKey.Model == OppoModel.Magnetar)
+                {
+                    _magnetarClientLogger ??= _loggerFactory.CreateLogger<MagnetarClient>();
+                    client = new MagnetarClient(oppoClientKey.HostName, _magnetarClientLogger);
+                }
+                else
+                {
+                    _oppoClientLogger ??= _loggerFactory.CreateLogger<OppoClient>();
+                    client = new OppoClient(oppoClientKey.HostName, oppoClientKey.Model, _oppoClientLogger);
+                }
 
                 _clients[clientKeyHash] = client;
                 return client;

@@ -170,8 +170,11 @@ public partial class OppoWebSocketHandler(
                 EntityType = EntityType.MediaPlayer,
                 Name = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { ["en"] = configurationItem.EntityName },
                 DeviceId = configurationItem.DeviceId.GetNullableIdentifier(EntityType.MediaPlayer),
-                Features = OppoEntitySettings.MediaPlayerEntityFeatures,
-                Options = new Dictionary<string, ISet<string>>(StringComparer.OrdinalIgnoreCase) { ["simple_commands"] = OppoEntitySettings.MediaPlayerSimpleCommands }
+                Features = configurationItem.Model == OppoModel.Magnetar ? OppoEntitySettings.MagnetarMediaPlayerEntityFeatures : OppoEntitySettings.MediaPlayerEntityFeatures,
+                Options = new Dictionary<string, ISet<string>>(StringComparer.OrdinalIgnoreCase)
+                {
+                    ["simple_commands"] = configurationItem.Model == OppoModel.Magnetar ? OppoEntitySettings.MagnetarMediaPlayerSimpleCommands : OppoEntitySettings.MediaPlayerSimpleCommands
+                }
             };
 
         static RemoteAvailableEntity GetRemoteEntity(OppoConfigurationItem configurationItem) =>
@@ -182,7 +185,7 @@ public partial class OppoWebSocketHandler(
                 Name = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { ["en"] = $"{configurationItem.EntityName} Remote" },
                 DeviceId = configurationItem.DeviceId.GetNullableIdentifier(EntityType.Remote),
                 Features = OppoEntitySettings.RemoteFeatures,
-                Options = OppoEntitySettings.RemoteOptions
+                Options = configurationItem.Model == OppoModel.Magnetar ? OppoEntitySettings.MagnetarRemoteOptions : OppoEntitySettings.RemoteOptions
             };
 
         SensorAvailableEntity GetSensorEntity(OppoConfigurationItem configurationItem, in OppoSensorType sensorType)
