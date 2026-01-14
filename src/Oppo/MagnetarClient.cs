@@ -14,7 +14,7 @@ public sealed class MagnetarClient(string hostName, ILogger<MagnetarClient> logg
     private readonly ILogger<MagnetarClient> _logger = logger;
     private readonly string _hostName = hostName;
 
-    private TcpClient _tcpClient = new();
+    private readonly TcpClient _tcpClient = new();
     private readonly SemaphoreSlim _semaphore = new(1, 1);
     private readonly TimeSpan _timeout = TimeSpan.FromSeconds(1);
     private readonly StringBuilder _stringBuilder = new();
@@ -59,6 +59,9 @@ public sealed class MagnetarClient(string hostName, ILogger<MagnetarClient> logg
     public async ValueTask<OppoResult<PowerState>> PowerOffAsync(CancellationToken cancellationToken = default)
     {
         var result = await SendCommand("#POF", cancellationToken);
+        if (!result.Success)
+            return false;
+
         _lastPowerState = PowerState.Off;
         return new OppoResult<PowerState>
         {
