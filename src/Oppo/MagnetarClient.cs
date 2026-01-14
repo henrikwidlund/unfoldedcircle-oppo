@@ -536,7 +536,7 @@ public sealed class MagnetarClient(string hostName, ILogger<MagnetarClient> logg
         {
             _logger.LogDebug(
                 "Waited too long for response, cancelling read. Got so far: {Response}",
-                _stringBuilder.ToString().Replace("\r", "\\r").Replace("\n", "\\n")
+                _stringBuilder.ToString().Replace('\r', '|').Replace('\n', '^')
             );
 
         }
