@@ -244,7 +244,7 @@ public partial class OppoWebSocketHandler(
                     {
                         Text = new ValueRegex()
                     },
-                    Label = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { ["en"] = "Enter the name of the Oppo player (optional)" }
+                    Label = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { ["en"] = "Enter the name of the player (optional)" }
                 },
                 new Setting
                 {
@@ -256,7 +256,19 @@ public partial class OppoWebSocketHandler(
                             RegEx = OppoConstants.IpAddressRegex
                         }
                     },
-                    Label = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { ["en"] = "Enter the IP address of the Oppo player (mandatory)" }
+                    Label = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { ["en"] = "Enter the IP address of the player (mandatory)" }
+                },
+                new Setting
+                {
+                    Id = OppoConstants.MacAddressKey,
+                    Field = new SettingTypeText
+                    {
+                        Text = new ValueRegex
+                        {
+                            RegEx = OppoConstants.MacAddressRegex
+                        }
+                    },
+                    Label = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { ["en"] = "Enter the MAC address of the player (required for Magnetar)" }
                 },
                 new Setting
                 {
@@ -300,7 +312,7 @@ public partial class OppoWebSocketHandler(
                             Value = configurationItem?.Model.ToStringFast()
                         }
                     },
-                    Label = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { ["en"] = "Select the model of your Oppo player (mandatory)" }
+                    Label = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { ["en"] = "Select the model of your player (mandatory)" }
                 },
                 new Setting
                 {

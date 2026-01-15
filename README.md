@@ -1,4 +1,4 @@
-# Unfolded Circle Oppo Integration Driver
+# Unfolded Circle Oppo/Magnetar Integration Driver
 
 [![Release](https://img.shields.io/github/actions/workflow/status/henrikwidlund/unfoldedcircle-oppo/github-release.yml?label=Release&logo=github)](https://github.com/henrikwidlund/unfoldedcircle-oppo/actions/workflows/github-release.yml)
 [![CI](https://img.shields.io/github/actions/workflow/status/henrikwidlund/unfoldedcircle-oppo/ci.yml?label=CI&logo=github)](https://github.com/henrikwidlund/unfoldedcircle-oppo/actions/workflows/ci.yml)
@@ -6,7 +6,7 @@
 [![Qodana](https://img.shields.io/github/actions/workflow/status/henrikwidlund/unfoldedcircle-oppo/qodana_code_quality.yml?branch=main&label=Qodana&logo=github)](https://github.com/henrikwidlund/unfoldedcircle-oppo/actions/workflows/qodana_code_quality.yml)
 [![Docker](https://img.shields.io/github/actions/workflow/status/henrikwidlund/unfoldedcircle-oppo/docker.yml?label=Docker&logo=docker)](https://github.com/henrikwidlund/unfoldedcircle-oppo/actions/workflows/docker.yml)
 
-This repository contains the server code for hosting an Oppo Blu-ray integration driver for the Unfolded Circle Remotes.
+This repository contains the server code for hosting an Oppo/Magnetar Blu-ray integration driver for the Unfolded Circle Remotes.
 
 ## Supported devices
 

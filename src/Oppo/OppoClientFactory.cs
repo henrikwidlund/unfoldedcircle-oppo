@@ -28,8 +28,14 @@ public class OppoClientFactory(ILoggerFactory loggerFactory, ILogger<OppoClientF
 
                 if (oppoClientKey.Model == OppoModel.Magnetar)
                 {
+                    if (string.IsNullOrEmpty(oppoClientKey.MacAddress))
+                    {
+                        _logger.MissingMacAddress(oppoClientKey.EntityId);
+                        return null;
+                    }
+
                     _magnetarClientLogger ??= _loggerFactory.CreateLogger<MagnetarClient>();
-                    client = new MagnetarClient(oppoClientKey.HostName, _magnetarClientLogger);
+                    client = new MagnetarClient(oppoClientKey.HostName, oppoClientKey.MacAddress, _magnetarClientLogger);
                 }
                 else
                 {

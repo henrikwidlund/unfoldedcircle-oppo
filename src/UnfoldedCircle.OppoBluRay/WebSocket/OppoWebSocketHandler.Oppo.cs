@@ -36,7 +36,7 @@ public partial class OppoWebSocketHandler
 
         if (entity is not null)
             return new OppoClientKey(entity.Host, entity.Model, entity.UseMediaEvents, entity.UseChapterLengthForMovies,
-                entity.EntityId, entity.DeviceId);
+                entity.EntityId, entity.DeviceId, entity.MacAddress);
 
         _logger.NoConfigurationFoundForIdentifier(wsId, localIdentifier ?? default, identifierType);
         return null;
@@ -55,7 +55,7 @@ public partial class OppoWebSocketHandler
 
         return configuration.Entities
             .Select(static entity => new OppoClientKey(entity.Host, entity.Model, entity.UseMediaEvents, entity.UseChapterLengthForMovies,
-                entity.EntityId, entity.DeviceId))
+                entity.EntityId, entity.DeviceId, entity.MacAddress))
             .ToArray();
     }
 
