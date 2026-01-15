@@ -20,7 +20,6 @@ public sealed class MagnetarClient(string hostName, string macAddress, ILogger<M
 
     public string HostName => _hostName;
 
-
     private PowerState _lastPowerState = PowerState.Off;
 
     public async ValueTask<OppoResult<PowerState>> PowerToggleAsync(CancellationToken cancellationToken = default)
@@ -398,56 +397,11 @@ public sealed class MagnetarClient(string hostName, string macAddress, ILogger<M
     public ValueTask<OppoResult<VerboseMode>> SetVerboseMode(VerboseMode verboseMode, CancellationToken cancellationToken = default)
         => ValueTask.FromResult(new OppoResult<VerboseMode> { Success = false });
 
-    public async ValueTask<bool> IsConnectedAsync(TimeSpan? timeout = null)
-    {
-        if (_tcpClient.Connected)
-            return _tcpClient.Connected;
-
-        var acquired = await _semaphore.WaitAsync(timeout ?? TimeSpan.FromSeconds(5));
-        if (!acquired)
-            return _tcpClient.Connected;
-
-        try
-        {
-            if (_tcpClient.Connected)
-                return _tcpClient.Connected;
-
-            return await DoConnect(true);
-        }
-        finally
-        {
-            _semaphore.Release();
-        }
-
-        async ValueTask<bool> DoConnect(bool allowRetry)
-        {
-            try
-            {
-                using var cancellationTokenSource = new CancellationTokenSource(timeout ?? TimeSpan.FromSeconds(3));
-                await _tcpClient.ConnectAsync(_hostName, Port, cancellationTokenSource.Token);
-                return _tcpClient.Connected;
-            }
-            catch (OperationCanceledException)
-            {
-                // nothing to do here, ignore
-            }
-            catch (SocketException) when (allowRetry)
-            {
-                // Network stack might not be ready, wait a bit and try one more time
-                _logger.RetryingConnectionAfterSocketException(_hostName, Port);
-                await Task.Delay(500);
-                return await DoConnect(false);
-            }
-            catch (Exception e)
-            {
-                _logger.FailedToConnectToOppoPlayer(e, _hostName, Port);
-            }
-
-            return _tcpClient.Connected;
-        }
-    }
+    public ValueTask<bool> IsConnectedAsync(TimeSpan? timeout = null)
+        => ConnectHelper.IsConnectedAsync(_tcpClient, _hostName, Port, _semaphore, _logger, timeout);
 
     private static readonly byte[] CarriageReturnLineFeed = "\r\n"u8.ToArray();
+
     private async ValueTask<OppoResultCore> SendCommand(string command, CancellationToken cancellationToken)
     {
         if (!await _semaphore.WaitAsync(_timeout, cancellationToken))
