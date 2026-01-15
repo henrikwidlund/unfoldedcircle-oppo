@@ -466,9 +466,9 @@ public sealed class MagnetarClient(string hostName, string macAddress, ILogger<M
 
             return OppoResultCore.SuccessResult("ack");
         }
-        catch (Exception ex)
+        catch (Exception e)
         {
-            _logger.LogError(ex, "Magnetar command failed");
+            _logger.FailedToSendCommandException(e);
             return OppoResultCore.FalseResult;
         }
         finally
