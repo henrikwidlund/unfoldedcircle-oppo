@@ -8,9 +8,9 @@ internal static class WakeOnLan
     public static async ValueTask SendWakeOnLanAsync(IPAddress ipAddress, string macAddress)
     {
         byte[] magicPacket = CreateMagicPacket(macAddress);
-        var socket = new Socket(ipAddress.AddressFamily, SocketType.Dgram, ProtocolType.Udp);
+        using var socket = new Socket(ipAddress.AddressFamily, SocketType.Dgram, ProtocolType.Udp);
         socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.Broadcast, 1);
-        await socket.ConnectAsync(ipAddress,9);
+        await socket.ConnectAsync(ipAddress, 9);
         await socket.SendAsync(magicPacket);
     }
 

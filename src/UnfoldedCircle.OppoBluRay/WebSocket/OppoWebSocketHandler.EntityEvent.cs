@@ -119,7 +119,7 @@ public partial class OppoWebSocketHandler
 
                 MediaPlayerStateChangedEventMessageDataAttributes newMediaPlayerState;
                 // Only send power state if not using media events
-                if (oppoClientHolder is { ClientKey.UseMediaEvents: false } || oppoClientHolder.ClientKey.Model == OppoModel.Magnetar)
+                if (oppoClientHolder is { ClientKey.UseMediaEvents: false })
                 {
                     newMediaPlayerState = new MediaPlayerStateChangedEventMessageDataAttributes { State = state };
                     if (!await SendMediaPlayerEventAsync(socket, wsId, oppoClientHolder, newMediaPlayerState, cancellationTokenSource.Token))
