@@ -1,7 +1,4 @@
-using System.Buffers;
-using System.IO.Pipelines;
 using System.Net.Sockets;
-using System.Runtime.CompilerServices;
 using System.Text;
 
 using Microsoft.Extensions.Logging;
@@ -17,7 +14,6 @@ public sealed class MagnetarClient(string hostName, ILogger<MagnetarClient> logg
     private readonly TcpClient _tcpClient = new();
     private readonly SemaphoreSlim _semaphore = new(1, 1);
     private readonly TimeSpan _timeout = TimeSpan.FromSeconds(1);
-    private readonly StringBuilder _stringBuilder = new();
 
     public string HostName => _hostName;
 
@@ -445,8 +441,7 @@ public sealed class MagnetarClient(string hostName, ILogger<MagnetarClient> logg
     }
 
     private static readonly byte[] CarriageReturnLineFeed = "\r\n"u8.ToArray();
-    private async ValueTask<OppoResultCore> SendCommand(string command, CancellationToken cancellationToken,
-        [CallerMemberName] string? caller = null)
+    private async ValueTask<OppoResultCore> SendCommand(string command, CancellationToken cancellationToken)
     {
         if (!await _semaphore.WaitAsync(_timeout, cancellationToken))
             return OppoResultCore.FalseResult;
@@ -456,22 +451,13 @@ public sealed class MagnetarClient(string hostName, ILogger<MagnetarClient> logg
             if (_logger.IsEnabled(LogLevel.Trace))
                 _logger.SendingCommand(command);
 
+            await IsConnectedAsync();
+
             var networkStream = _tcpClient.GetStream();
             await networkStream.WriteAsync(Encoding.ASCII.GetBytes(command), cancellationToken);
             await networkStream.WriteAsync(CarriageReturnLineFeed, cancellationToken);
 
-            if (!_tcpClient.Connected)
-                await _tcpClient.ConnectAsync(_hostName, Port, cancellationToken);
-
-            var response = await ReadUntilCarriageReturnAsync(networkStream, cancellationToken);
-            if (!string.Equals(response, "ack", StringComparison.OrdinalIgnoreCase) &&
-                !response.StartsWith("UPL", StringComparison.OrdinalIgnoreCase))
-            {
-                _logger.FailedToSendCommand(caller, response);
-                return OppoResultCore.FalseResult;
-            }
-
-            return OppoResultCore.SuccessResult(response);
+            return OppoResultCore.SuccessResult("ack");
         }
         catch (Exception ex)
         {
@@ -482,76 +468,6 @@ public sealed class MagnetarClient(string hostName, ILogger<MagnetarClient> logg
         {
             _semaphore.Release();
         }
-    }
-
-    private async ValueTask<string> ReadUntilCarriageReturnAsync(NetworkStream networkStream, CancellationToken cancellationToken)
-    {
-        _stringBuilder.Clear();
-        var pipeReader = PipeReader.Create(networkStream);
-        var charBuffer = ArrayPool<char>.Shared.Rent(1024);
-        using var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(3));
-
-        try
-        {
-            while (true)
-            {
-                var result = await pipeReader.ReadAsync(cancellationTokenSource.Token);
-                var buffer = result.Buffer;
-
-                do
-                {
-                    var position = buffer.PositionOf((byte)'\r');
-
-                    if (position != null)
-                    {
-                        var slice = buffer.Slice(0, position.Value);
-                        if (slice.IsSingleSegment)
-                        {
-                            WriteSpan(slice.FirstSpan, charBuffer);
-                        }
-                        else
-                        {
-                            foreach (var segment in slice)
-                            {
-                                WriteSpan(segment.Span, charBuffer);
-                            }
-                        }
-
-                        pipeReader.AdvanceTo(slice.End);
-                        return _stringBuilder.ToString();
-                    }
-
-                    foreach (var segment in buffer)
-                    {
-                        WriteSpan(segment.Span, charBuffer);
-                    }
-                    pipeReader.AdvanceTo(buffer.End);
-                } while (!result.IsCompleted && !cancellationToken.IsCancellationRequested);
-
-                if (result.IsCompleted || cancellationToken.IsCancellationRequested)
-                    break;
-            }
-        }
-        catch (OperationCanceledException)
-        {
-            _logger.LogDebug(
-                "Waited too long for response, cancelling read. Got so far: {Response}",
-                _stringBuilder.ToString().Replace('\r', '|').Replace('\n', '^')
-            );
-
-        }
-        finally
-        {
-            ArrayPool<char>.Shared.Return(charBuffer);
-        }
-
-        return _stringBuilder.ToString();
-    }
-
-    private void WriteSpan(in ReadOnlySpan<byte> span, char[] charBuffer)
-    {
-        int charsDecoded = Encoding.ASCII.GetChars(span, charBuffer);
-        _stringBuilder.Append(charBuffer, 0, charsDecoded);
     }
 
     public void Dispose()
