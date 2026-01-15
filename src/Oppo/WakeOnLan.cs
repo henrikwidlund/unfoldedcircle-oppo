@@ -5,13 +5,14 @@ namespace Oppo;
 
 internal static class WakeOnLan
 {
-    public static async ValueTask SendWakeOnLanAsync(IPAddress ipAddress, string macAddress)
+    private static readonly IPAddress BroadcastAddress = IPAddress.Parse("255.255.255.255");
+
+    public static async ValueTask SendWakeOnLanAsync(string macAddress)
     {
         byte[] magicPacket = CreateMagicPacket(macAddress);
-        using var socket = new Socket(ipAddress.AddressFamily, SocketType.Dgram, ProtocolType.Udp);
+        using var socket = new Socket(BroadcastAddress.AddressFamily, SocketType.Dgram, ProtocolType.Udp);
         socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.Broadcast, 1);
-        await socket.ConnectAsync(ipAddress, 9);
-        await socket.SendAsync(magicPacket);
+        await socket.SendToAsync(magicPacket, new IPEndPoint(BroadcastAddress, 9));
     }
 
     private static byte[] CreateMagicPacket(string macAddress) =>
