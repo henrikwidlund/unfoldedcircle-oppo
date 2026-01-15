@@ -13,19 +13,23 @@ internal static class OppoResponsePayloadHelpers
     {
         foreach (var entityIdDeviceId in entityIdDeviceIds)
         {
-            yield return new MediaPlayerEntityStateChanged
-            {
-                EntityId = entityIdDeviceId.EntityId.GetIdentifier(EntityType.MediaPlayer),
-                EntityType = EntityType.MediaPlayer,
-                Attributes = GetMediaPlayerAttributes(entityIdDeviceId.Model),
-                DeviceId = entityIdDeviceId.DeviceId.GetNullableIdentifier(EntityType.MediaPlayer)
-            };
             yield return new RemoteEntityStateChanged
             {
                 EntityId = entityIdDeviceId.EntityId.GetIdentifier(EntityType.Remote),
                 EntityType = EntityType.Remote,
                 Attributes = [RemoteEntityAttribute.State],
                 DeviceId = entityIdDeviceId.DeviceId.GetNullableIdentifier(EntityType.Remote)
+            };
+
+            if (entityIdDeviceId.Model == OppoModel.Magnetar)
+                continue;
+
+            yield return new MediaPlayerEntityStateChanged
+            {
+                EntityId = entityIdDeviceId.EntityId.GetIdentifier(EntityType.MediaPlayer),
+                EntityType = EntityType.MediaPlayer,
+                Attributes = GetMediaPlayerAttributes(entityIdDeviceId.Model),
+                DeviceId = entityIdDeviceId.DeviceId.GetNullableIdentifier(EntityType.MediaPlayer)
             };
 
             foreach (var oppoSensorType in SensorHelpers.GetOppoSensorTypes(entityIdDeviceId.Model))

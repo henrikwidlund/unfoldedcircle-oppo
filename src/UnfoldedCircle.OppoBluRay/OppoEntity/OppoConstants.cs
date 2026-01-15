@@ -4,7 +4,6 @@ internal static class OppoConstants
 {
     internal const string IpAddressKey = "ip_address";
     internal const string MacAddressKey = "mac_address";
-    internal const string DeviceIdKey = "device_id";
     internal const string OppoModelKey = "oppo_model";
     internal const string EntityName = "entity_name";
     internal const string UseMediaEventsKey = "use_media_events";

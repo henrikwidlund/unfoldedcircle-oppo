@@ -720,7 +720,7 @@ public static class OppoEntitySettings
                             Type = UserInterfaceItemType.Text,
                             Text = "Subtitle Hold",
                             Command = new EntityCommand { CmdId = EntitySettingsConstants.SubtitleHold },
-                            Location = new GridLocation { X = 3, Y = 0 },
+                            Location = new GridLocation { X = 2, Y = 0 },
                             Size = new GridItemSize { Height = 1, Width = 2 }
                         },
                         new UserInterfaceItem
@@ -777,15 +777,15 @@ public static class OppoEntitySettings
                             Icon = "uc:repeat",
                             Command = new EntityCommand { CmdId = MediaPlayerCommandIdConstants.Repeat },
                             Location = new GridLocation { X = 0, Y = 5 },
-                            Size = new GridItemSize { Height = 1, Width = 1 }
+                            Size = new GridItemSize { Height = 1, Width = 2 }
                         },
                         new UserInterfaceItem
                         {
                             Type = UserInterfaceItemType.Icon,
                             Icon = "uc:gear",
                             Command = new EntityCommand { CmdId = MediaPlayerCommandIdConstants.Settings },
-                            Location = new GridLocation { X = 1, Y = 5 },
-                            Size = new GridItemSize { Height = 1, Width = 1 }
+                            Location = new GridLocation { X = 2, Y = 5 },
+                            Size = new GridItemSize { Height = 1, Width = 2 }
                         }
                     ]
                 },
@@ -793,7 +793,7 @@ public static class OppoEntitySettings
                 {
                     PageId = "uc_oppo_picture_audio",
                     Name = "Picture and Audio",
-                    Grid = new Grid { Height = 7, Width = 4 },
+                    Grid = new Grid { Height = 5, Width = 4 },
                     Items =
                     [
                         new UserInterfaceItem
@@ -809,14 +809,14 @@ public static class OppoEntitySettings
                             Text = "HDR",
                             Command = new EntityCommand { CmdId = EntitySettingsConstants.Hdr },
                             Location = new GridLocation { X = 0, Y = 1 },
-                            Size = new GridItemSize { Height = 1, Width = 1 }
+                            Size = new GridItemSize { Height = 1, Width = 2 }
                         },
                         new UserInterfaceItem
                         {
                             Type = UserInterfaceItemType.Icon,
                             Icon = "uc:magnifying-glass-plus",
                             Command = new EntityCommand { CmdId = EntitySettingsConstants.Zoom },
-                            Location = new GridLocation { X = 1, Y = 1 },
+                            Location = new GridLocation { X = 2, Y = 1 },
                             Size = new GridItemSize { Height = 1, Width = 1 }
                         },
                         new UserInterfaceItem
@@ -824,8 +824,8 @@ public static class OppoEntitySettings
                             Type = UserInterfaceItemType.Icon,
                             Icon = "uc:angle",
                             Command = new EntityCommand { CmdId = EntitySettingsConstants.Angle },
-                            Location = new GridLocation { X = 2, Y = 1 },
-                            Size = new GridItemSize { Height = 1, Width = 2 }
+                            Location = new GridLocation { X = 3, Y = 1 },
+                            Size = new GridItemSize { Height = 1, Width = 1 }
                         },
                         new UserInterfaceItem
                         {
@@ -833,15 +833,15 @@ public static class OppoEntitySettings
                             Text = "Resolution",
                             Command = new EntityCommand { CmdId = EntitySettingsConstants.Resolution },
                             Location = new GridLocation { X = 0, Y = 2 },
-                            Size = new GridItemSize { Height = 1, Width = 1 }
+                            Size = new GridItemSize { Height = 1, Width = 2 }
                         },
                         new UserInterfaceItem
                         {
                             Type = UserInterfaceItemType.Text,
                             Text = "Picture-in-Picture",
                             Command = new EntityCommand { CmdId = EntitySettingsConstants.PictureInPicture },
-                            Location = new GridLocation { X = 1, Y = 2 },
-                            Size = new GridItemSize { Height = 1, Width = 1 }
+                            Location = new GridLocation { X = 2, Y = 2 },
+                            Size = new GridItemSize { Height = 1, Width = 2 }
                         },
                         new UserInterfaceItem
                         {

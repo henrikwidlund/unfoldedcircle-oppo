@@ -141,12 +141,17 @@ public partial class OppoWebSocketHandler(
                 switch (payload.MsgData.Filter.EntityType)
                 {
                     case EntityType.MediaPlayer:
+                        if (unfoldedCircleConfigurationItem.Model == OppoModel.Magnetar)
+                            continue;
                         yield return GetMediaPlayerEntity(unfoldedCircleConfigurationItem);
                         break;
                     case EntityType.Remote:
                         yield return GetRemoteEntity(unfoldedCircleConfigurationItem);
                         break;
                     case EntityType.Sensor:
+                        if (unfoldedCircleConfigurationItem.Model == OppoModel.Magnetar)
+                            continue;
+
                         foreach (var oppoSensorType in SensorHelpers.GetOppoSensorTypes(unfoldedCircleConfigurationItem.Model))
                             yield return GetSensorEntity(unfoldedCircleConfigurationItem, oppoSensorType);
                         break;
@@ -154,8 +159,13 @@ public partial class OppoWebSocketHandler(
             }
             else
             {
+                if (unfoldedCircleConfigurationItem.Model == OppoModel.Magnetar)
+                {
+                    yield return GetRemoteEntity(unfoldedCircleConfigurationItem);
+                    continue;
+                }
+
                 yield return GetMediaPlayerEntity(unfoldedCircleConfigurationItem);
-                yield return GetRemoteEntity(unfoldedCircleConfigurationItem);
                 foreach (var oppoSensorType in SensorHelpers.GetOppoSensorTypes(unfoldedCircleConfigurationItem.Model))
                     yield return GetSensorEntity(unfoldedCircleConfigurationItem, oppoSensorType);
             }
@@ -321,7 +331,7 @@ public partial class OppoWebSocketHandler(
                     {
                         Checkbox = new SettingTypeCheckboxInner
                         {
-                            Value = configurationItem?.UseMediaEvents ?? false
+                            Value = configurationItem?.UseMediaEvents ?? true
                         }
                     },
                     Label = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { ["en"] = "Use Media Events? This enables playback information at the expense of updates every second" }
@@ -432,7 +442,7 @@ public partial class OppoWebSocketHandler(
         var host = payload.MsgData.InputValues![OppoConstants.IpAddressKey];
         var oppoModel = GetOppoModel(payload.MsgData.InputValues!);
         var entityName = payload.MsgData.InputValues!.GetValueOrNull(OppoConstants.EntityName, $"{driverMetadata.Name["en"]} ({GetOppoModelName(oppoModel)}) - {host}");
-        var deviceId = payload.MsgData.InputValues!.GetValueOrNull(OppoConstants.DeviceIdKey, host);
+        var macAddress = payload.MsgData.InputValues!.GetValueOrNull(OppoConstants.MacAddressKey, string.Empty);
         bool? useMediaEvents = payload.MsgData.InputValues!.TryGetValue(OppoConstants.UseMediaEventsKey, out var useMediaEventsValue)
             ? useMediaEventsValue.Equals(bool.TrueString, StringComparison.OrdinalIgnoreCase)
             : null;
@@ -449,16 +459,17 @@ public partial class OppoWebSocketHandler(
             {
                 Host = host,
                 Model = oppoModel,
-                DeviceId = deviceId,
+                DeviceId = host,
                 EntityName = entityName,
                 EntityId = host,
                 UseMediaEvents = useMediaEvents ?? false,
-                UseChapterLengthForMovies = useChapterLengthForMovies ?? false
+                UseChapterLengthForMovies = useChapterLengthForMovies ?? false,
+                MacAddress = macAddress
             };
         }
         else
         {
-            _logger.UpdatingConfiguration(deviceId);
+            _logger.UpdatingConfiguration(host);
             configuration.Entities.Remove(entity);
             entity = entity with
             {
