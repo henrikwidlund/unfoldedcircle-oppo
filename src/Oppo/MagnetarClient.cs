@@ -1,4 +1,3 @@
-using System.Net;
 using System.Net.Sockets;
 using System.Text;
 
@@ -11,7 +10,6 @@ public sealed class MagnetarClient(string hostName, string macAddress, ILogger<M
     private const int Port = 8102;
     private readonly ILogger<MagnetarClient> _logger = logger;
     private readonly string _hostName = hostName;
-    private readonly IPAddress _ipAddress = IPAddress.Parse(hostName);
     private readonly string _macAddress = macAddress;
 
     private readonly TcpClient _tcpClient = new();
@@ -25,7 +23,7 @@ public sealed class MagnetarClient(string hostName, string macAddress, ILogger<M
     public async ValueTask<OppoResult<PowerState>> PowerToggleAsync(CancellationToken cancellationToken = default)
     {
         if (_lastPowerState == PowerState.Off)
-            await WakeOnLan.SendWakeOnLanAsync(_ipAddress, _macAddress);
+            await WakeOnLan.SendWakeOnLanAsync(_macAddress);
 
         var result = await SendCommand("#POW", cancellationToken);
         if (!result.Success)
@@ -45,7 +43,7 @@ public sealed class MagnetarClient(string hostName, string macAddress, ILogger<M
 
     public async ValueTask<OppoResult<PowerState>> PowerOnAsync(CancellationToken cancellationToken = default)
     {
-        await WakeOnLan.SendWakeOnLanAsync(_ipAddress, _macAddress);
+        await WakeOnLan.SendWakeOnLanAsync(_macAddress);
         var result = await SendCommand("#PON", cancellationToken);
         if (!result.Success)
             return false;
