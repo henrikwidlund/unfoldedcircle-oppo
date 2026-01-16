@@ -14,7 +14,10 @@ internal static class SensorHelpers
     }).ToFrozenSet();
 
     public static IReadOnlySet<OppoSensorType> GetOppoSensorTypes(in OppoModel oppoModel) =>
-        oppoModel is OppoModel.UDP203 or OppoModel.UDP205
-            ? AllSensorTypes
-            : Non20XSensorTypes;
+        oppoModel switch
+        {
+            OppoModel.UDP203 or OppoModel.UDP205 => AllSensorTypes,
+            OppoModel.Magnetar => [],
+            _ => Non20XSensorTypes
+        };
 }

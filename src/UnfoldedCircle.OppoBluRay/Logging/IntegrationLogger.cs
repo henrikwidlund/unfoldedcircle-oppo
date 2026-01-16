@@ -21,7 +21,7 @@ internal static partial class IntegrationLogger
 
     // WebSocket - Entity command logging
     [LoggerMessage(EventId = 4, EventName = nameof(CouldNotFindOppoClientForEntityId), Level = LogLevel.Warning,
-        Message = "[{WSId}] WS: Could not find Oppo client for entity ID '{EntityId}'")]
+        Message = "[{WSId}] WS: Could not find client for entity ID '{EntityId}'")]
     public static partial void CouldNotFindOppoClientForEntityId(this ILogger logger, string wsId, in ReadOnlyMemory<char> entityId);
 
     // WebSocket - Entity event logging

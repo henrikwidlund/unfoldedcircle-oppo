@@ -174,7 +174,8 @@ public enum OppoModel : sbyte
     BDP9X,
     BDP10X,
     UDP203,
-    UDP205
+    UDP205,
+    Magnetar
     // ReSharper restore InconsistentNaming
 }
 
@@ -190,6 +191,7 @@ public static class OppoModelExtensions
                 OppoModel.BDP10X => nameof(OppoModel.BDP10X),
                 OppoModel.UDP203 => nameof(OppoModel.UDP203),
                 OppoModel.UDP205 => nameof(OppoModel.UDP205),
+                OppoModel.Magnetar => nameof(OppoModel.Magnetar),
                 _ => "Unknown"
             };
     }

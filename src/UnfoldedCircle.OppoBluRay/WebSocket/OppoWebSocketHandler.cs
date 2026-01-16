@@ -141,12 +141,17 @@ public partial class OppoWebSocketHandler(
                 switch (payload.MsgData.Filter.EntityType)
                 {
                     case EntityType.MediaPlayer:
+                        if (unfoldedCircleConfigurationItem.Model == OppoModel.Magnetar)
+                            continue;
                         yield return GetMediaPlayerEntity(unfoldedCircleConfigurationItem);
                         break;
                     case EntityType.Remote:
                         yield return GetRemoteEntity(unfoldedCircleConfigurationItem);
                         break;
                     case EntityType.Sensor:
+                        if (unfoldedCircleConfigurationItem.Model == OppoModel.Magnetar)
+                            continue;
+
                         foreach (var oppoSensorType in SensorHelpers.GetOppoSensorTypes(unfoldedCircleConfigurationItem.Model))
                             yield return GetSensorEntity(unfoldedCircleConfigurationItem, oppoSensorType);
                         break;
@@ -154,6 +159,12 @@ public partial class OppoWebSocketHandler(
             }
             else
             {
+                if (unfoldedCircleConfigurationItem.Model == OppoModel.Magnetar)
+                {
+                    yield return GetRemoteEntity(unfoldedCircleConfigurationItem);
+                    continue;
+                }
+
                 yield return GetMediaPlayerEntity(unfoldedCircleConfigurationItem);
                 yield return GetRemoteEntity(unfoldedCircleConfigurationItem);
                 foreach (var oppoSensorType in SensorHelpers.GetOppoSensorTypes(unfoldedCircleConfigurationItem.Model))
@@ -170,8 +181,11 @@ public partial class OppoWebSocketHandler(
                 EntityType = EntityType.MediaPlayer,
                 Name = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { ["en"] = configurationItem.EntityName },
                 DeviceId = configurationItem.DeviceId.GetNullableIdentifier(EntityType.MediaPlayer),
-                Features = OppoEntitySettings.MediaPlayerEntityFeatures,
-                Options = new Dictionary<string, ISet<string>>(StringComparer.OrdinalIgnoreCase) { ["simple_commands"] = OppoEntitySettings.MediaPlayerSimpleCommands }
+                Features = configurationItem.Model == OppoModel.Magnetar ? OppoEntitySettings.MagnetarMediaPlayerEntityFeatures : OppoEntitySettings.MediaPlayerEntityFeatures,
+                Options = new Dictionary<string, ISet<string>>(StringComparer.OrdinalIgnoreCase)
+                {
+                    ["simple_commands"] = configurationItem.Model == OppoModel.Magnetar ? OppoEntitySettings.MagnetarMediaPlayerSimpleCommands : OppoEntitySettings.MediaPlayerSimpleCommands
+                }
             };
 
         static RemoteAvailableEntity GetRemoteEntity(OppoConfigurationItem configurationItem) =>
@@ -182,7 +196,7 @@ public partial class OppoWebSocketHandler(
                 Name = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { ["en"] = $"{configurationItem.EntityName} Remote" },
                 DeviceId = configurationItem.DeviceId.GetNullableIdentifier(EntityType.Remote),
                 Features = OppoEntitySettings.RemoteFeatures,
-                Options = OppoEntitySettings.RemoteOptions
+                Options = configurationItem.Model == OppoModel.Magnetar ? OppoEntitySettings.MagnetarRemoteOptions : OppoEntitySettings.RemoteOptions
             };
 
         SensorAvailableEntity GetSensorEntity(OppoConfigurationItem configurationItem, in OppoSensorType sensorType)
@@ -241,7 +255,7 @@ public partial class OppoWebSocketHandler(
                     {
                         Text = new ValueRegex()
                     },
-                    Label = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { ["en"] = "Enter the name of the Oppo player (optional)" }
+                    Label = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { ["en"] = "Enter the name of the player (optional)" }
                 },
                 new Setting
                 {
@@ -253,7 +267,19 @@ public partial class OppoWebSocketHandler(
                             RegEx = OppoConstants.IpAddressRegex
                         }
                     },
-                    Label = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { ["en"] = "Enter the IP address of the Oppo player (mandatory)" }
+                    Label = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { ["en"] = "Enter the IP address of the player (mandatory)" }
+                },
+                new Setting
+                {
+                    Id = OppoConstants.MacAddressKey,
+                    Field = new SettingTypeText
+                    {
+                        Text = new ValueRegex
+                        {
+                            RegEx = OppoConstants.MacAddressRegex
+                        }
+                    },
+                    Label = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { ["en"] = "Enter the MAC address of the player (required for Magnetar)" }
                 },
                 new Setting
                 {
@@ -287,12 +313,17 @@ public partial class OppoWebSocketHandler(
                                 {
                                     Label = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { ["en"] = GetOppoModelName(OppoModel.UDP205) },
                                     Value = nameof(OppoModel.UDP205)
+                                },
+                                new SettingTypeDropdownItem
+                                {
+                                    Label = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { ["en"] = GetOppoModelName(OppoModel.Magnetar) },
+                                    Value = nameof(OppoModel.Magnetar)
                                 }
                             ],
                             Value = configurationItem?.Model.ToStringFast()
                         }
                     },
-                    Label = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { ["en"] = "Select the model of your Oppo player (mandatory)" }
+                    Label = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { ["en"] = "Select the model of your player (mandatory)" }
                 },
                 new Setting
                 {
@@ -301,7 +332,7 @@ public partial class OppoWebSocketHandler(
                     {
                         Checkbox = new SettingTypeCheckboxInner
                         {
-                            Value = configurationItem?.UseMediaEvents ?? false
+                            Value = configurationItem?.UseMediaEvents ?? true
                         }
                     },
                     Label = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { ["en"] = "Use Media Events? This enables playback information at the expense of updates every second" }
@@ -383,6 +414,7 @@ public partial class OppoWebSocketHandler(
                 _ when oppoModel.Equals(nameof(OppoModel.BDP9X), StringComparison.OrdinalIgnoreCase) => OppoModel.BDP9X,
                 _ when oppoModel.Equals(nameof(OppoModel.BDP10X), StringComparison.OrdinalIgnoreCase) => OppoModel.BDP10X,
                 _ when oppoModel.Equals(nameof(OppoModel.UDP203), StringComparison.OrdinalIgnoreCase) => OppoModel.UDP203,
+                _ when oppoModel.Equals(nameof(OppoModel.Magnetar), StringComparison.OrdinalIgnoreCase) => OppoModel.Magnetar,
                 _ => OppoModel.UDP205
             }
             : OppoModel.UDP203;
@@ -400,6 +432,7 @@ public partial class OppoWebSocketHandler(
             OppoModel.BDP9X => "BDP-9X",
             OppoModel.BDP10X => "BDP-10X",
             OppoModel.UDP203 => "UDP-203",
+            OppoModel.Magnetar => "Magnetar",
             _ => "UDP-205"
         };
 
@@ -410,7 +443,7 @@ public partial class OppoWebSocketHandler(
         var host = payload.MsgData.InputValues![OppoConstants.IpAddressKey];
         var oppoModel = GetOppoModel(payload.MsgData.InputValues!);
         var entityName = payload.MsgData.InputValues!.GetValueOrNull(OppoConstants.EntityName, $"{driverMetadata.Name["en"]} ({GetOppoModelName(oppoModel)}) - {host}");
-        var deviceId = payload.MsgData.InputValues!.GetValueOrNull(OppoConstants.DeviceIdKey, host);
+        var macAddress = payload.MsgData.InputValues!.GetValueOrNull(OppoConstants.MacAddressKey, string.Empty);
         bool? useMediaEvents = payload.MsgData.InputValues!.TryGetValue(OppoConstants.UseMediaEventsKey, out var useMediaEventsValue)
             ? useMediaEventsValue.Equals(bool.TrueString, StringComparison.OrdinalIgnoreCase)
             : null;
@@ -427,16 +460,17 @@ public partial class OppoWebSocketHandler(
             {
                 Host = host,
                 Model = oppoModel,
-                DeviceId = deviceId,
+                DeviceId = host,
                 EntityName = entityName,
                 EntityId = host,
                 UseMediaEvents = useMediaEvents ?? false,
-                UseChapterLengthForMovies = useChapterLengthForMovies ?? false
+                UseChapterLengthForMovies = useChapterLengthForMovies ?? false,
+                MacAddress = macAddress
             };
         }
         else
         {
-            _logger.UpdatingConfiguration(deviceId);
+            _logger.UpdatingConfiguration(host);
             configuration.Entities.Remove(entity);
             entity = entity with
             {

@@ -3,7 +3,7 @@ namespace UnfoldedCircle.OppoBluRay.OppoEntity;
 internal static class OppoConstants
 {
     internal const string IpAddressKey = "ip_address";
-    internal const string DeviceIdKey = "device_id";
+    internal const string MacAddressKey = "mac_address";
     internal const string OppoModelKey = "oppo_model";
     internal const string EntityName = "entity_name";
     internal const string UseMediaEventsKey = "use_media_events";
@@ -19,7 +19,8 @@ internal static class OppoConstants
                                            @"fe80:(:[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]{1,}|::(ffff(:0{1,4}){0,1}:){0,1}((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|" +
                                            @"(2[0-4]|1{0,1}[0-9]){0,1}[0-9])|([0-9a-fA-F]{1,4}:){1,4}:((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9])" +
                                            "{0,1}[0-9]))$";
-    
+    internal const string MacAddressRegex = "^([0-9a-fA-F]{2}[:-]){5}([0-9a-fA-F]{2})$|^$";
+
     internal static class InputSource
     {
         internal const string BluRayPlayer = "Blu-Ray Player";

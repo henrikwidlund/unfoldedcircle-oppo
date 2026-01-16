@@ -1,4 +1,4 @@
-# Unfolded Circle Oppo Integration Driver
+# Unfolded Circle Oppo/Magnetar Integration Driver
 
 [![Release](https://img.shields.io/github/actions/workflow/status/henrikwidlund/unfoldedcircle-oppo/github-release.yml?label=Release&logo=github)](https://github.com/henrikwidlund/unfoldedcircle-oppo/actions/workflows/github-release.yml)
 [![CI](https://img.shields.io/github/actions/workflow/status/henrikwidlund/unfoldedcircle-oppo/ci.yml?label=CI&logo=github)](https://github.com/henrikwidlund/unfoldedcircle-oppo/actions/workflows/ci.yml)
@@ -6,7 +6,7 @@
 [![Qodana](https://img.shields.io/github/actions/workflow/status/henrikwidlund/unfoldedcircle-oppo/qodana_code_quality.yml?branch=main&label=Qodana&logo=github)](https://github.com/henrikwidlund/unfoldedcircle-oppo/actions/workflows/qodana_code_quality.yml)
 [![Docker](https://img.shields.io/github/actions/workflow/status/henrikwidlund/unfoldedcircle-oppo/docker.yml?label=Docker&logo=docker)](https://github.com/henrikwidlund/unfoldedcircle-oppo/actions/workflows/docker.yml)
 
-This repository contains the server code for hosting an Oppo Blu-ray integration driver for the Unfolded Circle Remotes.
+This repository contains the server code for hosting an Oppo/Magnetar Blu-ray integration driver for the Unfolded Circle Remotes.
 
 ## Supported devices
 
@@ -17,27 +17,28 @@ This repository contains the server code for hosting an Oppo Blu-ray integration
 - Oppo BDP-105
 - Oppo UDP-203
 - Oppo UDP-205
+- Magnetar Players
 
 ### Supported features limitations
 
 - All features are supported for the UDP-20X series.
 - The Oppo players only allows one connection at a time, so if you have multiple remotes or other systems connected to the same player,
-the will keep getting disconnected and commands will fail.
+the integration will keep getting disconnected and commands will fail.
 
-| Feature            | Oppo BDP-83/93/95 | Oppo BDP-10X |
-|--------------------|-------------------|--------------|
-| Option Command     | ❌                 | ✔️           |
-| 3D Switching       | ❌                 | ✔️           |
-| Picture Adjustment | ❌                 | ✔️           |
-| HDR Mode           | ❌                 | ❌️           |
-| Info Hold          | ❌                 | ❌️           |
-| Resolution Hold    | ❌                 | ❌️           |
-| A/V Sync           | ❌                 | ❌️           |
-| Gapless Playback   | ❌                 | ❌️           |
-| Track Name         | ❌                 | ❌️           |
-| Album Name         | ❌                 | ❌️           |
-| Album Cover        | ❌                 | ❌️           |
-| Artist Name        | ❌                 | ❌️           |
+| Feature            | Oppo BDP-83/93/95 | Oppo BDP-10X | Magnetar |
+|--------------------|-------------------|--------------|----------|
+| Option Command     | ❌                 | ✔️           | ✔️       |
+| 3D Switching       | ❌                 | ✔️           | ❌️️      |
+| Picture Adjustment | ❌                 | ✔️           | ❌️       |
+| HDR Mode           | ❌                 | ❌️           | ✔️       |
+| Info Hold          | ❌                 | ❌️           | ❌️       |
+| Resolution Hold    | ❌                 | ❌️           | ❌️       |
+| A/V Sync           | ❌                 | ❌️           | ❌️       |
+| Gapless Playback   | ❌                 | ❌️           | ❌️       |
+| Track Name         | ❌                 | ❌️           | ❌️       |
+| Album Name         | ❌                 | ❌️           | ❌️       |
+| Album Cover        | ❌                 | ❌️           | ❌️       |
+| Artist Name        | ❌                 | ❌️           | ❌️       |
 
 ## Prerequisites
 

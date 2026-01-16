@@ -110,6 +110,13 @@ public partial class OppoWebSocketHandler
                     _ => State.Unknown
                 };
 
+                if (oppoClientHolder.ClientKey.Model == OppoModel.Magnetar)
+                {
+                    // Magnetar doesn't support sensors or media events, so just send power state
+                    await SendRemotePowerEventAsync(socket, wsId, oppoClientHolder, state, cancellationTokenSource.Token);
+                    continue;
+                }
+
                 MediaPlayerStateChangedEventMessageDataAttributes newMediaPlayerState;
                 // Only send power state if not using media events
                 if (oppoClientHolder is { ClientKey.UseMediaEvents: false })

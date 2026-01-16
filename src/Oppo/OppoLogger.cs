@@ -37,7 +37,7 @@ internal static partial class OppoLogger
     private static readonly Action<ILogger, string, int, Exception> FailedToConnectToOppoPlayerAction = LoggerMessage.Define<string, int>(
         LogLevel.Error,
         new EventId(5, nameof(FailedToConnectToOppoPlayer)),
-        "Failed to connect to Oppo player at {Host}:{Port}");
+        "Failed to connect to player at {Host}:{Port}");
 
     public static void FailedToConnectToOppoPlayer(this ILogger logger, Exception exception, string host, in int port) =>
         FailedToConnectToOppoPlayerAction(logger, host, port, exception);
@@ -75,6 +75,10 @@ internal static partial class OppoLogger
     public static partial void CallerMemberFailed(this ILogger logger, string? callerMemberName, string response);
 
     [LoggerMessage(EventId = 13, EventName = nameof(RetryingConnectionAfterSocketException), Level = LogLevel.Warning,
-        Message = "Retrying connection to Oppo player after SocketException (host: {Host}, port: {Port})")]
+        Message = "Retrying connection to player after SocketException (host: {Host}, port: {Port})")]
     public static partial void RetryingConnectionAfterSocketException(this ILogger logger, string host, in int port);
+
+    [LoggerMessage(EventId = 14, EventName = nameof(MissingMacAddress), Level = LogLevel.Error,
+        Message = "MAC address is missing for entity ID '{EntityId}'")]
+    public static partial void MissingMacAddress(this ILogger logger, string entityId);
 }
