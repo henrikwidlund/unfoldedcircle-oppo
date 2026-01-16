@@ -55,7 +55,7 @@
           <PrivateAssets>all</PrivateAssets>
           <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="NetEscapades.EnumGenerators.Interceptors" Version="1.0.0-beta19" />
+        <PackageReference Include="NetEscapades.EnumGenerators.Interceptors" Version="1.0.0-beta20" />
         <PackageReference Include="Theodicean.SourceGenerators" Version="0.0.3" PrivateAssets="all" ExcludeAssets="runtime">
             <IncludeAssets>compile; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
