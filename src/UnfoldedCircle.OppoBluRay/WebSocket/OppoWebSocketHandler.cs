@@ -166,6 +166,7 @@ public partial class OppoWebSocketHandler(
                 }
 
                 yield return GetMediaPlayerEntity(unfoldedCircleConfigurationItem);
+                yield return GetRemoteEntity(unfoldedCircleConfigurationItem);
                 foreach (var oppoSensorType in SensorHelpers.GetOppoSensorTypes(unfoldedCircleConfigurationItem.Model))
                     yield return GetSensorEntity(unfoldedCircleConfigurationItem, oppoSensorType);
             }
