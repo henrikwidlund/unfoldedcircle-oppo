@@ -191,6 +191,7 @@ public static class OppoModelExtensions
                 OppoModel.BDP10X => nameof(OppoModel.BDP10X),
                 OppoModel.UDP203 => nameof(OppoModel.UDP203),
                 OppoModel.UDP205 => nameof(OppoModel.UDP205),
+                OppoModel.Magnetar => nameof(OppoModel.Magnetar),
                 _ => "Unknown"
             };
     }
