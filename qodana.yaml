@@ -5,7 +5,6 @@ profile:
 dotnet:
   solution: UnfoldedCircle.Oppo.slnx
 include:
-  - name: CheckDependencyLicenses
   - name: CompareNonConstrainedGenericWithNull
   - name: FunctionComplexityOverflow
   - name: InheritdocConsiderUsage
