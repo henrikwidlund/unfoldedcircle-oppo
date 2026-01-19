@@ -8,8 +8,8 @@
           "name": "QDNETC",
           "organization": "JetBrains, Inc",
           "fullName": "Qodana Community for .NET",
-          "version": "2025.3.842301551.39",
-          "semanticVersion": "261.0.20251210.63140-eap01d",
+          "version": "2025.3.253.29346.333.50",
+          "semanticVersion": "253.0.20260112.114700",
           "informationUri": "http://www.jetbrains.com/resharper/features/command-line.html",
           "rules": [
             {
@@ -8107,10 +8107,6 @@
                 "enabled": true,
                 "level": "warning"
               },
-              "helpUri": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/partial-declarations#field-backed-properties",
-              "help": {
-                "text": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-messages/partial-declarations#field-backed-properties"
-              },
               "relationships": [
                 {
                   "target": {
@@ -9486,10 +9482,6 @@
                 "enabled": true,
                 "level": "warning"
               },
-              "helpUri": "https://learn.microsoft.com/en-us/dotnet/fundamentals/code-analysis/quality-rules/ca1857",
-              "help": {
-                "text": "https://learn.microsoft.com/en-us/dotnet/fundamentals/code-analysis/quality-rules/ca1857"
-              },
               "relationships": [
                 {
                   "target": {
@@ -10163,10 +10155,6 @@
               "defaultConfiguration": {
                 "enabled": true,
                 "level": "warning"
-              },
-              "helpUri": "https://www.jetbrains.com/help/resharper/ConvertToExtensionBlock.html",
-              "help": {
-                "text": "https://www.jetbrains.com/help/resharper/ConvertToExtensionBlock.html"
               },
               "relationships": [
                 {
@@ -52739,15 +52727,11 @@
                 "text": "Empty extension block"
               },
               "fullDescription": {
-                "text": "The extension block is empty and can be safely removed"
+                "text": "Extension block is empty and could be removed safely"
               },
               "defaultConfiguration": {
                 "enabled": true,
                 "level": "warning"
-              },
-              "helpUri": "https://www.jetbrains.com/help/resharper/EmptyExtensionBlock.html",
-              "help": {
-                "text": "https://www.jetbrains.com/help/resharper/EmptyExtensionBlock.html"
               },
               "relationships": [
                 {
@@ -54526,10 +54510,6 @@
               "defaultConfiguration": {
                 "enabled": true,
                 "level": "warning"
-              },
-              "helpUri": "https://learn.microsoft.com/en-us/dotnet/fundamentals/code-analysis/quality-rules/ca1856",
-              "help": {
-                "text": "https://learn.microsoft.com/en-us/dotnet/fundamentals/code-analysis/quality-rules/ca1856"
               },
               "relationships": [
                 {
@@ -56566,10 +56546,6 @@
               "defaultConfiguration": {
                 "enabled": true,
                 "level": "warning"
-              },
-              "helpUri": "https://www.jetbrains.com/help/resharper/MoveToExtensionBlock.html",
-              "help": {
-                "text": "https://www.jetbrains.com/help/resharper/MoveToExtensionBlock.html"
               },
               "relationships": [
                 {
@@ -69144,7 +69120,7 @@
                 "text": "Use 'nameof' expression to reference type name"
               },
               "fullDescription": {
-                "text": "Replace 'typeof(T).Name' or 'GetType().Name' expression with constant 'nameof' expression"
+                "text": "Replace 'typeof(T).Name' expression with constant 'nameof' expression"
               },
               "defaultConfiguration": {
                 "enabled": true,
@@ -75242,7 +75218,7 @@
       "versionControlProvenance": [
         {
           "repositoryUri": "https://github.com/henrikwidlund/unfoldedcircle-oppo.git",
-          "revisionId": "03fd9220effe6a94a5f977cdce2ad4ffe19e8fcd",
+          "revisionId": "d729c9e2e6807ba22ed16ae0b5977aca5f77f0e3",
           "branch": "main",
           "properties": {
             "repoUrl": "https://github.com/henrikwidlund/unfoldedcircle-oppo.git",
@@ -75254,20 +75230,6 @@
       ],
       "originalUriBaseIds": {},
       "artifacts": [
-        {
-          "location": {
-            "uri": "src/Oppo/OppoLogger.cs",
-            "uriBaseId": "solutionDir"
-          },
-          "hashes": {}
-        },
-        {
-          "location": {
-            "uri": "src/Oppo/Enums.cs",
-            "uriBaseId": "solutionDir"
-          },
-          "hashes": {}
-        },
         {
           "location": {
             "uri": "src/UnfoldedCircle.OppoBluRay/OppoEntity/OppoConstants.cs",
@@ -75291,14 +75253,7 @@
         },
         {
           "location": {
-            "uri": "src/UnfoldedCircle.OppoBluRay/Logging/IntegrationLogger.cs",
-            "uriBaseId": "solutionDir"
-          },
-          "hashes": {}
-        },
-        {
-          "location": {
-            "uri": "src/UnfoldedCircle.OppoBluRay/Configuration/SensorHelpers.cs",
+            "uri": "src/Oppo/MagnetarClient.cs",
             "uriBaseId": "solutionDir"
           },
           "hashes": {}
@@ -75353,26 +75308,25 @@
               "physicalLocation": {
                 "artifactLocation": {
                   "uri": "src/UnfoldedCircle.OppoBluRay/OppoEntity/OppoConstants.cs",
-                  "uriBaseId": "solutionDir",
-                  "index": 2
+                  "uriBaseId": "solutionDir"
                 },
                 "region": {
-                  "startLine": 34,
+                  "startLine": 35,
                   "startColumn": 31,
-                  "endLine": 34,
+                  "endLine": 35,
                   "endColumn": 41,
-                  "charOffset": 2382,
+                  "charOffset": 2474,
                   "charLength": 10,
                   "snippet": {
                     "text": "ARCHDMIOut"
                   }
                 },
                 "contextRegion": {
-                  "startLine": 33,
+                  "startLine": 34,
                   "startColumn": 1,
-                  "endLine": 35,
+                  "endLine": 36,
                   "endColumn": 6,
-                  "charOffset": 2302,
+                  "charOffset": 2394,
                   "charLength": 115,
                   "snippet": {
                     "text": "        internal const string HDMIIn = \"HDMI IN\";\n        internal const string ARCHDMIOut = \"ARC: HDMI OUT\";\n    }"
@@ -75406,26 +75360,25 @@
               "physicalLocation": {
                 "artifactLocation": {
                   "uri": "src/UnfoldedCircle.OppoBluRay/OppoEntity/OppoConstants.cs",
-                  "uriBaseId": "solutionDir",
-                  "index": 2
+                  "uriBaseId": "solutionDir"
                 },
                 "region": {
-                  "startLine": 28,
+                  "startLine": 29,
                   "startColumn": 31,
-                  "endLine": 28,
+                  "endLine": 29,
                   "endColumn": 42,
-                  "charOffset": 2039,
+                  "charOffset": 2131,
                   "charLength": 11,
                   "snippet": {
                     "text": "ARCHDMIOut1"
                   }
                 },
                 "contextRegion": {
-                  "startLine": 27,
+                  "startLine": 28,
                   "startColumn": 1,
-                  "endLine": 29,
+                  "endLine": 30,
                   "endColumn": 64,
-                  "charOffset": 1952,
+                  "charOffset": 2044,
                   "charLength": 184,
                   "snippet": {
                     "text": "        internal const string HDMIBack = \"HDMI IN-BACK\";\n        internal const string ARCHDMIOut1 = \"ARC on HDMI OUT1\";\n        internal const string ARCHDMIOut2 = \"ARC on HDMI OUT2\";"
@@ -75459,26 +75412,25 @@
               "physicalLocation": {
                 "artifactLocation": {
                   "uri": "src/UnfoldedCircle.OppoBluRay/OppoEntity/OppoConstants.cs",
-                  "uriBaseId": "solutionDir",
-                  "index": 2
+                  "uriBaseId": "solutionDir"
                 },
                 "region": {
-                  "startLine": 29,
+                  "startLine": 30,
                   "startColumn": 31,
-                  "endLine": 29,
+                  "endLine": 30,
                   "endColumn": 42,
-                  "charOffset": 2103,
+                  "charOffset": 2195,
                   "charLength": 11,
                   "snippet": {
                     "text": "ARCHDMIOut2"
                   }
                 },
                 "contextRegion": {
-                  "startLine": 28,
+                  "startLine": 29,
                   "startColumn": 1,
-                  "endLine": 30,
+                  "endLine": 31,
                   "endColumn": 54,
-                  "charOffset": 2009,
+                  "charOffset": 2101,
                   "charLength": 181,
                   "snippet": {
                     "text": "        internal const string ARCHDMIOut1 = \"ARC on HDMI OUT1\";\n        internal const string ARCHDMIOut2 = \"ARC on HDMI OUT2\";\n        internal const string Optical = \"OPTICAL IN\";"
@@ -75513,7 +75465,7 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/Oppo10XCommand.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 3
+                  "index": 1
                 },
                 "region": {
                   "startLine": 423,
@@ -75566,7 +75518,7 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/Oppo20XCommand.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 4
+                  "index": 2
                 },
                 "region": {
                   "startLine": 495,
@@ -75619,7 +75571,7 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/Oppo20XCommand.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 4
+                  "index": 2
                 },
                 "region": {
                   "startLine": 496,
@@ -75672,7 +75624,7 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/Oppo10XCommand.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 3
+                  "index": 1
                 },
                 "region": {
                   "startLine": 424,
@@ -75725,7 +75677,7 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/Oppo20XCommand.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 4
+                  "index": 2
                 },
                 "region": {
                   "startLine": 492,
@@ -75778,7 +75730,7 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/Oppo20XCommand.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 4
+                  "index": 2
                 },
                 "region": {
                   "startLine": 493,
@@ -75831,7 +75783,7 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/Oppo20XCommand.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 4
+                  "index": 2
                 },
                 "region": {
                   "startLine": 494,
@@ -75884,7 +75836,7 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/Oppo20XCommand.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 4
+                  "index": 2
                 },
                 "region": {
                   "startLine": 491,
@@ -75937,7 +75889,7 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/Oppo20XCommand.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 4
+                  "index": 2
                 },
                 "region": {
                   "startLine": 502,
@@ -75990,7 +75942,7 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/Oppo20XCommand.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 4
+                  "index": 2
                 },
                 "region": {
                   "startLine": 501,
@@ -76043,7 +75995,7 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/Oppo20XCommand.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 4
+                  "index": 2
                 },
                 "region": {
                   "startLine": 500,
@@ -76096,7 +76048,7 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/Oppo20XCommand.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 4
+                  "index": 2
                 },
                 "region": {
                   "startLine": 499,
@@ -76149,7 +76101,7 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/Oppo10XCommand.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 3
+                  "index": 1
                 },
                 "region": {
                   "startLine": 422,
@@ -76202,7 +76154,7 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/Oppo20XCommand.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 4
+                  "index": 2
                 },
                 "region": {
                   "startLine": 497,
@@ -76255,7 +76207,7 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/Oppo20XCommand.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 4
+                  "index": 2
                 },
                 "region": {
                   "startLine": 498,
@@ -76308,7 +76260,7 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/Oppo10XCommand.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 3
+                  "index": 1
                 },
                 "region": {
                   "startLine": 426,
@@ -76361,7 +76313,7 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/Oppo20XCommand.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 4
+                  "index": 2
                 },
                 "region": {
                   "startLine": 485,
@@ -76414,7 +76366,7 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/Oppo10XCommand.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 3
+                  "index": 1
                 },
                 "region": {
                   "startLine": 420,
@@ -76467,7 +76419,7 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/Oppo10XCommand.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 3
+                  "index": 1
                 },
                 "region": {
                   "startLine": 421,
@@ -76520,7 +76472,7 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/Oppo10XCommand.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 3
+                  "index": 1
                 },
                 "region": {
                   "startLine": 425,
@@ -76573,7 +76525,7 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/Oppo20XCommand.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 4
+                  "index": 2
                 },
                 "region": {
                   "startLine": 486,
@@ -76626,7 +76578,7 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/Oppo20XCommand.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 4
+                  "index": 2
                 },
                 "region": {
                   "startLine": 487,
@@ -76679,7 +76631,7 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/Oppo20XCommand.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 4
+                  "index": 2
                 },
                 "region": {
                   "startLine": 488,
@@ -76732,7 +76684,7 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/Oppo20XCommand.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 4
+                  "index": 2
                 },
                 "region": {
                   "startLine": 489,
@@ -76785,7 +76737,7 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/Oppo20XCommand.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 4
+                  "index": 2
                 },
                 "region": {
                   "startLine": 490,
@@ -76837,26 +76789,25 @@
               "physicalLocation": {
                 "artifactLocation": {
                   "uri": "src/UnfoldedCircle.OppoBluRay/OppoEntity/OppoConstants.cs",
-                  "uriBaseId": "solutionDir",
-                  "index": 2
+                  "uriBaseId": "solutionDir"
                 },
                 "region": {
-                  "startLine": 32,
+                  "startLine": 33,
                   "startColumn": 31,
-                  "endLine": 32,
+                  "endLine": 33,
                   "endColumn": 39,
-                  "charOffset": 2275,
+                  "charOffset": 2367,
                   "charLength": 8,
                   "snippet": {
                     "text": "USBAudio"
                   }
                 },
                 "contextRegion": {
-                  "startLine": 31,
+                  "startLine": 32,
                   "startColumn": 1,
-                  "endLine": 33,
+                  "endLine": 34,
                   "endColumn": 50,
-                  "charOffset": 2191,
+                  "charOffset": 2283,
                   "charLength": 160,
                   "snippet": {
                     "text": "        internal const string Coaxial = \"COAXIAL IN\";\n        internal const string USBAudio = \"USB AUDIO IN\";\n        internal const string HDMIIn = \"HDMI IN\";"
@@ -76891,25 +76842,25 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/OppoClient.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 7
+                  "index": 4
                 },
                 "region": {
-                  "startLine": 15,
+                  "startLine": 14,
                   "startColumn": 5,
-                  "endLine": 15,
+                  "endLine": 14,
                   "endColumn": 50,
-                  "charOffset": 388,
+                  "charOffset": 349,
                   "charLength": 45,
                   "snippet": {
                     "text": "private readonly string _hostName = hostName;"
                   }
                 },
                 "contextRegion": {
-                  "startLine": 14,
+                  "startLine": 13,
                   "startColumn": 1,
-                  "endLine": 16,
+                  "endLine": 15,
                   "endColumn": 47,
-                  "charOffset": 382,
+                  "charOffset": 343,
                   "charLength": 98,
                   "snippet": {
                     "text": "{\n    private readonly string _hostName = hostName;\n    private readonly OppoModel _model = model;"
@@ -76944,25 +76895,25 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/OppoClient.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 7
+                  "index": 4
                 },
                 "region": {
-                  "startLine": 17,
+                  "startLine": 16,
                   "startColumn": 5,
-                  "endLine": 17,
+                  "endLine": 16,
                   "endColumn": 59,
-                  "charOffset": 485,
+                  "charOffset": 446,
                   "charLength": 54,
                   "snippet": {
                     "text": "private readonly ILogger<OppoClient> _logger = logger;"
                   }
                 },
                 "contextRegion": {
-                  "startLine": 16,
+                  "startLine": 15,
                   "startColumn": 1,
-                  "endLine": 18,
+                  "endLine": 17,
                   "endColumn": 5,
-                  "charOffset": 434,
+                  "charOffset": 395,
                   "charLength": 110,
                   "snippet": {
                     "text": "    private readonly OppoModel _model = model;\n    private readonly ILogger<OppoClient> _logger = logger;\n    "
@@ -76997,7 +76948,7 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/OppoClientFactory.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 8
+                  "index": 5
                 },
                 "region": {
                   "startLine": 9,
@@ -77050,7 +77001,7 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/OppoClientFactory.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 8
+                  "index": 5
                 },
                 "region": {
                   "startLine": 10,
@@ -77103,7 +77054,7 @@
                 "artifactLocation": {
                   "uri": "src/UnfoldedCircle.OppoBluRay/AlbumCover/AlbumCoverService.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 9
+                  "index": 6
                 },
                 "region": {
                   "startLine": 20,
@@ -77156,7 +77107,7 @@
                 "artifactLocation": {
                   "uri": "src/UnfoldedCircle.OppoBluRay/AlbumCover/AlbumCoverService.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 9
+                  "index": 6
                 },
                 "region": {
                   "startLine": 21,
@@ -77209,7 +77160,7 @@
                 "artifactLocation": {
                   "uri": "src/UnfoldedCircle.OppoBluRay/AlbumCover/AlbumCoverService.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 9
+                  "index": 6
                 },
                 "region": {
                   "startLine": 22,
@@ -77262,7 +77213,7 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/Oppo10XCommand.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 3
+                  "index": 1
                 },
                 "region": {
                   "startLine": 323,
@@ -77315,7 +77266,7 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/Oppo20XCommand.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 4
+                  "index": 2
                 },
                 "region": {
                   "startLine": 352,
@@ -77368,7 +77319,7 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/Oppo10XCommand.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 3
+                  "index": 1
                 },
                 "region": {
                   "startLine": 313,
@@ -77421,7 +77372,7 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/Oppo20XCommand.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 4
+                  "index": 2
                 },
                 "region": {
                   "startLine": 342,
@@ -77474,7 +77425,7 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/Oppo10XCommand.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 3
+                  "index": 1
                 },
                 "region": {
                   "startLine": 420,
@@ -77527,7 +77478,7 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/Oppo10XCommand.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 3
+                  "index": 1
                 },
                 "region": {
                   "startLine": 421,
@@ -77580,7 +77531,7 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/Oppo20XCommand.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 4
+                  "index": 2
                 },
                 "region": {
                   "startLine": 487,
@@ -77633,7 +77584,7 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/Oppo20XCommand.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 4
+                  "index": 2
                 },
                 "region": {
                   "startLine": 488,
@@ -77686,7 +77637,7 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/Oppo20XCommand.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 4
+                  "index": 2
                 },
                 "region": {
                   "startLine": 489,
@@ -77739,7 +77690,7 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/Oppo20XCommand.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 4
+                  "index": 2
                 },
                 "region": {
                   "startLine": 490,
@@ -77792,7 +77743,7 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/IOppoClient.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 11
+                  "index": 8
                 },
                 "region": {
                   "startLine": 289,
@@ -77845,7 +77796,7 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/IOppoClient.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 11
+                  "index": 8
                 },
                 "region": {
                   "startLine": 406,
@@ -77898,7 +77849,7 @@
                 "artifactLocation": {
                   "uri": "src/UnfoldedCircle.OppoBluRay/WebSocket/OppoWebSocketHandler.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 10
+                  "index": 7
                 },
                 "region": {
                   "startLine": 32,
@@ -77951,7 +77902,7 @@
                 "artifactLocation": {
                   "uri": "src/UnfoldedCircle.OppoBluRay/WebSocket/OppoWebSocketHandler.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 10
+                  "index": 7
                 },
                 "region": {
                   "startLine": 33,
@@ -78004,7 +77955,7 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/IOppoClient.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 11
+                  "index": 8
                 },
                 "region": {
                   "startLine": 426,
@@ -78034,6 +77985,165 @@
           "partialFingerprints": {
             "equalIndicator/v1": "8317AB1017F28ACB879E8445D87B83A331E2DC9F0B4CA80F5EEC18997EF2E75F"
           },
+          "baselineState": "unchanged",
+          "properties": {
+            "qodanaSeverity": "Moderate",
+            "tags": [
+              "C#",
+              ".NET 10.0"
+            ]
+          }
+        },
+        {
+          "ruleId": "ReplaceWithPrimaryConstructorParameter",
+          "ruleIndex": 2650,
+          "kind": "fail",
+          "level": "note",
+          "message": {
+            "text": "Replace with primary constructor parameter"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/Oppo/MagnetarClient.cs",
+                  "uriBaseId": "solutionDir",
+                  "index": 3
+                },
+                "region": {
+                  "startLine": 12,
+                  "startColumn": 5,
+                  "endLine": 12,
+                  "endColumn": 63,
+                  "charOffset": 276,
+                  "charLength": 58,
+                  "snippet": {
+                    "text": "private readonly ILogger<MagnetarClient> _logger = logger;"
+                  }
+                },
+                "contextRegion": {
+                  "startLine": 11,
+                  "startColumn": 1,
+                  "endLine": 13,
+                  "endColumn": 50,
+                  "charOffset": 237,
+                  "charLength": 147,
+                  "snippet": {
+                    "text": "    private const int Port = 8102;\n    private readonly ILogger<MagnetarClient> _logger = logger;\n    private readonly string _hostName = hostName;"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "equalIndicator/v1": "71231D3DDC4158F4D7625A9F8B45A85EFED56AE9BC415C9DCB5D1D031E7864BA"
+          },
+          "baselineState": "new",
+          "properties": {
+            "qodanaSeverity": "Moderate",
+            "tags": [
+              "C#",
+              ".NET 10.0"
+            ]
+          }
+        },
+        {
+          "ruleId": "ReplaceWithPrimaryConstructorParameter",
+          "ruleIndex": 2650,
+          "kind": "fail",
+          "level": "note",
+          "message": {
+            "text": "Replace with primary constructor parameter"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/Oppo/MagnetarClient.cs",
+                  "uriBaseId": "solutionDir",
+                  "index": 3
+                },
+                "region": {
+                  "startLine": 13,
+                  "startColumn": 5,
+                  "endLine": 13,
+                  "endColumn": 50,
+                  "charOffset": 339,
+                  "charLength": 45,
+                  "snippet": {
+                    "text": "private readonly string _hostName = hostName;"
+                  }
+                },
+                "contextRegion": {
+                  "startLine": 12,
+                  "startColumn": 1,
+                  "endLine": 14,
+                  "endColumn": 71,
+                  "charOffset": 272,
+                  "charLength": 183,
+                  "snippet": {
+                    "text": "    private readonly ILogger<MagnetarClient> _logger = logger;\n    private readonly string _hostName = hostName;\n    private readonly IPAddress _ipAddress = IPAddress.Parse(hostName);"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "equalIndicator/v1": "75E98244C33861F31C78AE46D7E898A1689EB647F56524B913E3D55AD044441D"
+          },
+          "baselineState": "new",
+          "properties": {
+            "qodanaSeverity": "Moderate",
+            "tags": [
+              "C#",
+              ".NET 10.0"
+            ]
+          }
+        },
+        {
+          "ruleId": "ReplaceWithPrimaryConstructorParameter",
+          "ruleIndex": 2650,
+          "kind": "fail",
+          "level": "note",
+          "message": {
+            "text": "Replace with primary constructor parameter"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/Oppo/MagnetarClient.cs",
+                  "uriBaseId": "solutionDir",
+                  "index": 3
+                },
+                "region": {
+                  "startLine": 15,
+                  "startColumn": 5,
+                  "endLine": 15,
+                  "endColumn": 54,
+                  "charOffset": 460,
+                  "charLength": 49,
+                  "snippet": {
+                    "text": "private readonly string _macAddress = macAddress;"
+                  }
+                },
+                "contextRegion": {
+                  "startLine": 14,
+                  "startColumn": 1,
+                  "endLine": 16,
+                  "endColumn": 1,
+                  "charOffset": 385,
+                  "charLength": 125,
+                  "snippet": {
+                    "text": "    private readonly IPAddress _ipAddress = IPAddress.Parse(hostName);\n    private readonly string _macAddress = macAddress;\n"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "equalIndicator/v1": "9B8AA3169409DD4ECECD6F0EC196FC6ED0B232B551D1BA154ACA4EB3AEB5EECF"
+          },
           "baselineState": "new",
           "properties": {
             "qodanaSeverity": "Moderate",
@@ -78045,10 +78155,10 @@
         }
       ],
       "automationDetails": {
-        "id": "QDNETC/qodana/2025-12-19",
-        "guid": "79f72ad8-5d28-4d27-9ad9-d80b0d472b62",
+        "id": "QDNETC/qodana/2026-01-19",
+        "guid": "fe9278e4-a099-4ebb-89b9-1fab0271a21c",
         "properties": {
-          "jobUrl": "https://github.com/henrikwidlund/unfoldedcircle-oppo/actions/runs/20374302382"
+          "jobUrl": "https://github.com/henrikwidlund/unfoldedcircle-oppo/actions/runs/21144579731"
         }
       },
       "newlineSequences": [
