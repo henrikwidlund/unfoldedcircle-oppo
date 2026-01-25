@@ -57,14 +57,13 @@ public partial class OppoWebSocketHandler
 
             foreach (var subscribedEntityId in subscribedEntityIds)
             {
-                if (oppoClientHolder is not null)
-                    break;
-
                 var entityId = subscribedEntityId.GetBaseIdentifier();
                 _logger.TryingToGetOppoClientHolder(wsId);
                 oppoClientHolder = await TryGetOppoClientHolderAsync(wsId, entityId, IdentifierType.EntityId, cancellationTokenWrapper.RequestAborted);
-                if (oppoClientHolder is null)
-                    _logger.CouldNotFindOppoClientForEntityId(wsId, entityId);
+                if (oppoClientHolder is not null)
+                    break;
+
+                _logger.CouldNotFindOppoClientForEntityId(wsId, entityId);
             }
 
             if (oppoClientHolder is not null)
