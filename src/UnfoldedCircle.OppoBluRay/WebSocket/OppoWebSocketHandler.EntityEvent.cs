@@ -59,16 +59,12 @@ public partial class OppoWebSocketHandler
             {
                 if (oppoClientHolder is not null)
                     break;
+
+                var entityId = subscribedEntityId.GetBaseIdentifier();
+                _logger.TryingToGetOppoClientHolder(wsId);
+                oppoClientHolder = await TryGetOppoClientHolderAsync(wsId, entityId, IdentifierType.EntityId, cancellationTokenWrapper.RequestAborted);
                 if (oppoClientHolder is null)
-                {
-                    var entityId = subscribedEntityId.GetBaseIdentifier();
-                    _logger.TryingToGetOppoClientHolder(wsId);
-                    oppoClientHolder = await TryGetOppoClientHolderAsync(wsId, entityId, IdentifierType.EntityId, cancellationTokenWrapper.RequestAborted);
-                    if (oppoClientHolder is null)
-                        _logger.CouldNotFindOppoClientForEntityId(wsId, entityId);
-                    else
-                        break;
-                }
+                    _logger.CouldNotFindOppoClientForEntityId(wsId, entityId);
             }
 
             if (oppoClientHolder is not null)
