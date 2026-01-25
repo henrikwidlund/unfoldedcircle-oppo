@@ -51,7 +51,7 @@ the integration will keep getting disconnected and commands will fail.
 
 | Service      | Port  | Protocol   |
 |--------------|-------|------------|
-| Server       | 9001* | HTTP (TCP) |
+| Server       | Random* | HTTP (TCP) |
 | Oppo BDP-83  | 19999 | TCP        |
 | Oppo BDP-9X  | 48360 | TCP        |
 | Oppo BDP-10X | 48360 | TCP        |
