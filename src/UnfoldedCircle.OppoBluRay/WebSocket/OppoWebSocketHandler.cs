@@ -52,16 +52,22 @@ public partial class OppoWebSocketHandler(
         => GetAvailableEntities(await GetEntitiesAsync(wsId, payload.MsgData.Filter?.DeviceId, cancellationToken), payload).ToArray();
 
     protected override async ValueTask OnSubscribeEventsAsync(System.Net.WebSockets.WebSocket socket,
-        CommonReq payload,
+        SubscribeEventsMsg payload,
         string wsId,
         CancellationTokenWrapper cancellationTokenWrapper,
         CancellationToken commandCancellationToken)
     {
+        if (payload.MsgData?.EntityIds is not { Length: > 0 })
+            return;
+
+        foreach (string msgDataEntityId in payload.MsgData.EntityIds)
+            TryAddEntityIdToBroadcastingEvents(msgDataEntityId, cancellationTokenWrapper);
+
         if (await TryGetOppoClientHolders(wsId, commandCancellationToken) is { Count: > 0 } oppoClientHolders)
         {
             foreach (var oppoClientHolder in oppoClientHolders)
             {
-                _ = Task.Factory.StartNew(() => HandleEventUpdatesAsync(socket, oppoClientHolder.ClientKey.EntityId, wsId, cancellationTokenWrapper),
+                _ = Task.Factory.StartNew(() => HandleEventUpdatesAsync(socket, wsId, cancellationTokenWrapper),
                     TaskCreationOptions.LongRunning);
 
                 await SendMessageAsync(socket,
@@ -75,41 +81,22 @@ public partial class OppoWebSocketHandler(
         }
     }
 
-    protected override async ValueTask OnUnsubscribeEventsAsync(UnsubscribeEventsMsg payload, string wsId, CancellationTokenWrapper cancellationTokenWrapper)
+    protected override ValueTask OnUnsubscribeEventsAsync(UnsubscribeEventsMsg payload, string wsId, CancellationTokenWrapper cancellationTokenWrapper)
     {
-        if (!string.IsNullOrEmpty(payload.MsgData?.DeviceId))
-        {
-            var oppoClientKey = await TryGetOppoClientKeyAsync(wsId, IdentifierType.DeviceId, payload.MsgData.DeviceId, cancellationTokenWrapper.ApplicationStopping);
-            if (oppoClientKey is not null)
-            {
-                RemoveEntityIdToBroadcastingEvents(oppoClientKey.Value.EntityId, cancellationTokenWrapper);
-                _oppoClientFactory.TryDisposeClient(oppoClientKey.Value);
-            }
-        }
-
         if (payload.MsgData?.EntityIds is { Length: > 0 })
         {
             foreach (string msgDataEntityId in payload.MsgData.EntityIds)
-            {
-                var oppoClientKey = await TryGetOppoClientKeyAsync(wsId, IdentifierType.EntityId, msgDataEntityId, cancellationTokenWrapper.ApplicationStopping);
-                if (oppoClientKey is not null)
-                {
-                    RemoveEntityIdToBroadcastingEvents(oppoClientKey.Value.EntityId, cancellationTokenWrapper);
-                    _oppoClientFactory.TryDisposeClient(oppoClientKey.Value);
-                }
-            }
+                RemoveEntityIdToBroadcastingEvents(msgDataEntityId, cancellationTokenWrapper);
         }
 
         // If no specific device or entity was specified, dispose all clients for this websocket ID.
-        if (payload.MsgData is { DeviceId: null, EntityIds: null } &&
-            await TryGetOppoClientKeysAsync(wsId, cancellationTokenWrapper.ApplicationStopping) is { } oppoClientKeys)
+        if (payload.MsgData is { DeviceId: null, EntityIds: null })
         {
-            foreach (var oppoClientKey in oppoClientKeys)
-            {
-                RemoveEntityIdToBroadcastingEvents(oppoClientKey.EntityId, cancellationTokenWrapper);
-                _oppoClientFactory.TryDisposeClient(oppoClientKey);
-            }
+            foreach (var subscribedEntityId in GetSubscribedEntityIds())
+                RemoveEntityIdToBroadcastingEvents(subscribedEntityId, cancellationTokenWrapper);
         }
+
+        return ValueTask.CompletedTask;
     }
 
     private IEnumerable<AvailableEntity> GetAvailableEntities(
@@ -119,20 +106,9 @@ public partial class OppoWebSocketHandler(
         if (entities is not { Count: > 0 })
             yield break;
 
-        var hasDeviceIdFilter = !string.IsNullOrEmpty(payload.MsgData.Filter?.DeviceId);
         var hasEntityTypeFilter = payload.MsgData.Filter?.EntityType is not null;
         foreach (var unfoldedCircleConfigurationItem in entities)
         {
-            if (hasDeviceIdFilter)
-            {
-                var configDeviceId = unfoldedCircleConfigurationItem.DeviceId.AsSpan();
-                // we have a device id filter, so if the config device id is null, there is no match
-                if (configDeviceId.IsEmpty)
-                    continue;
-                if (!configDeviceId.Equals(payload.MsgData.Filter!.DeviceId.AsSpan().GetBaseIdentifier(), StringComparison.OrdinalIgnoreCase))
-                    continue;
-            }
-
             if (hasEntityTypeFilter)
             {
                 if (payload.MsgData.Filter?.EntityType is null)

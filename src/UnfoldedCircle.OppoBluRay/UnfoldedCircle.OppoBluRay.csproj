@@ -8,7 +8,6 @@
         <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
         <AssemblyName>driver</AssemblyName>
         <RuntimeIdentifier Condition="'$(BuildForLinuxArm)' == 'true'">linux-arm64</RuntimeIdentifier>
-        <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
         <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
         <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
         <IsTrimmable>true</IsTrimmable>
@@ -59,7 +58,7 @@
         <PackageReference Include="Theodicean.SourceGenerators" Version="0.0.3" PrivateAssets="all" ExcludeAssets="runtime">
             <IncludeAssets>compile; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Theodicean.UnfoldedCircle.Server" Version="0.0.6-pre05" />
+        <PackageReference Include="Theodicean.UnfoldedCircle.Server" Version="0.0.6-pre07" />
     </ItemGroup>
 
 </Project>
