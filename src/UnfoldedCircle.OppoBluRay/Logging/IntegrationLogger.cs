@@ -41,17 +41,9 @@ internal static partial class IntegrationLogger
         Message = "{WSId} Events already running.")]
     public static partial void EventsAlreadyRunning(this ILogger logger, string wsId);
 
-    [LoggerMessage(EventId = 8, EventName = nameof(CouldNotAcquireSemaphore), Level = LogLevel.Error,
-        Message = "{WSId} Could not acquire semaphore for broadcasting events for {EntityId}. Will not start broadcasting.")]
-    public static partial void CouldNotAcquireSemaphore(this ILogger logger, string wsId, string entityId);
-
     [LoggerMessage(EventId = 9, EventName = nameof(TryingToGetOppoClientHolder), Level = LogLevel.Debug,
         Message = "{WSId} Trying to get OppoClientHolder.")]
     public static partial void TryingToGetOppoClientHolder(this ILogger logger, string wsId);
-
-    [LoggerMessage(EventId = 10, EventName = nameof(NoLongerSubscribedToEvents), Level = LogLevel.Debug,
-        Message = "{WSId} No longer subscribed to events for {EntityId}. Stopping event updates.")]
-    public static partial void NoLongerSubscribedToEvents(this ILogger logger, string wsId, string entityId);
 
     [LoggerMessage(EventId = 11, EventName = nameof(ClientNotConnected), Level = LogLevel.Debug,
         Message = "{WSId} Client not connected. {@ClientKey}")]
