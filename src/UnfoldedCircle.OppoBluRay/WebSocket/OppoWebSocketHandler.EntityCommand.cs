@@ -19,7 +19,7 @@ public partial class OppoWebSocketHandler
         var oppoClientHolder = await TryGetOppoClientHolderAsync(wsId, payload.MsgData.EntityId, IdentifierType.EntityId, commandCancellationToken);
         if (oppoClientHolder is null)
         {
-            _logger.CouldNotFindOppoClientForEntityId(wsId, payload.MsgData.EntityId.AsMemory().GetBaseIdentifier());
+            _logger.CouldNotFindOppoClientForEntityIdMemory(wsId, payload.MsgData.EntityId.AsMemory().GetBaseIdentifier());
             return EntityCommandResult.Failure;
         }
 
@@ -294,7 +294,7 @@ public partial class OppoWebSocketHandler
     {
         if (await TryGetOppoClientHolderAsync(wsId, payload.MsgData.EntityId, IdentifierType.EntityId, commandCancellationToken) is not { } oppoClientHolder)
         {
-            _logger.CouldNotFindOppoClientForEntityId(wsId, payload.MsgData.EntityId.AsMemory().GetBaseIdentifier());
+            _logger.CouldNotFindOppoClientForEntityIdMemory(wsId, payload.MsgData.EntityId.AsMemory().GetBaseIdentifier());
             return EntityCommandResult.Failure;
         }
 

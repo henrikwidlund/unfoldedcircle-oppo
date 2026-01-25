@@ -22,7 +22,11 @@ internal static partial class IntegrationLogger
     // WebSocket - Entity command logging
     [LoggerMessage(EventId = 4, EventName = nameof(CouldNotFindOppoClientForEntityId), Level = LogLevel.Warning,
         Message = "[{WSId}] WS: Could not find client for entity ID '{EntityId}'")]
-    public static partial void CouldNotFindOppoClientForEntityId(this ILogger logger, string wsId, in ReadOnlyMemory<char> entityId);
+    public static partial void CouldNotFindOppoClientForEntityId(this ILogger logger, string wsId, string entityId);
+
+    [LoggerMessage(EventId = 20, EventName = nameof(CouldNotFindOppoClientForEntityIdMemory), Level = LogLevel.Warning,
+        Message = "[{WSId}] WS: Could not find client for entity ID '{EntityId}'")]
+    public static partial void CouldNotFindOppoClientForEntityIdMemory(this ILogger logger, string wsId, ReadOnlyMemory<char> entityId);
 
     // WebSocket - Entity event logging
     [LoggerMessage(EventId = 5, EventName = nameof(SubscribeEventsNotCalled), Level = LogLevel.Debug,
@@ -34,20 +38,12 @@ internal static partial class IntegrationLogger
     public static partial void BroadcastTokenCancelled(this ILogger logger, string wsId, bool? isCancellationRequested);
 
     [LoggerMessage(EventId = 7, EventName = nameof(EventsAlreadyRunning), Level = LogLevel.Debug,
-        Message = "{WSId} Events already running for {EntityId}")]
-    public static partial void EventsAlreadyRunning(this ILogger logger, string wsId, string entityId);
-
-    [LoggerMessage(EventId = 8, EventName = nameof(CouldNotAcquireSemaphore), Level = LogLevel.Error,
-        Message = "{WSId} Could not acquire semaphore for broadcasting events for {EntityId}. Will not start broadcasting.")]
-    public static partial void CouldNotAcquireSemaphore(this ILogger logger, string wsId, string entityId);
+        Message = "{WSId} Events already running.")]
+    public static partial void EventsAlreadyRunning(this ILogger logger, string wsId);
 
     [LoggerMessage(EventId = 9, EventName = nameof(TryingToGetOppoClientHolder), Level = LogLevel.Debug,
         Message = "{WSId} Trying to get OppoClientHolder.")]
     public static partial void TryingToGetOppoClientHolder(this ILogger logger, string wsId);
-
-    [LoggerMessage(EventId = 10, EventName = nameof(NoLongerSubscribedToEvents), Level = LogLevel.Debug,
-        Message = "{WSId} No longer subscribed to events for {EntityId}. Stopping event updates.")]
-    public static partial void NoLongerSubscribedToEvents(this ILogger logger, string wsId, string entityId);
 
     [LoggerMessage(EventId = 11, EventName = nameof(ClientNotConnected), Level = LogLevel.Debug,
         Message = "{WSId} Client not connected. {@ClientKey}")]
@@ -94,5 +90,9 @@ internal static partial class IntegrationLogger
 
     public static void FailedToFetchAlbumCover(this ILogger logger, Exception exception, string releaseId) =>
         FailedToFetchAlbumCoverAction(logger, releaseId, exception);
+
+    [LoggerMessage(EventId = 21, EventName = nameof(CouldNotFindOppoClientHolderForEvents), Level = LogLevel.Error,
+        Message = "[{WSId}] WS: Could not find OppoClientHolder for events")]
+    public static partial void CouldNotFindOppoClientHolderForEvents(this ILogger logger, string wsId);
 }
 
