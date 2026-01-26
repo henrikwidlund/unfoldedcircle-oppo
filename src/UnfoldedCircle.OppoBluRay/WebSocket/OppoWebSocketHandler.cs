@@ -61,14 +61,13 @@ public partial class OppoWebSocketHandler(
             return;
 
         foreach (string msgDataEntityId in payload.MsgData.EntityIds)
-            TryAddEntityIdToBroadcastingEvents(msgDataEntityId, cancellationTokenWrapper);
+            cancellationTokenWrapper.AddSubscribedEntity(msgDataEntityId);
 
         if (await TryGetOppoClientHolders(wsId, commandCancellationToken) is { Count: > 0 } oppoClientHolders)
         {
             foreach (var oppoClientHolder in oppoClientHolders)
             {
-                _ = Task.Factory.StartNew(() => HandleEventUpdatesAsync(socket, wsId, cancellationTokenWrapper),
-                    TaskCreationOptions.LongRunning);
+                await cancellationTokenWrapper.StartEventProcessing();
 
                 await SendMessageAsync(socket,
                     ResponsePayloadHelpers.CreateMediaPlayerStateChangedResponsePayload(
@@ -86,15 +85,12 @@ public partial class OppoWebSocketHandler(
         if (payload.MsgData?.EntityIds is { Length: > 0 })
         {
             foreach (string msgDataEntityId in payload.MsgData.EntityIds)
-                RemoveEntityIdToBroadcastingEvents(msgDataEntityId, cancellationTokenWrapper);
+                cancellationTokenWrapper.RemoveSubscribedEntity(msgDataEntityId);
         }
 
         // If no specific device or entity was specified, dispose all clients for this websocket ID.
         if (payload.MsgData is { DeviceId: null, EntityIds: null })
-        {
-            foreach (var subscribedEntityId in GetSubscribedEntityIds())
-                RemoveEntityIdToBroadcastingEvents(subscribedEntityId, cancellationTokenWrapper);
-        }
+            cancellationTokenWrapper.RemoveAllSubscribedEntities();
 
         return ValueTask.CompletedTask;
     }

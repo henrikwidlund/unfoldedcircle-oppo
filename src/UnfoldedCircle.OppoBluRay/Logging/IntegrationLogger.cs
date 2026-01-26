@@ -33,14 +33,6 @@ internal static partial class IntegrationLogger
         Message = "{WSId} Subscribe events not called")]
     public static partial void SubscribeEventsNotCalled(this ILogger logger, string wsId);
 
-    [LoggerMessage(EventId = 6, EventName = nameof(BroadcastTokenCancelled), Level = LogLevel.Debug,
-        Message = "{WSId} Broadcast token is cancelled {IsCancellationRequested}")]
-    public static partial void BroadcastTokenCancelled(this ILogger logger, string wsId, bool? isCancellationRequested);
-
-    [LoggerMessage(EventId = 7, EventName = nameof(EventsAlreadyRunning), Level = LogLevel.Debug,
-        Message = "{WSId} Events already running.")]
-    public static partial void EventsAlreadyRunning(this ILogger logger, string wsId);
-
     [LoggerMessage(EventId = 9, EventName = nameof(TryingToGetOppoClientHolder), Level = LogLevel.Debug,
         Message = "{WSId} Trying to get OppoClientHolder.")]
     public static partial void TryingToGetOppoClientHolder(this ILogger logger, string wsId);
