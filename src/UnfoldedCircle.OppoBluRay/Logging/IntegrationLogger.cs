@@ -29,10 +29,6 @@ internal static partial class IntegrationLogger
     public static partial void CouldNotFindOppoClientForEntityIdMemory(this ILogger logger, string wsId, ReadOnlyMemory<char> entityId);
 
     // WebSocket - Entity event logging
-    [LoggerMessage(EventId = 5, EventName = nameof(SubscribeEventsNotCalled), Level = LogLevel.Debug,
-        Message = "{WSId} Subscribe events not called")]
-    public static partial void SubscribeEventsNotCalled(this ILogger logger, string wsId);
-
     [LoggerMessage(EventId = 9, EventName = nameof(TryingToGetOppoClientHolder), Level = LogLevel.Debug,
         Message = "{WSId} Trying to get OppoClientHolder.")]
     public static partial void TryingToGetOppoClientHolder(this ILogger logger, string wsId);
@@ -44,10 +40,6 @@ internal static partial class IntegrationLogger
     [LoggerMessage(EventId = 12, EventName = nameof(StartingEventsForDevice), Level = LogLevel.Debug,
         Message = "{WSId} Starting events for {DeviceId}")]
     public static partial void StartingEventsForDevice(this ILogger logger, string wsId, string deviceId);
-
-    [LoggerMessage(EventId = 13, EventName = nameof(StoppingMediaUpdates), Level = LogLevel.Debug,
-        Message = "{WSId} Stopping media updates for {DeviceId}")]
-    public static partial void StoppingMediaUpdates(this ILogger logger, string wsId, string deviceId);
 
     // WebSocket - Configuration logging
     [LoggerMessage(EventId = 14, EventName = nameof(AddingConfiguration), Level = LogLevel.Information,
@@ -82,9 +74,5 @@ internal static partial class IntegrationLogger
 
     public static void FailedToFetchAlbumCover(this ILogger logger, Exception exception, string releaseId) =>
         FailedToFetchAlbumCoverAction(logger, releaseId, exception);
-
-    [LoggerMessage(EventId = 21, EventName = nameof(CouldNotFindOppoClientHolderForEvents), Level = LogLevel.Error,
-        Message = "[{WSId}] WS: Could not find OppoClientHolder for events")]
-    public static partial void CouldNotFindOppoClientHolderForEvents(this ILogger logger, string wsId);
 }
 

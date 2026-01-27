@@ -33,7 +33,6 @@ public partial class OppoWebSocketHandler
         using var periodicTimer = new PeriodicTimer(TimeSpan.FromSeconds(1));
 
         OppoClientHolder? oppoClientHolder = null;
-        var firstRun = true;
         try
         {
             while (!cancellationToken.IsCancellationRequested && await periodicTimer.WaitForNextTickAsync(cancellationToken))
@@ -43,20 +42,16 @@ public partial class OppoWebSocketHandler
                     if (oppoClientHolder is null)
                     {
                         _logger.TryingToGetOppoClientHolder(wsId);
-                        oppoClientHolder ??= await TryGetOppoClientHolderAsync(wsId, subscribedEntity.Key, IdentifierType.EntityId, cancellationToken);
-                    }
+                        oppoClientHolder = await TryGetOppoClientHolderAsync(wsId, subscribedEntity.Key, IdentifierType.EntityId, cancellationToken);
+                        if (oppoClientHolder is null)
+                        {
+                            _logger.CouldNotFindOppoClientForEntityId(wsId, subscribedEntity.Key);
+                            continue;
+                        }
 
-                    if (oppoClientHolder is null)
-                    {
-                        _logger.CouldNotFindOppoClientForEntityId(wsId, subscribedEntity.Key);
-                        continue;
-                    }
-
-                    if (firstRun)
-                    {
                         _logger.StartingEventsForDevice(wsId, oppoClientHolder.Client.HostName);
-                        firstRun = false;
                     }
+
                     var connected = await oppoClientHolder.Client.IsConnectedAsync();
                     if (!connected)
                         _logger.ClientNotConnected(wsId, oppoClientHolder.ClientKey);
