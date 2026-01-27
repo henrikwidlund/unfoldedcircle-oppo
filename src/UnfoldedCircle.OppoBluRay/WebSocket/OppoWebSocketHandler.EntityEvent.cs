@@ -32,198 +32,14 @@ public partial class OppoWebSocketHandler
     {
         using var periodicTimer = new PeriodicTimer(TimeSpan.FromSeconds(1));
 
-        Dictionary<string, OppoClientHolder> oppoClientHolders = new(StringComparer.OrdinalIgnoreCase);
+        ConcurrentDictionary<string, OppoClientHolder> oppoClientHolders = new(StringComparer.OrdinalIgnoreCase);
         try
         {
             while (!cancellationToken.IsCancellationRequested && await periodicTimer.WaitForNextTickAsync(cancellationToken))
             {
-                foreach (var subscribedEntity in subscribedEntitiesHolder.SubscribedEntities)
-                {
-                    var oppoClientHolder = oppoClientHolders.GetValueOrDefault(subscribedEntity.Key);
-                    if (oppoClientHolder is null)
-                    {
-                        _logger.TryingToGetOppoClientHolder(wsId);
-                        oppoClientHolder = await TryGetOppoClientHolderAsync(wsId, subscribedEntity.Key, IdentifierType.EntityId, cancellationToken);
-                        if (oppoClientHolder is null)
-                        {
-                            _logger.CouldNotFindOppoClientForEntityId(wsId, subscribedEntity.Key);
-                            continue;
-                        }
-
-                        oppoClientHolders[subscribedEntity.Key] = oppoClientHolder;
-                        _logger.StartingEventsForDevice(wsId, oppoClientHolder.Client.HostName);
-                    }
-
-                    var connected = await oppoClientHolder.Client.IsConnectedAsync();
-                    if (!connected)
-                        _logger.ClientNotConnected(wsId, oppoClientHolder.ClientKey);
-
-                    OppoResult<PowerState>? powerStatusResponse = connected
-                        ? await oppoClientHolder.Client.QueryPowerStatusAsync(cancellationToken)
-                        : null;
-
-                    var state = powerStatusResponse switch
-                    {
-                        { Result: PowerState.On } => State.On,
-                        { Result: PowerState.Off } => State.Off,
-                        _ => State.Unknown
-                    };
-
-                    if (oppoClientHolder.ClientKey.Model == OppoModel.Magnetar)
-                    {
-                        // Magnetar doesn't support sensors or media events, so just send power state
-                        await SendRemotePowerEventAsync(socket, wsId, oppoClientHolder, state, subscribedEntity.Value, cancellationToken);
-                        continue;
-                    }
-
-                    MediaPlayerStateChangedEventMessageDataAttributes newMediaPlayerState;
-                    // Only send power state if not using media events
-                    if (oppoClientHolder is { ClientKey.UseMediaEvents: false })
-                    {
-                        newMediaPlayerState = new MediaPlayerStateChangedEventMessageDataAttributes { State = state };
-                        await Task.WhenAll(
-                            SendMediaPlayerEventAsync(socket, wsId, oppoClientHolder, newMediaPlayerState, subscribedEntity.Value, cancellationToken),
-                            SendRemotePowerEventAsync(socket, wsId, oppoClientHolder, state, subscribedEntity.Value, cancellationToken),
-                            SendSensorEventAsync(socket, wsId, oppoClientHolder, subscribedEntity.Value,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                cancellationToken));
-
-                        continue;
-                    }
-
-                    OppoResult<VolumeInfo>? volumeResponse = null;
-                    OppoResult<InputSource>? inputSourceResponse = null;
-                    OppoResult<DiscType>? discTypeResponse = null;
-                    OppoResult<uint>? elapsedResponse = null;
-                    OppoResult<uint>? remainingResponse = null;
-                    OppoResult<string>? trackResponse = null;
-                    string? album = null;
-                    string? performer = null;
-                    Uri? coverUri = null;
-                    bool? shuffle = null;
-                    Models.Shared.RepeatMode? repeatMode = null;
-                    OppoResult<HDMIResolution>? hdmiResolutionResponse = null;
-                    OppoResult<string>? audioTypeResponse = null;
-                    OppoResult<string>? subtitleTypeResponse = null;
-                    OppoResult<bool>? threeDStatusResponse = null;
-                    OppoResult<HDRStatus>? hdrStatusResponse = null;
-                    OppoResult<AspectRatio>? aspectRatioResponse = null;
-
-                    if (powerStatusResponse is { Result: PowerState.On })
-                    {
-                        volumeResponse = await oppoClientHolder.Client.QueryVolumeAsync(cancellationToken);
-                        inputSourceResponse = await oppoClientHolder.Client.QueryInputSourceAsync(cancellationToken);
-                        discTypeResponse = await oppoClientHolder.Client.QueryDiscTypeAsync(cancellationToken);
-                        hdmiResolutionResponse = await oppoClientHolder.Client.QueryHDMIResolutionAsync(cancellationToken);
-
-                        var playbackStatusResponse = await oppoClientHolder.Client.QueryPlaybackStatusAsync(cancellationToken);
-                        state = playbackStatusResponse switch
-                        {
-                            { Result: PlaybackStatus.Unknown } => State.Unknown,
-                            { Result: PlaybackStatus.Play } => State.Playing,
-                            { Result: PlaybackStatus.Pause } => State.Paused,
-                            { Result: PlaybackStatus.FastForward or PlaybackStatus.FastRewind or PlaybackStatus.SlowForward or PlaybackStatus.SlowRewind} => State.Buffering,
-                            _ => State.On
-                        };
-
-                        if (playbackStatusResponse is { Result: PlaybackStatus.Play or PlaybackStatus.Pause })
-                        {
-                            if (discTypeResponse.Value && discTypeResponse.Value.Result is not DiscType.UnknownDisc and not DiscType.DataDisc)
-                            {
-                                (repeatMode, shuffle) = GetRepeatMode(await oppoClientHolder.Client.QueryRepeatModeAsync(cancellationToken));
-
-                                if (discTypeResponse.Value.Result is DiscType.BlueRayMovie or DiscType.DVDVideo or DiscType.UltraHDBluRay)
-                                {
-                                    elapsedResponse = oppoClientHolder.ClientKey.UseChapterLengthForMovies
-                                        ? await oppoClientHolder.Client.QueryChapterElapsedTimeAsync(cancellationToken)
-                                        : await oppoClientHolder.Client.QueryTotalElapsedTimeAsync(cancellationToken);
-                                    if (elapsedResponse.Value)
-                                        remainingResponse = oppoClientHolder.ClientKey.UseChapterLengthForMovies
-                                            ? await oppoClientHolder.Client.QueryChapterRemainingTimeAsync(cancellationToken)
-                                            : await oppoClientHolder.Client.QueryTotalRemainingTimeAsync(cancellationToken);
-                                }
-                                else
-                                {
-                                    elapsedResponse = await oppoClientHolder.Client.QueryTrackOrTitleElapsedTimeAsync(cancellationToken);
-                                    if (elapsedResponse.Value)
-                                    {
-                                        remainingResponse = await oppoClientHolder.Client.QueryTrackOrTitleRemainingTimeAsync(cancellationToken);
-
-                                        if (oppoClientHolder.ClientKey.Model is OppoModel.UDP203 or OppoModel.UDP205)
-                                        {
-                                            trackResponse = await oppoClientHolder.Client.QueryTrackNameAsync(cancellationToken);
-                                            album = (await oppoClientHolder.Client.QueryTrackAlbumAsync(cancellationToken)).Result;
-                                            performer = (await oppoClientHolder.Client.QueryTrackPerformerAsync(cancellationToken)).Result;
-                                        }
-                                    }
-                                }
-
-                                if (!string.IsNullOrWhiteSpace(performer) && (!string.IsNullOrWhiteSpace(album) || !string.IsNullOrWhiteSpace(trackResponse?.Result)))
-                                {
-                                    if (album?.StartsWith(performer, StringComparison.OrdinalIgnoreCase) is true &&
-                                        album.AsSpan()[performer.Length..].StartsWith("   ", StringComparison.Ordinal))
-                                        album = album.AsSpan()[(performer.Length + 3)..].ToString();
-
-                                    coverUri = await _albumCoverService.GetAlbumCoverAsync(performer, album, null, cancellationToken);
-                                }
-                                else
-                                    coverUri = null;
-
-                                audioTypeResponse = await oppoClientHolder.Client.QueryAudioTypeAsync(cancellationToken);
-                                subtitleTypeResponse = await oppoClientHolder.Client.QuerySubtitleTypeAsync(cancellationToken);
-                                if (oppoClientHolder.ClientKey.Model is OppoModel.UDP203 or OppoModel.UDP205)
-                                {
-                                    threeDStatusResponse = await oppoClientHolder.Client.QueryThreeDStatusAsync(cancellationToken);
-                                    hdrStatusResponse = await oppoClientHolder.Client.QueryHDRStatusAsync(cancellationToken);
-                                    aspectRatioResponse = await oppoClientHolder.Client.QueryAspectRatioAsync(cancellationToken);
-                                }
-                            }
-                        }
-                    }
-
-                    newMediaPlayerState = new MediaPlayerStateChangedEventMessageDataAttributes
-                    {
-                        State = state,
-                        MediaType = discTypeResponse?.Result switch
-                        {
-                            DiscType.BlueRayMovie or DiscType.DVDVideo or DiscType.UltraHDBluRay => MediaType.Movie,
-                            DiscType.DVDAudio or DiscType.SACD or DiscType.CDDiscAudio => MediaType.Music,
-                            _ => null
-                        },
-                        MediaPosition = elapsedResponse?.Result,
-                        MediaDuration = elapsedResponse?.Result + remainingResponse?.Result,
-                        MediaTitle = ReplaceStarWithEllipsis(trackResponse?.Result),
-                        MediaAlbum = ReplaceStarWithEllipsis(album),
-                        MediaArtist = ReplaceStarWithEllipsis(performer),
-                        MediaImageUrl = coverUri,
-                        Repeat = repeatMode,
-                        Shuffle = shuffle,
-                        Source = GetInputSource(inputSourceResponse),
-                        Volume = volumeResponse?.Result.Volume,
-                        Muted = volumeResponse?.Result.Muted
-                    };
-
-                    await Task.WhenAll(
-                        SendMediaPlayerEventAsync(socket, wsId, oppoClientHolder, newMediaPlayerState, subscribedEntity.Value, cancellationToken),
-                        SendRemotePowerEventAsync(socket, wsId, oppoClientHolder, state, subscribedEntity.Value, cancellationToken),
-                        SendSensorEventAsync(socket, wsId, oppoClientHolder, subscribedEntity.Value,
-                            inputSourceResponse?.Result,
-                            discTypeResponse?.Result,
-                            hdmiResolutionResponse?.Result,
-                            audioTypeResponse?.Result,
-                            subtitleTypeResponse?.Result,
-                            threeDStatusResponse?.Result,
-                            hdrStatusResponse?.Result,
-                            aspectRatioResponse?.Result,
-                            cancellationToken));
-                }
+                await Task.WhenAll(subscribedEntitiesHolder.SubscribedEntities
+                    .Select(subscribedEntity =>
+                        ProcessForSingleClient(socket, wsId, oppoClientHolders, subscribedEntity, cancellationToken)));
             }
         }
         finally
@@ -245,6 +61,196 @@ public partial class OppoWebSocketHandler
         }
 
         return;
+    }
+
+    private async Task ProcessForSingleClient(System.Net.WebSockets.WebSocket socket, string wsId, ConcurrentDictionary<string, OppoClientHolder> oppoClientHolders, KeyValuePair<string, HashSet<SubscribedEntity>> subscribedEntity, CancellationToken cancellationToken)
+    {
+        {
+            var oppoClientHolder = oppoClientHolders.GetValueOrDefault(subscribedEntity.Key);
+            if (oppoClientHolder is null)
+            {
+                _logger.TryingToGetOppoClientHolder(wsId);
+                oppoClientHolder = await TryGetOppoClientHolderAsync(wsId, subscribedEntity.Key, IdentifierType.EntityId, cancellationToken);
+                if (oppoClientHolder is null)
+                {
+                    _logger.CouldNotFindOppoClientForEntityId(wsId, subscribedEntity.Key);
+                    return;
+                }
+
+                oppoClientHolders[subscribedEntity.Key] = oppoClientHolder;
+                _logger.StartingEventsForDevice(wsId, oppoClientHolder.Client.HostName);
+            }
+
+            var connected = await oppoClientHolder.Client.IsConnectedAsync();
+            if (!connected)
+                _logger.ClientNotConnected(wsId, oppoClientHolder.ClientKey);
+
+            OppoResult<PowerState>? powerStatusResponse = connected
+                ? await oppoClientHolder.Client.QueryPowerStatusAsync(cancellationToken)
+                : null;
+
+            var state = powerStatusResponse switch
+            {
+                { Result: PowerState.On } => State.On,
+                { Result: PowerState.Off } => State.Off,
+                _ => State.Unknown
+            };
+
+            if (oppoClientHolder.ClientKey.Model == OppoModel.Magnetar)
+            {
+                // Magnetar doesn't support sensors or media events, so just send power state
+                await SendRemotePowerEventAsync(socket, wsId, oppoClientHolder, state, subscribedEntity.Value, cancellationToken);
+                return;
+            }
+
+            MediaPlayerStateChangedEventMessageDataAttributes newMediaPlayerState;
+            // Only send power state if not using media events
+            if (oppoClientHolder is { ClientKey.UseMediaEvents: false })
+            {
+                newMediaPlayerState = new MediaPlayerStateChangedEventMessageDataAttributes { State = state };
+                await Task.WhenAll(
+                    SendMediaPlayerEventAsync(socket, wsId, oppoClientHolder, newMediaPlayerState, subscribedEntity.Value, cancellationToken),
+                    SendRemotePowerEventAsync(socket, wsId, oppoClientHolder, state, subscribedEntity.Value, cancellationToken),
+                    SendSensorEventAsync(socket, wsId, oppoClientHolder, subscribedEntity.Value,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        cancellationToken));
+
+                return;
+            }
+
+            OppoResult<VolumeInfo>? volumeResponse = null;
+            OppoResult<InputSource>? inputSourceResponse = null;
+            OppoResult<DiscType>? discTypeResponse = null;
+            OppoResult<uint>? elapsedResponse = null;
+            OppoResult<uint>? remainingResponse = null;
+            OppoResult<string>? trackResponse = null;
+            string? album = null;
+            string? performer = null;
+            Uri? coverUri = null;
+            bool? shuffle = null;
+            Models.Shared.RepeatMode? repeatMode = null;
+            OppoResult<HDMIResolution>? hdmiResolutionResponse = null;
+            OppoResult<string>? audioTypeResponse = null;
+            OppoResult<string>? subtitleTypeResponse = null;
+            OppoResult<bool>? threeDStatusResponse = null;
+            OppoResult<HDRStatus>? hdrStatusResponse = null;
+            OppoResult<AspectRatio>? aspectRatioResponse = null;
+
+            if (powerStatusResponse is { Result: PowerState.On })
+            {
+                volumeResponse = await oppoClientHolder.Client.QueryVolumeAsync(cancellationToken);
+                inputSourceResponse = await oppoClientHolder.Client.QueryInputSourceAsync(cancellationToken);
+                discTypeResponse = await oppoClientHolder.Client.QueryDiscTypeAsync(cancellationToken);
+                hdmiResolutionResponse = await oppoClientHolder.Client.QueryHDMIResolutionAsync(cancellationToken);
+
+                var playbackStatusResponse = await oppoClientHolder.Client.QueryPlaybackStatusAsync(cancellationToken);
+                state = playbackStatusResponse switch
+                {
+                    { Result: PlaybackStatus.Unknown } => State.Unknown,
+                    { Result: PlaybackStatus.Play } => State.Playing,
+                    { Result: PlaybackStatus.Pause } => State.Paused,
+                    { Result: PlaybackStatus.FastForward or PlaybackStatus.FastRewind or PlaybackStatus.SlowForward or PlaybackStatus.SlowRewind} => State.Buffering,
+                    _ => State.On
+                };
+
+                if (playbackStatusResponse is { Result: PlaybackStatus.Play or PlaybackStatus.Pause })
+                {
+                    if (discTypeResponse.Value && discTypeResponse.Value.Result is not DiscType.UnknownDisc and not DiscType.DataDisc)
+                    {
+                        (repeatMode, shuffle) = GetRepeatMode(await oppoClientHolder.Client.QueryRepeatModeAsync(cancellationToken));
+
+                        if (discTypeResponse.Value.Result is DiscType.BlueRayMovie or DiscType.DVDVideo or DiscType.UltraHDBluRay)
+                        {
+                            elapsedResponse = oppoClientHolder.ClientKey.UseChapterLengthForMovies
+                                ? await oppoClientHolder.Client.QueryChapterElapsedTimeAsync(cancellationToken)
+                                : await oppoClientHolder.Client.QueryTotalElapsedTimeAsync(cancellationToken);
+                            if (elapsedResponse.Value)
+                                remainingResponse = oppoClientHolder.ClientKey.UseChapterLengthForMovies
+                                    ? await oppoClientHolder.Client.QueryChapterRemainingTimeAsync(cancellationToken)
+                                    : await oppoClientHolder.Client.QueryTotalRemainingTimeAsync(cancellationToken);
+                        }
+                        else
+                        {
+                            elapsedResponse = await oppoClientHolder.Client.QueryTrackOrTitleElapsedTimeAsync(cancellationToken);
+                            if (elapsedResponse.Value)
+                            {
+                                remainingResponse = await oppoClientHolder.Client.QueryTrackOrTitleRemainingTimeAsync(cancellationToken);
+
+                                if (oppoClientHolder.ClientKey.Model is OppoModel.UDP203 or OppoModel.UDP205)
+                                {
+                                    trackResponse = await oppoClientHolder.Client.QueryTrackNameAsync(cancellationToken);
+                                    album = (await oppoClientHolder.Client.QueryTrackAlbumAsync(cancellationToken)).Result;
+                                    performer = (await oppoClientHolder.Client.QueryTrackPerformerAsync(cancellationToken)).Result;
+                                }
+                            }
+                        }
+
+                        if (!string.IsNullOrWhiteSpace(performer) && (!string.IsNullOrWhiteSpace(album) || !string.IsNullOrWhiteSpace(trackResponse?.Result)))
+                        {
+                            if (album?.StartsWith(performer, StringComparison.OrdinalIgnoreCase) is true &&
+                                album.AsSpan()[performer.Length..].StartsWith("   ", StringComparison.Ordinal))
+                                album = album.AsSpan()[(performer.Length + 3)..].ToString();
+
+                            coverUri = await _albumCoverService.GetAlbumCoverAsync(performer, album, null, cancellationToken);
+                        }
+                        else
+                            coverUri = null;
+
+                        audioTypeResponse = await oppoClientHolder.Client.QueryAudioTypeAsync(cancellationToken);
+                        subtitleTypeResponse = await oppoClientHolder.Client.QuerySubtitleTypeAsync(cancellationToken);
+                        if (oppoClientHolder.ClientKey.Model is OppoModel.UDP203 or OppoModel.UDP205)
+                        {
+                            threeDStatusResponse = await oppoClientHolder.Client.QueryThreeDStatusAsync(cancellationToken);
+                            hdrStatusResponse = await oppoClientHolder.Client.QueryHDRStatusAsync(cancellationToken);
+                            aspectRatioResponse = await oppoClientHolder.Client.QueryAspectRatioAsync(cancellationToken);
+                        }
+                    }
+                }
+            }
+
+            newMediaPlayerState = new MediaPlayerStateChangedEventMessageDataAttributes
+            {
+                State = state,
+                MediaType = discTypeResponse?.Result switch
+                {
+                    DiscType.BlueRayMovie or DiscType.DVDVideo or DiscType.UltraHDBluRay => MediaType.Movie,
+                    DiscType.DVDAudio or DiscType.SACD or DiscType.CDDiscAudio => MediaType.Music,
+                    _ => null
+                },
+                MediaPosition = elapsedResponse?.Result,
+                MediaDuration = elapsedResponse?.Result + remainingResponse?.Result,
+                MediaTitle = ReplaceStarWithEllipsis(trackResponse?.Result),
+                MediaAlbum = ReplaceStarWithEllipsis(album),
+                MediaArtist = ReplaceStarWithEllipsis(performer),
+                MediaImageUrl = coverUri,
+                Repeat = repeatMode,
+                Shuffle = shuffle,
+                Source = GetInputSource(inputSourceResponse),
+                Volume = volumeResponse?.Result.Volume,
+                Muted = volumeResponse?.Result.Muted
+            };
+
+            await Task.WhenAll(
+                SendMediaPlayerEventAsync(socket, wsId, oppoClientHolder, newMediaPlayerState, subscribedEntity.Value, cancellationToken),
+                SendRemotePowerEventAsync(socket, wsId, oppoClientHolder, state, subscribedEntity.Value, cancellationToken),
+                SendSensorEventAsync(socket, wsId, oppoClientHolder, subscribedEntity.Value,
+                    inputSourceResponse?.Result,
+                    discTypeResponse?.Result,
+                    hdmiResolutionResponse?.Result,
+                    audioTypeResponse?.Result,
+                    subtitleTypeResponse?.Result,
+                    threeDStatusResponse?.Result,
+                    hdrStatusResponse?.Result,
+                    aspectRatioResponse?.Result,
+                    cancellationToken));
+        }
 
         static string? ReplaceStarWithEllipsis(string? input) =>
             string.IsNullOrWhiteSpace(input) ? input : input.Replace('*', '…');
