@@ -63,12 +63,12 @@ public partial class OppoWebSocketHandler(
         foreach (string msgDataEntityId in payload.MsgData.EntityIds)
             cancellationTokenWrapper.AddSubscribedEntity(msgDataEntityId);
 
+        await cancellationTokenWrapper.StartEventProcessing();
+
         if (await TryGetOppoClientHolders(wsId, commandCancellationToken) is { Count: > 0 } oppoClientHolders)
         {
-            foreach (var oppoClientHolder in oppoClientHolders)
+            foreach (var oppoClientHolder in oppoClientHolders.Where(x => payload.MsgData.EntityIds.Contains(x.ClientKey.EntityId, StringComparer.OrdinalIgnoreCase)))
             {
-                await cancellationTokenWrapper.StartEventProcessing();
-
                 await SendMessageAsync(socket,
                     ResponsePayloadHelpers.CreateMediaPlayerStateChangedResponsePayload(
                         new MediaPlayerStateChangedEventMessageDataAttributes { SourceList = OppoEntitySettings.SourceList[oppoClientHolder.ClientKey.Model] },
