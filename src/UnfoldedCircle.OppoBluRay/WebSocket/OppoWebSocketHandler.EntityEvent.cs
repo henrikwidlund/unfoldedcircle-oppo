@@ -32,13 +32,14 @@ public partial class OppoWebSocketHandler
     {
         using var periodicTimer = new PeriodicTimer(TimeSpan.FromSeconds(1));
 
-        OppoClientHolder? oppoClientHolder = null;
+        Dictionary<string, OppoClientHolder> oppoClientHolders = new(StringComparer.OrdinalIgnoreCase);
         try
         {
             while (!cancellationToken.IsCancellationRequested && await periodicTimer.WaitForNextTickAsync(cancellationToken))
             {
                 foreach (var subscribedEntity in subscribedEntitiesHolder.SubscribedEntities)
                 {
+                    var oppoClientHolder = oppoClientHolders.GetValueOrDefault(subscribedEntity.Key);
                     if (oppoClientHolder is null)
                     {
                         _logger.TryingToGetOppoClientHolder(wsId);
@@ -49,6 +50,7 @@ public partial class OppoWebSocketHandler
                             continue;
                         }
 
+                        oppoClientHolders[subscribedEntity.Key] = oppoClientHolder;
                         _logger.StartingEventsForDevice(wsId, oppoClientHolder.Client.HostName);
                     }
 
@@ -226,19 +228,19 @@ public partial class OppoWebSocketHandler
         }
         finally
         {
-            if (oppoClientHolder is not null)
+            foreach (var clientHashCode in oppoClientHolders.Values
+                         .Select(static oppoClientHolder => oppoClientHolder.ClientKey.GetHashCode()))
             {
-                int hashCode = oppoClientHolder.ClientKey.GetHashCode();
-                PreviousMediaStatesMap.TryRemove(hashCode, out _);
-                PreviousRemoteStatesMap.TryRemove(hashCode, out _);
-                PreviousSensorInputSourcesMap.TryRemove(hashCode, out _);
-                PreviousSensorDiscTypesMap.TryRemove(hashCode, out _);
-                PreviousSensorHDMIResolutionsMap.TryRemove(hashCode, out _);
-                PreviousSensorAudioTypesMap.TryRemove(hashCode, out _);
-                PreviousSensorSubtitleTypesMap.TryRemove(hashCode, out _);
-                PreviousSensorThreeDsMap.TryRemove(hashCode, out _);
-                PreviousSensorHDRStatusMap.TryRemove(hashCode, out _);
-                PreviousSensorAspectRatiosMap.TryRemove(hashCode, out _);
+                PreviousMediaStatesMap.TryRemove(clientHashCode, out _);
+                PreviousRemoteStatesMap.TryRemove(clientHashCode, out _);
+                PreviousSensorInputSourcesMap.TryRemove(clientHashCode, out _);
+                PreviousSensorDiscTypesMap.TryRemove(clientHashCode, out _);
+                PreviousSensorHDMIResolutionsMap.TryRemove(clientHashCode, out _);
+                PreviousSensorAudioTypesMap.TryRemove(clientHashCode, out _);
+                PreviousSensorSubtitleTypesMap.TryRemove(clientHashCode, out _);
+                PreviousSensorThreeDsMap.TryRemove(clientHashCode, out _);
+                PreviousSensorHDRStatusMap.TryRemove(clientHashCode, out _);
+                PreviousSensorAspectRatiosMap.TryRemove(clientHashCode, out _);
             }
         }
 
