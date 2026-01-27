@@ -65,6 +65,7 @@ public partial class OppoWebSocketHandler
 
     private async Task ProcessForSingleClient(System.Net.WebSockets.WebSocket socket, string wsId, ConcurrentDictionary<string, OppoClientHolder> oppoClientHolders, KeyValuePair<string, HashSet<SubscribedEntity>> subscribedEntity, CancellationToken cancellationToken)
     {
+        var entityTypes = subscribedEntity.Value.Select(static e => e.EntityType).ToHashSet();
         {
             var oppoClientHolder = oppoClientHolders.GetValueOrDefault(subscribedEntity.Key);
             if (oppoClientHolder is null)
@@ -99,7 +100,8 @@ public partial class OppoWebSocketHandler
             if (oppoClientHolder.ClientKey.Model == OppoModel.Magnetar)
             {
                 // Magnetar doesn't support sensors or media events, so just send power state
-                await SendRemotePowerEventAsync(socket, wsId, oppoClientHolder, state, subscribedEntity.Value, cancellationToken);
+                if (entityTypes.Contains(EntityType.Remote))
+                    await SendRemotePowerEventAsync(socket, wsId, oppoClientHolder, state, cancellationToken);
                 return;
             }
 
@@ -109,8 +111,12 @@ public partial class OppoWebSocketHandler
             {
                 newMediaPlayerState = new MediaPlayerStateChangedEventMessageDataAttributes { State = state };
                 await Task.WhenAll(
-                    SendMediaPlayerEventAsync(socket, wsId, oppoClientHolder, newMediaPlayerState, subscribedEntity.Value, cancellationToken),
-                    SendRemotePowerEventAsync(socket, wsId, oppoClientHolder, state, subscribedEntity.Value, cancellationToken),
+                    entityTypes.Contains(EntityType.MediaPlayer) ?
+                        SendMediaPlayerEventAsync(socket, wsId, oppoClientHolder, newMediaPlayerState, cancellationToken) :
+                        Task.CompletedTask,
+                    entityTypes.Contains(EntityType.Remote) ?
+                        SendRemotePowerEventAsync(socket, wsId, oppoClientHolder, state, cancellationToken) :
+                        Task.CompletedTask,
                     SendSensorEventAsync(socket, wsId, oppoClientHolder, subscribedEntity.Value,
                         null,
                         null,
@@ -238,8 +244,12 @@ public partial class OppoWebSocketHandler
             };
 
             await Task.WhenAll(
-                SendMediaPlayerEventAsync(socket, wsId, oppoClientHolder, newMediaPlayerState, subscribedEntity.Value, cancellationToken),
-                SendRemotePowerEventAsync(socket, wsId, oppoClientHolder, state, subscribedEntity.Value, cancellationToken),
+                entityTypes.Contains(EntityType.MediaPlayer) ?
+                    SendMediaPlayerEventAsync(socket, wsId, oppoClientHolder, newMediaPlayerState, cancellationToken) :
+                    Task.CompletedTask,
+                entityTypes.Contains(EntityType.Remote) ?
+                    SendRemotePowerEventAsync(socket, wsId, oppoClientHolder, state, cancellationToken) :
+                    Task.CompletedTask,
                 SendSensorEventAsync(socket, wsId, oppoClientHolder, subscribedEntity.Value,
                     inputSourceResponse?.Result,
                     discTypeResponse?.Result,
@@ -279,12 +289,8 @@ public partial class OppoWebSocketHandler
         string wsId,
         OppoClientHolder oppoClientHolder,
         MediaPlayerStateChangedEventMessageDataAttributes mediaPlayerState,
-        HashSet<SubscribedEntity> subscribedEntityValue,
         CancellationToken cancellationToken)
     {
-        if (!subscribedEntityValue.Any(static x => x.EntityType == EntityType.MediaPlayer))
-            return;
-
         var stateHash = mediaPlayerState.GetHashCode();
         int clientHashCode = oppoClientHolder.ClientKey.GetHashCode();
         if (PreviousMediaStatesMap.TryGetValue(clientHashCode, out var previousStateHash) &&
@@ -304,12 +310,8 @@ public partial class OppoWebSocketHandler
         string wsId,
         OppoClientHolder oppoClientHolder,
         State state,
-        HashSet<SubscribedEntity> subscribedEntityValue,
         CancellationToken cancellationToken)
     {
-        if (!subscribedEntityValue.Any(static x => x.EntityType == EntityType.Remote))
-            return;
-
         int clientHashCode = oppoClientHolder.ClientKey.GetHashCode();
         if (PreviousRemoteStatesMap.TryGetValue(clientHashCode, out var previousState) &&
             previousState == state)
