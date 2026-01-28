@@ -35,12 +35,12 @@ public partial class OppoWebSocketHandler
         ConcurrentDictionary<string, OppoClientHolder> oppoClientHolders = new(StringComparer.OrdinalIgnoreCase);
         try
         {
-            while (!cancellationToken.IsCancellationRequested && await periodicTimer.WaitForNextTickAsync(cancellationToken))
+            do
             {
                 await Task.WhenAll(subscribedEntitiesHolder.SubscribedEntities
                     .Select(subscribedEntity =>
                         ProcessForSingleClient(socket, wsId, oppoClientHolders, subscribedEntity, cancellationToken)));
-            }
+            } while (!cancellationToken.IsCancellationRequested && await periodicTimer.WaitForNextTickAsync(cancellationToken));
         }
         finally
         {
@@ -257,6 +257,8 @@ public partial class OppoWebSocketHandler
                 hdrStatusResponse?.Result,
                 aspectRatioResponse?.Result,
                 cancellationToken));
+
+        return;
 
         static string? ReplaceStarWithEllipsis(string? input) =>
             string.IsNullOrWhiteSpace(input) ? input : input.Replace('*', '…');
