@@ -74,5 +74,13 @@ internal static partial class IntegrationLogger
 
     public static void FailedToFetchAlbumCover(this ILogger logger, Exception exception, string releaseId) =>
         FailedToFetchAlbumCoverAction(logger, releaseId, exception);
+
+    private static readonly Action<ILogger, string, string, Exception> FailureDuringEventAction = LoggerMessage.Define<string, string>(
+        LogLevel.Error,
+        new EventId(20, nameof(FailureDuringEvent)),
+        "{WSId} Failure during event for {Key}.");
+
+    public static void FailureDuringEvent(this ILogger logger, Exception exception, string wsId, string key) =>
+        FailureDuringEventAction(logger, wsId, key, exception);
 }
 

@@ -38,8 +38,17 @@ public partial class OppoWebSocketHandler
             do
             {
                 await Task.WhenAll(subscribedEntitiesHolder.SubscribedEntities
-                    .Select(subscribedEntity =>
-                        ProcessForSingleClient(socket, wsId, oppoClientHolders, subscribedEntity, cancellationToken)));
+                    .Select(async subscribedEntity =>
+                    {
+                        try
+                        {
+                            await ProcessForSingleClient(socket, wsId, oppoClientHolders, subscribedEntity, cancellationToken);
+                        }
+                        catch (Exception e)
+                        {
+                            _logger.FailureDuringEvent(e, wsId, subscribedEntity.Key);
+                        }
+                    }));
             } while (!cancellationToken.IsCancellationRequested && await periodicTimer.WaitForNextTickAsync(cancellationToken));
         }
         finally
