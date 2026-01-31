@@ -37,17 +37,6 @@ public partial class OppoWebSocketHandler(
     protected override ValueTask<DeviceState> OnGetDeviceStateAsync(GetDeviceStateMsg payload, string wsId, CancellationToken cancellationToken)
         => ValueTask.FromResult(DeviceState.Connected);
 
-    protected override async ValueTask<EntityState> GetEntityStateAsync(OppoConfigurationItem entity,
-        string wsId,
-        CancellationToken cancellationToken)
-    {
-        var oppoClientHolder = await TryGetOppoClientHolderAsync(wsId, entity.EntityId, IdentifierType.EntityId, cancellationToken);
-        if (oppoClientHolder is null)
-            return EntityState.Disconnected;
-
-        return await oppoClientHolder.Client.IsConnectedAsync() ? EntityState.Connected : EntityState.Disconnected;
-    }
-
     protected override async ValueTask<IReadOnlyCollection<AvailableEntity>> OnGetAvailableEntitiesAsync(GetAvailableEntitiesMsg payload, string wsId, CancellationToken cancellationToken)
         => GetAvailableEntities(await GetEntitiesAsync(wsId, payload.MsgData.Filter?.DeviceId, cancellationToken), payload).ToArray();
 
@@ -62,8 +51,6 @@ public partial class OppoWebSocketHandler(
 
         foreach (string msgDataEntityId in payload.MsgData.EntityIds)
             cancellationTokenWrapper.AddSubscribedEntity(msgDataEntityId);
-
-        await cancellationTokenWrapper.StartEventProcessing();
 
         if (await TryGetOppoClientHolders(wsId, commandCancellationToken) is { Count: > 0 } oppoClientHolders)
         {

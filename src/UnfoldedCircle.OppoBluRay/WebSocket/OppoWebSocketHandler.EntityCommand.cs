@@ -25,7 +25,7 @@ public partial class OppoWebSocketHandler
 
         OppoResult<PowerState>? powerState = payload.MsgData.CommandId switch
         {
-            OppoCommandId.On => await HandlePowerOnAsync(oppoClientHolder, cancellationTokenWrapper, commandCancellationToken),
+            OppoCommandId.On => await HandlePowerOnAsync(oppoClientHolder, commandCancellationToken),
             OppoCommandId.Off => await HandlePowerOffAsync(oppoClientHolder, commandCancellationToken),
             OppoCommandId.Toggle => await oppoClientHolder.Client.PowerToggleAsync(commandCancellationToken),
             _ => null
@@ -301,7 +301,7 @@ public partial class OppoWebSocketHandler
         var client = oppoClientHolder.Client;
         OppoResult<PowerState>? powerState = command switch
         {
-            _ when command.Equals(RemoteButtonConstants.On, StringComparison.OrdinalIgnoreCase) => await HandlePowerOnAsync(oppoClientHolder, cancellationTokenWrapper, commandCancellationToken),
+            _ when command.Equals(RemoteButtonConstants.On, StringComparison.OrdinalIgnoreCase) => await HandlePowerOnAsync(oppoClientHolder, commandCancellationToken),
             _ when command.Equals(RemoteButtonConstants.Off, StringComparison.OrdinalIgnoreCase) => await HandlePowerOffAsync(oppoClientHolder, commandCancellationToken),
             _ when command.Equals(RemoteButtonConstants.Toggle, StringComparison.OrdinalIgnoreCase) => await client.PowerToggleAsync(commandCancellationToken),
             _ when command.Equals(RemoteButtonConstants.Power, StringComparison.OrdinalIgnoreCase) => await client.PowerToggleAsync(commandCancellationToken),
@@ -392,10 +392,8 @@ public partial class OppoWebSocketHandler
     }
 
     private static async ValueTask<OppoResult<PowerState>> HandlePowerOnAsync(OppoClientHolder oppoClientHolder,
-        CancellationTokenWrapper cancellationTokenWrapper,
         CancellationToken cancellationToken)
     {
-        cancellationTokenWrapper.EnsureNonCancelledBroadcastCancellationTokenSource();
         var powerStateResponse = await oppoClientHolder.Client.PowerOnAsync(cancellationToken);
         // Power commands can be flaky, so we try twice
         if (powerStateResponse is not { Result: PowerState.On })
