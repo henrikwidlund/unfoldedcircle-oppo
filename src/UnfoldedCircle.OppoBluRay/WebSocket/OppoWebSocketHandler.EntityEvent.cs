@@ -37,18 +37,18 @@ public partial class OppoWebSocketHandler
         {
             do
             {
-                await Task.WhenAll(subscribedEntitiesHolder.SubscribedEntities
-                    .Select(async subscribedEntity =>
+                await Parallel.ForEachAsync(subscribedEntitiesHolder.SubscribedEntities, cancellationToken, async (subscribedEntity, ct) =>
+                {
+                    try
                     {
-                        try
-                        {
-                            await ProcessForSingleClient(socket, wsId, oppoClientHolders, subscribedEntity, cancellationToken);
-                        }
-                        catch (Exception e)
-                        {
+                        await ProcessForSingleClient(socket, wsId, oppoClientHolders, subscribedEntity, ct);
+                    }
+                    catch (Exception e)
+                    {
+                        if (e is not OperationCanceledException)
                             _logger.FailureDuringEvent(e, wsId, subscribedEntity.Key);
-                        }
-                    }));
+                    }
+                });
             } while (!cancellationToken.IsCancellationRequested && await periodicTimer.WaitForNextTickAsync(cancellationToken));
         }
         finally
