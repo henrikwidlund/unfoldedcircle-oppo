@@ -45,6 +45,7 @@ public partial class OppoWebSocketHandler
                     }
                     catch (Exception e)
                     {
+                        // This is expected from control flow, no need to spam logs
                         if (e is not OperationCanceledException)
                             _logger.FailureDuringEvent(e, wsId, subscribedEntity.Key);
                     }
