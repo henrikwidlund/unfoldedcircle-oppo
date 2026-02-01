@@ -46,6 +46,7 @@
     </ItemGroup>
 
     <ItemGroup>
+<!--        <ProjectReference Include="..\..\..\UnfoldedCircle\src\UnfoldedCircle.Server\UnfoldedCircle.Server.csproj" />-->
         <ProjectReference Include="..\Oppo\Oppo.csproj" />
     </ItemGroup>
 
@@ -58,7 +59,7 @@
         <PackageReference Include="Theodicean.SourceGenerators" Version="0.0.3" PrivateAssets="all" ExcludeAssets="runtime">
             <IncludeAssets>compile; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Theodicean.UnfoldedCircle.Server" Version="0.0.6-pre15" />
+        <PackageReference Include="Theodicean.UnfoldedCircle.Server" Version="0.0.6-pre16" />
     </ItemGroup>
 
 </Project>

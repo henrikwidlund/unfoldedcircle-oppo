@@ -45,6 +45,8 @@ public partial class OppoWebSocketHandler
         switch (payload.MsgData.CommandId)
         {
             case OppoCommandId.PlayPause:
+                // media player power toggle sends play_pause, power the device on first if needed
+                await oppoClientHolder.Client.PowerOnAsync(commandCancellationToken);
                 await oppoClientHolder.Client.PauseAsync(commandCancellationToken);
                 break;
             case OppoCommandId.Stop:
