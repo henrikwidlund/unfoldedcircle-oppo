@@ -9,6 +9,9 @@ jobs:
   release:
     name: Release native binaries
     permissions:
+      id-token: write
+      attestations: write
+      artifact-metadata: write
       contents: write
     strategy:
       matrix:
@@ -92,3 +95,10 @@ jobs:
             unfolded-circle-oppo*.tar.gz
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Attest build provenance
+        uses: actions/attest-build-provenance@v3.2.0
+        with:
+          subject-path: |
+            unfolded-circle-oppo*.tar.gz
+            unfolded-circle-oppo*.zip
