@@ -49,6 +49,8 @@ jobs:
 
       - name: Build
         shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           tag=$(git describe --tags --abbrev=0)
           date=$(date -u +"%Y-%m-%d")
@@ -62,16 +64,48 @@ jobs:
           
           dotnet publish ./src/UnfoldedCircle.OppoBluRay/UnfoldedCircle.OppoBluRay.csproj -r ${{ matrix.target }} -c Release -o ./publish -p:Version="$ASSEMBLY_VERSION" -p:PublishAot=true
           if [ "${{ matrix.target }}" == "linux-arm64" ]; then
-            mkdir driverdir && mkdir driverdir/bin && mkdir driverdir/config && mkdir driverdir/data
+            launcher_tag=$(gh release list --repo henrikwidlund/unfoldedcircle-launcher --limit 1 --json tagName --jq '.[0].tagName')
+            if [ -z "$launcher_tag" ]; then
+              echo "No releases found in henrikwidlund/unfoldedcircle-launcher" >&2
+              exit 1
+            fi
+
+            gh release download --repo henrikwidlund/unfoldedcircle-launcher "$launcher_tag" \
+              --pattern "*.tar.gz" \
+              --dir ./publish-launcher
+          
+            shopt -s nullglob
+            launcher_archives=(./publish-launcher/*.tar.gz)
+            if [ ${#launcher_archives[@]} -eq 0 ]; then
+              echo "No launcher archives found in ./publish-launcher" >&2
+              exit 1
+            fi
+            for archive in "${launcher_archives[@]}"; do
+              gh attestation verify "$archive" \
+                --repo henrikwidlund/unfoldedcircle-launcher
+            done
+          
+            mkdir driverdir && mkdir driverdir/bin && mkdir driverdir/config && mkdir driverdir/data && mkdir driverdir/bin/certs && mkdir driverdir/bin/openssl && mkdir publish-launcher-extracted
+          
+            # Extract the launcher (driver) tarball
+            tar -xzvf ./publish-launcher/*.tar.gz -C ./publish-launcher-extracted
+          
+            # Copy the launcher bundle contents to the driver directory
+            cp publish-launcher-extracted/driver driverdir/bin/driver
+            cp publish-launcher-extracted/driver.dbg driverdir/bin/driver.dbg
+            cp publish-launcher-extracted/certs/* driverdir/bin/certs/ 2>/dev/null || true
+            cp publish-launcher-extracted/openssl/* driverdir/bin/openssl/ 2>/dev/null || true
+          
             cp publish/driver.json driverdir/driver.json
             cp ./oppo.png ./driverdir/oppo.png
             cp publish/appsettings*.json driverdir/bin/
-          
-            cp publish/driver driverdir/bin/
-            cp publish/driver.dbg driverdir/bin/
-          
+
+            # Copy the Oppo driver binary and debug symbols to the driver directory as `app`
+            cp publish/driver driverdir/bin/app
+            cp publish/driver.dbg driverdir/bin/app.dbg
+
             tar -czvf unfolded-circle-oppo-$tag-remote.tar.gz -C ./driverdir .
-          
+
             # Delete output directory
             rm -r "./driverdir"
           fi
