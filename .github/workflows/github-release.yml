@@ -85,7 +85,7 @@ jobs:
                 --repo henrikwidlund/unfoldedcircle-launcher
             done
           
-            mkdir driverdir && mkdir driverdir/bin && mkdir driverdir/config && mkdir driverdir/data && mkdir driverdir/bin/certs && mkdir driverdir/bin/openssl && mkdir publish-launcher-extracted
+            mkdir driverdir && mkdir driverdir/bin && mkdir driverdir/config && mkdir driverdir/data && mkdir driverdir/bin/certs && mkdir publish-launcher-extracted
           
             # Extract the launcher (driver) tarball
             tar -xzvf ./publish-launcher/*.tar.gz -C ./publish-launcher-extracted
@@ -94,7 +94,6 @@ jobs:
             cp publish-launcher-extracted/driver driverdir/bin/driver
             cp publish-launcher-extracted/driver.dbg driverdir/bin/driver.dbg
             cp publish-launcher-extracted/certs/* driverdir/bin/certs/ 2>/dev/null || true
-            cp publish-launcher-extracted/openssl/* driverdir/bin/openssl/ 2>/dev/null || true
           
             cp publish/driver.json driverdir/driver.json
             cp ./oppo.png ./driverdir/oppo.png
