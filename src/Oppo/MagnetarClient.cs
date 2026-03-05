@@ -20,6 +20,8 @@ public sealed class MagnetarClient(string hostName, string macAddress, ILogger<M
 
     public string HostName => _hostName;
 
+    internal bool IsDisposed { get; private set; }
+
     private PowerState _lastPowerState = PowerState.Off;
 
     public async ValueTask<OppoResult<PowerState>> PowerToggleAsync(CancellationToken cancellationToken = default)
@@ -435,5 +437,6 @@ public sealed class MagnetarClient(string hostName, string macAddress, ILogger<M
     {
         _tcpClient.Dispose();
         _semaphore.Dispose();
+        IsDisposed = true;
     }
 }
