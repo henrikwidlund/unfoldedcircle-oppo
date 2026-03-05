@@ -32,6 +32,8 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
     private const string OkOn = "@OK ON";
     private const string OkOff = "@OK OFF";
 
+    internal bool IsDisposed { get; private set; }
+
     public async ValueTask<OppoResult<PowerState>> PowerToggleAsync(CancellationToken cancellationToken = default)
     {
         var result = await SendCommandWithRetry(
@@ -1302,5 +1304,6 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
     {
         _tcpClient.Dispose();
         _semaphore.Dispose();
+        IsDisposed = true;
     }
 }

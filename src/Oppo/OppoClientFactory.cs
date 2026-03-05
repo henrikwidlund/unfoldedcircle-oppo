@@ -23,7 +23,8 @@ public class OppoClientFactory(ILoggerFactory loggerFactory, ILogger<OppoClientF
         {
             try
             {
-                if (_clients.TryGetValue(clientKeyHash, out client))
+                if (_clients.TryGetValue(clientKeyHash, out client) &&
+                    (client as OppoClient is { IsDisposed: false } || client as MagnetarClient is { IsDisposed: false }))
                     return client;
 
                 if (oppoClientKey.Model == OppoModel.Magnetar)

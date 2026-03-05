@@ -342,7 +342,7 @@ public partial class OppoWebSocketHandler
     private Task SendSensorEventAsync(System.Net.WebSockets.WebSocket socket,
         string wsId,
         OppoClientHolder oppoClientHolder,
-        HashSet<SubscribedEntity> subscribedEntityIds,
+        HashSet<SubscribedEntity> subscribedEntities,
         InputSource? inputSource,
         DiscType? discType,
         HDMIResolution? hdmiResolution,
@@ -354,7 +354,7 @@ public partial class OppoWebSocketHandler
         CancellationToken cancellationToken)
     {
         var clientHashCode = oppoClientHolder.ClientKey.GetHashCode();
-        var tasks = (subscribedEntityIds.Where(static x => x.EntityType == EntityType.Sensor)
+        var tasks = (subscribedEntities.Where(static x => x.EntityType == EntityType.Sensor)
             .Select(subscribedEntity => subscribedEntity switch
             {
                 _ when subscribedEntity.EntityId.EndsWith(nameof(OppoSensorType.InputSource), StringComparison.OrdinalIgnoreCase) => SendInputSourceSensor(socket, wsId, oppoClientHolder, clientHashCode, inputSource, cancellationToken),
