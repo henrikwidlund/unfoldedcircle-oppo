@@ -54,12 +54,12 @@ public partial class OppoWebSocketHandler(
 
         if (await TryGetOppoClientHolders(wsId, commandCancellationToken) is { Count: > 0 } oppoClientHolders)
         {
-            foreach (var oppoClientHolder in oppoClientHolders.Where(x => payload.MsgData.EntityIds.Contains(x.ClientKey.EntityId, StringComparer.OrdinalIgnoreCase)))
+            foreach ((_, OppoClientKey oppoClientKey) in oppoClientHolders.Where(x => payload.MsgData.EntityIds.Contains(x.ClientKey.EntityId, StringComparer.OrdinalIgnoreCase)))
             {
                 await SendMessageAsync(socket,
                     ResponsePayloadHelpers.CreateMediaPlayerStateChangedResponsePayload(
-                        new MediaPlayerStateChangedEventMessageDataAttributes { SourceList = OppoEntitySettings.SourceList[oppoClientHolder.ClientKey.Model] },
-                        oppoClientHolder.ClientKey.HostName
+                        new MediaPlayerStateChangedEventMessageDataAttributes { SourceList = OppoEntitySettings.SourceList[oppoClientKey.Model] },
+                        oppoClientKey.HostName
                     ),
                     wsId,
                     commandCancellationToken);
@@ -82,7 +82,7 @@ public partial class OppoWebSocketHandler(
         return ValueTask.CompletedTask;
     }
 
-    private IEnumerable<AvailableEntity> GetAvailableEntities(
+    private static IEnumerable<AvailableEntity> GetAvailableEntities(
         List<OppoConfigurationItem>? entities,
         GetAvailableEntitiesMsg payload)
     {
