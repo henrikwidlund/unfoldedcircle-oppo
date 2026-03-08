@@ -401,8 +401,8 @@ public partial class OppoWebSocketHandler(
         var driverMetadata = await _configurationService.GetDriverMetadataAsync(cancellationToken);
         var host = payload.MsgData.InputValues![OppoConstants.IpAddressKey];
         var oppoModel = GetOppoModel(payload.MsgData.InputValues!);
-        var entityName = payload.MsgData.InputValues!.GetValueOrNull(OppoConstants.EntityName, $"{driverMetadata.Name["en"]} ({GetOppoModelName(oppoModel)}) - {host}");
-        var macAddress = payload.MsgData.InputValues!.GetValueOrNull(OppoConstants.MacAddressKey, string.Empty);
+        var entityName = payload.MsgData.InputValues!.GetStringValueOrDefault(OppoConstants.EntityName, $"{driverMetadata.Name["en"]} ({GetOppoModelName(oppoModel)}) - {host}");
+        var macAddress = payload.MsgData.InputValues!.GetStringValueOrDefault(OppoConstants.MacAddressKey, string.Empty);
         bool? useMediaEvents = payload.MsgData.InputValues!.TryGetValue(OppoConstants.UseMediaEventsKey, out var useMediaEventsValue)
             ? useMediaEventsValue.Equals(bool.TrueString, StringComparison.OrdinalIgnoreCase)
             : null;
