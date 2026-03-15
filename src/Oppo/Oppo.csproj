@@ -12,12 +12,12 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Meziantou.Analyzer" Version="3.0.20">
+        <PackageReference Include="Meziantou.Analyzer" Version="3.0.23">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
         <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.4" />
-        <PackageReference Include="NetEscapades.EnumGenerators.Interceptors" Version="1.0.0-beta20" />
+        <PackageReference Include="NetEscapades.EnumGenerators.Interceptors" Version="1.0.0-beta21" />
     </ItemGroup>
 
 </Project>

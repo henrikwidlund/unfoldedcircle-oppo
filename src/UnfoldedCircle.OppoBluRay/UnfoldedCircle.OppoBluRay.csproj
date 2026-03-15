@@ -51,15 +51,15 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Meziantou.Analyzer" Version="3.0.20">
+        <PackageReference Include="Meziantou.Analyzer" Version="3.0.23">
           <PrivateAssets>all</PrivateAssets>
           <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="NetEscapades.EnumGenerators.Interceptors" Version="1.0.0-beta20" />
+        <PackageReference Include="NetEscapades.EnumGenerators.Interceptors" Version="1.0.0-beta21" />
         <PackageReference Include="Theodicean.SourceGenerators" Version="0.0.4" PrivateAssets="all" ExcludeAssets="runtime">
             <IncludeAssets>compile; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Theodicean.UnfoldedCircle.Server" Version="0.0.10-pre01" />
+        <PackageReference Include="Theodicean.UnfoldedCircle.Server" Version="0.0.10-pre02" />
     </ItemGroup>
 
 </Project>
