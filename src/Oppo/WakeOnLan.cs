@@ -12,7 +12,6 @@ internal static class WakeOnLan
     {
         var magicPacket = CreateMagicPacket(macAddress);
         using var socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-        socket.NoDelay = true;
         socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.Broadcast, 1);
         var broadcastAddress = ipAddress.ToString();
         var lastDotIndex = broadcastAddress.LastIndexOf('.');
