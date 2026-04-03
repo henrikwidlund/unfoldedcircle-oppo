@@ -6,6 +6,8 @@ namespace Oppo;
 
 internal static class ConnectHelper
 {
+    internal static TcpClient CreateTcpClient() => new() { NoDelay = true, };
+
     public static async ValueTask<bool> IsConnectedAsync(
         TcpClient tcpClient,
         string hostName,

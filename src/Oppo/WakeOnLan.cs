@@ -10,7 +10,7 @@ internal static class WakeOnLan
 
     public static async ValueTask SendWakeOnLanAsync(string macAddress, IPAddress ipAddress)
     {
-        byte[] magicPacket = CreateMagicPacket(macAddress);
+        var magicPacket = CreateMagicPacket(macAddress);
         using var socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
         socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.Broadcast, 1);
         var broadcastAddress = ipAddress.ToString();
@@ -18,11 +18,10 @@ internal static class WakeOnLan
         broadcastAddress = $"{broadcastAddress[..(lastDotIndex + 1)]}255";
         var broadcastIp = IPAddress.Parse(broadcastAddress);
 
-        await Task.WhenAll(
-            socket.SendToAsync(magicPacket, BroadcastIpEndPointPort7),
-            socket.SendToAsync(magicPacket, BroadcastIpEndPointPort9),
-            socket.SendToAsync(magicPacket, new IPEndPoint(broadcastIp, 7)),
-            socket.SendToAsync(magicPacket, new IPEndPoint(broadcastIp, 9)));
+        await socket.SendToAsync(magicPacket, BroadcastIpEndPointPort7);
+        await socket.SendToAsync(magicPacket, BroadcastIpEndPointPort9);
+        await socket.SendToAsync(magicPacket, new IPEndPoint(broadcastIp, 7));
+        await socket.SendToAsync(magicPacket, new IPEndPoint(broadcastIp, 9));
     }
 
     private static byte[] CreateMagicPacket(string macAddress) =>

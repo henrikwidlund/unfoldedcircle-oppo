@@ -23,8 +23,8 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         OppoModel.UDP203 or OppoModel.UDP205 => 23,
         _ => throw new InvalidOperationException($"Model {model} is not supported.")
     };
-    
-    private TcpClient _tcpClient = new();
+
+    private TcpClient _tcpClient = ConnectHelper.CreateTcpClient();
     private readonly SemaphoreSlim _semaphore = new(1, 1);
     private readonly TimeSpan _timeout = TimeSpan.FromSeconds(1);
     private readonly StringBuilder _stringBuilder = new();
@@ -1129,7 +1129,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
                 _logger.TooManyFailedResponses(caller);
 
                 _tcpClient.Close();
-                _tcpClient = new TcpClient();
+                _tcpClient = ConnectHelper.CreateTcpClient();
                 await IsConnectedAsync();
             }
 
