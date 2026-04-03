@@ -173,11 +173,12 @@ public partial class OppoWebSocketHandler
                 _ => State.On
             };
 
+            var isMovie = discTypeResponse.Value.Result is DiscType.BlueRayMovie or DiscType.DVDVideo or DiscType.UltraHDBluRay;
             if (playbackStatusResponse is { Result: PlaybackStatus.Play or PlaybackStatus.Pause } && discTypeResponse.Value && discTypeResponse.Value.Result is not DiscType.UnknownDisc and not DiscType.DataDisc)
             {
                 (repeatMode, shuffle) = GetRepeatMode(await oppoClientHolder.Client.QueryRepeatModeAsync(cancellationToken));
 
-                if (discTypeResponse.Value.Result is DiscType.BlueRayMovie or DiscType.DVDVideo or DiscType.UltraHDBluRay)
+                if (isMovie)
                 {
                     elapsedResponse = oppoClientHolder.ClientKey.UseChapterLengthForMovies
                         ? await oppoClientHolder.Client.QueryChapterElapsedTimeAsync(cancellationToken)
@@ -214,13 +215,20 @@ public partial class OppoWebSocketHandler
                 else
                     coverUri = null;
 
-                audioTypeResponse = await oppoClientHolder.Client.QueryAudioTypeAsync(cancellationToken);
-                subtitleTypeResponse = await oppoClientHolder.Client.QuerySubtitleTypeAsync(cancellationToken);
-                if (oppoClientHolder.ClientKey.Model is OppoModel.UDP203 or OppoModel.UDP205)
+                // if we're at 0, then we're at a title screen, and querying details will produce errors and lock up the player
+                if (elapsedResponse is not { Result: 0 } && remainingResponse is not { Result: 0 })
                 {
-                    threeDStatusResponse = await oppoClientHolder.Client.QueryThreeDStatusAsync(cancellationToken);
-                    hdrStatusResponse = await oppoClientHolder.Client.QueryHDRStatusAsync(cancellationToken);
-                    aspectRatioResponse = await oppoClientHolder.Client.QueryAspectRatioAsync(cancellationToken);
+                    audioTypeResponse = await oppoClientHolder.Client.QueryAudioTypeAsync(cancellationToken);
+                    if (isMovie)
+                    {
+                        subtitleTypeResponse = await oppoClientHolder.Client.QuerySubtitleTypeAsync(cancellationToken);
+                        if (oppoClientHolder.ClientKey.Model is OppoModel.UDP203 or OppoModel.UDP205)
+                        {
+                            threeDStatusResponse = await oppoClientHolder.Client.QueryThreeDStatusAsync(cancellationToken);
+                            hdrStatusResponse = await oppoClientHolder.Client.QueryHDRStatusAsync(cancellationToken);
+                            aspectRatioResponse = await oppoClientHolder.Client.QueryAspectRatioAsync(cancellationToken);
+                        }
+                    }
                 }
             }
         }
