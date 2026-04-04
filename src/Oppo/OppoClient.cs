@@ -1140,13 +1140,18 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
 
         EnsureReaderLoopStarted();
 
-        await foreach (var evt in channel.Reader.ReadAllAsync(cancellationToken))
-            yield return evt;
-
-        lock (_streamingSync)
+        try
         {
-            if (ReferenceEquals(_streamingChannel, channel))
-                _streamingChannel = null;
+            await foreach (var evt in channel.Reader.ReadAllAsync(cancellationToken))
+                yield return evt;
+        }
+        finally
+        {
+            lock (_streamingSync)
+            {
+                if (ReferenceEquals(_streamingChannel, channel))
+                    _streamingChannel = null;
+            }
         }
     }
 
@@ -1189,7 +1194,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
             OppoResultCore result;
             try
             {
-                result = await pendingResponse.Completion.Task.WaitAsync(TimeSpan.FromSeconds(1), cancellationToken);
+                result = await pendingResponse.Completion.Task.WaitAsync(_timeout, cancellationToken);
             }
             catch (TimeoutException)
             {
@@ -1328,7 +1333,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         if (TryParseStreamingEvent(rawFrameBuffer, out var evt))
         {
             if (evt is not null)
-                PublishStreamingEvent(evt);
+                PublishStreamingEvent(evt, rawFrameBuffer);
             return;
         }
 
@@ -1336,7 +1341,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
             _logger.ReceivedWireFrameRaw(Encoding.ASCII.GetString(rawFrameBuffer));
     }
 
-    private void PublishStreamingEvent(OppoStreamingEvent evt)
+    private void PublishStreamingEvent(OppoStreamingEvent evt, in ReadOnlySequence<byte> rawFrameBuffer)
     {
         Channel<OppoStreamingEvent>? channel;
         lock (_streamingSync)
@@ -1345,15 +1350,15 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         if (channel is null)
         {
             if (_logger.IsEnabled(LogLevel.Trace))
-                _logger.DroppedUnsubscribedStreamingFrame(Encoding.ASCII.GetString(evt.RawValue));
+                _logger.DroppedUnsubscribedStreamingFrame(Encoding.ASCII.GetString(rawFrameBuffer));
             return;
         }
 
         if (!channel.Writer.TryWrite(evt) && _logger.IsEnabled(LogLevel.Trace))
-            _logger.DroppedUnsubscribedStreamingFrame(Encoding.ASCII.GetString(evt.RawValue));
+            _logger.DroppedStreamingFrameBecauseChannelRejectedWrite(Encoding.ASCII.GetString(rawFrameBuffer));
     }
 
-    private bool TryGetCommandResponse(in ReadOnlySequence<byte> rawFrameBuffer, out CommandCode? commandCode, out string normalizedResponse)
+    private static bool TryGetCommandResponse(in ReadOnlySequence<byte> rawFrameBuffer, out CommandCode? commandCode, out string normalizedResponse)
     {
         commandCode = null;
         normalizedResponse = string.Empty;
@@ -1488,16 +1493,14 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
                         _ when value.SequenceEqual("1"u8) => PowerState.On,
                         _ when value.SequenceEqual("0"u8) => PowerState.Off,
                         _ => PowerState.Unknown
-                    },
-                    rawFrameBuffer);
+                    });
                 return true;
             }
 
             if (code.SequenceEqual("UPL"u8))
             {
                 evt = new OppoPlaybackStatusStreamingEvent(
-                    ParsePlaybackStatusUpdate(value),
-                    rawFrameBuffer);
+                    ParsePlaybackStatusUpdate(value));
                 return true;
             }
 
@@ -1506,25 +1509,25 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
                 var volumeInfo = value.SequenceEqual("MUT"u8)
                     ? new VolumeInfo(null, true)
                     : new VolumeInfo(TryParseUShort(value, out var parsedVolume) ? parsedVolume : null, false);
-                evt = new OppoVolumeStreamingEvent(volumeInfo, rawFrameBuffer);
+                evt = new OppoVolumeStreamingEvent(volumeInfo);
                 return true;
             }
 
             if (code.SequenceEqual("UDT"u8))
             {
-                evt = new OppoDiscTypeStreamingEvent(ParseDiscTypeUpdate(value), rawFrameBuffer);
+                evt = new OppoDiscTypeStreamingEvent(ParseDiscTypeUpdate(value));
                 return true;
             }
 
             if (code.SequenceEqual("UAT"u8))
             {
-                evt = new OppoAudioTypeStreamingEvent(Encoding.ASCII.GetString(value), rawFrameBuffer);
+                evt = new OppoAudioTypeStreamingEvent(Encoding.ASCII.GetString(value));
                 return true;
             }
 
             if (code.SequenceEqual("UST"u8))
             {
-                evt = new OppoSubtitleTypeStreamingEvent(Encoding.ASCII.GetString(value), rawFrameBuffer);
+                evt = new OppoSubtitleTypeStreamingEvent(Encoding.ASCII.GetString(value));
                 return true;
             }
 
@@ -1547,14 +1550,13 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
                         _ when value.SequenceEqual("6 COAXIAL"u8) => InputSource.Coaxial,
                         _ when value.SequenceEqual("7 USB-AUDIO"u8) => InputSource.USBAudio,
                         _ => LogError(Encoding.ASCII.GetString(value), InputSource.Unknown)
-                    },
-                    rawFrameBuffer);
+                    });
                 return true;
             }
 
             if (code.SequenceEqual("U3D"u8))
             {
-                evt = new OppoThreeDStatusStreamingEvent(value.SequenceEqual("3D"u8), rawFrameBuffer);
+                evt = new OppoThreeDStatusStreamingEvent(value.SequenceEqual("3D"u8));
                 return true;
             }
 
@@ -1576,27 +1578,27 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
                         _ when value.SequenceEqual("21C1"u8) => AspectRatio.A21C1,
                         _ when value.SequenceEqual("21C2"u8) => AspectRatio.A21C2,
                         _ => LogError(Encoding.ASCII.GetString(value), AspectRatio.Unknown)
-                    },
-                    rawFrameBuffer);
+                    });
                 return true;
             }
 
             if (code.SequenceEqual("UTC"u8)
                 && TryParseTimeCodeUpdate(value, out var title, out var chapter, out var timeCodeType, out var seconds))
             {
-                evt = new OppoPlaybackProgressStreamingEvent(title, chapter, timeCodeType, seconds, rawFrameBuffer);
+                evt = new OppoPlaybackProgressStreamingEvent(title, chapter, timeCodeType, seconds);
                 return true;
             }
 
             if (code.SequenceEqual("UVO"u8))
             {
-                evt = new OppoVideoResolutionStreamingEvent(ParseVideoResolutionUpdate(value), rawFrameBuffer);
+                evt = new OppoVideoResolutionStreamingEvent(ParseVideoResolutionUpdate(value));
                 return true;
             }
 
+            string? rawData = null;
             if (_logger.IsEnabled(LogLevel.Debug))
-                _logger.UnknownStreamingStatusCode(Encoding.ASCII.GetString(frameBuffer));
-            evt = new OppoUnknownStreamingEvent(rawFrameBuffer);
+                _logger.UnknownStreamingStatusCode(rawData =Encoding.ASCII.GetString(frameBuffer));
+            evt = new OppoUnknownStreamingEvent(rawData ?? Encoding.ASCII.GetString(frameBuffer));
             return true;
         }
         finally
