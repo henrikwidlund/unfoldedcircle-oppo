@@ -174,7 +174,7 @@ public partial class OppoWebSocketHandler
             };
 
             var isMovie = discTypeResponse.Value.Result is DiscType.BlueRayMovie or DiscType.DVDVideo or DiscType.UltraHDBluRay;
-            if (playbackStatusResponse is { Result: PlaybackStatus.Play or PlaybackStatus.Pause } && discTypeResponse.Value && discTypeResponse.Value.Result is not DiscType.UnknownDisc and not DiscType.DataDisc)
+            if (playbackStatusResponse is { Result: PlaybackStatus.Play or PlaybackStatus.Pause } && discTypeResponse.Value && discTypeResponse.Value.Result is not DiscType.Unknown and not DiscType.UnknownDisc and not DiscType.DataDisc)
             {
                 (repeatMode, shuffle) = GetRepeatMode(await oppoClientHolder.Client.QueryRepeatModeAsync(cancellationToken));
 
