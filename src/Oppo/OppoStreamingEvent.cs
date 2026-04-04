@@ -1,8 +1,8 @@
 namespace Oppo;
 
-public enum OppoStreamingEventType : byte
+public enum OppoStreamingEventType : sbyte
 {
-    Unknown,
+    Unknown = 1,
     PowerState,
     PlaybackStatus,
     Volume,
@@ -16,9 +16,9 @@ public enum OppoStreamingEventType : byte
     PlaybackProgress
 }
 
-public enum OppoTimeCodeType : byte
+public enum OppoTimeCodeType : sbyte
 {
-    Unknown,
+    Unknown = 1,
     TotalElapsed,
     TotalRemaining,
     TitleElapsed,
@@ -27,27 +27,27 @@ public enum OppoTimeCodeType : byte
     ChapterRemaining
 }
 
-public abstract record OppoStreamingEvent(OppoStreamingEventType Type);
+public abstract record OppoStreamingEvent(in OppoStreamingEventType Type);
 
 public sealed record OppoUnknownStreamingEvent(string RawData)
     : OppoStreamingEvent(OppoStreamingEventType.Unknown);
 
-public sealed record OppoPowerStateStreamingEvent(PowerState PowerState)
+public sealed record OppoPowerStateStreamingEvent(in PowerState PowerState)
     : OppoStreamingEvent(OppoStreamingEventType.PowerState);
 
-public sealed record OppoPlaybackStatusStreamingEvent(PlaybackStatus PlaybackStatus)
+public sealed record OppoPlaybackStatusStreamingEvent(in PlaybackStatus PlaybackStatus)
     : OppoStreamingEvent(OppoStreamingEventType.PlaybackStatus);
 
-public sealed record OppoVolumeStreamingEvent(VolumeInfo VolumeInfo)
+public sealed record OppoVolumeStreamingEvent(in VolumeInfo VolumeInfo)
     : OppoStreamingEvent(OppoStreamingEventType.Volume);
 
-public sealed record OppoDiscTypeStreamingEvent(DiscType DiscType)
+public sealed record OppoDiscTypeStreamingEvent(in DiscType DiscType)
     : OppoStreamingEvent(OppoStreamingEventType.DiscType);
 
-public sealed record OppoInputSourceStreamingEvent(InputSource InputSource)
+public sealed record OppoInputSourceStreamingEvent(in InputSource InputSource)
     : OppoStreamingEvent(OppoStreamingEventType.InputSource);
 
-public sealed record OppoVideoResolutionStreamingEvent(HDMIResolution Resolution)
+public sealed record OppoVideoResolutionStreamingEvent(in HDMIResolution Resolution)
     : OppoStreamingEvent(OppoStreamingEventType.HdmiResolution);
 
 public sealed record OppoAudioTypeStreamingEvent(string AudioType)
@@ -56,16 +56,16 @@ public sealed record OppoAudioTypeStreamingEvent(string AudioType)
 public sealed record OppoSubtitleTypeStreamingEvent(string SubtitleType)
     : OppoStreamingEvent(OppoStreamingEventType.SubtitleType);
 
-public sealed record OppoThreeDStatusStreamingEvent(bool Is3D)
+public sealed record OppoThreeDStatusStreamingEvent(in bool Is3D)
     : OppoStreamingEvent(OppoStreamingEventType.ThreeDStatus);
 
-public sealed record OppoAspectRatioStreamingEvent(AspectRatio AspectRatio)
+public sealed record OppoAspectRatioStreamingEvent(in AspectRatio AspectRatio)
     : OppoStreamingEvent(OppoStreamingEventType.AspectRatio);
 
 public sealed record OppoPlaybackProgressStreamingEvent(
-    ushort Title,
-    ushort Chapter,
-    OppoTimeCodeType TimeCodeType,
-    uint Seconds)
+    in ushort Title,
+    in ushort Chapter,
+    in OppoTimeCodeType TimeCodeType,
+    in uint Seconds)
     : OppoStreamingEvent(OppoStreamingEventType.PlaybackProgress);
 

@@ -402,11 +402,8 @@ public sealed class MagnetarClient(string hostName, string macAddress, ILogger<M
 
     public bool SupportsStreamingUpdates => false;
 
-    public async IAsyncEnumerable<OppoStreamingEvent> SubscribeStreamingUpdates([EnumeratorCancellation] CancellationToken cancellationToken = default)
-    {
-        await Task.CompletedTask;
-        yield break;
-    }
+    public IAsyncEnumerable<OppoStreamingEvent> SubscribeStreamingUpdates(CancellationToken cancellationToken = default)
+        => AsyncEnumerable.Empty<OppoStreamingEvent>();
 
     public ValueTask<bool> IsConnectedAsync(TimeSpan? timeout = null)
         => ConnectHelper.IsConnectedAsync(_tcpClient, _hostName, Port, _semaphore, _logger, timeout);

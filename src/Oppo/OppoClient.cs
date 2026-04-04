@@ -683,6 +683,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
                     "@OK 720P60" => HDMIResolution.R720p60,
                     "@OK 1080I50" => HDMIResolution.R1080i50,
                     "@OK 1080I60" => HDMIResolution.R1080i60,
+                    "@OK 1080P23" => HDMIResolution.R1080p23,
                     "@OK 1080P24" => HDMIResolution.R1080p24,
                     "@OK 1080P50" => HDMIResolution.R1080p50,
                     "@OK 1080P60" => HDMIResolution.R1080p60,
@@ -693,6 +694,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
                     "@OK UHD_AUTO" => HDMIResolution.RUltraHDAuto,
                     "@OK AUTO" => HDMIResolution.Auto,
                     "@OK Source Direct" => HDMIResolution.SourceDirect,
+                    "@OK OTHER" => HDMIResolution.Other,
                     _ => LogError(result.Response, HDMIResolution.Unknown)
                 }
             }
@@ -1138,10 +1140,10 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
             _streamingChannel = channel;
         }
 
-        EnsureReaderLoopStarted();
-
         try
         {
+            EnsureReaderLoopStarted();
+
             await foreach (var evt in channel.Reader.ReadAllAsync(cancellationToken))
                 yield return evt;
         }
@@ -1150,7 +1152,10 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
             lock (_streamingSync)
             {
                 if (ReferenceEquals(_streamingChannel, channel))
+                {
                     _streamingChannel = null;
+                    channel.Writer.TryComplete();
+                }
             }
         }
     }
@@ -1162,6 +1167,8 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
     
     private async ValueTask<OppoResultCore> SendCommand(byte[] command, CancellationToken cancellationToken, [CallerMemberName] string? caller = null)
     {
+        PendingCommandResponse? pendingResponse = null;
+
         if (!await _semaphore.WaitAsync(_timeout, cancellationToken))
             return OppoResultCore.FalseResult;
 
@@ -1182,7 +1189,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
 
             EnsureReaderLoopStarted();
 
-            var pendingResponse = new PendingCommandResponse(
+            pendingResponse = new PendingCommandResponse(
                 ExtractCommandCode(command),
                 new TaskCompletionSource<OppoResultCore>(TaskCreationOptions.RunContinuationsAsynchronously));
             if (Interlocked.CompareExchange(ref _pendingCommandResponse, pendingResponse, null) is not null)
@@ -1198,7 +1205,10 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
             }
             catch (TimeoutException)
             {
-                Interlocked.CompareExchange(ref _pendingCommandResponse, null, pendingResponse);
+                if (ReferenceEquals(Interlocked.CompareExchange(ref _pendingCommandResponse, null, pendingResponse), pendingResponse))
+                {
+                    pendingResponse.Completion.TrySetResult(OppoResultCore.FalseResult);
+                }
                 _logger.CommandNotValidAtThisTime(caller);
                 return OppoResultCore.FalseResult;
             }
@@ -1216,8 +1226,22 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
 
             return OppoResultCore.FalseResult;
         }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            if (pendingResponse is not null
+                && ReferenceEquals(Interlocked.CompareExchange(ref _pendingCommandResponse, null, pendingResponse), pendingResponse))
+            {
+                pendingResponse.Completion.TrySetResult(OppoResultCore.FalseResult);
+            }
+            return OppoResultCore.FalseResult;
+        }
         catch (Exception e)
         {
+            if (pendingResponse is not null
+                && ReferenceEquals(Interlocked.CompareExchange(ref _pendingCommandResponse, null, pendingResponse), pendingResponse))
+            {
+                pendingResponse.Completion.TrySetResult(OppoResultCore.FalseResult);
+            }
             _logger.FailedToSendCommandException(e);
             return OppoResultCore.FalseResult;
         }
@@ -1242,15 +1266,50 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         if (_readerTask is { IsCompleted: false })
             return;
 
+        CancellationTokenSource? previousReaderCts;
+        Task? previousReaderTask;
+
         lock (_streamingSync)
         {
             if (_readerTask is { IsCompleted: false })
                 return;
 
-            _readerCts = new CancellationTokenSource();
-            var pipeReader = PipeReader.Create(_tcpClient.GetStream());
-            _readerTask = Task.Run(() => ReaderLoopAsync(pipeReader, _readerCts.Token), _readerCts.Token);
+            var readerCts = new CancellationTokenSource();
+            try
+            {
+                var pipeReader = PipeReader.Create(_tcpClient.GetStream());
+                var readerTask = Task.Run(() => ReaderLoopAsync(pipeReader, readerCts.Token), readerCts.Token);
+
+                previousReaderCts = _readerCts;
+                previousReaderTask = _readerTask;
+                _readerCts = readerCts;
+                _readerTask = readerTask;
+            }
+            catch
+            {
+                readerCts.Cancel();
+                readerCts.Dispose();
+                throw;
+            }
         }
+
+        if (previousReaderCts is null)
+            return;
+
+        if (previousReaderTask is null || previousReaderTask.IsCompleted)
+        {
+            previousReaderCts.Dispose();
+            return;
+        }
+
+        _ = previousReaderTask.ContinueWith(static (_, state) =>
+            {
+                ((CancellationTokenSource)state!).Dispose();
+            },
+            previousReaderCts,
+            CancellationToken.None,
+            TaskContinuationOptions.ExecuteSynchronously,
+            TaskScheduler.Default);
     }
 
     private async Task ReaderLoopAsync(PipeReader pipeReader, CancellationToken cancellationToken)
@@ -1354,8 +1413,21 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
             return;
         }
 
-        if (!channel.Writer.TryWrite(evt) && _logger.IsEnabled(LogLevel.Trace))
-            _logger.DroppedStreamingFrameBecauseChannelRejectedWrite(Encoding.ASCII.GetString(rawFrameBuffer));
+        if (channel.Writer.TryWrite(evt) || !_logger.IsEnabled(LogLevel.Trace))
+            return;
+
+        bool subscriberStillActive;
+        lock (_streamingSync)
+            subscriberStillActive = ReferenceEquals(_streamingChannel, channel);
+
+        var frame = Encoding.ASCII.GetString(rawFrameBuffer);
+        if (!subscriberStillActive || channel.Reader.Completion.IsCompleted)
+        {
+            _logger.DroppedStreamingFrameBecauseChannelCompleted(frame);
+            return;
+        }
+
+        _logger.DroppedStreamingFrameBecauseChannelRejectedWrite(frame);
     }
 
     private static bool TryGetCommandResponse(in ReadOnlySequence<byte> rawFrameBuffer, out CommandCode? commandCode, out string normalizedResponse)
@@ -1435,7 +1507,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         return rentedBuffer.AsSpan(0, length);
     }
 
-    private bool TryCompletePendingCommand(CommandCode? responseCommandCode, string normalizedResponse)
+    private bool TryCompletePendingCommand(in CommandCode? responseCommandCode, string normalizedResponse)
     {
         var pendingResponse = Volatile.Read(ref _pendingCommandResponse);
         if (pendingResponse is null)
@@ -1459,7 +1531,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         return true;
     }
 
-    private static CommandCode? ExtractCommandCode(ReadOnlySpan<byte> command)
+    private static CommandCode? ExtractCommandCode(in ReadOnlySpan<byte> command)
     {
         return command.Length switch
         {
@@ -1608,7 +1680,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         }
     }
 
-    private static uint ParseTimeValue(ReadOnlySpan<byte> value)
+    private static uint ParseTimeValue(in ReadOnlySpan<byte> value)
     {
         var firstSeparator = value.IndexOf((byte)':');
         if (firstSeparator < 0)
@@ -1628,7 +1700,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
             : 0;
     }
 
-    private bool TryParseTimeCodeUpdate(ReadOnlySpan<byte> value, out ushort title, out ushort chapter, out OppoTimeCodeType timeCodeType,
+    private bool TryParseTimeCodeUpdate(in ReadOnlySpan<byte> value, out ushort title, out ushort chapter, out OppoTimeCodeType timeCodeType,
         out uint seconds)
     {
         title = 0;
@@ -1665,7 +1737,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         return seconds > 0 || timeSpan.SequenceEqual("00:00:00"u8);
     }
 
-    private bool TryParseTimeCodeType(byte value, out OppoTimeCodeType timeCodeType)
+    private bool TryParseTimeCodeType(in byte value, out OppoTimeCodeType timeCodeType)
     {
         timeCodeType = value switch
         {
@@ -1681,7 +1753,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         return timeCodeType != OppoTimeCodeType.Unknown;
     }
 
-    private PlaybackStatus ParsePlaybackStatusUpdate(ReadOnlySpan<byte> value)
+    private PlaybackStatus ParsePlaybackStatusUpdate(in ReadOnlySpan<byte> value)
     {
         return value switch
         {
@@ -1713,7 +1785,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         };
     }
 
-    private DiscType ParseDiscTypeUpdate(ReadOnlySpan<byte> value)
+    private DiscType ParseDiscTypeUpdate(in ReadOnlySpan<byte> value)
     {
         return value switch
         {
@@ -1732,7 +1804,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         };
     }
 
-    private HDMIResolution ParseVideoResolutionUpdate(ReadOnlySpan<byte> value)
+    private HDMIResolution ParseVideoResolutionUpdate(in ReadOnlySpan<byte> value)
     {
         var inputPart = value.Contains((byte)' ') ? value[..value.IndexOf((byte)' ')] : value;
         return value switch
@@ -1757,7 +1829,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         };
     }
 
-    private static bool TryParseUShort(ReadOnlySpan<byte> value, out ushort result)
+    private static bool TryParseUShort(in ReadOnlySpan<byte> value, out ushort result)
     {
         result = 0;
         if (value.IsEmpty)
@@ -1781,7 +1853,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         return true;
     }
 
-    private static bool TryParseUInt32(ReadOnlySpan<byte> value, out uint result)
+    private static bool TryParseUInt32(in ReadOnlySpan<byte> value, out uint result)
     {
         result = 0;
         if (value.IsEmpty)
@@ -1849,7 +1921,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
 
     private uint _failedResponseCount;
 
-    private TEnum LogError<TEnum>(string response, TEnum returnValue, [CallerMemberName]string? callerMemberName = null)
+    private TEnum LogError<TEnum>(string response, in TEnum returnValue, [CallerMemberName]string? callerMemberName = null)
         where TEnum : Enum
     {
         Interlocked.Increment(ref _failedResponseCount);
@@ -1888,9 +1960,9 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
                + uint.Parse(time[secondsRange]);
     }
 
-    private readonly record struct CommandCode(uint Value)
+    private readonly record struct CommandCode(in uint Value)
     {
-        public static bool TryParse(ReadOnlySpan<byte> value, out CommandCode commandCode)
+        public static bool TryParse(in ReadOnlySpan<byte> value, out CommandCode commandCode)
         {
             if (value.Length == 3)
             {
@@ -1903,7 +1975,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         }
     }
 
-    private sealed record PendingCommandResponse(CommandCode? Code, TaskCompletionSource<OppoResultCore> Completion);
+    private sealed record PendingCommandResponse(in CommandCode? Code, TaskCompletionSource<OppoResultCore> Completion);
 
     public void Dispose()
     {
