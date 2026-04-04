@@ -1669,7 +1669,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
 
             string? rawData = null;
             if (_logger.IsEnabled(LogLevel.Debug))
-                _logger.UnknownStreamingStatusCode(rawData =Encoding.ASCII.GetString(frameBuffer));
+                _logger.UnknownStreamingStatusCode(rawData = Encoding.ASCII.GetString(frameBuffer));
             evt = new OppoUnknownStreamingEvent(rawData ?? Encoding.ASCII.GetString(frameBuffer));
             return true;
         }
