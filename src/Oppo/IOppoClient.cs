@@ -426,6 +426,16 @@ public interface IOppoClient : IDisposable
     ValueTask<OppoResult<VerboseMode>> SetVerboseMode(VerboseMode verboseMode, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// <see langword="true"/> when this client supports unsolicited streaming updates.
+    /// </summary>
+    bool SupportsStreamingUpdates { get; }
+
+    /// <summary>
+    /// Subscribe to streaming updates emitted by the player.
+    /// </summary>
+    IAsyncEnumerable<OppoStreamingEvent> SubscribeStreamingUpdates(CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Check if the client is connected.
     /// </summary>
     ValueTask<bool> IsConnectedAsync(TimeSpan? timeout = null);

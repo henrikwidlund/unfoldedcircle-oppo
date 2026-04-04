@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Sockets;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 using Microsoft.Extensions.Logging;
@@ -398,6 +399,14 @@ public sealed class MagnetarClient(string hostName, string macAddress, ILogger<M
         => ValueTask.FromResult(new OppoResult<string> { Success = false });
     public ValueTask<OppoResult<VerboseMode>> SetVerboseMode(VerboseMode verboseMode, CancellationToken cancellationToken = default)
         => ValueTask.FromResult(new OppoResult<VerboseMode> { Success = false });
+
+    public bool SupportsStreamingUpdates => false;
+
+    public async IAsyncEnumerable<OppoStreamingEvent> SubscribeStreamingUpdates([EnumeratorCancellation] CancellationToken cancellationToken = default)
+    {
+        await Task.CompletedTask;
+        yield break;
+    }
 
     public ValueTask<bool> IsConnectedAsync(TimeSpan? timeout = null)
         => ConnectHelper.IsConnectedAsync(_tcpClient, _hostName, Port, _semaphore, _logger, timeout);

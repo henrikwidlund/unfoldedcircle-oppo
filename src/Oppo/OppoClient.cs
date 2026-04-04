@@ -4,6 +4,7 @@ using System.IO.Pipelines;
 using System.Net.Sockets;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Threading.Channels;
 
 using Microsoft.Extensions.Logging;
 
@@ -27,10 +28,15 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
     private TcpClient _tcpClient = ConnectHelper.CreateTcpClient();
     private readonly SemaphoreSlim _semaphore = new(1, 1);
     private readonly TimeSpan _timeout = TimeSpan.FromSeconds(1);
-    private readonly StringBuilder _stringBuilder = new();
-    
+
     private const string OkOn = "@OK ON";
     private const string OkOff = "@OK OFF";
+
+    private readonly Lock _streamingSync = new();
+    private CancellationTokenSource? _readerCts;
+    private Task? _readerTask;
+    private PendingCommandResponse? _pendingCommandResponse;
+    private Channel<OppoStreamingEvent>? _streamingChannel;
 
     internal bool IsDisposed { get; private set; }
 
@@ -648,7 +654,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
                     "@OK NO DISC" => PlaybackStatus.NoDisc,
                     "@OK LOADING" => PlaybackStatus.Loading,
                     "@OK OPEN" => PlaybackStatus.Open,
-                    "OK CLOSE" => PlaybackStatus.Close,
+                    "OK CLOSE" or "@OK CLOSE" => PlaybackStatus.Close,
                     "@OK UNKNOW" => PlaybackStatus.Unknown,
                     _ => LogError(result.Response, PlaybackStatus.Unknown)
                 }
@@ -742,7 +748,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
                         
                     // Pre 20X models
                     "@OK HDCD" => DiscType.HDCD,
-                    _ => LogError(result.Response, DiscType.UnknownDisc)
+                    _ => LogError(result.Response, DiscType.Unknown)
                 }
             }
         };
@@ -941,7 +947,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
             _ => throw new ArgumentOutOfRangeException(nameof(inputSource), inputSource, null)
         };
     
-        var command = Encoding.ASCII.GetBytes(_is20XModel ? $"#SIS {commandDigit}\r" : $"REMOTE SVL {commandDigit}");
+        var command = Encoding.ASCII.GetBytes(_is20XModel ? $"#SIS {commandDigit}\r" : $"REMOTE SIS {commandDigit}");
         var result = await SendCommandWithRetry(command, cancellationToken);
     
         return result.Success switch
@@ -1109,6 +1115,41 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         };
     }
 
+    public bool SupportsStreamingUpdates => true;
+
+    public async IAsyncEnumerable<OppoStreamingEvent> SubscribeStreamingUpdates([EnumeratorCancellation] CancellationToken cancellationToken = default)
+    {
+        Channel<OppoStreamingEvent> channel;
+        lock (_streamingSync)
+        {
+            if (_streamingChannel is not null)
+            {
+                _logger.ReplacingStreamingSubscriber();
+                _streamingChannel.Writer.TryComplete();
+            }
+
+            channel = Channel.CreateBounded<OppoStreamingEvent>(new BoundedChannelOptions(128)
+            {
+                SingleReader = true,
+                SingleWriter = true,
+                FullMode = BoundedChannelFullMode.DropOldest,
+                AllowSynchronousContinuations = false
+            });
+            _streamingChannel = channel;
+        }
+
+        EnsureReaderLoopStarted();
+
+        await foreach (var evt in channel.Reader.ReadAllAsync(cancellationToken))
+            yield return evt;
+
+        lock (_streamingSync)
+        {
+            if (ReferenceEquals(_streamingChannel, channel))
+                _streamingChannel = null;
+        }
+    }
+
     public ValueTask<bool> IsConnectedAsync(TimeSpan? timeout = null)
         => ConnectHelper.IsConnectedAsync(_tcpClient, _hostName, _port, _semaphore, _logger, timeout);
 
@@ -1129,31 +1170,46 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
                 _logger.TooManyFailedResponses(caller);
 
                 _tcpClient.Close();
+                StopReaderLoop();
                 _tcpClient = ConnectHelper.CreateTcpClient();
                 await IsConnectedAsync();
             }
 
+            EnsureReaderLoopStarted();
+
+            var pendingResponse = new PendingCommandResponse(
+                ExtractCommandCode(command),
+                new TaskCompletionSource<OppoResultCore>(TaskCreationOptions.RunContinuationsAsynchronously));
+            if (Interlocked.CompareExchange(ref _pendingCommandResponse, pendingResponse, null) is not null)
+                return OppoResultCore.FalseResult;
+
             var networkStream = _tcpClient.GetStream();
             await networkStream.WriteAsync(command, cancellationToken);
 
-            var response = await ReadUntilCarriageReturnAsync(networkStream, cancellationToken);
-
-            _logger.ReceivedResponse(response);
-
-            if (response is { Length: >= 3 } && response.AsSpan()[..3] is "@OK")
-                return OppoResultCore.SuccessResult(response);
-
-            if (response is { Length: 0 })
+            OppoResultCore result;
+            try
             {
+                result = await pendingResponse.Completion.Task.WaitAsync(TimeSpan.FromSeconds(1), cancellationToken);
+            }
+            catch (TimeoutException)
+            {
+                Interlocked.CompareExchange(ref _pendingCommandResponse, null, pendingResponse);
                 _logger.CommandNotValidAtThisTime(caller);
                 return OppoResultCore.FalseResult;
             }
 
-            _logger.FailedToSendCommand(caller, response);
+            if (result.Success)
+                return result;
 
-            return response.StartsWith("@ER", StringComparison.Ordinal)
-                ? OppoResultCore.FalseResult
-                : OppoResultCore.InvalidVerboseLevelResult;
+            if (result.Response is { Length: > 0 } response)
+            {
+                _logger.FailedToSendCommand(caller, response);
+                return response.StartsWith("@ER", StringComparison.Ordinal)
+                    ? OppoResultCore.FalseResult
+                    : OppoResultCore.InvalidVerboseLevelResult;
+            }
+
+            return OppoResultCore.FalseResult;
         }
         catch (Exception e)
         {
@@ -1176,87 +1232,617 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         return !verboseMode.Success ? OppoResultCore.FalseResult : await SendCommand(command, cancellationToken, caller);
     }
 
-    private async ValueTask<string> ReadUntilCarriageReturnAsync(NetworkStream networkStream, CancellationToken cancellationToken)
+    private void EnsureReaderLoopStarted()
     {
-        _stringBuilder.Clear();
-        var pipeReader = PipeReader.Create(networkStream);
-        var charBuffer = ArrayPool<char>.Shared.Rent(1024);
-        var firstWrite = true;
-        using var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(3));
+        if (_readerTask is { IsCompleted: false })
+            return;
+
+        lock (_streamingSync)
+        {
+            if (_readerTask is { IsCompleted: false })
+                return;
+
+            _readerCts = new CancellationTokenSource();
+            var pipeReader = PipeReader.Create(_tcpClient.GetStream());
+            _readerTask = Task.Run(() => ReaderLoopAsync(pipeReader, _readerCts.Token), _readerCts.Token);
+        }
+    }
+
+    private async Task ReaderLoopAsync(PipeReader pipeReader, CancellationToken cancellationToken)
+    {
+        var completedByPeer = false;
+        var canceled = false;
+        var failed = false;
 
         try
         {
-            while (true)
+            while (!cancellationToken.IsCancellationRequested)
             {
-                var result = await pipeReader.ReadAsync(cancellationTokenSource.Token);
-                var buffer = result.Buffer;
+                var readResult = await pipeReader.ReadAsync(cancellationToken);
+                var buffer = readResult.Buffer;
 
-                do
+                while (true)
                 {
-                    var position = buffer.PositionOf((byte)0x0d); // ASCII 0x0d (carriage return)
+                    var position = buffer.PositionOf((byte)0x0d);
+                    if (position is null)
+                        break;
 
-                    if (position != null)
-                    {
-                        var slice = buffer.Slice(0, position.Value);
-                        if (slice.IsSingleSegment)
-                        {
-                            WriteSpan(slice.FirstSpan, charBuffer, ref firstWrite);
-                        }
-                        else
-                        {
-                            foreach (var segment in slice)
-                            {
-                                WriteSpan(segment.Span, charBuffer, ref firstWrite);
-                            }
-                        }
+                    var frameBuffer = buffer.Slice(0, position.Value);
+                    HandleIncomingFrame(frameBuffer);
 
-                        pipeReader.AdvanceTo(slice.End);
-                        return _stringBuilder.ToString();
-                    }
+                    buffer = buffer.Slice(buffer.GetPosition(1, position.Value));
+                }
 
-                    foreach (var segment in buffer)
-                    {
-                        WriteSpan(segment.Span, charBuffer, ref firstWrite);
-                    }
-                    pipeReader.AdvanceTo(buffer.End);
-                } while (!result.IsCompleted && !cancellationToken.IsCancellationRequested);
+                pipeReader.AdvanceTo(buffer.Start, buffer.End);
 
-                if (result.IsCompleted || cancellationToken.IsCancellationRequested)
+                if (readResult.IsCompleted)
+                {
+                    completedByPeer = true;
                     break;
+                }
             }
+        }
+        catch (OperationCanceledException)
+        {
+            canceled = true;
+        }
+        catch (Exception e)
+        {
+            failed = true;
+            _logger.FailedToSendCommandException(e);
         }
         finally
         {
-            ArrayPool<char>.Shared.Return(charBuffer);
-        }
+            var pendingCommand = Interlocked.Exchange(ref _pendingCommandResponse, null);
+            if (pendingCommand is not null)
+            {
+                if (completedByPeer)
+                {
+                    _logger.ReaderLoopCompletedWithPendingCommand();
+                }
+                else if (canceled)
+                {
+                    _logger.ReaderLoopCanceledWithPendingCommand();
+                }
+                else if (failed)
+                {
+                    _logger.ReaderLoopFailedWithPendingCommand();
+                }
 
-        return _stringBuilder.ToString();
+                pendingCommand.Completion.TrySetResult(OppoResultCore.FalseResult);
+            }
+
+            await pipeReader.CompleteAsync();
+        }
     }
 
-    private void WriteSpan(in ReadOnlySpan<byte> span, char[] charBuffer, ref bool isFirstWrite)
+    private void HandleIncomingFrame(in ReadOnlySequence<byte> rawFrameBuffer)
     {
-        if (isFirstWrite)
+        if (TryGetCommandResponse(rawFrameBuffer, out var responseCommandCode, out var normalizedResponse)
+            && TryCompletePendingCommand(responseCommandCode, normalizedResponse))
+            return;
+
+        if (!_logger.IsEnabled(LogLevel.Trace) && !HasStreamingSubscriber())
+            return;
+
+        if (TryParseStreamingEvent(rawFrameBuffer, out var evt))
         {
-            // Models prior to UDP-20X doesn't send back @OK or @ER, rather it's @(COMMAND_CODE) followed by OK|ER and then the response
-            if (!_is20XModel && (!span.StartsWith("@OK "u8) && !span.StartsWith("@ER "u8)))
+            if (evt is not null)
+                PublishStreamingEvent(evt);
+            return;
+        }
+
+        if (_logger.IsEnabled(LogLevel.Trace))
+            _logger.ReceivedWireFrameRaw(Encoding.ASCII.GetString(rawFrameBuffer));
+    }
+
+    private void PublishStreamingEvent(OppoStreamingEvent evt)
+    {
+        Channel<OppoStreamingEvent>? channel;
+        lock (_streamingSync)
+            channel = _streamingChannel;
+
+        if (channel is null)
+        {
+            if (_logger.IsEnabled(LogLevel.Trace))
+                _logger.DroppedUnsubscribedStreamingFrame(Encoding.ASCII.GetString(evt.RawValue));
+            return;
+        }
+
+        if (!channel.Writer.TryWrite(evt) && _logger.IsEnabled(LogLevel.Trace))
+            _logger.DroppedUnsubscribedStreamingFrame(Encoding.ASCII.GetString(evt.RawValue));
+    }
+
+    private bool TryGetCommandResponse(in ReadOnlySequence<byte> rawFrameBuffer, out CommandCode? commandCode, out string normalizedResponse)
+    {
+        commandCode = null;
+        normalizedResponse = string.Empty;
+
+        if (rawFrameBuffer.Length is 0 or > int.MaxValue)
+            return false;
+
+        var frame = GetFrameSpan(rawFrameBuffer, out var rentedBuffer);
+        try
+        {
+            // Non-streaming response
+            if (frame.StartsWith("@OK"u8) || frame.StartsWith("@ER"u8))
             {
-                _stringBuilder.Append('@');
-                int charsDecoded = Encoding.ASCII.GetChars(span[5..], charBuffer);
-                _stringBuilder.Append(charBuffer, 0, charsDecoded);
-            }
-            else
-            {
-                int charsDecoded = Encoding.ASCII.GetChars(span, charBuffer);
-                _stringBuilder.Append(charBuffer, 0, charsDecoded);
+                normalizedResponse = Encoding.ASCII.GetString(frame);
+                return true;
             }
 
-            isFirstWrite = false;
+            // Streaming reply format: @CMD OK ... / @CMD ER ...
+            if (frame.Length > 6 && frame[0] == (byte)'@' && frame[4] == (byte)' ')
+            {
+                commandCode = CommandCode.TryParse(frame.Slice(1, 3), out var parsedCommandCode) ? parsedCommandCode : null;
+                var payload = frame[5..];
+                if (IsCommandResponsePayload(payload))
+                {
+                    normalizedResponse = string.Create(payload.Length + 1, payload, static (target, source) =>
+                    {
+                        target[0] = '@';
+                        for (var i = 0; i < source.Length; i++)
+                            target[i + 1] = (char)source[i];
+                    });
+                    return true;
+                }
+            }
+
+            return false;
         }
-        else
+        finally
         {
-            int charsDecoded = Encoding.ASCII.GetChars(span, charBuffer);
-            _stringBuilder.Append(charBuffer, 0, charsDecoded);
+            if (rentedBuffer is not null)
+                ArrayPool<byte>.Shared.Return(rentedBuffer);
         }
+
+        static bool IsCommandResponsePayload(in ReadOnlySpan<byte> payload)
+        {
+            if (payload.Length < 2)
+                return false;
+
+            var first = payload[0];
+            var second = payload[1];
+            if (!((first == (byte)'O' && second == (byte)'K') || (first == (byte)'E' && second == (byte)'R')))
+                return false;
+
+            return payload.Length == 2 || payload[2] == (byte)' ';
+        }
+    }
+
+    private bool HasStreamingSubscriber()
+    {
+        lock (_streamingSync)
+            return _streamingChannel is not null;
+    }
+
+    private static ReadOnlySpan<byte> GetFrameSpan(in ReadOnlySequence<byte> rawFrameBuffer, out byte[]? rentedBuffer)
+    {
+        if (rawFrameBuffer.IsSingleSegment)
+        {
+            rentedBuffer = null;
+            return rawFrameBuffer.FirstSpan;
+        }
+
+        var length = (int)rawFrameBuffer.Length;
+        rentedBuffer = ArrayPool<byte>.Shared.Rent(length);
+        rawFrameBuffer.CopyTo(rentedBuffer);
+        return rentedBuffer.AsSpan(0, length);
+    }
+
+    private bool TryCompletePendingCommand(CommandCode? responseCommandCode, string normalizedResponse)
+    {
+        var pendingResponse = Volatile.Read(ref _pendingCommandResponse);
+        if (pendingResponse is null)
+            return false;
+
+        if (responseCommandCode is not null
+            && pendingResponse.Code is { } expectedCommandCode
+            && responseCommandCode != expectedCommandCode)
+        {
+            return false;
+        }
+
+        if (!ReferenceEquals(Interlocked.CompareExchange(ref _pendingCommandResponse, null, pendingResponse), pendingResponse))
+            return false;
+
+        _logger.ReceivedResponse(normalizedResponse);
+        var coreResult = normalizedResponse.StartsWith("@OK", StringComparison.Ordinal)
+            ? OppoResultCore.SuccessResult(normalizedResponse)
+            : new OppoResultCore(false, normalizedResponse);
+        pendingResponse.Completion.TrySetResult(coreResult);
+        return true;
+    }
+
+    private static CommandCode? ExtractCommandCode(ReadOnlySpan<byte> command)
+    {
+        return command.Length switch
+        {
+            >= 4 when command[0] == '#' => CommandCode.TryParse(command[1..4], out var hashCommandCode) ? hashCommandCode : null,
+            >= 10 when command.StartsWith("REMOTE "u8) => CommandCode.TryParse(command.Slice(7, 3), out var remoteCommandCode) ? remoteCommandCode : null,
+            _ => null
+        };
+    }
+
+    private bool TryParseStreamingEvent(in ReadOnlySequence<byte> rawFrameBuffer, out OppoStreamingEvent? evt)
+    {
+        evt = null;
+
+        if (rawFrameBuffer.Length is < 6 or > int.MaxValue)
+            return false;
+
+        var frame = GetFrameSpan(rawFrameBuffer, out var rentedBuffer);
+        try
+        {
+            if (frame.Length < 6 || frame[0] != (byte)'@' || frame[4] != (byte)' ')
+                return false;
+
+            var code = frame.Slice(1, 3);
+            var value = frame[5..];
+            var frameBuffer = rawFrameBuffer;
+
+            if (code.SequenceEqual("UPW"u8))
+            {
+                evt = new OppoPowerStateStreamingEvent(value switch
+                    {
+                        _ when value.SequenceEqual("1"u8) => PowerState.On,
+                        _ when value.SequenceEqual("0"u8) => PowerState.Off,
+                        _ => PowerState.Unknown
+                    },
+                    rawFrameBuffer);
+                return true;
+            }
+
+            if (code.SequenceEqual("UPL"u8))
+            {
+                evt = new OppoPlaybackStatusStreamingEvent(
+                    ParsePlaybackStatusUpdate(value),
+                    rawFrameBuffer);
+                return true;
+            }
+
+            if (code.SequenceEqual("UVL"u8))
+            {
+                var volumeInfo = value.SequenceEqual("MUT"u8)
+                    ? new VolumeInfo(null, true)
+                    : new VolumeInfo(TryParseUShort(value, out var parsedVolume) ? parsedVolume : null, false);
+                evt = new OppoVolumeStreamingEvent(volumeInfo, rawFrameBuffer);
+                return true;
+            }
+
+            if (code.SequenceEqual("UDT"u8))
+            {
+                evt = new OppoDiscTypeStreamingEvent(ParseDiscTypeUpdate(value), rawFrameBuffer);
+                return true;
+            }
+
+            if (code.SequenceEqual("UAT"u8))
+            {
+                evt = new OppoAudioTypeStreamingEvent(Encoding.ASCII.GetString(value), rawFrameBuffer);
+                return true;
+            }
+
+            if (code.SequenceEqual("UST"u8))
+            {
+                evt = new OppoSubtitleTypeStreamingEvent(Encoding.ASCII.GetString(value), rawFrameBuffer);
+                return true;
+            }
+
+            if (code.SequenceEqual("UIS"u8))
+            {
+                evt = new OppoInputSourceStreamingEvent(
+                    value switch
+                    {
+                        _ when value.SequenceEqual("0 BD-PLAYER"u8) => InputSource.BluRayPlayer,
+                        _ when value.SequenceEqual("1 HDMI-IN"u8) => InputSource.HDMIIn,
+                        _ when value.SequenceEqual("2 ARC-HDMI-OUT"u8) => InputSource.ARCHDMIOut,
+                        _ when value.SequenceEqual("3 OPTICAL-IN"u8) => InputSource.Optical,
+                        _ when value.SequenceEqual("4 COAXIAL-IN"u8) => InputSource.Coaxial,
+                        _ when value.SequenceEqual("5 USB-AUDIO-IN"u8) => InputSource.USBAudio,
+                        _ when value.SequenceEqual("1 HDMI-FRONT"u8) => InputSource.HDMIFront,
+                        _ when value.SequenceEqual("2 HDMI-BACK"u8) => InputSource.HDMIBack,
+                        _ when value.SequenceEqual("3 ARC-HDMI-OUT1"u8) => InputSource.ARCHDMIOut1,
+                        _ when value.SequenceEqual("4 ARC-HDMI-OUT2"u8) => InputSource.ARCHDMIOut2,
+                        _ when value.SequenceEqual("5 OPTICAL"u8) => InputSource.Optical,
+                        _ when value.SequenceEqual("6 COAXIAL"u8) => InputSource.Coaxial,
+                        _ when value.SequenceEqual("7 USB-AUDIO"u8) => InputSource.USBAudio,
+                        _ => LogError(Encoding.ASCII.GetString(value), InputSource.Unknown)
+                    },
+                    rawFrameBuffer);
+                return true;
+            }
+
+            if (code.SequenceEqual("U3D"u8))
+            {
+                evt = new OppoThreeDStatusStreamingEvent(value.SequenceEqual("3D"u8), rawFrameBuffer);
+                return true;
+            }
+
+            if (code.SequenceEqual("UAR"u8))
+            {
+                evt = new OppoAspectRatioStreamingEvent(
+                    value switch
+                    {
+                        _ when value.SequenceEqual("16WW"u8) => AspectRatio.A16WW,
+                        _ when value.SequenceEqual("16AW"u8) => AspectRatio.A16AW,
+                        _ when value.SequenceEqual("16A4"u8) => AspectRatio.A169A,
+                        _ when value.SequenceEqual("21M0"u8) => AspectRatio.A21M0,
+                        _ when value.SequenceEqual("21M1"u8) => AspectRatio.A21M1,
+                        _ when value.SequenceEqual("21M2"u8) => AspectRatio.A21M2,
+                        _ when value.SequenceEqual("21F0"u8) => AspectRatio.A21F0,
+                        _ when value.SequenceEqual("21F1"u8) => AspectRatio.A21F1,
+                        _ when value.SequenceEqual("21F2"u8) => AspectRatio.A21F2,
+                        _ when value.SequenceEqual("21C0"u8) => AspectRatio.A21C0,
+                        _ when value.SequenceEqual("21C1"u8) => AspectRatio.A21C1,
+                        _ when value.SequenceEqual("21C2"u8) => AspectRatio.A21C2,
+                        _ => LogError(Encoding.ASCII.GetString(value), AspectRatio.Unknown)
+                    },
+                    rawFrameBuffer);
+                return true;
+            }
+
+            if (code.SequenceEqual("UTC"u8)
+                && TryParseTimeCodeUpdate(value, out var title, out var chapter, out var timeCodeType, out var seconds))
+            {
+                evt = new OppoPlaybackProgressStreamingEvent(title, chapter, timeCodeType, seconds, rawFrameBuffer);
+                return true;
+            }
+
+            if (code.SequenceEqual("UVO"u8))
+            {
+                evt = new OppoVideoResolutionStreamingEvent(ParseVideoResolutionUpdate(value), rawFrameBuffer);
+                return true;
+            }
+
+            if (_logger.IsEnabled(LogLevel.Debug))
+                _logger.UnknownStreamingStatusCode(Encoding.ASCII.GetString(frameBuffer));
+            evt = new OppoUnknownStreamingEvent(rawFrameBuffer);
+            return true;
+        }
+        finally
+        {
+            if (rentedBuffer is not null)
+                ArrayPool<byte>.Shared.Return(rentedBuffer);
+        }
+    }
+
+    private static uint ParseTimeValue(ReadOnlySpan<byte> value)
+    {
+        var firstSeparator = value.IndexOf((byte)':');
+        if (firstSeparator < 0)
+            return 0;
+
+        var remaining = value[(firstSeparator + 1)..];
+        var secondSeparatorRelative = remaining.IndexOf((byte)':');
+        if (secondSeparatorRelative < 0)
+            return 0;
+
+        var secondSeparator = firstSeparator + 1 + secondSeparatorRelative;
+
+        return TryParseUInt32(value[..firstSeparator], out var hours)
+               && TryParseUInt32(value[(firstSeparator + 1)..secondSeparator], out var minutes)
+               && TryParseUInt32(value[(secondSeparator + 1)..], out var seconds)
+            ? hours * 3600 + minutes * 60 + seconds
+            : 0;
+    }
+
+    private bool TryParseTimeCodeUpdate(ReadOnlySpan<byte> value, out ushort title, out ushort chapter, out OppoTimeCodeType timeCodeType,
+        out uint seconds)
+    {
+        title = 0;
+        chapter = 0;
+        timeCodeType = OppoTimeCodeType.Unknown;
+        seconds = 0;
+
+        var firstSpace = value.IndexOf((byte)' ');
+        if (firstSpace <= 0)
+            return false;
+
+        var secondPart = value[(firstSpace + 1)..];
+        var secondSpace = secondPart.IndexOf((byte)' ');
+        if (secondSpace <= 0)
+            return false;
+
+        var thirdPart = secondPart[(secondSpace + 1)..];
+        var thirdSpace = thirdPart.IndexOf((byte)' ');
+        if (thirdSpace != 1)
+            return false;
+
+        var titleSpan = value[..firstSpace];
+        var chapterSpan = secondPart[..secondSpace];
+        var typeSpan = thirdPart[..1];
+        var timeSpan = thirdPart[(thirdSpace + 1)..];
+
+        if (!TryParseUShort(titleSpan, out title) || !TryParseUShort(chapterSpan, out chapter))
+            return false;
+
+        if (!TryParseTimeCodeType(typeSpan[0], out timeCodeType))
+            return false;
+
+        seconds = ParseTimeValue(timeSpan);
+        return seconds > 0 || timeSpan.SequenceEqual("00:00:00"u8);
+    }
+
+    private bool TryParseTimeCodeType(byte value, out OppoTimeCodeType timeCodeType)
+    {
+        timeCodeType = value switch
+        {
+            (byte)'E' => OppoTimeCodeType.TotalElapsed,
+            (byte)'R' => OppoTimeCodeType.TotalRemaining,
+            (byte)'T' => OppoTimeCodeType.TitleElapsed,
+            (byte)'X' => OppoTimeCodeType.TitleRemaining,
+            (byte)'C' => OppoTimeCodeType.ChapterElapsed,
+            (byte)'K' => OppoTimeCodeType.ChapterRemaining,
+            _ => LogError(Encoding.ASCII.GetString([value]), OppoTimeCodeType.Unknown)
+        };
+
+        return timeCodeType != OppoTimeCodeType.Unknown;
+    }
+
+    private PlaybackStatus ParsePlaybackStatusUpdate(ReadOnlySpan<byte> value)
+    {
+        return value switch
+        {
+            _ when value.SequenceEqual("DISC"u8) => PlaybackStatus.NoDisc,
+            _ when value.SequenceEqual("LOAD"u8) => PlaybackStatus.Loading,
+            _ when value.SequenceEqual("OPEN"u8) => PlaybackStatus.Open,
+            _ when value.SequenceEqual("CLOS"u8) => PlaybackStatus.Close,
+            _ when value.SequenceEqual("PLAY"u8) => PlaybackStatus.Play,
+            _ when value.SequenceEqual("PAUS"u8) => PlaybackStatus.Pause,
+            _ when value.SequenceEqual("STOP"u8) => PlaybackStatus.Stop,
+            _ when value.SequenceEqual("STPF"u8) || value.SequenceEqual("STPR"u8) => PlaybackStatus.Step,
+            _ when value.Length == 4
+                   && value.StartsWith("FFW"u8)
+                   && value[3] is >= (byte)'1' and <= (byte)'5' => PlaybackStatus.FastForward,
+            _ when value.Length == 4
+                   && (value.StartsWith("FRV"u8) || value.StartsWith("FRE"u8))
+                   && value[3] is >= (byte)'1' and <= (byte)'5' => PlaybackStatus.FastRewind,
+            _ when value.Length == 4
+                   && value.StartsWith("SFW"u8)
+                   && value[3] is >= (byte)'1' and <= (byte)'5' => PlaybackStatus.SlowForward,
+            _ when value.Length == 4
+                   && (value.StartsWith("SRV"u8) || value.StartsWith("SRE"u8))
+                   && value[3] is >= (byte)'1' and <= (byte)'5' => PlaybackStatus.SlowRewind,
+            _ when value.SequenceEqual("HOME"u8) => PlaybackStatus.HomeMenu,
+            _ when value.SequenceEqual("MCTR"u8) => PlaybackStatus.MediaCenter,
+            _ when value.SequenceEqual("SCSV"u8) => PlaybackStatus.ScreenSaver,
+            _ when value.SequenceEqual("MENU"u8) => PlaybackStatus.DiscMenu,
+            _ => LogError(Encoding.ASCII.GetString(value), PlaybackStatus.Unknown)
+        };
+    }
+
+    private DiscType ParseDiscTypeUpdate(ReadOnlySpan<byte> value)
+    {
+        return value switch
+        {
+            _ when value.SequenceEqual("UHBD"u8) => DiscType.UltraHDBluRay,
+            _ when value.SequenceEqual("BDMV"u8) => DiscType.BlueRayMovie,
+            _ when value.SequenceEqual("DVDV"u8) => DiscType.DVDVideo,
+            _ when value.SequenceEqual("DVDA"u8) => DiscType.DVDAudio,
+            _ when value.SequenceEqual("SACD"u8) => DiscType.SACD,
+            _ when value.SequenceEqual("CDDA"u8) => DiscType.CDDiscAudio,
+            _ when value.SequenceEqual("DATA"u8) => DiscType.DataDisc,
+            _ when value.SequenceEqual("UNKW"u8) => DiscType.UnknownDisc,
+            _ when value.SequenceEqual("HDCD"u8) => DiscType.HDCD,
+            _ when value.SequenceEqual("VCD2"u8) => DiscType.VCD2,
+            _ when value.SequenceEqual("SVCD"u8) => DiscType.SVCD,
+            _ => LogError(Encoding.ASCII.GetString(value), DiscType.Unknown)
+        };
+    }
+
+    private HDMIResolution ParseVideoResolutionUpdate(ReadOnlySpan<byte> value)
+    {
+        var inputPart = value.Contains((byte)' ') ? value[..value.IndexOf((byte)' ')] : value;
+        return value switch
+        {
+            _ when inputPart.SequenceEqual("_480I60"u8) => HDMIResolution.R480i,
+            _ when inputPart.SequenceEqual("_480P60"u8) => HDMIResolution.R480p,
+            _ when inputPart.SequenceEqual("_576I50"u8) => HDMIResolution.R576i,
+            _ when inputPart.SequenceEqual("_576P50"u8) => HDMIResolution.R576p,
+            _ when inputPart.SequenceEqual("_720P50"u8) => HDMIResolution.R720p50,
+            _ when inputPart.SequenceEqual("_720P60"u8) => HDMIResolution.R720p60,
+            _ when inputPart.SequenceEqual("1080I50"u8) => HDMIResolution.R1080i50,
+            _ when inputPart.SequenceEqual("1080I60"u8) => HDMIResolution.R1080i60,
+            _ when inputPart.SequenceEqual("1080P23"u8) => HDMIResolution.R1080p23,
+            _ when inputPart.SequenceEqual("1080P24"u8) => HDMIResolution.R1080p24,
+            _ when inputPart.SequenceEqual("1080P50"u8) => HDMIResolution.R1080p50,
+            _ when inputPart.SequenceEqual("1080P60"u8) => HDMIResolution.R1080p60,
+            _ when inputPart.SequenceEqual("_UHD24_"u8) => HDMIResolution.RUltraHDp24,
+            _ when inputPart.SequenceEqual("_UHD50_"u8) => HDMIResolution.RUltraHDp50,
+            _ when inputPart.SequenceEqual("_UHD60_"u8) => HDMIResolution.RUltraHDp60,
+            _ when inputPart.SequenceEqual("_OTHER_"u8) => HDMIResolution.Other,
+            _ => LogError(Encoding.ASCII.GetString(value), HDMIResolution.Unknown)
+        };
+    }
+
+    private static bool TryParseUShort(ReadOnlySpan<byte> value, out ushort result)
+    {
+        result = 0;
+        if (value.IsEmpty)
+            return false;
+
+        foreach (var digit in value)
+        {
+            if (digit is < (byte)'0' or > (byte)'9')
+                return false;
+
+            if (result > ushort.MaxValue / 10)
+                return false;
+
+            var next = (result * 10) + (digit - (byte)'0');
+            if (next > ushort.MaxValue)
+                return false;
+
+            result = (ushort)next;
+        }
+
+        return true;
+    }
+
+    private static bool TryParseUInt32(ReadOnlySpan<byte> value, out uint result)
+    {
+        result = 0;
+        if (value.IsEmpty)
+            return false;
+
+        foreach (var digit in value)
+        {
+            if (digit is < (byte)'0' or > (byte)'9')
+                return false;
+
+            if (result > uint.MaxValue / 10)
+                return false;
+
+            var digitValue = (uint)(digit - (byte)'0');
+            var multiplied = result * 10;
+            if (multiplied > uint.MaxValue - digitValue)
+                return false;
+
+            result = multiplied + digitValue;
+        }
+
+        return true;
+    }
+
+    private void StopReaderLoop()
+    {
+        CancellationTokenSource? readerCts;
+        Task? readerTask;
+
+        lock (_streamingSync)
+        {
+            readerCts = _readerCts;
+            readerTask = _readerTask;
+            _readerCts = null;
+            _readerTask = null;
+        }
+
+        if (readerCts is null)
+            return;
+
+        try
+        {
+            readerCts.Cancel();
+        }
+        catch (ObjectDisposedException)
+        {
+            return;
+        }
+
+        if (readerTask is null || readerTask.IsCompleted)
+        {
+            readerCts.Dispose();
+            return;
+        }
+
+        _ = readerTask.ContinueWith(static (_, state) =>
+            {
+                ((CancellationTokenSource)state!).Dispose();
+            },
+            readerCts,
+            CancellationToken.None,
+            TaskContinuationOptions.ExecuteSynchronously,
+            TaskScheduler.Default);
     }
 
     private uint _failedResponseCount;
@@ -1300,8 +1886,30 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
                + uint.Parse(time[secondsRange]);
     }
 
+    private readonly record struct CommandCode(uint Value)
+    {
+        public static bool TryParse(ReadOnlySpan<byte> value, out CommandCode commandCode)
+        {
+            if (value.Length == 3)
+            {
+                commandCode = new CommandCode(((uint)value[0] << 16) | ((uint)value[1] << 8) | value[2]);
+                return true;
+            }
+
+            commandCode = default;
+            return false;
+        }
+    }
+
+    private sealed record PendingCommandResponse(CommandCode? Code, TaskCompletionSource<OppoResultCore> Completion);
+
     public void Dispose()
     {
+        StopReaderLoop();
+
+        lock (_streamingSync)
+            _streamingChannel?.Writer.TryComplete();
+
         _tcpClient.Dispose();
         _semaphore.Dispose();
         IsDisposed = true;
