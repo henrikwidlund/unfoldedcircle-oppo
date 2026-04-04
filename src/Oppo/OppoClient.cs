@@ -1184,8 +1184,9 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
                 _tcpClient.Close();
                 StopReaderLoop();
                 _tcpClient = ConnectHelper.CreateTcpClient();
-                await IsConnectedAsync();
             }
+
+            await IsConnectedAsync();
 
             EnsureReaderLoopStarted();
 
