@@ -7,6 +7,7 @@ internal static class OppoConstants
     internal const string OppoModelKey = "oppo_model";
     internal const string EntityName = "entity_name";
     internal const string UseMediaEventsKey = "use_media_events";
+    internal const string UseStreamingEventsKey = "use_streaming_events";
     internal const string ChapterLengthValue = "chapter_length";
     internal const string MovieLengthValue = "movie_length";
     internal const string ChapterOrMovieLengthKey = "chapter_or_movie_length";

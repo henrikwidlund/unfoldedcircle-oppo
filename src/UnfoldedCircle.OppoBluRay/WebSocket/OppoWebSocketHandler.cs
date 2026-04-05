@@ -294,7 +294,19 @@ public partial class OppoWebSocketHandler(
                             Value = configurationItem?.UseMediaEvents ?? true
                         }
                     },
-                    Label = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { ["en"] = "Use Media Events? This enables playback information at the expense of updates every second" }
+                    Label = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { ["en"] = "Use Media Events?" }
+                },
+                new Setting
+                {
+                    Id = OppoConstants.UseStreamingEventsKey,
+                    Field = new SettingTypeCheckbox
+                    {
+                        Checkbox = new SettingTypeCheckboxInner
+                        {
+                            Value = configurationItem?.UseStreamingEvents ?? true
+                        }
+                    },
+                    Label = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { ["en"] = "Use Streaming Events?" }
                 },
                 new Setting
                 {
@@ -347,6 +359,8 @@ public partial class OppoWebSocketHandler(
         var oppoModel = GetOppoModel(payload.MsgData.InputValues!);
         var useMediaEvents = payload.MsgData.InputValues!.TryGetValue(OppoConstants.UseMediaEventsKey, out var useMediaEventsValue) &&
                                useMediaEventsValue.Equals(bool.TrueString, StringComparison.OrdinalIgnoreCase);
+        var useStreamingEvents = payload.MsgData.InputValues!.TryGetValue(OppoConstants.UseStreamingEventsKey, out var useStreamingEventsValue) &&
+                                 useStreamingEventsValue.Equals(bool.TrueString, StringComparison.OrdinalIgnoreCase);
 
         var useChapterLengthForMovies = payload.MsgData.InputValues!.TryGetValue(OppoConstants.ChapterOrMovieLengthKey, out var chapterOrMovieLengthValue) &&
                                         chapterOrMovieLengthValue.Equals(OppoConstants.ChapterLengthValue, StringComparison.OrdinalIgnoreCase);
@@ -355,6 +369,7 @@ public partial class OppoWebSocketHandler(
         {
             Model = oppoModel,
             UseMediaEvents = useMediaEvents,
+            UseStreamingEvents = useStreamingEvents,
             UseChapterLengthForMovies = useChapterLengthForMovies
         };
         var configuration = await _configurationService.GetConfigurationAsync(cancellationToken);
@@ -406,6 +421,9 @@ public partial class OppoWebSocketHandler(
         bool? useMediaEvents = payload.MsgData.InputValues!.TryGetValue(OppoConstants.UseMediaEventsKey, out var useMediaEventsValue)
             ? useMediaEventsValue.Equals(bool.TrueString, StringComparison.OrdinalIgnoreCase)
             : null;
+        bool? useStreamingEvents = payload.MsgData.InputValues!.TryGetValue(OppoConstants.UseStreamingEventsKey, out var useStreamingEventsValue)
+            ? useStreamingEventsValue.Equals(bool.TrueString, StringComparison.OrdinalIgnoreCase)
+            : null;
 
         bool? useChapterLengthForMovies = payload.MsgData.InputValues!.TryGetValue(OppoConstants.ChapterOrMovieLengthKey, out var chapterOrMovieLengthValue)
                                         ? chapterOrMovieLengthValue.Equals(OppoConstants.ChapterLengthValue, StringComparison.OrdinalIgnoreCase)
@@ -423,6 +441,7 @@ public partial class OppoWebSocketHandler(
                 EntityName = entityName,
                 EntityId = host,
                 UseMediaEvents = useMediaEvents ?? false,
+                UseStreamingEvents = useStreamingEvents ?? false,
                 UseChapterLengthForMovies = useChapterLengthForMovies ?? false,
                 MacAddress = macAddress
             };
