@@ -99,10 +99,12 @@ public partial class OppoWebSocketHandler
     {
         if (streamingClientContexts.TryGetValue(subscribedEntity.Key, out var existingContext))
         {
-            existingContext.SetSubscribedEntities(subscribedEntity.Value);
             if (IsStreamingContextActive(existingContext))
             {
-                if (ShouldPollHdr(existingContext))
+                var hasNewSubscriptions = existingContext.SetSubscribedEntities(subscribedEntity.Value);
+                if (hasNewSubscriptions)
+                    await PublishCurrentSnapshotAsync(socket, wsId, existingContext, cancellationToken);
+                else if (ShouldPollHdr(existingContext))
                     await RefreshHdrIfNeededAsync(socket, wsId, existingContext, cancellationToken);
 
                 return true;
@@ -811,6 +813,27 @@ public partial class OppoWebSocketHandler
                && ShouldQueryHdrStatus(context);
     }
 
+    private async Task PublishCurrentSnapshotAsync(System.Net.WebSockets.WebSocket socket,
+        string wsId,
+        StreamingClientContext context,
+        CancellationToken cancellationToken)
+    {
+        await context.Gate.WaitAsync(cancellationToken);
+        try
+        {
+            await PublishSnapshotAsync(socket,
+                wsId,
+                context.ClientHolder,
+                context.GetSubscribedEntities(),
+                context.Snapshot,
+                cancellationToken);
+        }
+        finally
+        {
+            context.Gate.Release();
+        }
+    }
+
     private async Task RefreshHdrIfNeededAsync(System.Net.WebSockets.WebSocket socket,
         string wsId,
         StreamingClientContext context,
@@ -1268,8 +1291,28 @@ public partial class OppoWebSocketHandler
         public Task? StreamingTask { get; private set; }
         public DateTimeOffset LastHdrRefreshUtc { get; set; } = DateTimeOffset.MinValue;
 
-        public void SetSubscribedEntities(HashSet<SubscribedEntity> subscribedEntities) =>
+        public bool SetSubscribedEntities(HashSet<SubscribedEntity> subscribedEntities)
+        {
+            var previous = _subscribedEntities;
             _subscribedEntities = subscribedEntities.ToArray();
+
+            // Fast path: more entries than before means new subscriptions
+            if (_subscribedEntities.Length > previous.Length)
+                return true;
+
+            // Check whether any entity in the new set was absent from the previous set
+            foreach (var entity in subscribedEntities)
+            {
+                var found = false;
+                foreach (var prev in previous)
+                {
+                    if (prev == entity) { found = true; break; }
+                }
+                if (!found) return true;
+            }
+
+            return false;
+        }
 
         public SubscribedEntity[] GetSubscribedEntities() =>
             _subscribedEntities;
