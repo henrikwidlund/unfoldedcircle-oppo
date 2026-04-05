@@ -319,12 +319,12 @@ public partial class OppoWebSocketHandler(
                             Items = [
                                 new SettingTypeDropdownItem
                                 {
-                                    Label = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { ["en"] = "Chapter Length - Oppo Only" },
+                                    Label = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { ["en"] = "Chapter Length" },
                                     Value = OppoConstants.ChapterLengthValue
                                 },
                                 new SettingTypeDropdownItem
                                 {
-                                    Label = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { ["en"] = "Movie Length - Oppo Only" },
+                                    Label = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { ["en"] = "Movie Length" },
                                     Value = OppoConstants.MovieLengthValue
                                 }
                             ]
