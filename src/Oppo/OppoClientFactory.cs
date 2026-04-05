@@ -44,6 +44,12 @@ public class OppoClientFactory(ILoggerFactory loggerFactory, ILogger<OppoClientF
                     client = new OppoClient(oppoClientKey.HostName, oppoClientKey.Model, _oppoClientLogger);
                 }
 
+                if (client.SupportsStreamingUpdates)
+                {
+                    await client.IsConnectedAsync();
+                    await client.SetVerboseMode(VerboseMode.DetailedStatus, cancellationToken);
+                }
+
                 _clients[clientKeyHash] = client;
                 return client;
             }

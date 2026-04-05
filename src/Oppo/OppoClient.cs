@@ -1377,6 +1377,15 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
                 pendingCommand.Completion.TrySetResult(OppoResultCore.FalseResult);
             }
 
+            Channel<OppoStreamingEvent>? streamingChannel;
+            lock (_streamingSync)
+            {
+                streamingChannel = _streamingChannel;
+                _streamingChannel = null;
+            }
+
+            streamingChannel?.Writer.TryComplete();
+
             await pipeReader.CompleteAsync();
         }
     }
@@ -1442,10 +1451,19 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         var frame = GetFrameSpan(rawFrameBuffer, out var rentedBuffer);
         try
         {
-            // Non-streaming response
+            // Non-streaming response (normal format: @OK ... / @ER ...)
             if (frame.StartsWith("@OK"u8) || frame.StartsWith("@ER"u8))
             {
                 normalizedResponse = Encoding.ASCII.GetString(frame);
+                return true;
+            }
+
+            // Legacy response without '@' prefix (e.g. "OK CLOSE" from older devices).
+            // Normalize by prepending '@' so callers see "@OK CLOSE" consistently.
+            if ((frame.StartsWith("OK"u8) || frame.StartsWith("ER"u8)) &&
+                (frame.Length == 2 || frame[2] == (byte)' '))
+            {
+                normalizedResponse = "@" + Encoding.ASCII.GetString(frame);
                 return true;
             }
 

@@ -9,7 +9,7 @@ namespace UnfoldedCircle.OppoBluRay.AlbumCover;
 
 public interface IAlbumCoverService
 {
-    Task<Uri?> GetAlbumCoverAsync(string artist, string? album, string? track, CancellationToken cancellationToken = default);
+    ValueTask<Uri?> GetAlbumCoverAsync(string artist, string? album, string? track, CancellationToken cancellationToken = default);
 }
 
 internal sealed class AlbumCoverService(
@@ -22,7 +22,7 @@ internal sealed class AlbumCoverService(
     private readonly ILogger<AlbumCoverService> _logger = logger;
     private static readonly TimeSpan CacheDuration = TimeSpan.FromHours(3);
 
-    public async Task<Uri?> GetAlbumCoverAsync(string artist, string? album, string? track, CancellationToken cancellationToken = default)
+    public async ValueTask<Uri?> GetAlbumCoverAsync(string artist, string? album, string? track, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(album))
         {
