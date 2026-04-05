@@ -294,7 +294,7 @@ public partial class OppoWebSocketHandler(
                             Value = configurationItem?.UseMediaEvents ?? true
                         }
                     },
-                    Label = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { ["en"] = "Use Media Events?" }
+                    Label = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { ["en"] = "Use Media Events? - Oppo Only" }
                 },
                 new Setting
                 {
@@ -306,7 +306,7 @@ public partial class OppoWebSocketHandler(
                             Value = configurationItem?.UseStreamingEvents ?? true
                         }
                     },
-                    Label = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { ["en"] = "Use Streaming Events?" }
+                    Label = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { ["en"] = "Use Streaming Events? - Oppo Only" }
                 },
                 new Setting
                 {
@@ -319,18 +319,18 @@ public partial class OppoWebSocketHandler(
                             Items = [
                                 new SettingTypeDropdownItem
                                 {
-                                    Label = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { ["en"] = "Chapter Length" },
+                                    Label = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { ["en"] = "Chapter Length - Oppo Only" },
                                     Value = OppoConstants.ChapterLengthValue
                                 },
                                 new SettingTypeDropdownItem
                                 {
-                                    Label = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { ["en"] = "Movie Length" },
+                                    Label = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { ["en"] = "Movie Length - Oppo Only" },
                                     Value = OppoConstants.MovieLengthValue
                                 }
                             ]
                         }
                     },
-                    Label = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { ["en"] = "Use chapter or movie length for progress bar (only applicable if Media Events is enabled)?" }
+                    Label = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { ["en"] = "Use chapter or movie length for progress bar (only applicable if Media Events is enabled)? - Oppo Only" }
                 },
                 new Setting
                 {
