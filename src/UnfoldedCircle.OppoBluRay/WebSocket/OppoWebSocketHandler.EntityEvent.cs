@@ -155,7 +155,7 @@ public partial class OppoWebSocketHandler
     }
 
     private static bool IsStreamingContextActive(StreamingClientContext context) =>
-        context.StreamingTask is not { IsCompleted: true };
+        context.StreamingTask is { IsCompleted: false };
 
     private static ValueTask TryRemoveStreamingContextAsync(ConcurrentDictionary<string, StreamingClientContext> streamingClientContexts,
         string key)
@@ -215,7 +215,10 @@ public partial class OppoWebSocketHandler
         context.SetSubscribedEntities(subscribedEntity.Value);
 
         if (!streamingClientContexts.TryAdd(subscribedEntity.Key, context))
+        {
+            await context.DisposeAsync();
             return streamingClientContexts.GetValueOrDefault(subscribedEntity.Key);
+        }
 
         try
         {
