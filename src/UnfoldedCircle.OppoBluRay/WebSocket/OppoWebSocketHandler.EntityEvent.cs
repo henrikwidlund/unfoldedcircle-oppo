@@ -338,11 +338,13 @@ public partial class OppoWebSocketHandler
         snapshot.HdmiResolutionResponse = await oppoClientHolder.Client.QueryHDMIResolutionAsync(cancellationToken);
 
         var playbackStatusResponse = await oppoClientHolder.Client.QueryPlaybackStatusAsync(cancellationToken);
-        snapshot.State = MapPlaybackState(playbackStatusResponse.Result);
+        snapshot.State = playbackStatusResponse.Success
+            ? MapPlaybackState(playbackStatusResponse.Result)
+            : State.Unknown;
 
         snapshot.IsMovie = snapshot.DiscTypeResponse is { Success: true, Result: DiscType.BlueRayMovie or DiscType.DVDVideo or DiscType.UltraHDBluRay };
 
-        if (playbackStatusResponse is not { Result: PlaybackStatus.Play or PlaybackStatus.Pause }
+        if (playbackStatusResponse is not { Success: true, Result: PlaybackStatus.Play or PlaybackStatus.Pause }
             || snapshot.DiscTypeResponse is not { Success: true }
             || snapshot.DiscTypeResponse.Value.Result is DiscType.Unknown or DiscType.UnknownDisc or DiscType.DataDisc)
             return;
