@@ -318,7 +318,7 @@ public partial class OppoWebSocketHandler
         var powerStatusResponse = await oppoClientHolder.Client.QueryPowerStatusAsync(cancellationToken);
         snapshot.State = MapPowerState(powerStatusResponse.Result);
 
-        if (oppoClientHolder.ClientKey.Model == OppoModel.Magnetar)
+        if (oppoClientHolder.ClientKey.Model == OppoModel.Magnetar || !oppoClientHolder.ClientKey.UseMediaEvents)
             return snapshot;
 
         if (powerStatusResponse is { Result: PowerState.On })
