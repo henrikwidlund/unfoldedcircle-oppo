@@ -37,12 +37,14 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
     private Task? _readerTask;
     private PendingCommandResponse? _pendingCommandResponse;
     private Channel<OppoStreamingEvent>? _streamingChannel;
+    private static readonly CommandCode PauseCommandCode = new(((uint)'P' << 16) | ((uint)'A' << 8) | (byte)'U');
+    private static readonly CommandCode PlayCommandCode = new(((uint)'P' << 16) | ((uint)'L' << 8) | (byte)'A');
 
     internal bool IsDisposed { get; private set; }
 
     public async ValueTask<OppoResult<PowerState>> PowerToggleAsync(CancellationToken cancellationToken = default)
     {
-        var result = await SendCommandWithRetry(
+        var result = await SendCommand(
             _is20XModel ? Oppo20XCommand.PowerToggle : Oppo10XCommand.PowerToggle,
             cancellationToken);
         
@@ -64,7 +66,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
 
     public async ValueTask<OppoResult<PowerState>> PowerOnAsync(CancellationToken cancellationToken = default)
     {
-        var result = await SendCommandWithRetry(
+        var result = await SendCommand(
             _is20XModel ? Oppo20XCommand.PowerOn : Oppo10XCommand.PowerOn,
             cancellationToken);
 
@@ -85,7 +87,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
 
     public async ValueTask<OppoResult<PowerState>> PowerOffAsync(CancellationToken cancellationToken = default)
     {
-        var result = await SendCommandWithRetry(
+        var result = await SendCommand(
             _is20XModel ? Oppo20XCommand.PowerOff : Oppo10XCommand.PowerOff,
             cancellationToken);
 
@@ -106,7 +108,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
 
     public async ValueTask<OppoResult<TrayState>> EjectToggleAsync(CancellationToken cancellationToken = default)
     {
-        var result = await SendCommandWithRetry(
+        var result = await SendCommand(
             _is20XModel ? Oppo20XCommand.EjectToggle : Oppo10XCommand.EjectToggle,
             cancellationToken);
 
@@ -128,7 +130,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
 
     public async ValueTask<OppoResult<DimmerState>> DimmerAsync(CancellationToken cancellationToken = default)
     {
-        var result = await SendCommandWithRetry(
+        var result = await SendCommand(
             _is20XModel ? Oppo20XCommand.Dimmer : Oppo10XCommand.Dimmer,
             cancellationToken);
 
@@ -151,7 +153,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
 
     public async ValueTask<OppoResult<PureAudioState>> PureAudioToggleAsync(CancellationToken cancellationToken = default)
     {
-        var result = await SendCommandWithRetry(
+        var result = await SendCommand(
             _is20XModel ? Oppo20XCommand.PureAudioToggle : Oppo10XCommand.PureAudioToggle,
             cancellationToken);
 
@@ -173,7 +175,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
 
     public async ValueTask<OppoResult<ushort?>> VolumeUpAsync(CancellationToken cancellationToken = default)
     {
-        var result = await SendCommandWithRetry(
+        var result = await SendCommand(
             _is20XModel ? Oppo20XCommand.VolumeUp : Oppo10XCommand.VolumeUp,
             cancellationToken);
 
@@ -190,7 +192,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
     
     public async ValueTask<OppoResult<ushort?>> VolumeDownAsync(CancellationToken cancellationToken = default)
     {
-        var result = await SendCommandWithRetry(
+        var result = await SendCommand(
             _is20XModel ? Oppo20XCommand.VolumeDown : Oppo10XCommand.VolumeDown,
             cancellationToken);
 
@@ -207,7 +209,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
     
     public async ValueTask<OppoResult<MuteState>> MuteToggleAsync(CancellationToken cancellationToken = default)
     {
-        var result = await SendCommandWithRetry(
+        var result = await SendCommand(
             _is20XModel ? Oppo20XCommand.MuteToggle : Oppo10XCommand.MuteToggle,
             cancellationToken);
 
@@ -232,7 +234,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         if (number > 9)
             return false;
 
-        return (await SendCommandWithRetry(
+        return (await SendCommand(
                 number switch
                 {
                     0 => _is20XModel ? Oppo20XCommand.NumericKey0 : Oppo10XCommand.NumericKey0,
@@ -252,77 +254,77 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
     }
 
     public async ValueTask<bool> ClearAsync(CancellationToken cancellationToken = default) =>
-        (await SendCommandWithRetry(_is20XModel ? Oppo20XCommand.Clear : Oppo10XCommand.Clear, cancellationToken)).Success;
+        (await SendCommand(_is20XModel ? Oppo20XCommand.Clear : Oppo10XCommand.Clear, cancellationToken)).Success;
 
     public async ValueTask<bool> GoToAsync(CancellationToken cancellationToken = default) =>
-        (await SendCommandWithRetry(_is20XModel ? Oppo20XCommand.GoTo : Oppo10XCommand.GoTo, cancellationToken)).Success;
+        (await SendCommand(_is20XModel ? Oppo20XCommand.GoTo : Oppo10XCommand.GoTo, cancellationToken)).Success;
 
     public async ValueTask<bool> HomeAsync(CancellationToken cancellationToken = default) =>
-        (await SendCommandWithRetry(_is20XModel ? Oppo20XCommand.Home : Oppo10XCommand.Home, cancellationToken)).Success;
+        (await SendCommand(_is20XModel ? Oppo20XCommand.Home : Oppo10XCommand.Home, cancellationToken)).Success;
 
     public async ValueTask<bool> PageUpAsync(CancellationToken cancellationToken = default) =>
-        (await SendCommandWithRetry(_is20XModel ? Oppo20XCommand.PageUp : Oppo10XCommand.PageUp, cancellationToken)).Success;
+        (await SendCommand(_is20XModel ? Oppo20XCommand.PageUp : Oppo10XCommand.PageUp, cancellationToken)).Success;
 
     public async ValueTask<bool> PageDownAsync(CancellationToken cancellationToken = default) =>
-        (await SendCommandWithRetry(_is20XModel ? Oppo20XCommand.PageDown : Oppo10XCommand.PageDown, cancellationToken)).Success;
+        (await SendCommand(_is20XModel ? Oppo20XCommand.PageDown : Oppo10XCommand.PageDown, cancellationToken)).Success;
 
     public async ValueTask<bool> InfoToggleAsync(CancellationToken cancellationToken = default) =>
-        (await SendCommandWithRetry(_is20XModel ? Oppo20XCommand.InfoToggle : Oppo10XCommand.InfoToggle, cancellationToken)).Success;
+        (await SendCommand(_is20XModel ? Oppo20XCommand.InfoToggle : Oppo10XCommand.InfoToggle, cancellationToken)).Success;
 
     public async ValueTask<bool> TopMenuAsync(CancellationToken cancellationToken = default) =>
-        (await SendCommandWithRetry(_is20XModel ? Oppo20XCommand.TopMenu : Oppo10XCommand.TopMenu, cancellationToken)).Success;
+        (await SendCommand(_is20XModel ? Oppo20XCommand.TopMenu : Oppo10XCommand.TopMenu, cancellationToken)).Success;
 
     public async ValueTask<bool> PopUpMenuAsync(CancellationToken cancellationToken = default) =>
-        (await SendCommandWithRetry(_is20XModel ? Oppo20XCommand.PopUpMenu : Oppo10XCommand.PopUpMenu, cancellationToken)).Success;
+        (await SendCommand(_is20XModel ? Oppo20XCommand.PopUpMenu : Oppo10XCommand.PopUpMenu, cancellationToken)).Success;
 
     public async ValueTask<bool> UpArrowAsync(CancellationToken cancellationToken = default) =>
-        (await SendCommandWithRetry(_is20XModel ? Oppo20XCommand.UpArrow : Oppo10XCommand.UpArrow, cancellationToken)).Success;
+        (await SendCommand(_is20XModel ? Oppo20XCommand.UpArrow : Oppo10XCommand.UpArrow, cancellationToken)).Success;
 
     public async ValueTask<bool> LeftArrowAsync(CancellationToken cancellationToken = default) =>
-        (await SendCommandWithRetry(_is20XModel ? Oppo20XCommand.LeftArrow : Oppo10XCommand.LeftArrow, cancellationToken)).Success;
+        (await SendCommand(_is20XModel ? Oppo20XCommand.LeftArrow : Oppo10XCommand.LeftArrow, cancellationToken)).Success;
 
     public async ValueTask<bool> RightArrowAsync(CancellationToken cancellationToken = default) =>
-        (await SendCommandWithRetry(_is20XModel ? Oppo20XCommand.RightArrow : Oppo10XCommand.RightArrow, cancellationToken)).Success;
+        (await SendCommand(_is20XModel ? Oppo20XCommand.RightArrow : Oppo10XCommand.RightArrow, cancellationToken)).Success;
 
     public async ValueTask<bool> DownArrowAsync(CancellationToken cancellationToken = default) =>
-        (await SendCommandWithRetry(_is20XModel ? Oppo20XCommand.DownArrow : Oppo10XCommand.DownArrow, cancellationToken)).Success;
+        (await SendCommand(_is20XModel ? Oppo20XCommand.DownArrow : Oppo10XCommand.DownArrow, cancellationToken)).Success;
 
     public async ValueTask<bool> EnterAsync(CancellationToken cancellationToken = default) =>
-        (await SendCommandWithRetry(_is20XModel ? Oppo20XCommand.Enter : Oppo10XCommand.Enter, cancellationToken)).Success;
+        (await SendCommand(_is20XModel ? Oppo20XCommand.Enter : Oppo10XCommand.Enter, cancellationToken)).Success;
 
     public async ValueTask<bool> SetupAsync(CancellationToken cancellationToken = default) =>
-        (await SendCommandWithRetry(_is20XModel ? Oppo20XCommand.Setup : Oppo10XCommand.Setup, cancellationToken)).Success;
+        (await SendCommand(_is20XModel ? Oppo20XCommand.Setup : Oppo10XCommand.Setup, cancellationToken)).Success;
 
     public async ValueTask<bool> ReturnAsync(CancellationToken cancellationToken = default) =>
-        (await SendCommandWithRetry(_is20XModel ? Oppo20XCommand.Return : Oppo10XCommand.Return, cancellationToken)).Success;
+        (await SendCommand(_is20XModel ? Oppo20XCommand.Return : Oppo10XCommand.Return, cancellationToken)).Success;
 
     public async ValueTask<bool> RedAsync(CancellationToken cancellationToken = default) =>
-        (await SendCommandWithRetry(_is20XModel ? Oppo20XCommand.Red : Oppo10XCommand.Red, cancellationToken)).Success;
+        (await SendCommand(_is20XModel ? Oppo20XCommand.Red : Oppo10XCommand.Red, cancellationToken)).Success;
 
     public async ValueTask<bool> GreenAsync(CancellationToken cancellationToken = default) =>
-        (await SendCommandWithRetry(_is20XModel ? Oppo20XCommand.Green : Oppo10XCommand.Green, cancellationToken)).Success;
+        (await SendCommand(_is20XModel ? Oppo20XCommand.Green : Oppo10XCommand.Green, cancellationToken)).Success;
 
     public async ValueTask<bool> BlueAsync(CancellationToken cancellationToken = default) =>
-        (await SendCommandWithRetry(_is20XModel ? Oppo20XCommand.Blue : Oppo10XCommand.Blue, cancellationToken)).Success;
+        (await SendCommand(_is20XModel ? Oppo20XCommand.Blue : Oppo10XCommand.Blue, cancellationToken)).Success;
 
     public async ValueTask<bool> YellowAsync(CancellationToken cancellationToken = default) =>
-        (await SendCommandWithRetry(_is20XModel ? Oppo20XCommand.Yellow : Oppo10XCommand.Yellow, cancellationToken)).Success;
+        (await SendCommand(_is20XModel ? Oppo20XCommand.Yellow : Oppo10XCommand.Yellow, cancellationToken)).Success;
 
     public async ValueTask<bool> StopAsync(CancellationToken cancellationToken = default) =>
-        (await SendCommandWithRetry(_is20XModel ? Oppo20XCommand.Stop : Oppo10XCommand.Stop, cancellationToken)).Success;
+        (await SendCommand(_is20XModel ? Oppo20XCommand.Stop : Oppo10XCommand.Stop, cancellationToken)).Success;
 
     public async ValueTask<bool> PlayAsync(CancellationToken cancellationToken = default) =>
-        (await SendCommandWithRetry(_is20XModel ? Oppo20XCommand.Play : Oppo10XCommand.Play, cancellationToken)).Success;
+        (await SendCommand(_is20XModel ? Oppo20XCommand.Play : Oppo10XCommand.Play, cancellationToken)).Success;
 
     public async ValueTask<bool> PauseAsync(CancellationToken cancellationToken = default) =>
-        (await SendCommandWithRetry(_is20XModel ? Oppo20XCommand.Pause : Oppo10XCommand.Pause, cancellationToken)).Success;
+        (await SendCommand(_is20XModel ? Oppo20XCommand.Pause : Oppo10XCommand.Pause, cancellationToken)).Success;
 
     public async ValueTask<bool> PreviousAsync(CancellationToken cancellationToken = default) =>
-        (await SendCommandWithRetry(_is20XModel ? Oppo20XCommand.Previous : Oppo10XCommand.Previous, cancellationToken)).Success;
+        (await SendCommand(_is20XModel ? Oppo20XCommand.Previous : Oppo10XCommand.Previous, cancellationToken)).Success;
 
     public async ValueTask<OppoResult<ushort?>> ReverseAsync(CancellationToken cancellationToken = default)
     {
-        var result = await SendCommandWithRetry(
+        var result = await SendCommand(
             _is20XModel ? Oppo20XCommand.Reverse : Oppo10XCommand.Reverse,
             cancellationToken);
         
@@ -339,7 +341,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
     
     public async ValueTask<OppoResult<ushort?>> ForwardAsync(CancellationToken cancellationToken = default)
     {
-        var result = await SendCommandWithRetry(
+        var result = await SendCommand(
             _is20XModel ? Oppo20XCommand.Forward : Oppo10XCommand.Forward,
             cancellationToken);
         
@@ -355,17 +357,17 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
     }
     
     public async ValueTask<bool> NextAsync(CancellationToken cancellationToken = default) =>
-        (await SendCommandWithRetry(_is20XModel ? Oppo20XCommand.Next : Oppo10XCommand.Next, cancellationToken)).Success;
+        (await SendCommand(_is20XModel ? Oppo20XCommand.Next : Oppo10XCommand.Next, cancellationToken)).Success;
 
     public async ValueTask<bool> AudioAsync(CancellationToken cancellationToken = default) =>
-        (await SendCommandWithRetry(_is20XModel ? Oppo20XCommand.Audio : Oppo10XCommand.Audio, cancellationToken)).Success;
+        (await SendCommand(_is20XModel ? Oppo20XCommand.Audio : Oppo10XCommand.Audio, cancellationToken)).Success;
 
     public async ValueTask<bool> SubtitleAsync(CancellationToken cancellationToken = default) =>
-        (await SendCommandWithRetry(_is20XModel ? Oppo20XCommand.Subtitle : Oppo10XCommand.Subtitle, cancellationToken)).Success;
+        (await SendCommand(_is20XModel ? Oppo20XCommand.Subtitle : Oppo10XCommand.Subtitle, cancellationToken)).Success;
 
     public async ValueTask<OppoResult<string>> AngleAsync(CancellationToken cancellationToken = default)
     {
-        var result = await SendCommandWithRetry(
+        var result = await SendCommand(
             _is20XModel ? Oppo20XCommand.Angle : Oppo10XCommand.Angle,
             cancellationToken);
         
@@ -382,7 +384,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
     
     public async ValueTask<OppoResult<string>> ZoomAsync(CancellationToken cancellationToken = default)
     {
-        var result = await SendCommandWithRetry(
+        var result = await SendCommand(
             _is20XModel ? Oppo20XCommand.Zoom : Oppo10XCommand.Zoom,
             cancellationToken);
         
@@ -399,7 +401,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
     
     public async ValueTask<OppoResult<string>> SecondaryAudioProgramAsync(CancellationToken cancellationToken = default)
     {
-        var result = await SendCommandWithRetry(
+        var result = await SendCommand(
             _is20XModel ? Oppo20XCommand.SecondaryAudioProgram : Oppo10XCommand.SecondaryAudioProgram,
             cancellationToken);
         
@@ -416,7 +418,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
     
     public async ValueTask<OppoResult<ABReplayState>> ABReplayAsync(CancellationToken cancellationToken = default)
     {
-        var result = await SendCommandWithRetry(
+        var result = await SendCommand(
             _is20XModel ? Oppo20XCommand.ABReplay : Oppo10XCommand.ABReplay,
             cancellationToken);
         
@@ -439,7 +441,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
     
     public async ValueTask<OppoResult<RepeatState>> RepeatAsync(CancellationToken cancellationToken = default)
     {
-        var result = await SendCommandWithRetry(
+        var result = await SendCommand(
             _is20XModel ? Oppo20XCommand.Repeat : Oppo10XCommand.Repeat,
             cancellationToken);
         
@@ -462,7 +464,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
     
     public async ValueTask<OppoResult<string>> PictureInPictureAsync(CancellationToken cancellationToken = default)
     {
-        var result = await SendCommandWithRetry(
+        var result = await SendCommand(
             _is20XModel ? Oppo20XCommand.PictureInPicture : Oppo10XCommand.PictureInPicture,
             cancellationToken);
         
@@ -478,54 +480,54 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
     }
     
     public async ValueTask<bool> ResolutionAsync(CancellationToken cancellationToken = default) =>
-        (await SendCommandWithRetry(_is20XModel ? Oppo20XCommand.Resolution : Oppo10XCommand.Resolution, cancellationToken)).Success;
+        (await SendCommand(_is20XModel ? Oppo20XCommand.Resolution : Oppo10XCommand.Resolution, cancellationToken)).Success;
 
     public async ValueTask<bool> SubtitleHoldAsync(CancellationToken cancellationToken = default) =>
-        (await SendCommandWithRetry(_is20XModel ? Oppo20XCommand.SubtitleHold : Oppo10XCommand.SubtitleHold, cancellationToken)).Success;
+        (await SendCommand(_is20XModel ? Oppo20XCommand.SubtitleHold : Oppo10XCommand.SubtitleHold, cancellationToken)).Success;
 
     public async ValueTask<bool> OptionAsync(CancellationToken cancellationToken = default) =>
         _model is not OppoModel.BDP83 and not OppoModel.BDP9X &&
-        (await SendCommandWithRetry(_is20XModel ? Oppo20XCommand.Option : Oppo10XCommand.Option, cancellationToken)).Success;
+        (await SendCommand(_is20XModel ? Oppo20XCommand.Option : Oppo10XCommand.Option, cancellationToken)).Success;
 
     public async ValueTask<bool> ThreeDAsync(CancellationToken cancellationToken = default) =>
         _model is not OppoModel.BDP83 and not OppoModel.BDP9X &&
-        (await SendCommandWithRetry(_is20XModel ? Oppo20XCommand.ThreeD : Oppo10XCommand.ThreeD, cancellationToken)).Success;
+        (await SendCommand(_is20XModel ? Oppo20XCommand.ThreeD : Oppo10XCommand.ThreeD, cancellationToken)).Success;
 
     public async ValueTask<bool> PictureAdjustmentAsync(CancellationToken cancellationToken = default) =>
         _model is not OppoModel.BDP83 and not OppoModel.BDP9X &&
-        (await SendCommandWithRetry(_is20XModel ? Oppo20XCommand.PictureAdjustment : Oppo10XCommand.PictureAdjustment, cancellationToken)).Success;
+        (await SendCommand(_is20XModel ? Oppo20XCommand.PictureAdjustment : Oppo10XCommand.PictureAdjustment, cancellationToken)).Success;
 
     public async ValueTask<bool> HDRAsync(CancellationToken cancellationToken = default) =>
         _is20XModel &&
-        (await SendCommandWithRetry(Oppo20XCommand.HDR, cancellationToken)).Success;
+        (await SendCommand(Oppo20XCommand.HDR, cancellationToken)).Success;
 
     public async ValueTask<bool> InfoHoldAsync(CancellationToken cancellationToken = default) =>
         _is20XModel &&
-        (await SendCommandWithRetry(Oppo20XCommand.InfoHold, cancellationToken)).Success;
+        (await SendCommand(Oppo20XCommand.InfoHold, cancellationToken)).Success;
 
     public async ValueTask<bool> ResolutionHoldAsync(CancellationToken cancellationToken = default) =>
         _is20XModel &&
-        (await SendCommandWithRetry(Oppo20XCommand.ResolutionHold, cancellationToken)).Success;
+        (await SendCommand(Oppo20XCommand.ResolutionHold, cancellationToken)).Success;
 
     public async ValueTask<bool> AVSyncAsync(CancellationToken cancellationToken = default) =>
         _is20XModel &&
-        (await SendCommandWithRetry(Oppo20XCommand.AVSync, cancellationToken)).Success;
+        (await SendCommand(Oppo20XCommand.AVSync, cancellationToken)).Success;
 
     public async ValueTask<bool> GaplessPlayAsync(CancellationToken cancellationToken = default) =>
-        _is20XModel && (await SendCommandWithRetry(Oppo20XCommand.GaplessPlay, cancellationToken)).Success;
+        _is20XModel && (await SendCommand(Oppo20XCommand.GaplessPlay, cancellationToken)).Success;
 
     public async ValueTask<bool> NoopAsync(CancellationToken cancellationToken = default) =>
-        (await SendCommandWithRetry(_is20XModel ? Oppo20XCommand.Noop : Oppo10XCommand.Noop, cancellationToken)).Success;
+        (await SendCommand(_is20XModel ? Oppo20XCommand.Noop : Oppo10XCommand.Noop, cancellationToken)).Success;
 
     public async ValueTask<bool> InputAsync(CancellationToken cancellationToken = default) =>
-        (await SendCommandWithRetry(_is20XModel ? Oppo20XCommand.Input : Oppo10XCommand.Input, cancellationToken)).Success;
+        (await SendCommand(_is20XModel ? Oppo20XCommand.Input : Oppo10XCommand.Input, cancellationToken)).Success;
 
     public async ValueTask<OppoResult<RepeatMode>> SetRepeatAsync(RepeatMode mode, CancellationToken cancellationToken = default)
     {
         if (mode == RepeatMode.Unknown)
             return false;
         
-        var result = await SendCommandWithRetry(mode switch
+        var result = await SendCommand(mode switch
         {
             RepeatMode.Chapter => _is20XModel ? Oppo20XAdvancedCommand.SetRepeatModeChapter : Oppo10XAdvancedCommand.SetRepeatModeChapter,
             RepeatMode.Title => _is20XModel ? Oppo20XAdvancedCommand.SetRepeatModeTitle : Oppo10XAdvancedCommand.SetRepeatModeTitle,
@@ -562,7 +564,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
             return false;
         
         var command = Encoding.ASCII.GetBytes(_is20XModel ? $"#SVL {volume}\r" : $"REMOTE SVL {volume}");
-        var result = await SendCommandWithRetry(command, cancellationToken);
+        var result = await SendCommand(command, cancellationToken);
         
         return result.Success switch
         {
@@ -577,7 +579,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
 
     public async ValueTask<OppoResult<VolumeInfo>> QueryVolumeAsync(CancellationToken cancellationToken = default)
     {
-        var result = await SendCommandWithRetry(_is20XModel ? Oppo20XQueryCommand.QueryVolume : Oppo10XQueryCommand.QueryVolume, cancellationToken);
+        var result = await SendCommand(_is20XModel ? Oppo20XQueryCommand.QueryVolume : Oppo10XQueryCommand.QueryVolume, cancellationToken);
 
         if (!result.Success)
             return false;
@@ -605,7 +607,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
     public async ValueTask<OppoResult<PowerState>> QueryPowerStatusAsync(CancellationToken cancellationToken = default)
     {
         var command = _is20XModel ? Oppo20XQueryCommand.QueryPowerStatus : Oppo10XQueryCommand.QueryPowerStatus;
-        var result = await SendCommandWithRetry(command, cancellationToken);
+        var result = await SendCommand(command, cancellationToken);
         
         return result.Success switch
         {
@@ -626,7 +628,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
     public async ValueTask<OppoResult<PlaybackStatus>> QueryPlaybackStatusAsync(CancellationToken cancellationToken = default)
     {
         var command = _is20XModel ? Oppo20XQueryCommand.QueryPlaybackStatus : Oppo10XQueryCommand.QueryPlaybackStatus;
-        var result = await SendCommandWithRetry(command, cancellationToken);
+        var result = await SendCommand(command, cancellationToken);
         
         return result.Success switch
         {
@@ -664,7 +666,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
 
     public async ValueTask<OppoResult<HDMIResolution>> QueryHDMIResolutionAsync(CancellationToken cancellationToken = default)
     {
-        var result = await SendCommandWithRetry(_is20XModel ? Oppo20XQueryCommand.QueryHDMIResolution : Oppo10XQueryCommand.QueryHDMIResolution,
+        var result = await SendCommand(_is20XModel ? Oppo20XQueryCommand.QueryHDMIResolution : Oppo10XQueryCommand.QueryHDMIResolution,
             cancellationToken);
 
         return result.Success switch
@@ -728,7 +730,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
     public async ValueTask<OppoResult<DiscType>> QueryDiscTypeAsync(CancellationToken cancellationToken = default)
     {
         var command = _is20XModel ? Oppo20XQueryCommand.QueryDiscType : Oppo10XQueryCommand.QueryDiscType;
-        var result = await SendCommandWithRetry(command, cancellationToken);
+        var result = await SendCommand(command, cancellationToken);
         
         return result.Success switch
         {
@@ -758,7 +760,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
 
     public async ValueTask<OppoResult<string>> QueryAudioTypeAsync(CancellationToken cancellationToken = default)
     {
-        var result = await SendCommandWithRetry(_is20XModel ? Oppo20XQueryCommand.QueryAudioType : Oppo10XQueryCommand.QueryAudioType, cancellationToken);
+        var result = await SendCommand(_is20XModel ? Oppo20XQueryCommand.QueryAudioType : Oppo10XQueryCommand.QueryAudioType, cancellationToken);
 
         return result.Success switch
         {
@@ -773,7 +775,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
 
     public async ValueTask<OppoResult<string>> QuerySubtitleTypeAsync(CancellationToken cancellationToken = default)
     {
-        var result = await SendCommandWithRetry(_is20XModel ? Oppo20XQueryCommand.QuerySubtitleType : Oppo10XQueryCommand.QuerySubtitleType,
+        var result = await SendCommand(_is20XModel ? Oppo20XQueryCommand.QuerySubtitleType : Oppo10XQueryCommand.QuerySubtitleType,
             cancellationToken);
 
         return result.Success switch
@@ -792,7 +794,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         if (!_is20XModel)
             return false;
 
-        var result = await SendCommandWithRetry(Oppo20XQueryCommand.QueryThreeDStatus, cancellationToken);
+        var result = await SendCommand(Oppo20XQueryCommand.QueryThreeDStatus, cancellationToken);
 
         return result.Success switch
         {
@@ -815,7 +817,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         if (!_is20XModel)
             return false;
 
-        var result = await SendCommandWithRetry(Oppo20XQueryCommand.QueryHDRStatus, cancellationToken);
+        var result = await SendCommand(Oppo20XQueryCommand.QueryHDRStatus, cancellationToken);
 
         return result.Success switch
         {
@@ -839,7 +841,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         if (!_is20XModel)
             return false;
 
-        var result = await SendCommandWithRetry(Oppo20XQueryCommand.QueryAspectRatio, cancellationToken);
+        var result = await SendCommand(Oppo20XQueryCommand.QueryAspectRatio, cancellationToken);
 
         return result.Success switch
         {
@@ -870,7 +872,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
     public async ValueTask<OppoResult<CurrentRepeatMode>> QueryRepeatModeAsync(CancellationToken cancellationToken = default)
     {
         var command = _is20XModel ? Oppo20XQueryCommand.QueryRepeatMode : Oppo10XQueryCommand.QueryRepeatMode;
-        var result = await SendCommandWithRetry(command, cancellationToken);
+        var result = await SendCommand(command, cancellationToken);
         
         return result.Success switch
         {
@@ -898,7 +900,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         if (_model is OppoModel.BDP83 or OppoModel.BDP9X)
             return false;
         
-        var result = await SendCommandWithRetry(_is20XModel ? Oppo20XQueryCommand.QueryInputSource : Oppo10XQueryCommand.QueryInputSource,
+        var result = await SendCommand(_is20XModel ? Oppo20XQueryCommand.QueryInputSource : Oppo10XQueryCommand.QueryInputSource,
             cancellationToken);
         
         return result.Success switch
@@ -950,7 +952,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         };
     
         var command = Encoding.ASCII.GetBytes(_is20XModel ? $"#SIS {commandDigit}\r" : $"REMOTE SIS {commandDigit}");
-        var result = await SendCommandWithRetry(command, cancellationToken);
+        var result = await SendCommand(command, cancellationToken);
     
         return result.Success switch
         {
@@ -1019,7 +1021,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         if (!_is20XModel)
             return false;
         
-        var result = await SendCommandWithRetry(Oppo20XQueryCommand.QueryCDDBNumber, cancellationToken);
+        var result = await SendCommand(Oppo20XQueryCommand.QueryCDDBNumber, cancellationToken);
         
         return result.Success switch
         {
@@ -1037,7 +1039,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         if (!_is20XModel)
             return false;
         
-        var result = await SendCommandWithRetry(Oppo20XQueryCommand.QueryTrackName, cancellationToken);
+        var result = await SendCommand(Oppo20XQueryCommand.QueryTrackName, cancellationToken);
         
         return result.Success switch
         {
@@ -1055,7 +1057,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         if (!_is20XModel)
             return false;
         
-        var result = await SendCommandWithRetry(Oppo20XQueryCommand.QueryTrackAlbum, cancellationToken);
+        var result = await SendCommand(Oppo20XQueryCommand.QueryTrackAlbum, cancellationToken);
         
         return result.Success switch
         {
@@ -1073,7 +1075,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         if (!_is20XModel)
             return false;
         
-        var result = await SendCommandWithRetry(Oppo20XQueryCommand.QueryTrackPerformer, cancellationToken);
+        var result = await SendCommand(Oppo20XQueryCommand.QueryTrackPerformer, cancellationToken);
         
         return result.Success switch
         {
@@ -1218,12 +1220,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
                 return result;
 
             if (result.Response is { Length: > 0 } response)
-            {
                 _logger.FailedToSendCommand(caller, response);
-                return response.StartsWith("@ER", StringComparison.Ordinal)
-                    ? OppoResultCore.FalseResult
-                    : OppoResultCore.InvalidVerboseLevelResult;
-            }
 
             return OppoResultCore.FalseResult;
         }
@@ -1250,16 +1247,6 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         {
             _semaphore.Release();
         }
-    }
-
-    private async ValueTask<OppoResultCore> SendCommandWithRetry(byte[] command, CancellationToken cancellationToken, [CallerMemberName] string? caller = null)
-    {
-        var result = await SendCommand(command, cancellationToken, caller);
-        if (!result.InvalidVerboseLevel)
-            return result;
-
-        var verboseMode = await SetVerboseMode(VerboseMode.Off, cancellationToken);
-        return !verboseMode.Success ? OppoResultCore.FalseResult : await SendCommand(command, cancellationToken, caller);
     }
 
     private void EnsureReaderLoopStarted()
@@ -1532,9 +1519,10 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         if (pendingResponse is null)
             return false;
 
-        if (responseCommandCode is not null
+        if (responseCommandCode is { } actualCommandCode
             && pendingResponse.Code is { } expectedCommandCode
-            && responseCommandCode != expectedCommandCode)
+            && actualCommandCode != expectedCommandCode
+            && !IsStreamingPlayPauseAlternateCommandResponse(expectedCommandCode, actualCommandCode, normalizedResponse))
         {
             return false;
         }
@@ -1548,6 +1536,17 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
             : new OppoResultCore(false, normalizedResponse);
         pendingResponse.Completion.TrySetResult(coreResult);
         return true;
+    }
+
+    private static bool IsStreamingPlayPauseAlternateCommandResponse(in CommandCode expectedCommandCode,
+        in CommandCode actualCommandCode,
+        string normalizedResponse)
+    {
+        // when using streaming and using the play/pause command, the player will return PLA when resuming playback
+        // instead of the expected PAU
+        return expectedCommandCode == PauseCommandCode
+               && actualCommandCode == PlayCommandCode
+               && normalizedResponse.Equals("@OK PLAY", StringComparison.Ordinal);
     }
 
     private static CommandCode? ExtractCommandCode(in ReadOnlySpan<byte> command)
@@ -1949,7 +1948,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
     
     private async ValueTask<OppoResult<uint>> QueryTimeAsync(byte[] command, CancellationToken cancellationToken)
     {
-        var result = await SendCommandWithRetry(command, cancellationToken);
+        var result = await SendCommand(command, cancellationToken);
         
         return result.Success switch
         {
