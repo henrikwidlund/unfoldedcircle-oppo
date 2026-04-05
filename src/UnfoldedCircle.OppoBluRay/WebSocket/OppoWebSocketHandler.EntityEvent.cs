@@ -1258,7 +1258,7 @@ public partial class OppoWebSocketHandler
         public void SetSubscribedEntities(HashSet<SubscribedEntity> subscribedEntities) =>
             _subscribedEntities = subscribedEntities.ToArray();
 
-        public IReadOnlyCollection<SubscribedEntity> GetSubscribedEntities() =>
+        public SubscribedEntity[] GetSubscribedEntities() =>
             _subscribedEntities;
 
         public bool HasHdrSensorSubscription()
