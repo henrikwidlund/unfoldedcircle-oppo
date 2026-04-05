@@ -33,10 +33,6 @@ internal static partial class IntegrationLogger
         Message = "{WSId} Trying to get OppoClientHolder.")]
     public static partial void TryingToGetOppoClientHolder(this ILogger logger, string wsId);
 
-    [LoggerMessage(EventId = 11, EventName = nameof(ClientNotConnected), Level = LogLevel.Debug,
-        Message = "{WSId} Client not connected. {@ClientKey}")]
-    public static partial void ClientNotConnected(this ILogger logger, string wsId, in OppoClientKey clientKey);
-
     [LoggerMessage(EventId = 12, EventName = nameof(StartingEventsForDevice), Level = LogLevel.Debug,
         Message = "{WSId} Starting events for {DeviceId}")]
     public static partial void StartingEventsForDevice(this ILogger logger, string wsId, string deviceId);

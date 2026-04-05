@@ -1279,8 +1279,8 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
             try
             {
                 var pipeReader = PipeReader.Create(_tcpClient.GetStream());
-                var readerTask = Task.Run(() => ReaderLoopAsync(pipeReader, readerCts.Token), readerCts.Token);
-
+                var readerToken = readerCts.Token;
+                var readerTask = Task.Run(() => ReaderLoopAsync(pipeReader, readerToken), readerToken);
                 previousReaderCts = _readerCts;
                 previousReaderTask = _readerTask;
                 _readerCts = readerCts;
@@ -1686,10 +1686,9 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
                 return true;
             }
 
-            string? rawData = null;
             if (_logger.IsEnabled(LogLevel.Debug))
-                _logger.UnknownStreamingStatusCode(rawData = Encoding.ASCII.GetString(frameBuffer));
-            evt = new OppoUnknownStreamingEvent(rawData ?? Encoding.ASCII.GetString(frameBuffer));
+                _logger.UnknownStreamingStatusCode(Encoding.ASCII.GetString(frameBuffer));
+            evt = new OppoUnknownStreamingEvent();
             return true;
         }
         finally
