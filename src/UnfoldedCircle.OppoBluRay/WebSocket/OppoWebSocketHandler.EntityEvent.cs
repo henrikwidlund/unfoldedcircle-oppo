@@ -270,7 +270,7 @@ public partial class OppoWebSocketHandler
             return null;
         }
 
-        if (!oppoClientHolder.Client.SupportsStreamingUpdates || oppoClientHolder.ClientKey.Model == OppoModel.Magnetar)
+        if (!oppoClientHolder.Client.SupportsStreamingUpdates || !oppoClientHolder.ClientKey.UseStreamingEvents || oppoClientHolder.ClientKey.Model == OppoModel.Magnetar)
             return null;
 
         _logger.StartingEventsForDevice(wsId, oppoClientHolder.Client.HostName);
@@ -318,7 +318,7 @@ public partial class OppoWebSocketHandler
         var powerStatusResponse = await oppoClientHolder.Client.QueryPowerStatusAsync(cancellationToken);
         snapshot.State = MapPowerState(powerStatusResponse.Result);
 
-        if (oppoClientHolder.ClientKey.Model == OppoModel.Magnetar && oppoClientHolder is { ClientKey.UseMediaEvents: false })
+        if (oppoClientHolder.ClientKey.Model == OppoModel.Magnetar)
             return snapshot;
 
         if (powerStatusResponse is { Result: PowerState.On })
@@ -699,9 +699,17 @@ public partial class OppoWebSocketHandler
         context.Snapshot.State = newState;
         if (!isNowActive)
         {
-            // Stopped or navigated away – clear stale progress data
+            // Stopped or navigated away - clear playback-specific stale UI fields.
             context.Snapshot.ElapsedResponse = null;
             context.Snapshot.RemainingResponse = null;
+            context.Snapshot.TrackResponse = null;
+            context.Snapshot.Album = null;
+            context.Snapshot.Performer = null;
+            context.Snapshot.CoverUri = null;
+            context.Snapshot.RepeatMode = null;
+            context.Snapshot.Shuffle = null;
+            context.Snapshot.LastProgressTitle = null;
+            context.Snapshot.LastProgressChapter = null;
         }
     }
 
