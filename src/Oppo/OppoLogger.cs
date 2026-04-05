@@ -81,4 +81,40 @@ internal static partial class OppoLogger
     [LoggerMessage(EventId = 14, EventName = nameof(MissingMacAddress), Level = LogLevel.Error,
         Message = "MAC address is missing for entity ID '{EntityId}'")]
     public static partial void MissingMacAddress(this ILogger logger, string entityId);
+
+    [LoggerMessage(EventId = 15, EventName = nameof(ReceivedWireFrameRaw), Level = LogLevel.Trace,
+        Message = "Received wire frame '{Frame}'")]
+    public static partial void ReceivedWireFrameRaw(this ILogger logger, string? frame);
+
+    [LoggerMessage(EventId = 16, EventName = nameof(DroppedUnsubscribedStreamingFrame), Level = LogLevel.Trace,
+        Message = "Dropped unsolicited streaming frame because there is no active subscriber: '{Frame}'")]
+    public static partial void DroppedUnsubscribedStreamingFrame(this ILogger logger, string frame);
+
+    [LoggerMessage(EventId = 17, EventName = nameof(DroppedStreamingFrameBecauseChannelRejectedWrite), Level = LogLevel.Trace,
+        Message = "Dropped unsolicited streaming frame because the subscriber channel rejected the write while still active: '{Frame}'")]
+    public static partial void DroppedStreamingFrameBecauseChannelRejectedWrite(this ILogger logger, string frame);
+
+    [LoggerMessage(EventId = 18, EventName = nameof(DroppedStreamingFrameBecauseChannelCompleted), Level = LogLevel.Trace,
+        Message = "Dropped unsolicited streaming frame because the subscriber channel was completed or replaced: '{Frame}'")]
+    public static partial void DroppedStreamingFrameBecauseChannelCompleted(this ILogger logger, string frame);
+
+    [LoggerMessage(EventId = 19, EventName = nameof(ReplacingStreamingSubscriber), Level = LogLevel.Trace,
+        Message = "Replacing existing streaming subscriber")]
+    public static partial void ReplacingStreamingSubscriber(this ILogger logger);
+
+    [LoggerMessage(EventId = 20, EventName = nameof(UnknownStreamingStatusCode), Level = LogLevel.Debug,
+        Message = "Received unknown streaming event. Frame '{Frame}'")]
+    public static partial void UnknownStreamingStatusCode(this ILogger logger, string frame);
+
+    [LoggerMessage(EventId = 21, EventName = nameof(ReaderLoopCompletedWithPendingCommand), Level = LogLevel.Warning,
+        Message = "Reader loop completed because the remote endpoint closed the stream while a command response was pending.")]
+    public static partial void ReaderLoopCompletedWithPendingCommand(this ILogger logger);
+
+    [LoggerMessage(EventId = 22, EventName = nameof(ReaderLoopCanceledWithPendingCommand), Level = LogLevel.Debug,
+        Message = "Reader loop canceled while a command response was pending.")]
+    public static partial void ReaderLoopCanceledWithPendingCommand(this ILogger logger);
+
+    [LoggerMessage(EventId = 23, EventName = nameof(ReaderLoopFailedWithPendingCommand), Level = LogLevel.Warning,
+        Message = "Reader loop failed while a command response was pending.")]
+    public static partial void ReaderLoopFailedWithPendingCommand(this ILogger logger);
 }

@@ -399,6 +399,11 @@ public sealed class MagnetarClient(string hostName, string macAddress, ILogger<M
     public ValueTask<OppoResult<VerboseMode>> SetVerboseMode(VerboseMode verboseMode, CancellationToken cancellationToken = default)
         => ValueTask.FromResult(new OppoResult<VerboseMode> { Success = false });
 
+    public bool SupportsStreamingUpdates => false;
+
+    public IAsyncEnumerable<OppoStreamingEvent> SubscribeStreamingUpdates(CancellationToken cancellationToken = default)
+        => AsyncEnumerable.Empty<OppoStreamingEvent>();
+
     public ValueTask<bool> IsConnectedAsync(TimeSpan? timeout = null)
         => ConnectHelper.IsConnectedAsync(_tcpClient, _hostName, Port, _semaphore, _logger, timeout);
 

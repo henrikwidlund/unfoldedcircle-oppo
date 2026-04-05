@@ -123,9 +123,11 @@ public enum PlaybackStatus : sbyte
 [EnumExtensions(MetadataSource = MetadataSource.DisplayAttribute)]
 public enum DiscType : sbyte
 {
+    Unknown = 1,
+
     // ReSharper disable InconsistentNaming
     [Display(Name = "Blu-Ray Movie")]
-    BlueRayMovie = 1,
+    BlueRayMovie,
 
     [Display(Name = "DVD Video")]
     DVDVideo,
@@ -151,7 +153,9 @@ public enum DiscType : sbyte
     UnknownDisc,
     
     // Pre 20X models
-    HDCD
+    HDCD,
+    VCD2,
+    SVCD
     // ReSharper restore InconsistentNaming
 }
 
@@ -292,6 +296,9 @@ public enum HDMIResolution : sbyte
     [Display(Name = "1080i 60Hz")]
     R1080i60,
 
+    [Display(Name = "1080p 23.97Hz")]
+    R1080p23,
+
     [Display(Name = "1080p 24Hz")]
     R1080p24,
 
@@ -319,7 +326,9 @@ public enum HDMIResolution : sbyte
     Auto,
 
     [Display(Name = "Source Direct")]
-    SourceDirect
+    SourceDirect,
+
+    Other
     // ReSharper restore InconsistentNaming
 }
 

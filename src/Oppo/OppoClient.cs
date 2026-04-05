@@ -4,6 +4,7 @@ using System.IO.Pipelines;
 using System.Net.Sockets;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Threading.Channels;
 
 using Microsoft.Extensions.Logging;
 
@@ -27,16 +28,23 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
     private TcpClient _tcpClient = ConnectHelper.CreateTcpClient();
     private readonly SemaphoreSlim _semaphore = new(1, 1);
     private readonly TimeSpan _timeout = TimeSpan.FromSeconds(1);
-    private readonly StringBuilder _stringBuilder = new();
-    
+
     private const string OkOn = "@OK ON";
     private const string OkOff = "@OK OFF";
+
+    private readonly Lock _streamingSync = new();
+    private CancellationTokenSource? _readerCts;
+    private Task? _readerTask;
+    private PendingCommandResponse? _pendingCommandResponse;
+    private Channel<OppoStreamingEvent>? _streamingChannel;
+    private static readonly CommandCode PauseCommandCode = new(((uint)'P' << 16) | ((uint)'A' << 8) | (byte)'U');
+    private static readonly CommandCode PlayCommandCode = new(((uint)'P' << 16) | ((uint)'L' << 8) | (byte)'A');
 
     internal bool IsDisposed { get; private set; }
 
     public async ValueTask<OppoResult<PowerState>> PowerToggleAsync(CancellationToken cancellationToken = default)
     {
-        var result = await SendCommandWithRetry(
+        var result = await SendCommand(
             _is20XModel ? Oppo20XCommand.PowerToggle : Oppo10XCommand.PowerToggle,
             cancellationToken);
         
@@ -58,7 +66,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
 
     public async ValueTask<OppoResult<PowerState>> PowerOnAsync(CancellationToken cancellationToken = default)
     {
-        var result = await SendCommandWithRetry(
+        var result = await SendCommand(
             _is20XModel ? Oppo20XCommand.PowerOn : Oppo10XCommand.PowerOn,
             cancellationToken);
 
@@ -79,7 +87,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
 
     public async ValueTask<OppoResult<PowerState>> PowerOffAsync(CancellationToken cancellationToken = default)
     {
-        var result = await SendCommandWithRetry(
+        var result = await SendCommand(
             _is20XModel ? Oppo20XCommand.PowerOff : Oppo10XCommand.PowerOff,
             cancellationToken);
 
@@ -100,7 +108,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
 
     public async ValueTask<OppoResult<TrayState>> EjectToggleAsync(CancellationToken cancellationToken = default)
     {
-        var result = await SendCommandWithRetry(
+        var result = await SendCommand(
             _is20XModel ? Oppo20XCommand.EjectToggle : Oppo10XCommand.EjectToggle,
             cancellationToken);
 
@@ -122,7 +130,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
 
     public async ValueTask<OppoResult<DimmerState>> DimmerAsync(CancellationToken cancellationToken = default)
     {
-        var result = await SendCommandWithRetry(
+        var result = await SendCommand(
             _is20XModel ? Oppo20XCommand.Dimmer : Oppo10XCommand.Dimmer,
             cancellationToken);
 
@@ -145,7 +153,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
 
     public async ValueTask<OppoResult<PureAudioState>> PureAudioToggleAsync(CancellationToken cancellationToken = default)
     {
-        var result = await SendCommandWithRetry(
+        var result = await SendCommand(
             _is20XModel ? Oppo20XCommand.PureAudioToggle : Oppo10XCommand.PureAudioToggle,
             cancellationToken);
 
@@ -167,7 +175,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
 
     public async ValueTask<OppoResult<ushort?>> VolumeUpAsync(CancellationToken cancellationToken = default)
     {
-        var result = await SendCommandWithRetry(
+        var result = await SendCommand(
             _is20XModel ? Oppo20XCommand.VolumeUp : Oppo10XCommand.VolumeUp,
             cancellationToken);
 
@@ -184,7 +192,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
     
     public async ValueTask<OppoResult<ushort?>> VolumeDownAsync(CancellationToken cancellationToken = default)
     {
-        var result = await SendCommandWithRetry(
+        var result = await SendCommand(
             _is20XModel ? Oppo20XCommand.VolumeDown : Oppo10XCommand.VolumeDown,
             cancellationToken);
 
@@ -201,7 +209,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
     
     public async ValueTask<OppoResult<MuteState>> MuteToggleAsync(CancellationToken cancellationToken = default)
     {
-        var result = await SendCommandWithRetry(
+        var result = await SendCommand(
             _is20XModel ? Oppo20XCommand.MuteToggle : Oppo10XCommand.MuteToggle,
             cancellationToken);
 
@@ -226,7 +234,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         if (number > 9)
             return false;
 
-        return (await SendCommandWithRetry(
+        return (await SendCommand(
                 number switch
                 {
                     0 => _is20XModel ? Oppo20XCommand.NumericKey0 : Oppo10XCommand.NumericKey0,
@@ -246,77 +254,77 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
     }
 
     public async ValueTask<bool> ClearAsync(CancellationToken cancellationToken = default) =>
-        (await SendCommandWithRetry(_is20XModel ? Oppo20XCommand.Clear : Oppo10XCommand.Clear, cancellationToken)).Success;
+        (await SendCommand(_is20XModel ? Oppo20XCommand.Clear : Oppo10XCommand.Clear, cancellationToken)).Success;
 
     public async ValueTask<bool> GoToAsync(CancellationToken cancellationToken = default) =>
-        (await SendCommandWithRetry(_is20XModel ? Oppo20XCommand.GoTo : Oppo10XCommand.GoTo, cancellationToken)).Success;
+        (await SendCommand(_is20XModel ? Oppo20XCommand.GoTo : Oppo10XCommand.GoTo, cancellationToken)).Success;
 
     public async ValueTask<bool> HomeAsync(CancellationToken cancellationToken = default) =>
-        (await SendCommandWithRetry(_is20XModel ? Oppo20XCommand.Home : Oppo10XCommand.Home, cancellationToken)).Success;
+        (await SendCommand(_is20XModel ? Oppo20XCommand.Home : Oppo10XCommand.Home, cancellationToken)).Success;
 
     public async ValueTask<bool> PageUpAsync(CancellationToken cancellationToken = default) =>
-        (await SendCommandWithRetry(_is20XModel ? Oppo20XCommand.PageUp : Oppo10XCommand.PageUp, cancellationToken)).Success;
+        (await SendCommand(_is20XModel ? Oppo20XCommand.PageUp : Oppo10XCommand.PageUp, cancellationToken)).Success;
 
     public async ValueTask<bool> PageDownAsync(CancellationToken cancellationToken = default) =>
-        (await SendCommandWithRetry(_is20XModel ? Oppo20XCommand.PageDown : Oppo10XCommand.PageDown, cancellationToken)).Success;
+        (await SendCommand(_is20XModel ? Oppo20XCommand.PageDown : Oppo10XCommand.PageDown, cancellationToken)).Success;
 
     public async ValueTask<bool> InfoToggleAsync(CancellationToken cancellationToken = default) =>
-        (await SendCommandWithRetry(_is20XModel ? Oppo20XCommand.InfoToggle : Oppo10XCommand.InfoToggle, cancellationToken)).Success;
+        (await SendCommand(_is20XModel ? Oppo20XCommand.InfoToggle : Oppo10XCommand.InfoToggle, cancellationToken)).Success;
 
     public async ValueTask<bool> TopMenuAsync(CancellationToken cancellationToken = default) =>
-        (await SendCommandWithRetry(_is20XModel ? Oppo20XCommand.TopMenu : Oppo10XCommand.TopMenu, cancellationToken)).Success;
+        (await SendCommand(_is20XModel ? Oppo20XCommand.TopMenu : Oppo10XCommand.TopMenu, cancellationToken)).Success;
 
     public async ValueTask<bool> PopUpMenuAsync(CancellationToken cancellationToken = default) =>
-        (await SendCommandWithRetry(_is20XModel ? Oppo20XCommand.PopUpMenu : Oppo10XCommand.PopUpMenu, cancellationToken)).Success;
+        (await SendCommand(_is20XModel ? Oppo20XCommand.PopUpMenu : Oppo10XCommand.PopUpMenu, cancellationToken)).Success;
 
     public async ValueTask<bool> UpArrowAsync(CancellationToken cancellationToken = default) =>
-        (await SendCommandWithRetry(_is20XModel ? Oppo20XCommand.UpArrow : Oppo10XCommand.UpArrow, cancellationToken)).Success;
+        (await SendCommand(_is20XModel ? Oppo20XCommand.UpArrow : Oppo10XCommand.UpArrow, cancellationToken)).Success;
 
     public async ValueTask<bool> LeftArrowAsync(CancellationToken cancellationToken = default) =>
-        (await SendCommandWithRetry(_is20XModel ? Oppo20XCommand.LeftArrow : Oppo10XCommand.LeftArrow, cancellationToken)).Success;
+        (await SendCommand(_is20XModel ? Oppo20XCommand.LeftArrow : Oppo10XCommand.LeftArrow, cancellationToken)).Success;
 
     public async ValueTask<bool> RightArrowAsync(CancellationToken cancellationToken = default) =>
-        (await SendCommandWithRetry(_is20XModel ? Oppo20XCommand.RightArrow : Oppo10XCommand.RightArrow, cancellationToken)).Success;
+        (await SendCommand(_is20XModel ? Oppo20XCommand.RightArrow : Oppo10XCommand.RightArrow, cancellationToken)).Success;
 
     public async ValueTask<bool> DownArrowAsync(CancellationToken cancellationToken = default) =>
-        (await SendCommandWithRetry(_is20XModel ? Oppo20XCommand.DownArrow : Oppo10XCommand.DownArrow, cancellationToken)).Success;
+        (await SendCommand(_is20XModel ? Oppo20XCommand.DownArrow : Oppo10XCommand.DownArrow, cancellationToken)).Success;
 
     public async ValueTask<bool> EnterAsync(CancellationToken cancellationToken = default) =>
-        (await SendCommandWithRetry(_is20XModel ? Oppo20XCommand.Enter : Oppo10XCommand.Enter, cancellationToken)).Success;
+        (await SendCommand(_is20XModel ? Oppo20XCommand.Enter : Oppo10XCommand.Enter, cancellationToken)).Success;
 
     public async ValueTask<bool> SetupAsync(CancellationToken cancellationToken = default) =>
-        (await SendCommandWithRetry(_is20XModel ? Oppo20XCommand.Setup : Oppo10XCommand.Setup, cancellationToken)).Success;
+        (await SendCommand(_is20XModel ? Oppo20XCommand.Setup : Oppo10XCommand.Setup, cancellationToken)).Success;
 
     public async ValueTask<bool> ReturnAsync(CancellationToken cancellationToken = default) =>
-        (await SendCommandWithRetry(_is20XModel ? Oppo20XCommand.Return : Oppo10XCommand.Return, cancellationToken)).Success;
+        (await SendCommand(_is20XModel ? Oppo20XCommand.Return : Oppo10XCommand.Return, cancellationToken)).Success;
 
     public async ValueTask<bool> RedAsync(CancellationToken cancellationToken = default) =>
-        (await SendCommandWithRetry(_is20XModel ? Oppo20XCommand.Red : Oppo10XCommand.Red, cancellationToken)).Success;
+        (await SendCommand(_is20XModel ? Oppo20XCommand.Red : Oppo10XCommand.Red, cancellationToken)).Success;
 
     public async ValueTask<bool> GreenAsync(CancellationToken cancellationToken = default) =>
-        (await SendCommandWithRetry(_is20XModel ? Oppo20XCommand.Green : Oppo10XCommand.Green, cancellationToken)).Success;
+        (await SendCommand(_is20XModel ? Oppo20XCommand.Green : Oppo10XCommand.Green, cancellationToken)).Success;
 
     public async ValueTask<bool> BlueAsync(CancellationToken cancellationToken = default) =>
-        (await SendCommandWithRetry(_is20XModel ? Oppo20XCommand.Blue : Oppo10XCommand.Blue, cancellationToken)).Success;
+        (await SendCommand(_is20XModel ? Oppo20XCommand.Blue : Oppo10XCommand.Blue, cancellationToken)).Success;
 
     public async ValueTask<bool> YellowAsync(CancellationToken cancellationToken = default) =>
-        (await SendCommandWithRetry(_is20XModel ? Oppo20XCommand.Yellow : Oppo10XCommand.Yellow, cancellationToken)).Success;
+        (await SendCommand(_is20XModel ? Oppo20XCommand.Yellow : Oppo10XCommand.Yellow, cancellationToken)).Success;
 
     public async ValueTask<bool> StopAsync(CancellationToken cancellationToken = default) =>
-        (await SendCommandWithRetry(_is20XModel ? Oppo20XCommand.Stop : Oppo10XCommand.Stop, cancellationToken)).Success;
+        (await SendCommand(_is20XModel ? Oppo20XCommand.Stop : Oppo10XCommand.Stop, cancellationToken)).Success;
 
     public async ValueTask<bool> PlayAsync(CancellationToken cancellationToken = default) =>
-        (await SendCommandWithRetry(_is20XModel ? Oppo20XCommand.Play : Oppo10XCommand.Play, cancellationToken)).Success;
+        (await SendCommand(_is20XModel ? Oppo20XCommand.Play : Oppo10XCommand.Play, cancellationToken)).Success;
 
     public async ValueTask<bool> PauseAsync(CancellationToken cancellationToken = default) =>
-        (await SendCommandWithRetry(_is20XModel ? Oppo20XCommand.Pause : Oppo10XCommand.Pause, cancellationToken)).Success;
+        (await SendCommand(_is20XModel ? Oppo20XCommand.Pause : Oppo10XCommand.Pause, cancellationToken)).Success;
 
     public async ValueTask<bool> PreviousAsync(CancellationToken cancellationToken = default) =>
-        (await SendCommandWithRetry(_is20XModel ? Oppo20XCommand.Previous : Oppo10XCommand.Previous, cancellationToken)).Success;
+        (await SendCommand(_is20XModel ? Oppo20XCommand.Previous : Oppo10XCommand.Previous, cancellationToken)).Success;
 
     public async ValueTask<OppoResult<ushort?>> ReverseAsync(CancellationToken cancellationToken = default)
     {
-        var result = await SendCommandWithRetry(
+        var result = await SendCommand(
             _is20XModel ? Oppo20XCommand.Reverse : Oppo10XCommand.Reverse,
             cancellationToken);
         
@@ -333,7 +341,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
     
     public async ValueTask<OppoResult<ushort?>> ForwardAsync(CancellationToken cancellationToken = default)
     {
-        var result = await SendCommandWithRetry(
+        var result = await SendCommand(
             _is20XModel ? Oppo20XCommand.Forward : Oppo10XCommand.Forward,
             cancellationToken);
         
@@ -349,17 +357,17 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
     }
     
     public async ValueTask<bool> NextAsync(CancellationToken cancellationToken = default) =>
-        (await SendCommandWithRetry(_is20XModel ? Oppo20XCommand.Next : Oppo10XCommand.Next, cancellationToken)).Success;
+        (await SendCommand(_is20XModel ? Oppo20XCommand.Next : Oppo10XCommand.Next, cancellationToken)).Success;
 
     public async ValueTask<bool> AudioAsync(CancellationToken cancellationToken = default) =>
-        (await SendCommandWithRetry(_is20XModel ? Oppo20XCommand.Audio : Oppo10XCommand.Audio, cancellationToken)).Success;
+        (await SendCommand(_is20XModel ? Oppo20XCommand.Audio : Oppo10XCommand.Audio, cancellationToken)).Success;
 
     public async ValueTask<bool> SubtitleAsync(CancellationToken cancellationToken = default) =>
-        (await SendCommandWithRetry(_is20XModel ? Oppo20XCommand.Subtitle : Oppo10XCommand.Subtitle, cancellationToken)).Success;
+        (await SendCommand(_is20XModel ? Oppo20XCommand.Subtitle : Oppo10XCommand.Subtitle, cancellationToken)).Success;
 
     public async ValueTask<OppoResult<string>> AngleAsync(CancellationToken cancellationToken = default)
     {
-        var result = await SendCommandWithRetry(
+        var result = await SendCommand(
             _is20XModel ? Oppo20XCommand.Angle : Oppo10XCommand.Angle,
             cancellationToken);
         
@@ -376,7 +384,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
     
     public async ValueTask<OppoResult<string>> ZoomAsync(CancellationToken cancellationToken = default)
     {
-        var result = await SendCommandWithRetry(
+        var result = await SendCommand(
             _is20XModel ? Oppo20XCommand.Zoom : Oppo10XCommand.Zoom,
             cancellationToken);
         
@@ -393,7 +401,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
     
     public async ValueTask<OppoResult<string>> SecondaryAudioProgramAsync(CancellationToken cancellationToken = default)
     {
-        var result = await SendCommandWithRetry(
+        var result = await SendCommand(
             _is20XModel ? Oppo20XCommand.SecondaryAudioProgram : Oppo10XCommand.SecondaryAudioProgram,
             cancellationToken);
         
@@ -410,7 +418,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
     
     public async ValueTask<OppoResult<ABReplayState>> ABReplayAsync(CancellationToken cancellationToken = default)
     {
-        var result = await SendCommandWithRetry(
+        var result = await SendCommand(
             _is20XModel ? Oppo20XCommand.ABReplay : Oppo10XCommand.ABReplay,
             cancellationToken);
         
@@ -433,7 +441,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
     
     public async ValueTask<OppoResult<RepeatState>> RepeatAsync(CancellationToken cancellationToken = default)
     {
-        var result = await SendCommandWithRetry(
+        var result = await SendCommand(
             _is20XModel ? Oppo20XCommand.Repeat : Oppo10XCommand.Repeat,
             cancellationToken);
         
@@ -456,7 +464,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
     
     public async ValueTask<OppoResult<string>> PictureInPictureAsync(CancellationToken cancellationToken = default)
     {
-        var result = await SendCommandWithRetry(
+        var result = await SendCommand(
             _is20XModel ? Oppo20XCommand.PictureInPicture : Oppo10XCommand.PictureInPicture,
             cancellationToken);
         
@@ -472,54 +480,54 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
     }
     
     public async ValueTask<bool> ResolutionAsync(CancellationToken cancellationToken = default) =>
-        (await SendCommandWithRetry(_is20XModel ? Oppo20XCommand.Resolution : Oppo10XCommand.Resolution, cancellationToken)).Success;
+        (await SendCommand(_is20XModel ? Oppo20XCommand.Resolution : Oppo10XCommand.Resolution, cancellationToken)).Success;
 
     public async ValueTask<bool> SubtitleHoldAsync(CancellationToken cancellationToken = default) =>
-        (await SendCommandWithRetry(_is20XModel ? Oppo20XCommand.SubtitleHold : Oppo10XCommand.SubtitleHold, cancellationToken)).Success;
+        (await SendCommand(_is20XModel ? Oppo20XCommand.SubtitleHold : Oppo10XCommand.SubtitleHold, cancellationToken)).Success;
 
     public async ValueTask<bool> OptionAsync(CancellationToken cancellationToken = default) =>
         _model is not OppoModel.BDP83 and not OppoModel.BDP9X &&
-        (await SendCommandWithRetry(_is20XModel ? Oppo20XCommand.Option : Oppo10XCommand.Option, cancellationToken)).Success;
+        (await SendCommand(_is20XModel ? Oppo20XCommand.Option : Oppo10XCommand.Option, cancellationToken)).Success;
 
     public async ValueTask<bool> ThreeDAsync(CancellationToken cancellationToken = default) =>
         _model is not OppoModel.BDP83 and not OppoModel.BDP9X &&
-        (await SendCommandWithRetry(_is20XModel ? Oppo20XCommand.ThreeD : Oppo10XCommand.ThreeD, cancellationToken)).Success;
+        (await SendCommand(_is20XModel ? Oppo20XCommand.ThreeD : Oppo10XCommand.ThreeD, cancellationToken)).Success;
 
     public async ValueTask<bool> PictureAdjustmentAsync(CancellationToken cancellationToken = default) =>
         _model is not OppoModel.BDP83 and not OppoModel.BDP9X &&
-        (await SendCommandWithRetry(_is20XModel ? Oppo20XCommand.PictureAdjustment : Oppo10XCommand.PictureAdjustment, cancellationToken)).Success;
+        (await SendCommand(_is20XModel ? Oppo20XCommand.PictureAdjustment : Oppo10XCommand.PictureAdjustment, cancellationToken)).Success;
 
     public async ValueTask<bool> HDRAsync(CancellationToken cancellationToken = default) =>
         _is20XModel &&
-        (await SendCommandWithRetry(Oppo20XCommand.HDR, cancellationToken)).Success;
+        (await SendCommand(Oppo20XCommand.HDR, cancellationToken)).Success;
 
     public async ValueTask<bool> InfoHoldAsync(CancellationToken cancellationToken = default) =>
         _is20XModel &&
-        (await SendCommandWithRetry(Oppo20XCommand.InfoHold, cancellationToken)).Success;
+        (await SendCommand(Oppo20XCommand.InfoHold, cancellationToken)).Success;
 
     public async ValueTask<bool> ResolutionHoldAsync(CancellationToken cancellationToken = default) =>
         _is20XModel &&
-        (await SendCommandWithRetry(Oppo20XCommand.ResolutionHold, cancellationToken)).Success;
+        (await SendCommand(Oppo20XCommand.ResolutionHold, cancellationToken)).Success;
 
     public async ValueTask<bool> AVSyncAsync(CancellationToken cancellationToken = default) =>
         _is20XModel &&
-        (await SendCommandWithRetry(Oppo20XCommand.AVSync, cancellationToken)).Success;
+        (await SendCommand(Oppo20XCommand.AVSync, cancellationToken)).Success;
 
     public async ValueTask<bool> GaplessPlayAsync(CancellationToken cancellationToken = default) =>
-        _is20XModel && (await SendCommandWithRetry(Oppo20XCommand.GaplessPlay, cancellationToken)).Success;
+        _is20XModel && (await SendCommand(Oppo20XCommand.GaplessPlay, cancellationToken)).Success;
 
     public async ValueTask<bool> NoopAsync(CancellationToken cancellationToken = default) =>
-        (await SendCommandWithRetry(_is20XModel ? Oppo20XCommand.Noop : Oppo10XCommand.Noop, cancellationToken)).Success;
+        (await SendCommand(_is20XModel ? Oppo20XCommand.Noop : Oppo10XCommand.Noop, cancellationToken)).Success;
 
     public async ValueTask<bool> InputAsync(CancellationToken cancellationToken = default) =>
-        (await SendCommandWithRetry(_is20XModel ? Oppo20XCommand.Input : Oppo10XCommand.Input, cancellationToken)).Success;
+        (await SendCommand(_is20XModel ? Oppo20XCommand.Input : Oppo10XCommand.Input, cancellationToken)).Success;
 
     public async ValueTask<OppoResult<RepeatMode>> SetRepeatAsync(RepeatMode mode, CancellationToken cancellationToken = default)
     {
         if (mode == RepeatMode.Unknown)
             return false;
         
-        var result = await SendCommandWithRetry(mode switch
+        var result = await SendCommand(mode switch
         {
             RepeatMode.Chapter => _is20XModel ? Oppo20XAdvancedCommand.SetRepeatModeChapter : Oppo10XAdvancedCommand.SetRepeatModeChapter,
             RepeatMode.Title => _is20XModel ? Oppo20XAdvancedCommand.SetRepeatModeTitle : Oppo10XAdvancedCommand.SetRepeatModeTitle,
@@ -556,7 +564,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
             return false;
         
         var command = Encoding.ASCII.GetBytes(_is20XModel ? $"#SVL {volume}\r" : $"REMOTE SVL {volume}");
-        var result = await SendCommandWithRetry(command, cancellationToken);
+        var result = await SendCommand(command, cancellationToken);
         
         return result.Success switch
         {
@@ -571,7 +579,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
 
     public async ValueTask<OppoResult<VolumeInfo>> QueryVolumeAsync(CancellationToken cancellationToken = default)
     {
-        var result = await SendCommandWithRetry(_is20XModel ? Oppo20XQueryCommand.QueryVolume : Oppo10XQueryCommand.QueryVolume, cancellationToken);
+        var result = await SendCommand(_is20XModel ? Oppo20XQueryCommand.QueryVolume : Oppo10XQueryCommand.QueryVolume, cancellationToken);
 
         if (!result.Success)
             return false;
@@ -599,7 +607,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
     public async ValueTask<OppoResult<PowerState>> QueryPowerStatusAsync(CancellationToken cancellationToken = default)
     {
         var command = _is20XModel ? Oppo20XQueryCommand.QueryPowerStatus : Oppo10XQueryCommand.QueryPowerStatus;
-        var result = await SendCommandWithRetry(command, cancellationToken);
+        var result = await SendCommand(command, cancellationToken);
         
         return result.Success switch
         {
@@ -620,7 +628,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
     public async ValueTask<OppoResult<PlaybackStatus>> QueryPlaybackStatusAsync(CancellationToken cancellationToken = default)
     {
         var command = _is20XModel ? Oppo20XQueryCommand.QueryPlaybackStatus : Oppo10XQueryCommand.QueryPlaybackStatus;
-        var result = await SendCommandWithRetry(command, cancellationToken);
+        var result = await SendCommand(command, cancellationToken);
         
         return result.Success switch
         {
@@ -648,7 +656,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
                     "@OK NO DISC" => PlaybackStatus.NoDisc,
                     "@OK LOADING" => PlaybackStatus.Loading,
                     "@OK OPEN" => PlaybackStatus.Open,
-                    "OK CLOSE" => PlaybackStatus.Close,
+                    "OK CLOSE" or "@OK CLOSE" => PlaybackStatus.Close,
                     "@OK UNKNOW" => PlaybackStatus.Unknown,
                     _ => LogError(result.Response, PlaybackStatus.Unknown)
                 }
@@ -658,7 +666,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
 
     public async ValueTask<OppoResult<HDMIResolution>> QueryHDMIResolutionAsync(CancellationToken cancellationToken = default)
     {
-        var result = await SendCommandWithRetry(_is20XModel ? Oppo20XQueryCommand.QueryHDMIResolution : Oppo10XQueryCommand.QueryHDMIResolution,
+        var result = await SendCommand(_is20XModel ? Oppo20XQueryCommand.QueryHDMIResolution : Oppo10XQueryCommand.QueryHDMIResolution,
             cancellationToken);
 
         return result.Success switch
@@ -677,6 +685,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
                     "@OK 720P60" => HDMIResolution.R720p60,
                     "@OK 1080I50" => HDMIResolution.R1080i50,
                     "@OK 1080I60" => HDMIResolution.R1080i60,
+                    "@OK 1080P23" => HDMIResolution.R1080p23,
                     "@OK 1080P24" => HDMIResolution.R1080p24,
                     "@OK 1080P50" => HDMIResolution.R1080p50,
                     "@OK 1080P60" => HDMIResolution.R1080p60,
@@ -687,6 +696,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
                     "@OK UHD_AUTO" => HDMIResolution.RUltraHDAuto,
                     "@OK AUTO" => HDMIResolution.Auto,
                     "@OK Source Direct" => HDMIResolution.SourceDirect,
+                    "@OK OTHER" => HDMIResolution.Other,
                     _ => LogError(result.Response, HDMIResolution.Unknown)
                 }
             }
@@ -720,7 +730,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
     public async ValueTask<OppoResult<DiscType>> QueryDiscTypeAsync(CancellationToken cancellationToken = default)
     {
         var command = _is20XModel ? Oppo20XQueryCommand.QueryDiscType : Oppo10XQueryCommand.QueryDiscType;
-        var result = await SendCommandWithRetry(command, cancellationToken);
+        var result = await SendCommand(command, cancellationToken);
         
         return result.Success switch
         {
@@ -742,7 +752,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
                         
                     // Pre 20X models
                     "@OK HDCD" => DiscType.HDCD,
-                    _ => LogError(result.Response, DiscType.UnknownDisc)
+                    _ => LogError(result.Response, DiscType.Unknown)
                 }
             }
         };
@@ -750,7 +760,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
 
     public async ValueTask<OppoResult<string>> QueryAudioTypeAsync(CancellationToken cancellationToken = default)
     {
-        var result = await SendCommandWithRetry(_is20XModel ? Oppo20XQueryCommand.QueryAudioType : Oppo10XQueryCommand.QueryAudioType, cancellationToken);
+        var result = await SendCommand(_is20XModel ? Oppo20XQueryCommand.QueryAudioType : Oppo10XQueryCommand.QueryAudioType, cancellationToken);
 
         return result.Success switch
         {
@@ -765,7 +775,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
 
     public async ValueTask<OppoResult<string>> QuerySubtitleTypeAsync(CancellationToken cancellationToken = default)
     {
-        var result = await SendCommandWithRetry(_is20XModel ? Oppo20XQueryCommand.QuerySubtitleType : Oppo10XQueryCommand.QuerySubtitleType,
+        var result = await SendCommand(_is20XModel ? Oppo20XQueryCommand.QuerySubtitleType : Oppo10XQueryCommand.QuerySubtitleType,
             cancellationToken);
 
         return result.Success switch
@@ -784,7 +794,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         if (!_is20XModel)
             return false;
 
-        var result = await SendCommandWithRetry(Oppo20XQueryCommand.QueryThreeDStatus, cancellationToken);
+        var result = await SendCommand(Oppo20XQueryCommand.QueryThreeDStatus, cancellationToken);
 
         return result.Success switch
         {
@@ -807,7 +817,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         if (!_is20XModel)
             return false;
 
-        var result = await SendCommandWithRetry(Oppo20XQueryCommand.QueryHDRStatus, cancellationToken);
+        var result = await SendCommand(Oppo20XQueryCommand.QueryHDRStatus, cancellationToken);
 
         return result.Success switch
         {
@@ -831,7 +841,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         if (!_is20XModel)
             return false;
 
-        var result = await SendCommandWithRetry(Oppo20XQueryCommand.QueryAspectRatio, cancellationToken);
+        var result = await SendCommand(Oppo20XQueryCommand.QueryAspectRatio, cancellationToken);
 
         return result.Success switch
         {
@@ -862,7 +872,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
     public async ValueTask<OppoResult<CurrentRepeatMode>> QueryRepeatModeAsync(CancellationToken cancellationToken = default)
     {
         var command = _is20XModel ? Oppo20XQueryCommand.QueryRepeatMode : Oppo10XQueryCommand.QueryRepeatMode;
-        var result = await SendCommandWithRetry(command, cancellationToken);
+        var result = await SendCommand(command, cancellationToken);
         
         return result.Success switch
         {
@@ -890,7 +900,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         if (_model is OppoModel.BDP83 or OppoModel.BDP9X)
             return false;
         
-        var result = await SendCommandWithRetry(_is20XModel ? Oppo20XQueryCommand.QueryInputSource : Oppo10XQueryCommand.QueryInputSource,
+        var result = await SendCommand(_is20XModel ? Oppo20XQueryCommand.QueryInputSource : Oppo10XQueryCommand.QueryInputSource,
             cancellationToken);
         
         return result.Success switch
@@ -941,8 +951,8 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
             _ => throw new ArgumentOutOfRangeException(nameof(inputSource), inputSource, null)
         };
     
-        var command = Encoding.ASCII.GetBytes(_is20XModel ? $"#SIS {commandDigit}\r" : $"REMOTE SVL {commandDigit}");
-        var result = await SendCommandWithRetry(command, cancellationToken);
+        var command = Encoding.ASCII.GetBytes(_is20XModel ? $"#SIS {commandDigit}\r" : $"REMOTE SIS {commandDigit}");
+        var result = await SendCommand(command, cancellationToken);
     
         return result.Success switch
         {
@@ -1011,7 +1021,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         if (!_is20XModel)
             return false;
         
-        var result = await SendCommandWithRetry(Oppo20XQueryCommand.QueryCDDBNumber, cancellationToken);
+        var result = await SendCommand(Oppo20XQueryCommand.QueryCDDBNumber, cancellationToken);
         
         return result.Success switch
         {
@@ -1029,7 +1039,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         if (!_is20XModel)
             return false;
         
-        var result = await SendCommandWithRetry(Oppo20XQueryCommand.QueryTrackName, cancellationToken);
+        var result = await SendCommand(Oppo20XQueryCommand.QueryTrackName, cancellationToken);
         
         return result.Success switch
         {
@@ -1047,7 +1057,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         if (!_is20XModel)
             return false;
         
-        var result = await SendCommandWithRetry(Oppo20XQueryCommand.QueryTrackAlbum, cancellationToken);
+        var result = await SendCommand(Oppo20XQueryCommand.QueryTrackAlbum, cancellationToken);
         
         return result.Success switch
         {
@@ -1065,7 +1075,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         if (!_is20XModel)
             return false;
         
-        var result = await SendCommandWithRetry(Oppo20XQueryCommand.QueryTrackPerformer, cancellationToken);
+        var result = await SendCommand(Oppo20XQueryCommand.QueryTrackPerformer, cancellationToken);
         
         return result.Success switch
         {
@@ -1109,6 +1119,49 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         };
     }
 
+    public bool SupportsStreamingUpdates => true;
+
+    public async IAsyncEnumerable<OppoStreamingEvent> SubscribeStreamingUpdates([EnumeratorCancellation] CancellationToken cancellationToken = default)
+    {
+        Channel<OppoStreamingEvent> channel;
+        lock (_streamingSync)
+        {
+            if (_streamingChannel is not null)
+            {
+                _logger.ReplacingStreamingSubscriber();
+                _streamingChannel.Writer.TryComplete();
+            }
+
+            channel = Channel.CreateBounded<OppoStreamingEvent>(new BoundedChannelOptions(128)
+            {
+                SingleReader = true,
+                SingleWriter = true,
+                FullMode = BoundedChannelFullMode.DropOldest,
+                AllowSynchronousContinuations = false
+            });
+            _streamingChannel = channel;
+        }
+
+        try
+        {
+            EnsureReaderLoopStarted();
+
+            await foreach (var evt in channel.Reader.ReadAllAsync(cancellationToken))
+                yield return evt;
+        }
+        finally
+        {
+            lock (_streamingSync)
+            {
+                if (ReferenceEquals(_streamingChannel, channel))
+                {
+                    _streamingChannel = null;
+                    channel.Writer.TryComplete();
+                }
+            }
+        }
+    }
+
     public ValueTask<bool> IsConnectedAsync(TimeSpan? timeout = null)
         => ConnectHelper.IsConnectedAsync(_tcpClient, _hostName, _port, _semaphore, _logger, timeout);
 
@@ -1116,6 +1169,8 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
     
     private async ValueTask<OppoResultCore> SendCommand(byte[] command, CancellationToken cancellationToken, [CallerMemberName] string? caller = null)
     {
+        PendingCommandResponse? pendingResponse = null;
+
         if (!await _semaphore.WaitAsync(_timeout, cancellationToken))
             return OppoResultCore.FalseResult;
 
@@ -1129,34 +1184,62 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
                 _logger.TooManyFailedResponses(caller);
 
                 _tcpClient.Close();
+                StopReaderLoop();
                 _tcpClient = ConnectHelper.CreateTcpClient();
-                await IsConnectedAsync();
             }
+
+            await IsConnectedAsync();
+
+            EnsureReaderLoopStarted();
+
+            pendingResponse = new PendingCommandResponse(
+                ExtractCommandCode(command),
+                new TaskCompletionSource<OppoResultCore>(TaskCreationOptions.RunContinuationsAsynchronously));
+            if (Interlocked.CompareExchange(ref _pendingCommandResponse, pendingResponse, null) is not null)
+                return OppoResultCore.FalseResult;
 
             var networkStream = _tcpClient.GetStream();
             await networkStream.WriteAsync(command, cancellationToken);
 
-            var response = await ReadUntilCarriageReturnAsync(networkStream, cancellationToken);
-
-            _logger.ReceivedResponse(response);
-
-            if (response is { Length: >= 3 } && response.AsSpan()[..3] is "@OK")
-                return OppoResultCore.SuccessResult(response);
-
-            if (response is { Length: 0 })
+            OppoResultCore result;
+            try
             {
+                result = await pendingResponse.Completion.Task.WaitAsync(_timeout, cancellationToken);
+            }
+            catch (TimeoutException)
+            {
+                if (ReferenceEquals(Interlocked.CompareExchange(ref _pendingCommandResponse, null, pendingResponse), pendingResponse))
+                {
+                    pendingResponse.Completion.TrySetResult(OppoResultCore.FalseResult);
+                }
                 _logger.CommandNotValidAtThisTime(caller);
                 return OppoResultCore.FalseResult;
             }
 
-            _logger.FailedToSendCommand(caller, response);
+            if (result.Success)
+                return result;
 
-            return response.StartsWith("@ER", StringComparison.Ordinal)
-                ? OppoResultCore.FalseResult
-                : OppoResultCore.InvalidVerboseLevelResult;
+            if (result.Response is { Length: > 0 } response)
+                _logger.FailedToSendCommand(caller, response);
+
+            return OppoResultCore.FalseResult;
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            if (pendingResponse is not null
+                && ReferenceEquals(Interlocked.CompareExchange(ref _pendingCommandResponse, null, pendingResponse), pendingResponse))
+            {
+                pendingResponse.Completion.TrySetResult(OppoResultCore.FalseResult);
+            }
+            return OppoResultCore.FalseResult;
         }
         catch (Exception e)
         {
+            if (pendingResponse is not null
+                && ReferenceEquals(Interlocked.CompareExchange(ref _pendingCommandResponse, null, pendingResponse), pendingResponse))
+            {
+                pendingResponse.Completion.TrySetResult(OppoResultCore.FalseResult);
+            }
             _logger.FailedToSendCommandException(e);
             return OppoResultCore.FalseResult;
         }
@@ -1166,102 +1249,696 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         }
     }
 
-    private async ValueTask<OppoResultCore> SendCommandWithRetry(byte[] command, CancellationToken cancellationToken, [CallerMemberName] string? caller = null)
+    private void EnsureReaderLoopStarted()
     {
-        var result = await SendCommand(command, cancellationToken, caller);
-        if (!result.InvalidVerboseLevel)
-            return result;
+        if (_readerTask is { IsCompleted: false })
+            return;
 
-        var verboseMode = await SetVerboseMode(VerboseMode.Off, cancellationToken);
-        return !verboseMode.Success ? OppoResultCore.FalseResult : await SendCommand(command, cancellationToken, caller);
+        CancellationTokenSource? previousReaderCts;
+        Task? previousReaderTask;
+
+        lock (_streamingSync)
+        {
+            if (_readerTask is { IsCompleted: false })
+                return;
+
+            var readerCts = new CancellationTokenSource();
+            try
+            {
+                var pipeReader = PipeReader.Create(_tcpClient.GetStream());
+                var readerToken = readerCts.Token;
+                var readerTask = Task.Run(() => ReaderLoopAsync(pipeReader, readerToken), readerToken);
+                previousReaderCts = _readerCts;
+                previousReaderTask = _readerTask;
+                _readerCts = readerCts;
+                _readerTask = readerTask;
+            }
+            catch
+            {
+                readerCts.Cancel();
+                readerCts.Dispose();
+                throw;
+            }
+        }
+
+        if (previousReaderCts is null)
+            return;
+
+        if (previousReaderTask is null || previousReaderTask.IsCompleted)
+        {
+            previousReaderCts.Dispose();
+            return;
+        }
+
+        _ = previousReaderTask.ContinueWith(static (_, state) =>
+            {
+                ((CancellationTokenSource)state!).Dispose();
+            },
+            previousReaderCts,
+            CancellationToken.None,
+            TaskContinuationOptions.ExecuteSynchronously,
+            TaskScheduler.Default);
     }
 
-    private async ValueTask<string> ReadUntilCarriageReturnAsync(NetworkStream networkStream, CancellationToken cancellationToken)
+    private async Task ReaderLoopAsync(PipeReader pipeReader, CancellationToken cancellationToken)
     {
-        _stringBuilder.Clear();
-        var pipeReader = PipeReader.Create(networkStream);
-        var charBuffer = ArrayPool<char>.Shared.Rent(1024);
-        var firstWrite = true;
-        using var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(3));
+        var completedByPeer = false;
+        var canceled = false;
+        var failed = false;
 
         try
         {
-            while (true)
+            while (!cancellationToken.IsCancellationRequested)
             {
-                var result = await pipeReader.ReadAsync(cancellationTokenSource.Token);
-                var buffer = result.Buffer;
+                var readResult = await pipeReader.ReadAsync(cancellationToken);
+                var buffer = readResult.Buffer;
 
-                do
+                while (true)
                 {
-                    var position = buffer.PositionOf((byte)0x0d); // ASCII 0x0d (carriage return)
+                    var position = buffer.PositionOf((byte)0x0d);
+                    if (position is null)
+                        break;
 
-                    if (position != null)
-                    {
-                        var slice = buffer.Slice(0, position.Value);
-                        if (slice.IsSingleSegment)
-                        {
-                            WriteSpan(slice.FirstSpan, charBuffer, ref firstWrite);
-                        }
-                        else
-                        {
-                            foreach (var segment in slice)
-                            {
-                                WriteSpan(segment.Span, charBuffer, ref firstWrite);
-                            }
-                        }
+                    var frameBuffer = buffer.Slice(0, position.Value);
+                    HandleIncomingFrame(frameBuffer);
 
-                        pipeReader.AdvanceTo(slice.End);
-                        return _stringBuilder.ToString();
-                    }
+                    buffer = buffer.Slice(buffer.GetPosition(1, position.Value));
+                }
 
-                    foreach (var segment in buffer)
-                    {
-                        WriteSpan(segment.Span, charBuffer, ref firstWrite);
-                    }
-                    pipeReader.AdvanceTo(buffer.End);
-                } while (!result.IsCompleted && !cancellationToken.IsCancellationRequested);
+                pipeReader.AdvanceTo(buffer.Start, buffer.End);
 
-                if (result.IsCompleted || cancellationToken.IsCancellationRequested)
+                if (readResult.IsCompleted)
+                {
+                    completedByPeer = true;
                     break;
+                }
             }
+        }
+        catch (OperationCanceledException)
+        {
+            canceled = true;
+        }
+        catch (Exception e)
+        {
+            failed = true;
+            _logger.FailedToSendCommandException(e);
         }
         finally
         {
-            ArrayPool<char>.Shared.Return(charBuffer);
-        }
+            var pendingCommand = Interlocked.Exchange(ref _pendingCommandResponse, null);
+            if (pendingCommand is not null)
+            {
+                if (completedByPeer)
+                {
+                    _logger.ReaderLoopCompletedWithPendingCommand();
+                }
+                else if (canceled)
+                {
+                    _logger.ReaderLoopCanceledWithPendingCommand();
+                }
+                else if (failed)
+                {
+                    _logger.ReaderLoopFailedWithPendingCommand();
+                }
 
-        return _stringBuilder.ToString();
+                pendingCommand.Completion.TrySetResult(OppoResultCore.FalseResult);
+            }
+
+            Channel<OppoStreamingEvent>? streamingChannel;
+            lock (_streamingSync)
+            {
+                streamingChannel = _streamingChannel;
+                _streamingChannel = null;
+            }
+
+            streamingChannel?.Writer.TryComplete();
+
+            await pipeReader.CompleteAsync();
+        }
     }
 
-    private void WriteSpan(in ReadOnlySpan<byte> span, char[] charBuffer, ref bool isFirstWrite)
+    private void HandleIncomingFrame(in ReadOnlySequence<byte> rawFrameBuffer)
     {
-        if (isFirstWrite)
+        if (TryGetCommandResponse(rawFrameBuffer, out var responseCommandCode, out var normalizedResponse)
+            && TryCompletePendingCommand(responseCommandCode, normalizedResponse))
+            return;
+
+        if (!_logger.IsEnabled(LogLevel.Trace) && !HasStreamingSubscriber())
+            return;
+
+        if (TryParseStreamingEvent(rawFrameBuffer, out var evt))
         {
-            // Models prior to UDP-20X doesn't send back @OK or @ER, rather it's @(COMMAND_CODE) followed by OK|ER and then the response
-            if (!_is20XModel && (!span.StartsWith("@OK "u8) && !span.StartsWith("@ER "u8)))
+            if (evt is not null)
+                PublishStreamingEvent(evt, rawFrameBuffer);
+            return;
+        }
+
+        if (_logger.IsEnabled(LogLevel.Trace))
+            _logger.ReceivedWireFrameRaw(Encoding.ASCII.GetString(rawFrameBuffer));
+    }
+
+    private void PublishStreamingEvent(OppoStreamingEvent evt, in ReadOnlySequence<byte> rawFrameBuffer)
+    {
+        Channel<OppoStreamingEvent>? channel;
+        lock (_streamingSync)
+            channel = _streamingChannel;
+
+        if (channel is null)
+        {
+            if (_logger.IsEnabled(LogLevel.Trace))
+                _logger.DroppedUnsubscribedStreamingFrame(Encoding.ASCII.GetString(rawFrameBuffer));
+            return;
+        }
+
+        if (channel.Writer.TryWrite(evt) || !_logger.IsEnabled(LogLevel.Trace))
+            return;
+
+        bool subscriberStillActive;
+        lock (_streamingSync)
+            subscriberStillActive = ReferenceEquals(_streamingChannel, channel);
+
+        var frame = Encoding.ASCII.GetString(rawFrameBuffer);
+        if (!subscriberStillActive || channel.Reader.Completion.IsCompleted)
+        {
+            _logger.DroppedStreamingFrameBecauseChannelCompleted(frame);
+            return;
+        }
+
+        _logger.DroppedStreamingFrameBecauseChannelRejectedWrite(frame);
+    }
+
+    private static bool TryGetCommandResponse(in ReadOnlySequence<byte> rawFrameBuffer, out CommandCode? commandCode, out string normalizedResponse)
+    {
+        commandCode = null;
+        normalizedResponse = string.Empty;
+
+        if (rawFrameBuffer.Length is 0 or > int.MaxValue)
+            return false;
+
+        var frame = GetFrameSpan(rawFrameBuffer, out var rentedBuffer);
+        try
+        {
+            // Non-streaming response (normal format: @OK ... / @ER ...)
+            if (frame.StartsWith("@OK"u8) || frame.StartsWith("@ER"u8))
             {
-                _stringBuilder.Append('@');
-                int charsDecoded = Encoding.ASCII.GetChars(span[5..], charBuffer);
-                _stringBuilder.Append(charBuffer, 0, charsDecoded);
-            }
-            else
-            {
-                int charsDecoded = Encoding.ASCII.GetChars(span, charBuffer);
-                _stringBuilder.Append(charBuffer, 0, charsDecoded);
+                normalizedResponse = Encoding.ASCII.GetString(frame);
+                return true;
             }
 
-            isFirstWrite = false;
+            // Legacy response without '@' prefix (e.g. "OK CLOSE" from older devices).
+            // Normalize by prepending '@' so callers see "@OK CLOSE" consistently.
+            if ((frame.StartsWith("OK"u8) || frame.StartsWith("ER"u8)) &&
+                (frame.Length == 2 || frame[2] == (byte)' '))
+            {
+                normalizedResponse = "@" + Encoding.ASCII.GetString(frame);
+                return true;
+            }
+
+            // Streaming reply format: @CMD OK ... / @CMD ER ...
+            if (frame.Length > 6 && frame[0] == (byte)'@' && frame[4] == (byte)' ')
+            {
+                commandCode = CommandCode.TryParse(frame.Slice(1, 3), out var parsedCommandCode) ? parsedCommandCode : null;
+                var payload = frame[5..];
+                if (IsCommandResponsePayload(payload))
+                {
+                    normalizedResponse = string.Create(payload.Length + 1, payload, static (target, source) =>
+                    {
+                        target[0] = '@';
+                        for (var i = 0; i < source.Length; i++)
+                            target[i + 1] = (char)source[i];
+                    });
+                    return true;
+                }
+            }
+
+            return false;
         }
-        else
+        finally
         {
-            int charsDecoded = Encoding.ASCII.GetChars(span, charBuffer);
-            _stringBuilder.Append(charBuffer, 0, charsDecoded);
+            if (rentedBuffer is not null)
+                ArrayPool<byte>.Shared.Return(rentedBuffer);
         }
+
+        static bool IsCommandResponsePayload(in ReadOnlySpan<byte> payload)
+        {
+            if (payload.Length < 2)
+                return false;
+
+            var first = payload[0];
+            var second = payload[1];
+            if (!((first == (byte)'O' && second == (byte)'K') || (first == (byte)'E' && second == (byte)'R')))
+                return false;
+
+            return payload.Length == 2 || payload[2] == (byte)' ';
+        }
+    }
+
+    private bool HasStreamingSubscriber()
+    {
+        lock (_streamingSync)
+            return _streamingChannel is not null;
+    }
+
+    private static ReadOnlySpan<byte> GetFrameSpan(in ReadOnlySequence<byte> rawFrameBuffer, out byte[]? rentedBuffer)
+    {
+        if (rawFrameBuffer.IsSingleSegment)
+        {
+            rentedBuffer = null;
+            return rawFrameBuffer.FirstSpan;
+        }
+
+        var length = (int)rawFrameBuffer.Length;
+        rentedBuffer = ArrayPool<byte>.Shared.Rent(length);
+        rawFrameBuffer.CopyTo(rentedBuffer);
+        return rentedBuffer.AsSpan(0, length);
+    }
+
+    private bool TryCompletePendingCommand(in CommandCode? responseCommandCode, string normalizedResponse)
+    {
+        var pendingResponse = Volatile.Read(ref _pendingCommandResponse);
+        if (pendingResponse is null)
+            return false;
+
+        if (responseCommandCode is { } actualCommandCode
+            && pendingResponse.Code is { } expectedCommandCode
+            && actualCommandCode != expectedCommandCode
+            && !IsStreamingPlayPauseAlternateCommandResponse(expectedCommandCode, actualCommandCode, normalizedResponse))
+        {
+            return false;
+        }
+
+        if (!ReferenceEquals(Interlocked.CompareExchange(ref _pendingCommandResponse, null, pendingResponse), pendingResponse))
+            return false;
+
+        _logger.ReceivedResponse(normalizedResponse);
+        var coreResult = normalizedResponse.StartsWith("@OK", StringComparison.Ordinal)
+            ? OppoResultCore.SuccessResult(normalizedResponse)
+            : new OppoResultCore(false, normalizedResponse);
+        pendingResponse.Completion.TrySetResult(coreResult);
+        return true;
+    }
+
+    private static bool IsStreamingPlayPauseAlternateCommandResponse(in CommandCode expectedCommandCode,
+        in CommandCode actualCommandCode,
+        string normalizedResponse)
+    {
+        // when using streaming and using the play/pause command, the player will return PLA when resuming playback
+        // instead of the expected PAU
+        return expectedCommandCode == PauseCommandCode
+               && actualCommandCode == PlayCommandCode
+               && normalizedResponse.Equals("@OK PLAY", StringComparison.Ordinal);
+    }
+
+    private static CommandCode? ExtractCommandCode(in ReadOnlySpan<byte> command)
+    {
+        return command.Length switch
+        {
+            >= 4 when command[0] == '#' => CommandCode.TryParse(command[1..4], out var hashCommandCode) ? hashCommandCode : null,
+            >= 10 when command.StartsWith("REMOTE "u8) => CommandCode.TryParse(command.Slice(7, 3), out var remoteCommandCode) ? remoteCommandCode : null,
+            _ => null
+        };
+    }
+
+    private bool TryParseStreamingEvent(in ReadOnlySequence<byte> rawFrameBuffer, out OppoStreamingEvent? evt)
+    {
+        evt = null;
+
+        if (rawFrameBuffer.Length is < 6 or > int.MaxValue)
+            return false;
+
+        var frame = GetFrameSpan(rawFrameBuffer, out var rentedBuffer);
+        try
+        {
+            if (frame.Length < 6 || frame[0] != (byte)'@' || frame[4] != (byte)' ')
+                return false;
+
+            var code = frame.Slice(1, 3);
+            var value = frame[5..];
+            var frameBuffer = rawFrameBuffer;
+
+            if (code.SequenceEqual("UPW"u8))
+            {
+                evt = new OppoPowerStateStreamingEvent(value switch
+                    {
+                        _ when value.SequenceEqual("1"u8) => PowerState.On,
+                        _ when value.SequenceEqual("0"u8) => PowerState.Off,
+                        _ => PowerState.Unknown
+                    });
+                return true;
+            }
+
+            if (code.SequenceEqual("UPL"u8))
+            {
+                evt = new OppoPlaybackStatusStreamingEvent(
+                    ParsePlaybackStatusUpdate(value));
+                return true;
+            }
+
+            if (code.SequenceEqual("UVL"u8))
+            {
+                var volumeInfo = value.SequenceEqual("MUT"u8)
+                    ? new VolumeInfo(null, true)
+                    : new VolumeInfo(TryParseUShort(value, out var parsedVolume) ? parsedVolume : null, false);
+                evt = new OppoVolumeStreamingEvent(volumeInfo);
+                return true;
+            }
+
+            if (code.SequenceEqual("UDT"u8))
+            {
+                evt = new OppoDiscTypeStreamingEvent(ParseDiscTypeUpdate(value));
+                return true;
+            }
+
+            if (code.SequenceEqual("UAT"u8))
+            {
+                evt = new OppoAudioTypeStreamingEvent(Encoding.ASCII.GetString(value));
+                return true;
+            }
+
+            if (code.SequenceEqual("UST"u8))
+            {
+                evt = new OppoSubtitleTypeStreamingEvent(Encoding.ASCII.GetString(value));
+                return true;
+            }
+
+            if (code.SequenceEqual("UIS"u8))
+            {
+                evt = new OppoInputSourceStreamingEvent(
+                    value switch
+                    {
+                        _ when value.SequenceEqual("0 BD-PLAYER"u8) => InputSource.BluRayPlayer,
+                        _ when value.SequenceEqual("1 HDMI-IN"u8) => InputSource.HDMIIn,
+                        _ when value.SequenceEqual("2 ARC-HDMI-OUT"u8) => InputSource.ARCHDMIOut,
+                        _ when value.SequenceEqual("3 OPTICAL-IN"u8) => InputSource.Optical,
+                        _ when value.SequenceEqual("4 COAXIAL-IN"u8) => InputSource.Coaxial,
+                        _ when value.SequenceEqual("5 USB-AUDIO-IN"u8) => InputSource.USBAudio,
+                        _ when value.SequenceEqual("1 HDMI-FRONT"u8) => InputSource.HDMIFront,
+                        _ when value.SequenceEqual("2 HDMI-BACK"u8) => InputSource.HDMIBack,
+                        _ when value.SequenceEqual("3 ARC-HDMI-OUT1"u8) => InputSource.ARCHDMIOut1,
+                        _ when value.SequenceEqual("4 ARC-HDMI-OUT2"u8) => InputSource.ARCHDMIOut2,
+                        _ when value.SequenceEqual("5 OPTICAL"u8) => InputSource.Optical,
+                        _ when value.SequenceEqual("6 COAXIAL"u8) => InputSource.Coaxial,
+                        _ when value.SequenceEqual("7 USB-AUDIO"u8) => InputSource.USBAudio,
+                        _ => LogError(Encoding.ASCII.GetString(value), InputSource.Unknown)
+                    });
+                return true;
+            }
+
+            if (code.SequenceEqual("U3D"u8))
+            {
+                evt = new OppoThreeDStatusStreamingEvent(value.SequenceEqual("3D"u8));
+                return true;
+            }
+
+            if (code.SequenceEqual("UAR"u8))
+            {
+                evt = new OppoAspectRatioStreamingEvent(
+                    value switch
+                    {
+                        _ when value.SequenceEqual("16WW"u8) => AspectRatio.A16WW,
+                        _ when value.SequenceEqual("16AW"u8) => AspectRatio.A16AW,
+                        _ when value.SequenceEqual("16A4"u8) => AspectRatio.A169A,
+                        _ when value.SequenceEqual("21M0"u8) => AspectRatio.A21M0,
+                        _ when value.SequenceEqual("21M1"u8) => AspectRatio.A21M1,
+                        _ when value.SequenceEqual("21M2"u8) => AspectRatio.A21M2,
+                        _ when value.SequenceEqual("21F0"u8) => AspectRatio.A21F0,
+                        _ when value.SequenceEqual("21F1"u8) => AspectRatio.A21F1,
+                        _ when value.SequenceEqual("21F2"u8) => AspectRatio.A21F2,
+                        _ when value.SequenceEqual("21C0"u8) => AspectRatio.A21C0,
+                        _ when value.SequenceEqual("21C1"u8) => AspectRatio.A21C1,
+                        _ when value.SequenceEqual("21C2"u8) => AspectRatio.A21C2,
+                        _ => LogError(Encoding.ASCII.GetString(value), AspectRatio.Unknown)
+                    });
+                return true;
+            }
+
+            if (code.SequenceEqual("UTC"u8)
+                && TryParseTimeCodeUpdate(value, out var title, out var chapter, out var timeCodeType, out var seconds))
+            {
+                evt = new OppoPlaybackProgressStreamingEvent(title, chapter, timeCodeType, seconds);
+                return true;
+            }
+
+            if (code.SequenceEqual("UVO"u8))
+            {
+                evt = new OppoVideoResolutionStreamingEvent(ParseVideoResolutionUpdate(value));
+                return true;
+            }
+
+            if (_logger.IsEnabled(LogLevel.Debug))
+                _logger.UnknownStreamingStatusCode(Encoding.ASCII.GetString(frameBuffer));
+            evt = new OppoUnknownStreamingEvent();
+            return true;
+        }
+        finally
+        {
+            if (rentedBuffer is not null)
+                ArrayPool<byte>.Shared.Return(rentedBuffer);
+        }
+    }
+
+    private static uint ParseTimeValue(in ReadOnlySpan<byte> value)
+    {
+        var firstSeparator = value.IndexOf((byte)':');
+        if (firstSeparator < 0)
+            return 0;
+
+        var remaining = value[(firstSeparator + 1)..];
+        var secondSeparatorRelative = remaining.IndexOf((byte)':');
+        if (secondSeparatorRelative < 0)
+            return 0;
+
+        var secondSeparator = firstSeparator + 1 + secondSeparatorRelative;
+
+        return TryParseUInt32(value[..firstSeparator], out var hours)
+               && TryParseUInt32(value[(firstSeparator + 1)..secondSeparator], out var minutes)
+               && TryParseUInt32(value[(secondSeparator + 1)..], out var seconds)
+            ? hours * 3600 + minutes * 60 + seconds
+            : 0;
+    }
+
+    private bool TryParseTimeCodeUpdate(in ReadOnlySpan<byte> value, out ushort title, out ushort chapter, out OppoTimeCodeType timeCodeType,
+        out uint seconds)
+    {
+        title = 0;
+        chapter = 0;
+        timeCodeType = OppoTimeCodeType.Unknown;
+        seconds = 0;
+
+        var firstSpace = value.IndexOf((byte)' ');
+        if (firstSpace <= 0)
+            return false;
+
+        var secondPart = value[(firstSpace + 1)..];
+        var secondSpace = secondPart.IndexOf((byte)' ');
+        if (secondSpace <= 0)
+            return false;
+
+        var thirdPart = secondPart[(secondSpace + 1)..];
+        var thirdSpace = thirdPart.IndexOf((byte)' ');
+        if (thirdSpace != 1)
+            return false;
+
+        var titleSpan = value[..firstSpace];
+        var chapterSpan = secondPart[..secondSpace];
+        var typeSpan = thirdPart[..1];
+        var timeSpan = thirdPart[(thirdSpace + 1)..];
+
+        if (!TryParseUShort(titleSpan, out title) || !TryParseUShort(chapterSpan, out chapter))
+            return false;
+
+        if (!TryParseTimeCodeType(typeSpan[0], out timeCodeType))
+            return false;
+
+        seconds = ParseTimeValue(timeSpan);
+        return seconds > 0 || timeSpan.SequenceEqual("00:00:00"u8);
+    }
+
+    private bool TryParseTimeCodeType(in byte value, out OppoTimeCodeType timeCodeType)
+    {
+        timeCodeType = value switch
+        {
+            (byte)'E' => OppoTimeCodeType.TotalElapsed,
+            (byte)'R' => OppoTimeCodeType.TotalRemaining,
+            (byte)'T' => OppoTimeCodeType.TitleElapsed,
+            (byte)'X' => OppoTimeCodeType.TitleRemaining,
+            (byte)'C' => OppoTimeCodeType.ChapterElapsed,
+            (byte)'K' => OppoTimeCodeType.ChapterRemaining,
+            _ => LogError(Encoding.ASCII.GetString([value]), OppoTimeCodeType.Unknown)
+        };
+
+        return timeCodeType != OppoTimeCodeType.Unknown;
+    }
+
+    private PlaybackStatus ParsePlaybackStatusUpdate(in ReadOnlySpan<byte> value)
+    {
+        return value switch
+        {
+            _ when value.SequenceEqual("DISC"u8) => PlaybackStatus.NoDisc,
+            _ when value.SequenceEqual("LOAD"u8) => PlaybackStatus.Loading,
+            _ when value.SequenceEqual("OPEN"u8) => PlaybackStatus.Open,
+            _ when value.SequenceEqual("CLOS"u8) => PlaybackStatus.Close,
+            _ when value.SequenceEqual("PLAY"u8) => PlaybackStatus.Play,
+            _ when value.SequenceEqual("PAUS"u8) => PlaybackStatus.Pause,
+            _ when value.SequenceEqual("STOP"u8) => PlaybackStatus.Stop,
+            _ when value.SequenceEqual("STPF"u8) || value.SequenceEqual("STPR"u8) => PlaybackStatus.Step,
+            _ when value.Length == 4
+                   && value.StartsWith("FFW"u8)
+                   && value[3] is >= (byte)'1' and <= (byte)'5' => PlaybackStatus.FastForward,
+            _ when value.Length == 4
+                   && (value.StartsWith("FRV"u8) || value.StartsWith("FRE"u8))
+                   && value[3] is >= (byte)'1' and <= (byte)'5' => PlaybackStatus.FastRewind,
+            _ when value.Length == 4
+                   && value.StartsWith("SFW"u8)
+                   && value[3] is >= (byte)'1' and <= (byte)'5' => PlaybackStatus.SlowForward,
+            _ when value.Length == 4
+                   && (value.StartsWith("SRV"u8) || value.StartsWith("SRE"u8))
+                   && value[3] is >= (byte)'1' and <= (byte)'5' => PlaybackStatus.SlowRewind,
+            _ when value.SequenceEqual("HOME"u8) => PlaybackStatus.HomeMenu,
+            _ when value.SequenceEqual("MCTR"u8) => PlaybackStatus.MediaCenter,
+            _ when value.SequenceEqual("SCSV"u8) => PlaybackStatus.ScreenSaver,
+            _ when value.SequenceEqual("MENU"u8) => PlaybackStatus.DiscMenu,
+            _ => LogError(Encoding.ASCII.GetString(value), PlaybackStatus.Unknown)
+        };
+    }
+
+    private DiscType ParseDiscTypeUpdate(in ReadOnlySpan<byte> value)
+    {
+        return value switch
+        {
+            _ when value.SequenceEqual("UHBD"u8) => DiscType.UltraHDBluRay,
+            _ when value.SequenceEqual("BDMV"u8) => DiscType.BlueRayMovie,
+            _ when value.SequenceEqual("DVDV"u8) => DiscType.DVDVideo,
+            _ when value.SequenceEqual("DVDA"u8) => DiscType.DVDAudio,
+            _ when value.SequenceEqual("SACD"u8) => DiscType.SACD,
+            _ when value.SequenceEqual("CDDA"u8) => DiscType.CDDiscAudio,
+            _ when value.SequenceEqual("DATA"u8) => DiscType.DataDisc,
+            _ when value.SequenceEqual("UNKW"u8) => DiscType.UnknownDisc,
+            _ when value.SequenceEqual("HDCD"u8) => DiscType.HDCD,
+            _ when value.SequenceEqual("VCD2"u8) => DiscType.VCD2,
+            _ when value.SequenceEqual("SVCD"u8) => DiscType.SVCD,
+            _ => LogError(Encoding.ASCII.GetString(value), DiscType.Unknown)
+        };
+    }
+
+    private HDMIResolution ParseVideoResolutionUpdate(in ReadOnlySpan<byte> value)
+    {
+        var inputPart = value.Contains((byte)' ') ? value[..value.IndexOf((byte)' ')] : value;
+        return value switch
+        {
+            _ when inputPart.SequenceEqual("_480I60"u8) => HDMIResolution.R480i,
+            _ when inputPart.SequenceEqual("_480P60"u8) => HDMIResolution.R480p,
+            _ when inputPart.SequenceEqual("_576I50"u8) => HDMIResolution.R576i,
+            _ when inputPart.SequenceEqual("_576P50"u8) => HDMIResolution.R576p,
+            _ when inputPart.SequenceEqual("_720P50"u8) => HDMIResolution.R720p50,
+            _ when inputPart.SequenceEqual("_720P60"u8) => HDMIResolution.R720p60,
+            _ when inputPart.SequenceEqual("1080I50"u8) => HDMIResolution.R1080i50,
+            _ when inputPart.SequenceEqual("1080I60"u8) => HDMIResolution.R1080i60,
+            _ when inputPart.SequenceEqual("1080P23"u8) => HDMIResolution.R1080p23,
+            _ when inputPart.SequenceEqual("1080P24"u8) => HDMIResolution.R1080p24,
+            _ when inputPart.SequenceEqual("1080P50"u8) => HDMIResolution.R1080p50,
+            _ when inputPart.SequenceEqual("1080P60"u8) => HDMIResolution.R1080p60,
+            _ when inputPart.SequenceEqual("_UHD24_"u8) => HDMIResolution.RUltraHDp24,
+            _ when inputPart.SequenceEqual("_UHD50_"u8) => HDMIResolution.RUltraHDp50,
+            _ when inputPart.SequenceEqual("_UHD60_"u8) => HDMIResolution.RUltraHDp60,
+            _ when inputPart.SequenceEqual("_OTHER_"u8) => HDMIResolution.Other,
+            _ => LogError(Encoding.ASCII.GetString(value), HDMIResolution.Unknown)
+        };
+    }
+
+    private static bool TryParseUShort(in ReadOnlySpan<byte> value, out ushort result)
+    {
+        result = 0;
+        if (value.IsEmpty)
+            return false;
+
+        foreach (var digit in value)
+        {
+            if (digit is < (byte)'0' or > (byte)'9')
+                return false;
+
+            if (result > ushort.MaxValue / 10)
+                return false;
+
+            var next = (result * 10) + (digit - (byte)'0');
+            if (next > ushort.MaxValue)
+                return false;
+
+            result = (ushort)next;
+        }
+
+        return true;
+    }
+
+    private static bool TryParseUInt32(in ReadOnlySpan<byte> value, out uint result)
+    {
+        result = 0;
+        if (value.IsEmpty)
+            return false;
+
+        foreach (var digit in value)
+        {
+            if (digit is < (byte)'0' or > (byte)'9')
+                return false;
+
+            if (result > uint.MaxValue / 10)
+                return false;
+
+            var digitValue = (uint)(digit - (byte)'0');
+            var multiplied = result * 10;
+            if (multiplied > uint.MaxValue - digitValue)
+                return false;
+
+            result = multiplied + digitValue;
+        }
+
+        return true;
+    }
+
+    private void StopReaderLoop()
+    {
+        CancellationTokenSource? readerCts;
+        Task? readerTask;
+
+        lock (_streamingSync)
+        {
+            readerCts = _readerCts;
+            readerTask = _readerTask;
+            _readerCts = null;
+            _readerTask = null;
+        }
+
+        if (readerCts is null)
+            return;
+
+        try
+        {
+            readerCts.Cancel();
+        }
+        catch (ObjectDisposedException)
+        {
+            return;
+        }
+
+        if (readerTask is null || readerTask.IsCompleted)
+        {
+            readerCts.Dispose();
+            return;
+        }
+
+        _ = readerTask.ContinueWith(static (_, state) =>
+            {
+                ((CancellationTokenSource)state!).Dispose();
+            },
+            readerCts,
+            CancellationToken.None,
+            TaskContinuationOptions.ExecuteSynchronously,
+            TaskScheduler.Default);
     }
 
     private uint _failedResponseCount;
 
-    private TEnum LogError<TEnum>(string response, TEnum returnValue, [CallerMemberName]string? callerMemberName = null)
+    private TEnum LogError<TEnum>(string response, in TEnum returnValue, [CallerMemberName]string? callerMemberName = null)
         where TEnum : Enum
     {
         Interlocked.Increment(ref _failedResponseCount);
@@ -1271,7 +1948,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
     
     private async ValueTask<OppoResult<uint>> QueryTimeAsync(byte[] command, CancellationToken cancellationToken)
     {
-        var result = await SendCommandWithRetry(command, cancellationToken);
+        var result = await SendCommand(command, cancellationToken);
         
         return result.Success switch
         {
@@ -1300,8 +1977,30 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
                + uint.Parse(time[secondsRange]);
     }
 
+    private readonly record struct CommandCode(in uint Value)
+    {
+        public static bool TryParse(in ReadOnlySpan<byte> value, out CommandCode commandCode)
+        {
+            if (value.Length == 3)
+            {
+                commandCode = new CommandCode(((uint)value[0] << 16) | ((uint)value[1] << 8) | value[2]);
+                return true;
+            }
+
+            commandCode = default;
+            return false;
+        }
+    }
+
+    private sealed record PendingCommandResponse(in CommandCode? Code, TaskCompletionSource<OppoResultCore> Completion);
+
     public void Dispose()
     {
+        StopReaderLoop();
+
+        lock (_streamingSync)
+            _streamingChannel?.Writer.TryComplete();
+
         _tcpClient.Dispose();
         _semaphore.Dispose();
         IsDisposed = true;

@@ -1,5 +1,3 @@
-using Oppo;
-
 using UnfoldedCircle.OppoBluRay.WebSocket;
 
 namespace UnfoldedCircle.OppoBluRay.Logging;
@@ -32,10 +30,6 @@ internal static partial class IntegrationLogger
     [LoggerMessage(EventId = 9, EventName = nameof(TryingToGetOppoClientHolder), Level = LogLevel.Debug,
         Message = "{WSId} Trying to get OppoClientHolder.")]
     public static partial void TryingToGetOppoClientHolder(this ILogger logger, string wsId);
-
-    [LoggerMessage(EventId = 11, EventName = nameof(ClientNotConnected), Level = LogLevel.Debug,
-        Message = "{WSId} Client not connected. {@ClientKey}")]
-    public static partial void ClientNotConnected(this ILogger logger, string wsId, in OppoClientKey clientKey);
 
     [LoggerMessage(EventId = 12, EventName = nameof(StartingEventsForDevice), Level = LogLevel.Debug,
         Message = "{WSId} Starting events for {DeviceId}")]
