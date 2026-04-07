@@ -27,7 +27,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
 
     private TcpClient _tcpClient = ConnectHelper.CreateTcpClient();
     private readonly SemaphoreSlim _semaphore = new(1, 1);
-    private readonly TimeSpan _timeout = TimeSpan.FromSeconds(1);
+    private readonly TimeSpan _timeout = TimeSpan.FromSeconds(3);
 
     private const string OkOn = "@OK ON";
     private const string OkOff = "@OK OFF";
@@ -1218,6 +1218,40 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
 
             if (result.Success)
                 return result;
+
+            // The player returns @ER OVERTIME when it's still processing a previous command
+            // (e.g., dimmer display transitions). By the time we receive this response the player
+            // is typically ready, so retry once after a brief delay.
+            if (result.Response is "@ER OVERTIME")
+            {
+                _logger.RetryingAfterOvertime(caller);
+                await Task.Delay(50, cancellationToken);
+
+                pendingResponse = new PendingCommandResponse(
+                    ExtractCommandCode(command),
+                    new TaskCompletionSource<OppoResultCore>(TaskCreationOptions.RunContinuationsAsynchronously));
+                if (Interlocked.CompareExchange(ref _pendingCommandResponse, pendingResponse, null) is not null)
+                    return OppoResultCore.FalseResult;
+
+                await networkStream.WriteAsync(command, cancellationToken);
+
+                try
+                {
+                    result = await pendingResponse.Completion.Task.WaitAsync(_timeout, cancellationToken);
+                }
+                catch (TimeoutException)
+                {
+                    if (ReferenceEquals(Interlocked.CompareExchange(ref _pendingCommandResponse, null, pendingResponse), pendingResponse))
+                    {
+                        pendingResponse.Completion.TrySetResult(OppoResultCore.FalseResult);
+                    }
+                    _logger.CommandNotValidAtThisTime(caller);
+                    return OppoResultCore.FalseResult;
+                }
+
+                if (result.Success)
+                    return result;
+            }
 
             if (result.Response is { Length: > 0 } response)
                 _logger.FailedToSendCommand(caller, response);
