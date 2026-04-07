@@ -485,27 +485,28 @@ public partial class OppoWebSocketHandler
         var mediaPlayerTask = Task.CompletedTask;
         if (hasMediaPlayer)
         {
-            MediaPlayerStateChangedEventMessageDataAttributesBase? mediaPlayerState = mediaPlayerUpdateType switch
+            switch (mediaPlayerUpdateType)
             {
-                MediaPlayerUpdateType.Full => BuildFullMediaPlayerState(snapshot),
-                MediaPlayerUpdateType.DeltaState => new DeltaMediaPlayerStateChangedEventMessageDataAttributes
-                {
-                    State = snapshot.State
-                },
-                MediaPlayerUpdateType.DeltaProgress => new DeltaMediaPlayerStateChangedEventMessageDataAttributes
-                {
-                    MediaPosition = snapshot.ElapsedResponse?.Result
-                },
-                MediaPlayerUpdateType.DeltaVolume => new DeltaMediaPlayerStateChangedEventMessageDataAttributes
-                {
-                    Volume = snapshot.VolumeResponse?.Result.Volume,
-                    Muted = snapshot.VolumeResponse?.Result.Muted
-                },
-                _ => null
-            };
+                case MediaPlayerUpdateType.Full:
+                    mediaPlayerTask = SendMediaPlayerEventAsync(socket, wsId, oppoClientHolder, BuildFullMediaPlayerState(snapshot), cancellationToken);
+                    break;
+                case MediaPlayerUpdateType.DeltaState:
+                    mediaPlayerTask = SendMediaPlayerEventAsync(socket, wsId, oppoClientHolder,
+                        new DeltaMediaPlayerStateChangedEventMessageDataAttributes { State = snapshot.State }, cancellationToken);
+                    break;
 
-            if (mediaPlayerState is not null)
-                mediaPlayerTask = SendMediaPlayerEventAsync(socket, wsId, oppoClientHolder, mediaPlayerState, cancellationToken);
+                case MediaPlayerUpdateType.DeltaProgress:
+                    mediaPlayerTask = SendMediaPlayerEventAsync(socket, wsId, oppoClientHolder,
+                        new DeltaMediaPlayerStateChangedEventMessageDataAttributes { MediaPosition = snapshot.ElapsedResponse?.Result }, cancellationToken);
+                    break;
+                case MediaPlayerUpdateType.DeltaVolume:
+                    mediaPlayerTask = SendMediaPlayerEventAsync(socket, wsId, oppoClientHolder,
+                        new DeltaMediaPlayerStateChangedEventMessageDataAttributes
+                        {
+                            Volume = snapshot.VolumeResponse?.Result.Volume, Muted = snapshot.VolumeResponse?.Result.Muted
+                        }, cancellationToken);
+                    break;
+            }
         }
 
         await Task.WhenAll(
@@ -1059,11 +1060,11 @@ public partial class OppoWebSocketHandler
                 _ => null
             };
 
-    private Task SendMediaPlayerEventAsync(System.Net.WebSockets.WebSocket socket,
+    private Task SendMediaPlayerEventAsync<TMediaPlayerStateChangedEventMessageDataAttributes>(System.Net.WebSockets.WebSocket socket,
         string wsId,
         OppoClientHolder oppoClientHolder,
-        MediaPlayerStateChangedEventMessageDataAttributesBase mediaPlayerState,
-        CancellationToken cancellationToken)
+        TMediaPlayerStateChangedEventMessageDataAttributes mediaPlayerState,
+        CancellationToken cancellationToken) where TMediaPlayerStateChangedEventMessageDataAttributes : MediaPlayerStateChangedEventMessageDataAttributesBase
     {
         var stateHash = mediaPlayerState.GetHashCode();
         var clientHashCode = oppoClientHolder.ClientKey.GetHashCode();
