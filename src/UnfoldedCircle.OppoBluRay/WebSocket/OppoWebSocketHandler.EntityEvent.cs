@@ -541,6 +541,9 @@ public partial class OppoWebSocketHandler
                 try
                 {
                     var mediaPlayerUpdateType = await ApplyStreamingEventAsync(context, streamingEvent, cancellationToken);
+                    if (!context.ClientHolder.ClientKey.UseMediaEvents && mediaPlayerUpdateType == MediaPlayerUpdateType.Nothing)
+                        continue;
+
                     await PublishSnapshotAsync(socket,
                         wsId,
                         context.ClientHolder,
@@ -579,8 +582,9 @@ public partial class OppoWebSocketHandler
     {
         if (!context.ClientHolder.ClientKey.UseMediaEvents)
         {
-            ApplyPowerOnlyStreamingEvent(context, streamingEvent);
-            return MediaPlayerUpdateType.Full;
+            return ApplyPowerOnlyStreamingEvent(context, streamingEvent)
+                ? MediaPlayerUpdateType.Full
+                : MediaPlayerUpdateType.Nothing;
         }
 
         switch (streamingEvent)
@@ -637,12 +641,17 @@ public partial class OppoWebSocketHandler
         }
     }
 
-    private static void ApplyPowerOnlyStreamingEvent(StreamingClientContext context, OppoStreamingEvent streamingEvent)
+    private static bool ApplyPowerOnlyStreamingEvent(StreamingClientContext context, OppoStreamingEvent streamingEvent)
     {
         if (streamingEvent is not OppoPowerStateStreamingEvent powerEvent)
-            return;
+            return false;
 
-        context.Snapshot.State = MapPowerState(powerEvent.PowerState);
+        var newState = MapPowerState(powerEvent.PowerState);
+        if (context.Snapshot.State == newState)
+            return false;
+
+        context.Snapshot.State = newState;
+        return true;
     }
 
     private static void ApplyVolumeStreamingEvent(ClientSnapshot snapshot, OppoVolumeStreamingEvent volumeEvent)
