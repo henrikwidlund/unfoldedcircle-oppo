@@ -195,7 +195,13 @@ public partial class OppoWebSocketHandler
         }
 
         var snapshot = await BuildSnapshotAsync(oppoClientHolder, cancellationToken);
-        await PublishSnapshotAsync(socket, wsId, oppoClientHolder, subscribedEntity.Value, snapshot, cancellationToken);
+        await PublishSnapshotAsync(socket,
+            wsId,
+            oppoClientHolder,
+            subscribedEntity.Value,
+            snapshot,
+            MediaPlayerUpdateType.Full,
+            cancellationToken);
     }
 
     private async Task<StreamingClientContext?> EnsureStreamingClientContextAsync(
@@ -295,6 +301,7 @@ public partial class OppoWebSocketHandler
                 context.ClientHolder,
                 subscribedEntity.Value,
                 context.Snapshot,
+                MediaPlayerUpdateType.Full,
                 cancellationToken);
             context.LastHdrRefreshUtc = context.Snapshot.HdrStatusResponse is null
                 ? DateTimeOffset.MinValue
@@ -387,6 +394,8 @@ public partial class OppoWebSocketHandler
                 snapshot.RemainingResponse = oppoClientHolder.ClientKey.UseChapterLengthForMovies
                     ? await oppoClientHolder.Client.QueryChapterRemainingTimeAsync(cancellationToken)
                     : await oppoClientHolder.Client.QueryTotalRemainingTimeAsync(cancellationToken);
+
+                snapshot.MediaDuration = GetMediaDuration(snapshot.ElapsedResponse, snapshot.RemainingResponse);
             }
 
             return;
@@ -397,6 +406,7 @@ public partial class OppoWebSocketHandler
             return;
 
         snapshot.RemainingResponse = await oppoClientHolder.Client.QueryTrackOrTitleRemainingTimeAsync(cancellationToken);
+        snapshot.MediaDuration = GetMediaDuration(snapshot.ElapsedResponse, snapshot.RemainingResponse);
         if (oppoClientHolder.ClientKey.Model is not (OppoModel.UDP203 or OppoModel.UDP205))
             return;
 
@@ -443,6 +453,7 @@ public partial class OppoWebSocketHandler
         OppoClientHolder oppoClientHolder,
         IReadOnlyCollection<SubscribedEntity> subscribedEntities,
         ClientSnapshot snapshot,
+        MediaPlayerUpdateType mediaPlayerUpdateType,
         CancellationToken cancellationToken)
     {
         (bool hasMediaPlayer, bool hasRemote, bool hasSensor) = GetSubscriptionFlags(subscribedEntities);
@@ -471,37 +482,34 @@ public partial class OppoWebSocketHandler
             return;
         }
 
-        var newMediaPlayerState = new MediaPlayerStateChangedEventMessageDataAttributes
+        var mediaPlayerTask = Task.CompletedTask;
+        if (hasMediaPlayer)
         {
-            State = snapshot.State,
-            MediaType = snapshot.DiscTypeResponse?.Result switch
+            MediaPlayerStateChangedEventMessageDataAttributesBase? mediaPlayerState = mediaPlayerUpdateType switch
             {
-                DiscType.BlueRayMovie or DiscType.DVDVideo or DiscType.UltraHDBluRay => MediaType.Movie,
-                DiscType.DVDAudio or DiscType.SACD or DiscType.CDDiscAudio => MediaType.Music,
+                MediaPlayerUpdateType.Full => BuildFullMediaPlayerState(snapshot),
+                MediaPlayerUpdateType.DeltaState => new DeltaMediaPlayerStateChangedEventMessageDataAttributes
+                {
+                    State = snapshot.State
+                },
+                MediaPlayerUpdateType.DeltaProgress => new DeltaMediaPlayerStateChangedEventMessageDataAttributes
+                {
+                    MediaPosition = snapshot.ElapsedResponse?.Result
+                },
+                MediaPlayerUpdateType.DeltaVolume => new DeltaMediaPlayerStateChangedEventMessageDataAttributes
+                {
+                    Volume = snapshot.VolumeResponse?.Result.Volume,
+                    Muted = snapshot.VolumeResponse?.Result.Muted
+                },
                 _ => null
-            },
-            MediaPosition = snapshot.ElapsedResponse?.Result,
-            // Only set duration if we have both elapsed and remaining values
-            MediaDuration = (snapshot.ElapsedResponse?.Result, snapshot.RemainingResponse?.Result) switch
-            {
-                (not null, not null) => snapshot.ElapsedResponse.Value.Result + snapshot.RemainingResponse.Value.Result,
-                _ => null
-            },
-            MediaTitle = ReplaceStarWithEllipsis(snapshot.TrackResponse?.Result),
-            MediaAlbum = ReplaceStarWithEllipsis(snapshot.Album),
-            MediaArtist = ReplaceStarWithEllipsis(snapshot.Performer),
-            MediaImageUrl = snapshot.CoverUri,
-            Repeat = snapshot.RepeatMode,
-            Shuffle = snapshot.Shuffle,
-            Source = GetInputSource(snapshot.InputSourceResponse),
-            Volume = snapshot.VolumeResponse?.Result.Volume,
-            Muted = snapshot.VolumeResponse?.Result.Muted
-        };
+            };
+
+            if (mediaPlayerState is not null)
+                mediaPlayerTask = SendMediaPlayerEventAsync(socket, wsId, oppoClientHolder, mediaPlayerState, cancellationToken);
+        }
 
         await Task.WhenAll(
-            hasMediaPlayer
-                ? SendMediaPlayerEventAsync(socket, wsId, oppoClientHolder, newMediaPlayerState, cancellationToken)
-                : Task.CompletedTask,
+            mediaPlayerTask,
             hasRemote
                 ? SendRemotePowerEventAsync(socket, wsId, oppoClientHolder, snapshot.State, cancellationToken)
                 : Task.CompletedTask,
@@ -532,12 +540,13 @@ public partial class OppoWebSocketHandler
                 await context.Gate.WaitAsync(cancellationToken);
                 try
                 {
-                    await ApplyStreamingEventAsync(context, streamingEvent, cancellationToken);
+                    var mediaPlayerUpdateType = await ApplyStreamingEventAsync(context, streamingEvent, cancellationToken);
                     await PublishSnapshotAsync(socket,
                         wsId,
                         context.ClientHolder,
                         context.GetSubscribedEntities(),
                         context.Snapshot,
+                        mediaPlayerUpdateType,
                         cancellationToken);
                 }
                 finally
@@ -556,12 +565,22 @@ public partial class OppoWebSocketHandler
         }
     }
 
-    private async ValueTask ApplyStreamingEventAsync(StreamingClientContext context, OppoStreamingEvent streamingEvent, CancellationToken cancellationToken)
+    private enum MediaPlayerUpdateType : sbyte
+    {
+        Full,
+        DeltaState,
+        DeltaProgress,
+        DeltaVolume,
+        Nothing
+    }
+
+    private async ValueTask<MediaPlayerUpdateType> ApplyStreamingEventAsync(StreamingClientContext context,
+        OppoStreamingEvent streamingEvent, CancellationToken cancellationToken)
     {
         if (!context.ClientHolder.ClientKey.UseMediaEvents)
         {
             ApplyPowerOnlyStreamingEvent(context, streamingEvent);
-            return;
+            return MediaPlayerUpdateType.Full;
         }
 
         switch (streamingEvent)
@@ -569,51 +588,52 @@ public partial class OppoWebSocketHandler
             case OppoPowerStateStreamingEvent { PowerState: PowerState.Off }:
                 // Device turned off – reset state without querying anything
                 context.Snapshot = new ClientSnapshot { State = State.Off };
-                break;
+                return MediaPlayerUpdateType.Full;
 
             case OppoPowerStateStreamingEvent:
                 // Device turned on – rebuild to determine current playback state
                 await RebuildSnapshotAndRefreshHdrTimestampAsync(context, cancellationToken);
-                break;
+                return MediaPlayerUpdateType.Full;
 
             case OppoPlaybackStatusStreamingEvent playbackStatusEvent:
-                await HandlePlaybackStatusStreamingEventAsync(context, playbackStatusEvent, cancellationToken);
-                break;
+                return await HandlePlaybackStatusStreamingEventAsync(context, playbackStatusEvent, cancellationToken);
 
             case OppoDiscTypeStreamingEvent:
             case OppoInputSourceStreamingEvent:
                 // Both disc change and source change invalidate track metadata, cover art, and progress domain.
                 // The streaming API only emits these events when the value actually changed – full rebuild.
                 await RebuildSnapshotAndRefreshHdrTimestampAsync(context, cancellationToken);
-                break;
+                return MediaPlayerUpdateType.Full;
 
             case OppoVolumeStreamingEvent volumeEvent:
                 ApplyVolumeStreamingEvent(context.Snapshot, volumeEvent);
-                break;
+                return MediaPlayerUpdateType.DeltaVolume;
 
             case OppoVideoResolutionStreamingEvent resolutionEvent:
                 await HandleVideoResolutionStreamingEventAsync(context, resolutionEvent, cancellationToken);
-                break;
+                return MediaPlayerUpdateType.Nothing;
 
             case OppoAudioTypeStreamingEvent audioTypeEvent:
                 ApplyAudioTypeStreamingEvent(context.Snapshot, audioTypeEvent);
-                break;
+                return MediaPlayerUpdateType.Nothing;
 
             case OppoSubtitleTypeStreamingEvent subtitleTypeEvent:
                 ApplySubtitleTypeStreamingEvent(context.Snapshot, subtitleTypeEvent);
-                break;
+                return MediaPlayerUpdateType.Nothing;
 
             case OppoThreeDStatusStreamingEvent threeDStatusEvent:
                 ApplyThreeDStatusStreamingEvent(context.Snapshot, threeDStatusEvent);
-                break;
+                return MediaPlayerUpdateType.Nothing;
 
             case OppoAspectRatioStreamingEvent aspectRatioEvent:
                 ApplyAspectRatioStreamingEvent(context.Snapshot, aspectRatioEvent);
-                break;
+                return MediaPlayerUpdateType.Nothing;
 
             case OppoPlaybackProgressStreamingEvent playbackProgressEvent:
-                await HandlePlaybackProgressStreamingEventAsync(context, playbackProgressEvent, cancellationToken);
-                break;
+                return await HandlePlaybackProgressStreamingEventAsync(context, playbackProgressEvent, cancellationToken);
+
+            default:
+                return MediaPlayerUpdateType.Nothing;
         }
     }
 
@@ -675,7 +695,7 @@ public partial class OppoWebSocketHandler
         };
     }
 
-    private async ValueTask HandlePlaybackStatusStreamingEventAsync(
+    private async ValueTask<MediaPlayerUpdateType> HandlePlaybackStatusStreamingEventAsync(
         StreamingClientContext context,
         OppoPlaybackStatusStreamingEvent playbackStatusEvent,
         CancellationToken cancellationToken)
@@ -690,6 +710,9 @@ public partial class OppoWebSocketHandler
         };
 
         var prevState = context.Snapshot.State;
+        if (prevState == newState)
+            return MediaPlayerUpdateType.Nothing;
+
         var isNowActive = IsActivePlaybackState(newState);
         var wasActive = IsActivePlaybackState(prevState);
 
@@ -697,7 +720,7 @@ public partial class OppoWebSocketHandler
         {
             // Transitioned into active playback – rebuild for fresh disc/track/progress data
             await RebuildSnapshotAndRefreshHdrTimestampAsync(context, cancellationToken);
-            return;
+            return MediaPlayerUpdateType.Full;
         }
 
         context.Snapshot.State = newState;
@@ -714,7 +737,11 @@ public partial class OppoWebSocketHandler
             context.Snapshot.Shuffle = null;
             context.Snapshot.LastProgressTitle = null;
             context.Snapshot.LastProgressChapter = null;
+            context.Snapshot.MediaDuration = null;
+            return MediaPlayerUpdateType.Full;
         }
+
+        return MediaPlayerUpdateType.DeltaState;
     }
 
     private static async ValueTask HandleVideoResolutionStreamingEventAsync(
@@ -740,7 +767,7 @@ public partial class OppoWebSocketHandler
         }
     }
 
-    private async ValueTask HandlePlaybackProgressStreamingEventAsync(
+    private async ValueTask<MediaPlayerUpdateType> HandlePlaybackProgressStreamingEventAsync(
         StreamingClientContext context,
         OppoPlaybackProgressStreamingEvent playbackProgressEvent,
         CancellationToken cancellationToken)
@@ -752,11 +779,12 @@ public partial class OppoWebSocketHandler
             await RebuildSnapshotAndRefreshHdrTimestampAsync(context, cancellationToken);
             context.Snapshot.LastProgressTitle = playbackProgressEvent.Title;
             context.Snapshot.LastProgressChapter = playbackProgressEvent.Chapter;
-            return;
+            return MediaPlayerUpdateType.Full;
         }
 
         // Same title/chapter – apply progress directly from event (no rebuild needed)
-        UpdateProgress(context.Snapshot, playbackProgressEvent);
+        var elapsedChanged = UpdateProgress(context.Snapshot, playbackProgressEvent);
+        return elapsedChanged ? MediaPlayerUpdateType.DeltaProgress : MediaPlayerUpdateType.Nothing;
     }
 
     private static async ValueTask RemoveStaleStreamingContextsAsync(
@@ -826,6 +854,7 @@ public partial class OppoWebSocketHandler
                 context.ClientHolder,
                 context.GetSubscribedEntities(),
                 context.Snapshot,
+                MediaPlayerUpdateType.Full,
                 cancellationToken);
         }
         finally
@@ -853,6 +882,7 @@ public partial class OppoWebSocketHandler
                 context.ClientHolder,
                 context.GetSubscribedEntities(),
                 context.Snapshot,
+                MediaPlayerUpdateType.Full,
                 cancellationToken);
         }
         finally
@@ -924,19 +954,20 @@ public partial class OppoWebSocketHandler
         return (hasMediaPlayer, hasRemote, hasSensor);
     }
 
-    private static void UpdateProgress(ClientSnapshot snapshot, OppoPlaybackProgressStreamingEvent playbackProgressEvent)
+    private static bool UpdateProgress(ClientSnapshot snapshot, OppoPlaybackProgressStreamingEvent playbackProgressEvent)
     {
         switch (playbackProgressEvent.TimeCodeType)
         {
             case OppoTimeCodeType.TotalElapsed:
             case OppoTimeCodeType.TitleElapsed:
             case OppoTimeCodeType.ChapterElapsed:
+                var previousElapsed = snapshot.ElapsedResponse?.Result;
                 snapshot.ElapsedResponse = new OppoResult<uint>
                 {
                     Success = true,
                     Result = playbackProgressEvent.Seconds
                 };
-                break;
+                return previousElapsed != playbackProgressEvent.Seconds;
 
             case OppoTimeCodeType.TotalRemaining:
             case OppoTimeCodeType.TitleRemaining:
@@ -946,8 +977,41 @@ public partial class OppoWebSocketHandler
                     Success = true,
                     Result = playbackProgressEvent.Seconds
                 };
-                break;
+                return false;
+
+            default:
+                return false;
         }
+    }
+
+    private static uint? GetMediaDuration(OppoResult<uint>? elapsedResponse, OppoResult<uint>? remainingResponse) =>
+        elapsedResponse is { Success: true } elapsed && remainingResponse is { Success: true } remaining
+            ? elapsed.Result + remaining.Result
+            : null;
+
+    private static MediaPlayerStateChangedEventMessageDataAttributes BuildFullMediaPlayerState(ClientSnapshot snapshot)
+    {
+        return new MediaPlayerStateChangedEventMessageDataAttributes
+        {
+            State = snapshot.State,
+            MediaType = snapshot.DiscTypeResponse?.Result switch
+            {
+                DiscType.BlueRayMovie or DiscType.DVDVideo or DiscType.UltraHDBluRay => MediaType.Movie,
+                DiscType.DVDAudio or DiscType.SACD or DiscType.CDDiscAudio => MediaType.Music,
+                _ => null
+            },
+            MediaPosition = snapshot.ElapsedResponse?.Result,
+            MediaDuration = snapshot.MediaDuration,
+            MediaTitle = ReplaceStarWithEllipsis(snapshot.TrackResponse?.Result),
+            MediaAlbum = ReplaceStarWithEllipsis(snapshot.Album),
+            MediaArtist = ReplaceStarWithEllipsis(snapshot.Performer),
+            MediaImageUrl = snapshot.CoverUri,
+            Repeat = snapshot.RepeatMode,
+            Shuffle = snapshot.Shuffle,
+            Source = GetInputSource(snapshot.InputSourceResponse),
+            Volume = snapshot.VolumeResponse?.Result.Volume,
+            Muted = snapshot.VolumeResponse?.Result.Muted
+        };
     }
 
     private static void CleanupPreviousMaps(in int clientHashCode)
@@ -989,7 +1053,7 @@ public partial class OppoWebSocketHandler
     private Task SendMediaPlayerEventAsync(System.Net.WebSockets.WebSocket socket,
         string wsId,
         OppoClientHolder oppoClientHolder,
-        MediaPlayerStateChangedEventMessageDataAttributes mediaPlayerState,
+        MediaPlayerStateChangedEventMessageDataAttributesBase mediaPlayerState,
         CancellationToken cancellationToken)
     {
         var stateHash = mediaPlayerState.GetHashCode();
@@ -1369,6 +1433,7 @@ public partial class OppoWebSocketHandler
         public bool IsMovie { get; set; }
         public ushort? LastProgressTitle { get; set; }
         public ushort? LastProgressChapter { get; set; }
+        public uint? MediaDuration { get; set; }
 
         public OppoResult<VolumeInfo>? VolumeResponse { get; set; }
         public OppoResult<InputSource>? InputSourceResponse { get; set; }
