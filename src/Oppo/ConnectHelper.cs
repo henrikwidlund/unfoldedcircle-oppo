@@ -1,4 +1,5 @@
 using System.Net.Sockets;
+using System.Threading.RateLimiting;
 
 using Microsoft.Extensions.Logging;
 
@@ -6,7 +7,7 @@ namespace Oppo;
 
 internal static class ConnectHelper
 {
-    internal static TcpClient CreateTcpClient() => new() { NoDelay = true, };
+    internal static TcpClient CreateTcpClient() => new() { NoDelay = true };
 
     public static async ValueTask<bool> IsConnectedAsync(
         TcpClient tcpClient,
@@ -62,4 +63,11 @@ internal static class ConnectHelper
             return tcpClient.Connected;
         }
     }
+
+    internal static FixedWindowRateLimiter CreateRateLimiter() => new(new FixedWindowRateLimiterOptions
+    {
+        AutoReplenishment = true,
+        PermitLimit = 1,
+        Window = TimeSpan.FromMilliseconds(200)
+    });
 }

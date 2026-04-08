@@ -5,6 +5,7 @@ using System.Net.Sockets;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Channels;
+using System.Threading.RateLimiting;
 
 using Microsoft.Extensions.Logging;
 
@@ -15,7 +16,8 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
     private readonly string _hostName = hostName;
     private readonly OppoModel _model = model;
     private readonly ILogger<OppoClient> _logger = logger;
-    
+    private readonly FixedWindowRateLimiter _rateLimiter = ConnectHelper.CreateRateLimiter();
+
     private readonly bool _is20XModel = model is OppoModel.UDP203 or OppoModel.UDP205;
     private readonly ushort _port = model switch
     {
@@ -1169,6 +1171,13 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
     
     private async ValueTask<OppoResultCore> SendCommand(byte[] command, CancellationToken cancellationToken, [CallerMemberName] string? caller = null)
     {
+        using var lease = await _rateLimiter.AcquireAsync(cancellationToken: cancellationToken);
+        if (!lease.IsAcquired)
+        {
+            _logger.FailedToAcquireRateLimitLease(caller);
+            return OppoResultCore.FalseResult;
+        }
+
         if (!await _semaphore.WaitAsync(_timeout, cancellationToken))
             return OppoResultCore.FalseResult;
 
@@ -2025,6 +2034,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
 
         _tcpClient.Dispose();
         _semaphore.Dispose();
+        _rateLimiter.Dispose();
         IsDisposed = true;
     }
 }
