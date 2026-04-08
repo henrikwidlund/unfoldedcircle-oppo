@@ -16,7 +16,7 @@ public sealed class MagnetarClient(string hostName, string macAddress, ILogger<M
 
     private readonly TcpClient _tcpClient = ConnectHelper.CreateTcpClient();
     private readonly SemaphoreSlim _semaphore = new(1, 1);
-    private readonly TimeSpan _timeout = TimeSpan.FromSeconds(1);
+    private readonly TimeSpan _timeout = TimeSpan.FromSeconds(3);
 
     public string HostName => _hostName;
 

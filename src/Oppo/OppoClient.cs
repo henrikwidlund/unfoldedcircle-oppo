@@ -1169,6 +1169,17 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
     
     private async ValueTask<OppoResultCore> SendCommand(byte[] command, CancellationToken cancellationToken, [CallerMemberName] string? caller = null)
     {
+        var result = await SendCommandCore(command, cancellationToken, caller);
+        if (!result.ShouldRetry)
+            return result;
+
+        _logger.RetryingAfterOvertime(caller);
+        await Task.Delay(50, cancellationToken);
+        return await SendCommandCore(command, cancellationToken, caller);
+    }
+
+    private async ValueTask<OppoResultCore> SendCommandCore(byte[] command, CancellationToken cancellationToken, [CallerMemberName] string? caller = null)
+    {
         PendingCommandResponse? pendingResponse = null;
 
         if (!await _semaphore.WaitAsync(_timeout, cancellationToken))
@@ -1219,39 +1230,8 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
             if (result.Success)
                 return result;
 
-            // The player returns @ER OVERTIME when it's still processing a previous command
-            // (e.g., dimmer display transitions). By the time we receive this response the player
-            // is typically ready, so retry once after a brief delay.
             if (result.Response is "@ER OVERTIME")
-            {
-                _logger.RetryingAfterOvertime(caller);
-                await Task.Delay(50, cancellationToken);
-
-                pendingResponse = new PendingCommandResponse(
-                    ExtractCommandCode(command),
-                    new TaskCompletionSource<OppoResultCore>(TaskCreationOptions.RunContinuationsAsynchronously));
-                if (Interlocked.CompareExchange(ref _pendingCommandResponse, pendingResponse, null) is not null)
-                    return OppoResultCore.FalseResult;
-
-                await networkStream.WriteAsync(command, cancellationToken);
-
-                try
-                {
-                    result = await pendingResponse.Completion.Task.WaitAsync(_timeout, cancellationToken);
-                }
-                catch (TimeoutException)
-                {
-                    if (ReferenceEquals(Interlocked.CompareExchange(ref _pendingCommandResponse, null, pendingResponse), pendingResponse))
-                    {
-                        pendingResponse.Completion.TrySetResult(OppoResultCore.FalseResult);
-                    }
-                    _logger.CommandNotValidAtThisTime(caller);
-                    return OppoResultCore.FalseResult;
-                }
-
-                if (result.Success)
-                    return result;
-            }
+                return OppoResultCore.RetryResult;
 
             if (result.Response is { Length: > 0 } response)
                 _logger.FailedToSendCommand(caller, response);
@@ -1567,7 +1547,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         _logger.ReceivedResponse(normalizedResponse);
         var coreResult = normalizedResponse.StartsWith("@OK", StringComparison.Ordinal)
             ? OppoResultCore.SuccessResult(normalizedResponse)
-            : new OppoResultCore(false, normalizedResponse);
+            : new OppoResultCore(false, false, normalizedResponse);
         pendingResponse.Completion.TrySetResult(coreResult);
         return true;
     }
