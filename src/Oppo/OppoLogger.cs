@@ -125,4 +125,8 @@ internal static partial class OppoLogger
     [LoggerMessage(EventId = 25, EventName = nameof(FailedToAcquireRateLimitLease), Level = LogLevel.Warning,
         Message = "{Caller} - Failed to acquire rate limit lease, command aborted.")]
     public static partial void FailedToAcquireRateLimitLease(this ILogger logger, string? caller);
+
+    [LoggerMessage(EventId = 25, EventName = nameof(TimeoutWhileAcquiringLease), Level = LogLevel.Information,
+        Message = "{Caller} - Timeout while acquiring rate limit lease, command aborted.")]
+    public static partial void TimeoutWhileAcquiringLease(this ILogger logger, string? caller);
 }

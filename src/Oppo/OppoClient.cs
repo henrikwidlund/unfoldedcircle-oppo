@@ -1171,7 +1171,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
     
     private async ValueTask<OppoResultCore> SendCommand(byte[] command, CancellationToken cancellationToken, [CallerMemberName] string? caller = null)
     {
-        using var lease = await _rateLimiter.AcquireAsync(cancellationToken: cancellationToken);
+        using var lease = await _rateLimiter.AcquireAsyncWithoutCancellationException(_logger, cancellationToken, caller);
         if (!lease.IsAcquired)
         {
             _logger.FailedToAcquireRateLimitLease(caller);

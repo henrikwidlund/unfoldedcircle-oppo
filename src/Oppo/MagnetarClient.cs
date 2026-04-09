@@ -414,7 +414,7 @@ public sealed class MagnetarClient(string hostName, string macAddress, ILogger<M
 
     private async ValueTask<OppoResultCore> SendCommand(string command, CancellationToken cancellationToken, [CallerMemberName] string? caller = null)
     {
-        using var lease = await _rateLimiter.AcquireAsync(cancellationToken: cancellationToken);
+        using var lease = await _rateLimiter.AcquireAsyncWithoutCancellationException(_logger, cancellationToken, caller);
         if (!lease.IsAcquired)
         {
             _logger.FailedToAcquireRateLimitLease(caller);
