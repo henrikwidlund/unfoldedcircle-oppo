@@ -15,7 +15,7 @@ internal readonly record struct OppoResultCore(
     public bool ShouldRetry { get; } = ShouldRetry;
 
     public static readonly OppoResultCore FalseResult = new(false, false, null);
-    public static readonly OppoResultCore RetryResult = new(false, true, null);
 
+    public static OppoResultCore RetryResult(string response) => new(false, true, response);
     public static OppoResultCore SuccessResult(string response) => new(true, false, response);
 }
