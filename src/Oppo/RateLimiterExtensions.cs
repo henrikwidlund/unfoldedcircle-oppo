@@ -20,7 +20,7 @@ internal static class RateLimiterExtensions
                 // No permit right now — queue up and wait for the next window.
                 return await limiter.AcquireAsync(cancellationToken: cancellationToken);
             }
-            catch (OperationCanceledException)
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
                 logger.CancellationWhileAcquiringLease(caller);
                 return CancelledLimitLease.Instance;
