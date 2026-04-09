@@ -126,7 +126,7 @@ internal static partial class OppoLogger
         Message = "{Caller} - Failed to acquire rate limit lease, command aborted.")]
     public static partial void FailedToAcquireRateLimitLease(this ILogger logger, string? caller);
 
-    [LoggerMessage(EventId = 26, EventName = nameof(CancellationWhileAcquiringLease), Level = LogLevel.Information,
-        Message = "{Caller} - Cancellation requested while waiting to acquire rate limit lease.")]
-    public static partial void CancellationWhileAcquiringLease(this ILogger logger, string? caller);
+    [LoggerMessage(EventId = 26, EventName = nameof(CancellationWhileAwaiting), Level = LogLevel.Information,
+        Message = "{Caller} - Cancellation requested while awaiting.")]
+    public static partial void CancellationWhileAwaiting(this ILogger logger, string? caller);
 }

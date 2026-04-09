@@ -1178,7 +1178,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
             return OppoResultCore.FalseResult;
         }
 
-        if (!await _semaphore.WaitAsync(_timeout, cancellationToken))
+        if (!await _semaphore.WaitAsyncWithoutCancellationException(_logger, _timeout, cancellationToken, caller))
             return OppoResultCore.FalseResult;
 
         try

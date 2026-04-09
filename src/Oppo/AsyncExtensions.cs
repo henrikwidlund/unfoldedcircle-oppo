@@ -4,11 +4,13 @@ using Microsoft.Extensions.Logging;
 
 namespace Oppo;
 
-internal static class RateLimiterExtensions
+internal static class AsyncExtensions
 {
     extension (TokenBucketRateLimiter limiter)
     {
-        public async ValueTask<RateLimitLease> AcquireAsyncWithoutCancellationException(ILogger logger, CancellationToken cancellationToken, string? caller = null)
+        public async ValueTask<RateLimitLease> AcquireAsyncWithoutCancellationException(ILogger logger,
+            CancellationToken cancellationToken,
+            string? caller = null)
         {
             try
             {
@@ -24,8 +26,27 @@ internal static class RateLimiterExtensions
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
-                logger.CancellationWhileAcquiringLease(caller);
+                logger.CancellationWhileAwaiting(caller);
                 return CancelledLimitLease.Instance;
+            }
+        }
+    }
+
+    extension(SemaphoreSlim semaphore)
+    {
+        public async Task<bool> WaitAsyncWithoutCancellationException(ILogger logger,
+            TimeSpan timeout,
+            CancellationToken cancellationToken,
+            string? caller = null)
+        {
+            try
+            {
+                return await semaphore.WaitAsync(timeout, cancellationToken);
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                logger.CancellationWhileAwaiting(caller);
+                return false;
             }
         }
     }

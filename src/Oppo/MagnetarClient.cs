@@ -421,7 +421,7 @@ public sealed class MagnetarClient(string hostName, string macAddress, ILogger<M
             return OppoResultCore.FalseResult;
         }
 
-        if (!await _semaphore.WaitAsync(_timeout, cancellationToken))
+        if (!await _semaphore.WaitAsyncWithoutCancellationException(_logger, _timeout, cancellationToken, caller))
             return OppoResultCore.FalseResult;
 
         try
