@@ -117,4 +117,8 @@ internal static partial class OppoLogger
     [LoggerMessage(EventId = 23, EventName = nameof(ReaderLoopFailedWithPendingCommand), Level = LogLevel.Warning,
         Message = "Reader loop failed while a command response was pending.")]
     public static partial void ReaderLoopFailedWithPendingCommand(this ILogger logger);
+
+    [LoggerMessage(EventId = 24, EventName = nameof(RetryingAfterOvertime), Level = LogLevel.Debug,
+        Message = "{Caller} - Retrying command after player returned ER OVERTIME")]
+    public static partial void RetryingAfterOvertime(this ILogger logger, string? caller);
 }

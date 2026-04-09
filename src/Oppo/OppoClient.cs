@@ -27,7 +27,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
 
     private TcpClient _tcpClient = ConnectHelper.CreateTcpClient();
     private readonly SemaphoreSlim _semaphore = new(1, 1);
-    private readonly TimeSpan _timeout = TimeSpan.FromSeconds(1);
+    private readonly TimeSpan _timeout = TimeSpan.FromSeconds(3);
 
     private const string OkOn = "@OK ON";
     private const string OkOff = "@OK OFF";
@@ -1169,10 +1169,33 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
     
     private async ValueTask<OppoResultCore> SendCommand(byte[] command, CancellationToken cancellationToken, [CallerMemberName] string? caller = null)
     {
-        PendingCommandResponse? pendingResponse = null;
-
         if (!await _semaphore.WaitAsync(_timeout, cancellationToken))
             return OppoResultCore.FalseResult;
+
+        try
+        {
+            var result = await SendCommandCore(command, cancellationToken, caller);
+            if (!result.ShouldRetry)
+                return result;
+
+            _logger.RetryingAfterOvertime(caller);
+            await Task.Delay(50, cancellationToken);
+            result = await SendCommandCore(command, cancellationToken, caller);
+
+            if (!result.Success && result.Response is { Length: > 0 } response)
+                _logger.FailedToSendCommand(caller, response);
+
+            return result;
+        }
+        finally
+        {
+            _semaphore.Release();
+        }
+    }
+
+    private async ValueTask<OppoResultCore> SendCommandCore(byte[] command, CancellationToken cancellationToken, [CallerMemberName] string? caller = null)
+    {
+        PendingCommandResponse? pendingResponse = null;
 
         try
         {
@@ -1219,6 +1242,9 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
             if (result.Success)
                 return result;
 
+            if (result.Response is "@ER OVERTIME")
+                return OppoResultCore.RetryResult(result.Response);
+
             if (result.Response is { Length: > 0 } response)
                 _logger.FailedToSendCommand(caller, response);
 
@@ -1242,10 +1268,6 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
             }
             _logger.FailedToSendCommandException(e);
             return OppoResultCore.FalseResult;
-        }
-        finally
-        {
-            _semaphore.Release();
         }
     }
 
@@ -1533,7 +1555,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         _logger.ReceivedResponse(normalizedResponse);
         var coreResult = normalizedResponse.StartsWith("@OK", StringComparison.Ordinal)
             ? OppoResultCore.SuccessResult(normalizedResponse)
-            : new OppoResultCore(false, normalizedResponse);
+            : new OppoResultCore(false, false, normalizedResponse);
         pendingResponse.Completion.TrySetResult(coreResult);
         return true;
     }

@@ -4,6 +4,7 @@ namespace Oppo;
 
 internal readonly record struct OppoResultCore(
     bool Success,
+    bool ShouldRetry,
     string? Response)
 {
     public string? Response { get; } = Response;
@@ -11,7 +12,10 @@ internal readonly record struct OppoResultCore(
     [MemberNotNullWhen(true, nameof(Response))]
     public bool Success { get; } = Success;
 
-    public static readonly OppoResultCore FalseResult = new(false, null);
+    public bool ShouldRetry { get; } = ShouldRetry;
 
-    public static OppoResultCore SuccessResult(string response) => new(true, response);
+    public static readonly OppoResultCore FalseResult = new(false, false, null);
+
+    public static OppoResultCore RetryResult(string response) => new(false, true, response);
+    public static OppoResultCore SuccessResult(string response) => new(true, false, response);
 }
