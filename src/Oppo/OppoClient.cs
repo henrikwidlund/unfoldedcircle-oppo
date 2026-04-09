@@ -1191,10 +1191,14 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
             await Task.Delay(50, cancellationToken);
             result = await SendCommandCore(command, cancellationToken, caller);
 
-            if (!result.Success && result.Response is { Length: > 0 } response)
+            if (result is { Success: false, Response: { Length: > 0 } response })
                 _logger.FailedToSendCommand(caller, response);
 
             return result;
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            return OppoResultCore.FalseResult;
         }
         finally
         {
