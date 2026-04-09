@@ -5,6 +5,7 @@ using System.Net.Sockets;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Channels;
+using System.Threading.RateLimiting;
 
 using Microsoft.Extensions.Logging;
 
@@ -15,7 +16,8 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
     private readonly string _hostName = hostName;
     private readonly OppoModel _model = model;
     private readonly ILogger<OppoClient> _logger = logger;
-    
+    private readonly TokenBucketRateLimiter _rateLimiter = ConnectHelper.CreateRateLimiter();
+
     private readonly bool _is20XModel = model is OppoModel.UDP203 or OppoModel.UDP205;
     private readonly ushort _port = model switch
     {
@@ -1169,7 +1171,14 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
     
     private async ValueTask<OppoResultCore> SendCommand(byte[] command, CancellationToken cancellationToken, [CallerMemberName] string? caller = null)
     {
-        if (!await _semaphore.WaitAsync(_timeout, cancellationToken))
+        using var lease = await _rateLimiter.AcquireAsyncWithoutCancellationException(_logger, cancellationToken, caller);
+        if (!lease.IsAcquired)
+        {
+            _logger.FailedToAcquireRateLimitLease(caller);
+            return OppoResultCore.FalseResult;
+        }
+
+        if (!await _semaphore.WaitAsyncWithoutCancellationException(_logger, _timeout, cancellationToken, caller))
             return OppoResultCore.FalseResult;
 
         try
@@ -1182,10 +1191,14 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
             await Task.Delay(50, cancellationToken);
             result = await SendCommandCore(command, cancellationToken, caller);
 
-            if (!result.Success && result.Response is { Length: > 0 } response)
+            if (result is { Success: false, Response: { Length: > 0 } response })
                 _logger.FailedToSendCommand(caller, response);
 
             return result;
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            return OppoResultCore.FalseResult;
         }
         finally
         {
@@ -2025,6 +2038,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
 
         _tcpClient.Dispose();
         _semaphore.Dispose();
+        _rateLimiter.Dispose();
         IsDisposed = true;
     }
 }

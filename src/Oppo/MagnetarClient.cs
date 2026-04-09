@@ -1,6 +1,8 @@
 using System.Net;
 using System.Net.Sockets;
+using System.Runtime.CompilerServices;
 using System.Text;
+using System.Threading.RateLimiting;
 
 using Microsoft.Extensions.Logging;
 
@@ -17,6 +19,7 @@ public sealed class MagnetarClient(string hostName, string macAddress, ILogger<M
     private readonly TcpClient _tcpClient = ConnectHelper.CreateTcpClient();
     private readonly SemaphoreSlim _semaphore = new(1, 1);
     private readonly TimeSpan _timeout = TimeSpan.FromSeconds(3);
+    private readonly TokenBucketRateLimiter _rateLimiter = ConnectHelper.CreateRateLimiter();
 
     public string HostName => _hostName;
 
@@ -409,9 +412,16 @@ public sealed class MagnetarClient(string hostName, string macAddress, ILogger<M
 
     private static readonly byte[] CarriageReturnLineFeed = "\r\n"u8.ToArray();
 
-    private async ValueTask<OppoResultCore> SendCommand(string command, CancellationToken cancellationToken)
+    private async ValueTask<OppoResultCore> SendCommand(string command, CancellationToken cancellationToken, [CallerMemberName] string? caller = null)
     {
-        if (!await _semaphore.WaitAsync(_timeout, cancellationToken))
+        using var lease = await _rateLimiter.AcquireAsyncWithoutCancellationException(_logger, cancellationToken, caller);
+        if (!lease.IsAcquired)
+        {
+            _logger.FailedToAcquireRateLimitLease(caller);
+            return OppoResultCore.FalseResult;
+        }
+
+        if (!await _semaphore.WaitAsyncWithoutCancellationException(_logger, _timeout, cancellationToken, caller))
             return OppoResultCore.FalseResult;
 
         try
@@ -440,6 +450,7 @@ public sealed class MagnetarClient(string hostName, string macAddress, ILogger<M
 
     public void Dispose()
     {
+        _rateLimiter.Dispose();
         _tcpClient.Dispose();
         _semaphore.Dispose();
         IsDisposed = true;

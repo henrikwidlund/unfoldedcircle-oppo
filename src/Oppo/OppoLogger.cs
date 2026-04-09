@@ -121,4 +121,12 @@ internal static partial class OppoLogger
     [LoggerMessage(EventId = 24, EventName = nameof(RetryingAfterOvertime), Level = LogLevel.Debug,
         Message = "{Caller} - Retrying command after player returned ER OVERTIME")]
     public static partial void RetryingAfterOvertime(this ILogger logger, string? caller);
+
+    [LoggerMessage(EventId = 25, EventName = nameof(FailedToAcquireRateLimitLease), Level = LogLevel.Warning,
+        Message = "{Caller} - Failed to acquire rate limit lease, command aborted.")]
+    public static partial void FailedToAcquireRateLimitLease(this ILogger logger, string? caller);
+
+    [LoggerMessage(EventId = 26, EventName = nameof(CancellationWhileAwaiting), Level = LogLevel.Information,
+        Message = "{Caller} - Cancellation requested while awaiting.")]
+    public static partial void CancellationWhileAwaiting(this ILogger logger, string? caller);
 }
