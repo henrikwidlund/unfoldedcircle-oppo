@@ -16,7 +16,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
     private readonly string _hostName = hostName;
     private readonly OppoModel _model = model;
     private readonly ILogger<OppoClient> _logger = logger;
-    private readonly FixedWindowRateLimiter _rateLimiter = ConnectHelper.CreateRateLimiter();
+    private readonly TokenBucketRateLimiter _rateLimiter = ConnectHelper.CreateRateLimiter();
 
     private readonly bool _is20XModel = model is OppoModel.UDP203 or OppoModel.UDP205;
     private readonly ushort _port = model switch

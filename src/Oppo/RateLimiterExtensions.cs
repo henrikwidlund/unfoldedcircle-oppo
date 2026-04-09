@@ -6,16 +6,18 @@ namespace Oppo;
 
 internal static class RateLimiterExtensions
 {
-    extension (FixedWindowRateLimiter limiter)
+    extension (TokenBucketRateLimiter limiter)
     {
         public async ValueTask<RateLimitLease> AcquireAsyncWithoutCancellationException(ILogger logger, CancellationToken cancellationToken, string? caller = null)
         {
             try
             {
+                // Fast path: permit immediately available — no need to await.
                 var attemptAcquire = limiter.AttemptAcquire();
-                if (!attemptAcquire.IsAcquired)
+                if (attemptAcquire.IsAcquired)
                     return attemptAcquire;
 
+                // No permit right now — queue up and wait for the next window.
                 return await limiter.AcquireAsync(cancellationToken: cancellationToken);
             }
             catch (OperationCanceledException)

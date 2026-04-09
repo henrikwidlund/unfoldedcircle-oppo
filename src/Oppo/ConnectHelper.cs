@@ -64,10 +64,13 @@ internal static class ConnectHelper
         }
     }
 
-    internal static FixedWindowRateLimiter CreateRateLimiter() => new(new FixedWindowRateLimiterOptions
+    internal static TokenBucketRateLimiter CreateRateLimiter() => new(new TokenBucketRateLimiterOptions
     {
         AutoReplenishment = true,
-        PermitLimit = 1,
-        Window = TimeSpan.FromMilliseconds(200)
+        TokenLimit = 1,
+        TokensPerPeriod = 1,
+        ReplenishmentPeriod = TimeSpan.FromMilliseconds(100),
+        QueueLimit = 30,
+        QueueProcessingOrder = QueueProcessingOrder.OldestFirst
     });
 }
