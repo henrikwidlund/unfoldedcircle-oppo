@@ -17,6 +17,8 @@ internal static class RateLimiterExtensions
                 if (attemptAcquire.IsAcquired)
                     return attemptAcquire;
 
+                attemptAcquire.Dispose();
+
                 // No permit right now — queue up and wait for the next window.
                 return await limiter.AcquireAsync(cancellationToken: cancellationToken);
             }

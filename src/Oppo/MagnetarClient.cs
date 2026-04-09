@@ -450,6 +450,7 @@ public sealed class MagnetarClient(string hostName, string macAddress, ILogger<M
 
     public void Dispose()
     {
+        _rateLimiter.Dispose();
         _tcpClient.Dispose();
         _semaphore.Dispose();
         IsDisposed = true;
