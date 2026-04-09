@@ -22,7 +22,7 @@ internal static class RateLimiterExtensions
             }
             catch (OperationCanceledException)
             {
-                logger.TimeoutWhileAcquiringLease(caller);
+                logger.CancellationWhileAcquiringLease(caller);
                 return CancelledLimitLease.Instance;
             }
         }
@@ -38,6 +38,6 @@ internal static class RateLimiterExtensions
         }
 
         public override bool IsAcquired => false;
-        public override IEnumerable<string> MetadataNames => null!;
+        public override IEnumerable<string> MetadataNames => [];
     }
 }
