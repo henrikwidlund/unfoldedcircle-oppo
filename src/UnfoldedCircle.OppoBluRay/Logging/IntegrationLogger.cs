@@ -76,5 +76,13 @@ internal static partial class IntegrationLogger
 
     public static void FailureDuringEvent(this ILogger logger, Exception exception, string wsId, string key) =>
         FailureDuringEventAction(logger, wsId, key, exception);
+
+    private static readonly Action<ILogger, string, Exception> FailureDuringRestoreAction = LoggerMessage.Define<string>(
+        LogLevel.Error,
+        new EventId(21, nameof(FailureDuringRestore)),
+        "{WSId} Failure during restore.");
+
+    public static void FailureDuringRestore(this ILogger logger, Exception exception, string wsId) =>
+        FailureDuringRestoreAction(logger, wsId, exception);
 }
 
