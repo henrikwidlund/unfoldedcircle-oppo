@@ -46,12 +46,11 @@
     </ItemGroup>
 
     <ItemGroup>
-<!--        <ProjectReference Include="..\..\..\UnfoldedCircle\src\UnfoldedCircle.Server\UnfoldedCircle.Server.csproj" />-->
         <ProjectReference Include="..\Oppo\Oppo.csproj" />
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Meziantou.Analyzer" Version="3.0.44">
+        <PackageReference Include="Meziantou.Analyzer" Version="3.0.46">
           <PrivateAssets>all</PrivateAssets>
           <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
