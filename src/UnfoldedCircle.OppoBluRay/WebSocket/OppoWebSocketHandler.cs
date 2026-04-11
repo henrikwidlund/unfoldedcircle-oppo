@@ -184,6 +184,12 @@ public partial class OppoWebSocketHandler(
     protected override ValueTask<SetupDriverUserDataResult> OnSetupDriverUserDataConfirmAsync(System.Net.WebSockets.WebSocket socket, SetDriverUserDataMsg payload, string wsId, CancellationToken cancellationToken)
         => ValueTask.FromResult(SetupDriverUserDataResult.Finalized);
 
+    protected override async ValueTask<string> GetJsonBackupDataAsync(CancellationToken cancellationToken)
+    {
+        var unfoldedCircleConfiguration = await _configurationService.GetConfigurationAsync(cancellationToken);
+        return JsonSerializer.Serialize(unfoldedCircleConfiguration, OppoJsonSerializerContext.Instance.UnfoldedCircleConfigurationOppoConfigurationItem);
+    }
+
     protected override async ValueTask<SettingsPage> CreateNewEntitySettingsPageAsync(CancellationToken cancellationToken)
     {
         var configuration = await _configurationService.GetConfigurationAsync(cancellationToken);
@@ -378,6 +384,26 @@ public partial class OppoWebSocketHandler(
         await _configurationService.UpdateConfigurationAsync(configuration, cancellationToken);
 
         return await GetSetupResultForClient(wsId, newConfigurationItem.EntityId, cancellationToken);
+    }
+
+    protected override async ValueTask<RestoreResult> HandleRestoreFromBackupAsync(string wsId, string jsonRestoreData, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var configuration = JsonSerializer.Deserialize(jsonRestoreData,
+                OppoJsonSerializerContext.Instance.UnfoldedCircleConfigurationOppoConfigurationItem);
+            if (configuration is null)
+                return RestoreResult.Failure;
+
+            await _configurationService.UpdateConfigurationAsync(configuration, cancellationToken);
+            _oppoClientFactory.TryDisposeAllClients();
+            return RestoreResult.Success;
+        }
+        catch (Exception e)
+        {
+            _logger.FailureDuringRestore(e, wsId);
+            return RestoreResult.Failure;
+        }
     }
 
     private static OppoModel GetOppoModel(Dictionary<string, string> msgDataSetupData) =>
