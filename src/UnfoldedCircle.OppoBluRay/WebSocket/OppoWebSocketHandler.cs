@@ -184,10 +184,10 @@ public partial class OppoWebSocketHandler(
     protected override ValueTask<SetupDriverUserDataResult> OnSetupDriverUserDataConfirmAsync(System.Net.WebSockets.WebSocket socket, SetDriverUserDataMsg payload, string wsId, CancellationToken cancellationToken)
         => ValueTask.FromResult(SetupDriverUserDataResult.Finalized);
 
-    protected override async ValueTask<string> GetBase64BackupDataAsync(CancellationToken cancellationToken)
+    protected override async ValueTask<string> GetJsonBackupDataAsync(CancellationToken cancellationToken)
     {
         var unfoldedCircleConfiguration = await _configurationService.GetConfigurationAsync(cancellationToken);
-        return Convert.ToBase64String(JsonSerializer.SerializeToUtf8Bytes(unfoldedCircleConfiguration, OppoJsonSerializerContext.Instance.UnfoldedCircleConfigurationOppoConfigurationItem));
+        return JsonSerializer.Serialize(unfoldedCircleConfiguration, OppoJsonSerializerContext.Instance.UnfoldedCircleConfigurationOppoConfigurationItem);
     }
 
     protected override async ValueTask<SettingsPage> CreateNewEntitySettingsPageAsync(CancellationToken cancellationToken)
@@ -386,16 +386,17 @@ public partial class OppoWebSocketHandler(
         return await GetSetupResultForClient(wsId, newConfigurationItem.EntityId, cancellationToken);
     }
 
-    protected override async ValueTask<RestoreResult> HandleRestoreFromBackupAsync(string wsId, string base64RestoreData, CancellationToken cancellationToken)
+    protected override async ValueTask<RestoreResult> HandleRestoreFromBackupAsync(string wsId, string jsonRestoreData, CancellationToken cancellationToken)
     {
         try
         {
-            var configuration = JsonSerializer.Deserialize(Convert.FromBase64String(base64RestoreData),
+            var configuration = JsonSerializer.Deserialize(jsonRestoreData,
                 OppoJsonSerializerContext.Instance.UnfoldedCircleConfigurationOppoConfigurationItem);
             if (configuration is null)
                 return RestoreResult.Failure;
 
             await _configurationService.UpdateConfigurationAsync(configuration, cancellationToken);
+            _oppoClientFactory.TryDisposeAllClients();
             return RestoreResult.Success;
         }
         catch (Exception e)
