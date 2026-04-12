@@ -50,7 +50,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Meziantou.Analyzer" Version="3.0.46">
+        <PackageReference Include="Meziantou.Analyzer" Version="3.0.47">
           <PrivateAssets>all</PrivateAssets>
           <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
@@ -58,7 +58,7 @@
         <PackageReference Include="Theodicean.SourceGenerators" Version="0.0.4" PrivateAssets="all" ExcludeAssets="runtime">
             <IncludeAssets>compile; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Theodicean.UnfoldedCircle.Server" Version="0.0.10-pre10" />
+        <PackageReference Include="Theodicean.UnfoldedCircle.Server" Version="0.0.10" />
     </ItemGroup>
 
 </Project>
