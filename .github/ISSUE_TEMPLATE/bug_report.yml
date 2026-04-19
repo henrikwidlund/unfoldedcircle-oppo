@@ -1,22 +1,25 @@
 name: Bug report
 description: Create a report to help us improve
-title: "<title>"
+title: "Bug: "
 labels: [bug]
 
 body:
   - type: markdown
+    id: existing_issues
     attributes:
       value: |
         Please check the existing issues first to see if the bug has already been recorded.
         If you have more information about an existing bug, please add it as a comment and don't open a new issue.
         Thank you!
   - type: textarea
+    id: description
     attributes:
       label: Description
       description: A clear and concise description of what the bug is.
     validations:
       required: true
   - type: textarea
+    id: steps_to_reproduce
     attributes:
       label: How to Reproduce
       description: Steps to reproduce the behavior.
@@ -32,11 +35,12 @@ body:
       label: Is the issue consistent?
       description: Is the issue always reproducible when following the steps above, or does it only happen sometimes?
       options:
-        - Always
-        - Sometimes
+        - "Always"
+        - "Sometimes"
     validations:
       required: false
   - type: textarea
+    id: expected_behavior
     attributes:
       label: Expected behavior
       description: A clear and concise description of what you expected to happen.
@@ -64,8 +68,8 @@ body:
       label: Anything else connected to the player?
       description: The players only support a single connection. If you have anything else connected to the player, it can cause issues.
       options:
-          - Yes
-          - No
+          - "Yes"
+          - "No"
     validations:
       required: true
   - type: textarea
