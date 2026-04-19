@@ -31,6 +31,11 @@ body:
     attributes:
       label: Is the issue consistent?
       description: Is the issue always reproducible when following the steps above, or does it only happen sometimes?
+      options:
+        - label: Always
+          value: always
+        - label: Sometimes
+          value: sometimes
     validations:
       required: false
   - type: textarea
