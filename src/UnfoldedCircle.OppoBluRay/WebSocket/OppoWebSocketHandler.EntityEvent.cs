@@ -1162,7 +1162,7 @@ public partial class OppoWebSocketHandler
 
         PreviousSensorDiscTypesMap[clientHashCode] = discType;
         return SendMessageAsync(socket,
-            ResponsePayloadHelpers.CreateSensorStateChangedResponsePayload(
+            ResponsePayloadHelpers.CreateSensorStateChangedPayload(
                 new SensorStateChangedEventMessageDataAttributes<string>
                 {
                     State = SensorState.On,
@@ -1187,7 +1187,7 @@ public partial class OppoWebSocketHandler
 
         PreviousSensorInputSourcesMap[clientHashCode] = inputSource;
         return SendMessageAsync(socket,
-            ResponsePayloadHelpers.CreateSensorStateChangedResponsePayload(
+            ResponsePayloadHelpers.CreateSensorStateChangedPayload(
                 new SensorStateChangedEventMessageDataAttributes<string>
                 {
                     State = SensorState.On,
@@ -1212,7 +1212,7 @@ public partial class OppoWebSocketHandler
 
         PreviousSensorHDMIResolutionsMap[clientHashCode] = hdmiResolution;
         return SendMessageAsync(socket,
-            ResponsePayloadHelpers.CreateSensorStateChangedResponsePayload(
+            ResponsePayloadHelpers.CreateSensorStateChangedPayload(
                 new SensorStateChangedEventMessageDataAttributes<string>
                 {
                     State = SensorState.On,
@@ -1237,7 +1237,7 @@ public partial class OppoWebSocketHandler
 
         PreviousSensorAudioTypesMap[clientHashCode] = audioType;
         return SendMessageAsync(socket,
-            ResponsePayloadHelpers.CreateSensorStateChangedResponsePayload(
+            ResponsePayloadHelpers.CreateSensorStateChangedPayload(
                 new SensorStateChangedEventMessageDataAttributes<string>
                 {
                     State = SensorState.On,
@@ -1262,7 +1262,7 @@ public partial class OppoWebSocketHandler
 
         PreviousSensorSubtitleTypesMap[clientHashCode] = subtitleType;
         return SendMessageAsync(socket,
-            ResponsePayloadHelpers.CreateSensorStateChangedResponsePayload(
+            ResponsePayloadHelpers.CreateSensorStateChangedPayload(
                 new SensorStateChangedEventMessageDataAttributes<string>
                 {
                     State = SensorState.On,
@@ -1287,7 +1287,7 @@ public partial class OppoWebSocketHandler
 
         PreviousSensorThreeDsMap[clientHashCode] = threeD;
         return SendMessageAsync(socket,
-            ResponsePayloadHelpers.CreateSensorStateChangedResponsePayload(
+            ResponsePayloadHelpers.CreateSensorStateChangedPayload(
                 new SensorStateChangedEventMessageDataAttributes<string>
                 {
                     State = SensorState.On,
@@ -1317,7 +1317,7 @@ public partial class OppoWebSocketHandler
 
         PreviousSensorHDRStatusMap[clientHashCode] = hdrStatus;
         return SendMessageAsync(socket,
-            ResponsePayloadHelpers.CreateSensorStateChangedResponsePayload(
+            ResponsePayloadHelpers.CreateSensorStateChangedPayload(
                 new SensorStateChangedEventMessageDataAttributes<string>
                 {
                     State = SensorState.On,
@@ -1342,7 +1342,7 @@ public partial class OppoWebSocketHandler
 
         PreviousSensorAspectRatiosMap[clientHashCode] = aspectRatio;
         return SendMessageAsync(socket,
-            ResponsePayloadHelpers.CreateSensorStateChangedResponsePayload(
+            ResponsePayloadHelpers.CreateSensorStateChangedPayload(
                 new SensorStateChangedEventMessageDataAttributes<string>
                 {
                     State = SensorState.On,
