@@ -18,7 +18,7 @@
         </PackageReference>
         <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.6" />
         <PackageReference Include="NetEscapades.EnumGenerators.Interceptors" Version="1.0.0-beta21" />
-        <PackageReference Include="System.Threading.RateLimiting" Version="10.0.6" />
+        <PackageReference Include="System.Threading.RateLimiting" Version="10.0.7" />
     </ItemGroup>
 
 </Project>
