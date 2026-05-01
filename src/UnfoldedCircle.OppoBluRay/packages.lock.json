@@ -31,9 +31,9 @@
       },
       "Theodicean.SourceGenerators": {
         "type": "Direct",
-        "requested": "[0.0.4, )",
-        "resolved": "0.0.4",
-        "contentHash": "LpN96KXMC/C2B8DAYCd45dYsptHI2MFFksE1Paswczaz0+qrRAIAhs4asSvprJ2IUHPD95PGRZURgYkslMTKCg=="
+        "requested": "[0.0.5, )",
+        "resolved": "0.0.5",
+        "contentHash": "CZ36BSeqkRXCDGKBeV6IcOiVLeKoZrv31JsbTFuiQpUVLyvGhVzCVesUlWMH5U/TU7xbAS3rE1AyS+sD1hx6Tg=="
       },
       "Theodicean.UnfoldedCircle.Server": {
         "type": "Direct",
