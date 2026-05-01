@@ -12,13 +12,10 @@
         <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
         <IsTrimmable>true</IsTrimmable>
         <IsAotCompatible>true</IsAotCompatible>
-    </PropertyGroup>
-    
-    <PropertyGroup Condition="'$(PublishUsingAot)' == 'true'">
-        <PublishAot>true</PublishAot>
+        <RuntimeIdentifiers>linux-x64;linux-arm64;osx-arm64;osx-x64;win-x64;win-arm64</RuntimeIdentifiers>
     </PropertyGroup>
 
-    <PropertyGroup Condition="'$(PublishUsingAot)' != 'true'">
+    <PropertyGroup Condition="'$(PublishAot)' != 'true'">
         <PublishSingleFile>true</PublishSingleFile>
         <PublishTrimmed>true</PublishTrimmed>
     </PropertyGroup>
@@ -54,11 +51,12 @@
           <PrivateAssets>all</PrivateAssets>
           <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
+        <PackageReference Include="Microsoft.DotNet.ILCompiler" Version="10.0.7" />
         <PackageReference Include="NetEscapades.EnumGenerators.Interceptors" Version="1.0.0-beta21" />
         <PackageReference Include="Theodicean.SourceGenerators" Version="0.0.4" PrivateAssets="all" ExcludeAssets="runtime">
             <IncludeAssets>compile; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Theodicean.UnfoldedCircle.Server" Version="0.0.11-pre03" />
+        <PackageReference Include="Theodicean.UnfoldedCircle.Server" Version="0.0.11" />
     </ItemGroup>
 
 </Project>

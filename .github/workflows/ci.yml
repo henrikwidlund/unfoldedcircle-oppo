@@ -26,7 +26,7 @@ jobs:
           dotnet-version: 10.0.x
 
       - name: Restore Dependencies
-        run: dotnet restore
+        run: dotnet restore --use-lock-file --locked-mode
 
       - name: Build
         run: dotnet build --no-restore

@@ -1,0 +1,67 @@
+{
+  "version": 1,
+  "dependencies": {
+    "net10.0": {
+      "Meziantou.Analyzer": {
+        "type": "Direct",
+        "requested": "[3.0.58, )",
+        "resolved": "3.0.58",
+        "contentHash": "EWprZh8ONB5W4T5lajB9H3/ThznWgEVbb8sWkIZe2ZOCRPPzAdLxkFfM8z57SosJtUYGxPXvxlqGmClxw8mA9g=="
+      },
+      "Microsoft.Extensions.Logging.Abstractions": {
+        "type": "Direct",
+        "requested": "[10.0.7, )",
+        "resolved": "10.0.7",
+        "contentHash": "tIEcQ2gvERrH2KiCjdsVcHGhXt9lIsuDStfOIeZWr7/fP8IXhGiYfx0/80PNI7WPO2IYuFtlZLSlnTS8+/Mchw==",
+        "dependencies": {
+          "Microsoft.Extensions.DependencyInjection.Abstractions": "10.0.7"
+        }
+      },
+      "Microsoft.NET.ILLink.Tasks": {
+        "type": "Direct",
+        "requested": "[10.0.7, )",
+        "resolved": "10.0.7",
+        "contentHash": "AA/yhzFHNtQZXLdqjzujPy25G8EWwGWsAnxOE2zYSBoT/8QHP6ketN3CToD3DFreO653ipUwnKHo22B8AlBMCw=="
+      },
+      "NetEscapades.EnumGenerators.Interceptors": {
+        "type": "Direct",
+        "requested": "[1.0.0-beta21, )",
+        "resolved": "1.0.0-beta21",
+        "contentHash": "8+ttOIpxpdQaMPmbby3fBCoJViT2O5RVGZKbyUqzoXfstNF3sjFDRTZvwu8kN/qM8iUaRJ5x0bDneGlSofeW0A==",
+        "dependencies": {
+          "NetEscapades.EnumGenerators": "1.0.0-beta21"
+        }
+      },
+      "System.Threading.RateLimiting": {
+        "type": "Direct",
+        "requested": "[10.0.7, )",
+        "resolved": "10.0.7",
+        "contentHash": "jyE25vnx7GODTj0HyNLw0N1xZZnC393yheswsr4OMCZIrJ8VrBzgpPf9a+qJyDoQXt49cekHy1dIY1eQa5uhOg=="
+      },
+      "Microsoft.Extensions.DependencyInjection.Abstractions": {
+        "type": "Transitive",
+        "resolved": "10.0.7",
+        "contentHash": "Z6mfFEaFcwCfSboxJwOLfu7/31npCY9q70WUamHW/vRQhDvBKOT4Vf9YkZj5J6hLvJpb0oDEYfHunQZj0xxvKw=="
+      },
+      "NetEscapades.EnumGenerators": {
+        "type": "Transitive",
+        "resolved": "1.0.0-beta21",
+        "contentHash": "GVhHFXkDBqzD96oc6sJGh9LQh+f50KvbwGxy+k5JuzIS8BHuTANo34tlJrv9T7jmofbucnE4pPhvPMu8dS0QUg==",
+        "dependencies": {
+          "NetEscapades.EnumGenerators.Generators": "1.0.0-beta21",
+          "NetEscapades.EnumGenerators.RuntimeDependencies": "1.0.0-beta21"
+        }
+      },
+      "NetEscapades.EnumGenerators.Generators": {
+        "type": "Transitive",
+        "resolved": "1.0.0-beta21",
+        "contentHash": "hztPmuEjHzLqDM4gvXfRuaBAQt3EpRaduQoLW8jDxIk1lXuJwTGl+L5NTERx5WKyV3vDzQK9mDPwzA+E/R2xHA=="
+      },
+      "NetEscapades.EnumGenerators.RuntimeDependencies": {
+        "type": "Transitive",
+        "resolved": "1.0.0-beta21",
+        "contentHash": "BYUQMIv1MFaFurVlxfyVFTTwwgMsfmGJLn2wiP77ZmegZ9WJbcRD+n62v4q2FOrBMPuP0W1bESASM1Wye/8sCw=="
+      }
+    }
+  }
+}
