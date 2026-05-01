@@ -85,6 +85,7 @@
       "oppo": {
         "type": "Project",
         "dependencies": {
+          "Microsoft.DotNet.ILCompiler": "[10.0.7, )",
           "NetEscapades.EnumGenerators.Interceptors": "[1.0.0-beta21, )"
         }
       }
