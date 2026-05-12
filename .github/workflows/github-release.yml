@@ -62,7 +62,7 @@ jobs:
           # Build everything
           release_name="unfolded-circle-oppo-$tag-${{ matrix.kind }}"
           
-          dotnet restore "./src/UnfoldedCircle.OppoBluRay/UnfoldedCircle.OppoBluRay.csproj" --use-lock-file --locked-mode -p:PublishAot=true
+          dotnet restore "./src/UnfoldedCircle.OppoBluRay/UnfoldedCircle.OppoBluRay.csproj" --locked-mode -p:PublishAot=true
           dotnet publish "./src/UnfoldedCircle.OppoBluRay/UnfoldedCircle.OppoBluRay.csproj" -r ${{ matrix.target }} -c Release -o ./publish -p:Version="$ASSEMBLY_VERSION" -p:PublishAot=true --no-restore
           if [ "${{ matrix.target }}" == "linux-arm64" ]; then
             mkdir driverdir && mkdir driverdir/bin && mkdir driverdir/config && mkdir driverdir/data
