@@ -20,7 +20,7 @@
         <PackageReference Include="Microsoft.DotNet.ILCompiler" Version="10.0.7" />
         <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.7" />
         <PackageReference Include="NetEscapades.EnumGenerators.Interceptors" Version="1.0.0-beta21" />
-        <PackageReference Include="System.Threading.RateLimiting" Version="10.0.7" />
+        <PackageReference Include="System.Threading.RateLimiting" Version="10.0.8" />
     </ItemGroup>
 
 </Project>
