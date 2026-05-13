@@ -1231,7 +1231,9 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
             pendingResponse = new PendingCommandResponse(
                 ExtractCommandCode(command),
                 new TaskCompletionSource<OppoResultCore>(TaskCreationOptions.RunContinuationsAsynchronously));
+#pragma warning disable MA0173 // Invalid
             if (Interlocked.CompareExchange(ref _pendingCommandResponse, pendingResponse, null) is not null)
+#pragma warning restore MA0173
                 return OppoResultCore.FalseResult;
 
             var networkStream = _tcpClient.GetStream();
