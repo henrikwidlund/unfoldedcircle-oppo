@@ -37,12 +37,12 @@
       },
       "Theodicean.UnfoldedCircle.Server": {
         "type": "Direct",
-        "requested": "[0.0.12-pre01, )",
-        "resolved": "0.0.12-pre01",
-        "contentHash": "4UF/bKjoNw1Sncd12tELa3UbUA/9to10x0EaDRtEROonGRjkTMK4KmI4Z5D16o0zDnWcoYskL1e4HZChkOsQfg==",
+        "requested": "[0.0.12, )",
+        "resolved": "0.0.12",
+        "contentHash": "Tr5YpwN4qHOz2+b4AlUWMJ44Lsfcq9uWXB3TOWU5Qvh4Kpd4wydraWbfEr/7x7j4j2e/8hpqsiFTOANI726eqQ==",
         "dependencies": {
-          "Theodicean.Makaretu.Dns.Multicast": "0.0.7",
-          "Theodicean.UnfoldedCircle.Models": "0.0.12-pre01"
+          "Theodicean.Makaretu.Dns.Multicast": "0.0.10",
+          "Theodicean.UnfoldedCircle.Models": "0.0.12"
         }
       },
       "NetEscapades.EnumGenerators": {
@@ -66,21 +66,21 @@
       },
       "Theodicean.Makaretu.Dns": {
         "type": "Transitive",
-        "resolved": "0.0.7",
-        "contentHash": "IVB161e+Z9xceNFEGdolhzaZC123tusJpFseL6QeT4hdqdhtRFedUeOeg2WZgpysLapccrKEE857q8RYT/lLJQ=="
+        "resolved": "0.0.10",
+        "contentHash": "ucDb6lSJ2GCmNOgo35bsCYrncZrZGXwLIO2QJogVtot7uGMKY9tEZwTHuvONEOeBLo0XZ+V02JGE9lPTAgCvvQ=="
       },
       "Theodicean.Makaretu.Dns.Multicast": {
         "type": "Transitive",
-        "resolved": "0.0.7",
-        "contentHash": "susuSW5fJOA/SRMD9o0+pO+ESzU8fR/nkAPr8fbK/hPobD4Lbh+ORDQz+EuL/HQcVaMzXlx9W5PBcsVQjU+HFQ==",
+        "resolved": "0.0.10",
+        "contentHash": "smAMedMdEAfTR1BYqY+f7x3bxKr9ntg6ni4ej9YuJDq9MyckjdKEH3K8sGDATt50kxfcnSV6g5qoQu7Efk9qSw==",
         "dependencies": {
-          "Theodicean.Makaretu.Dns": "0.0.7"
+          "Theodicean.Makaretu.Dns": "0.0.10"
         }
       },
       "Theodicean.UnfoldedCircle.Models": {
         "type": "Transitive",
-        "resolved": "0.0.12-pre01",
-        "contentHash": "6zKpbyFu+fd8OKn87eA/9U7cO2TJbM+oj5CSbDnBkRkueuoyxACRvAhXYR+paWor2Y0fQpk2/hb5Y+b40EpQgQ=="
+        "resolved": "0.0.12",
+        "contentHash": "s49LbtkUrdHuoHMmooaf0En+FDkq4m36aJA0bLf+WPIvqyW59Y8kILTCxODzjWznglXslJN/gfuy/Z811l+y0Q=="
       },
       "oppo": {
         "type": "Project",
