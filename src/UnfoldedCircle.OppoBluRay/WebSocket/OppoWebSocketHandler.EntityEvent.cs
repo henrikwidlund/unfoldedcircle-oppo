@@ -354,8 +354,7 @@ public partial class OppoWebSocketHandler
         snapshot.IsMovie = snapshot.DiscTypeResponse is { Success: true, Result: DiscType.BlueRayMovie or DiscType.DVDVideo or DiscType.UltraHDBluRay };
 
         if (playbackStatusResponse is not { Success: true, Result: PlaybackStatus.Play or PlaybackStatus.Pause }
-            || snapshot.DiscTypeResponse is not { Success: true }
-            || snapshot.DiscTypeResponse.Value.Result is DiscType.Unknown or DiscType.UnknownDisc or DiscType.DataDisc)
+            || snapshot.DiscTypeResponse is not { Success: true, Result: not (DiscType.Unknown or DiscType.UnknownDisc or DiscType.DataDisc) })
             return;
 
         await PopulateActivePlaybackSnapshotAsync(oppoClientHolder, snapshot, cancellationToken);
@@ -372,7 +371,7 @@ public partial class OppoWebSocketHandler
         await TryPopulateAlbumCoverAsync(snapshot, cancellationToken);
 
         // if we're at 0, then we're at a title screen, and querying details will produce errors and lock up the player
-        if (snapshot.ElapsedResponse is { Result: 0 } || snapshot.RemainingResponse is { Result: 0 })
+        if (snapshot.ElapsedResponse is not { Success: true, Result: > 0 } || snapshot.RemainingResponse is not { Success: true, Result: > 0 })
             return;
 
         await PopulatePlaybackSensorsAsync(oppoClientHolder, snapshot, cancellationToken);
@@ -389,7 +388,7 @@ public partial class OppoWebSocketHandler
                 ? await oppoClientHolder.Client.QueryChapterElapsedTimeAsync(cancellationToken)
                 : await oppoClientHolder.Client.QueryTotalElapsedTimeAsync(cancellationToken);
 
-            if (snapshot.ElapsedResponse.Value)
+            if (snapshot.ElapsedResponse is { Success: true })
             {
                 snapshot.RemainingResponse = oppoClientHolder.ClientKey.UseChapterLengthForMovies
                     ? await oppoClientHolder.Client.QueryChapterRemainingTimeAsync(cancellationToken)
@@ -402,7 +401,7 @@ public partial class OppoWebSocketHandler
         }
 
         snapshot.ElapsedResponse = await oppoClientHolder.Client.QueryTrackOrTitleElapsedTimeAsync(cancellationToken);
-        if (!snapshot.ElapsedResponse.Value)
+        if (snapshot.ElapsedResponse is not { Success: true })
             return;
 
         snapshot.RemainingResponse = await oppoClientHolder.Client.QueryTrackOrTitleRemainingTimeAsync(cancellationToken);
@@ -417,8 +416,8 @@ public partial class OppoWebSocketHandler
 
     private async ValueTask TryPopulateAlbumCoverAsync(ClientSnapshot snapshot, CancellationToken cancellationToken)
     {
-        if (string.IsNullOrWhiteSpace(snapshot.Performer)
-            || (string.IsNullOrWhiteSpace(snapshot.Album) && string.IsNullOrWhiteSpace(snapshot.TrackResponse?.Result)))
+        if (snapshot.IsMovie || (string.IsNullOrWhiteSpace(snapshot.Performer)
+            || (string.IsNullOrWhiteSpace(snapshot.Album) && string.IsNullOrWhiteSpace(snapshot.TrackResponse?.Result))))
             return;
 
         if (snapshot.Album?.StartsWith(snapshot.Performer, StringComparison.OrdinalIgnoreCase) is true

@@ -103,7 +103,7 @@ public partial class OppoWebSocketHandler
         {
             var oppoClient = await _oppoClientFactory.TryGetOrCreateClient(oppoClientKey, cancellationToken);
             if (oppoClient is null)
-                return null;
+                continue;
 
             if (await oppoClient.IsConnectedAsync())
             {
