@@ -1,3 +1,5 @@
+using System.Diagnostics;
+
 using Oppo;
 
 using UnfoldedCircle.Models.Sync;
@@ -287,6 +289,7 @@ public partial class OppoWebSocketHandler
 
     private static async ValueTask HandleMediaPlayerPowerToggle(OppoClientHolder oppoClientHolder, CancellationToken commandCancellationToken)
     {
+        var startTime = Stopwatch.GetTimestamp();
         do
         {
             // media player power toggle sends play_pause, power the device on first if needed
@@ -298,7 +301,7 @@ public partial class OppoWebSocketHandler
 
             await oppoClientHolder.Client.PowerOnAsync(commandCancellationToken);
             await Task.Delay(1000, commandCancellationToken);
-        } while (true);
+        } while (Stopwatch.GetElapsedTime(startTime) < TimeSpan.FromSeconds(10));
     }
 
     protected override async ValueTask<EntityCommandResult> OnRemoteCommandAsync(System.Net.WebSockets.WebSocket socket,
