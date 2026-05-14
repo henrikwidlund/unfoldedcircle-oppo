@@ -66,7 +66,7 @@ jobs:
             mkdir driverdir && mkdir driverdir/bin && mkdir driverdir/config && mkdir driverdir/data
             cp publish/driver.json driverdir/driver.json
             cp ./oppo.png ./driverdir/oppo.png
-            cp publish/appsettings*.json driverdir/bin/
+            cp publish/appsettings.json driverdir/config/
 
             cp publish/driver driverdir/bin/
             cp publish/driver.dbg driverdir/bin/
