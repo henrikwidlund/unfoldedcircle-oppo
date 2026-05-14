@@ -47,8 +47,9 @@ public partial class OppoWebSocketHandler
         switch (payload.MsgData.CommandId)
         {
             case OppoCommandId.PlayPause:
-                await HandleMediaPlayerPowerToggle(oppoClientHolder, commandCancellationToken);
-                return EntityCommandResult.Failure;
+                if (!await HandleMediaPlayerPowerToggle(oppoClientHolder, commandCancellationToken))
+                    return EntityCommandResult.Failure;
+                break;
             case OppoCommandId.Stop:
                 await oppoClientHolder.Client.StopAsync(commandCancellationToken);
                 break;
