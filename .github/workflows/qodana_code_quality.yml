@@ -24,8 +24,11 @@ jobs:
         uses: JetBrains/qodana-action@d7b5ec2fbec32197ef447c450e00589ed5f34fd5
         with:
           pr-mode: true
-          args: --baseline,qodana.sarif.json
-          upload-result: true
+          args: |
+            --baseline qodana.sarif.json
+            --linter "jetbrains/qodana-cdnet:2026.1"
+            --within-docker false
+          use-caches: true
         env:
           QODANA_TOKEN: ${{ secrets.QODANA_TOKEN_477633446 }}
           QODANA_ENDPOINT: 'https://qodana.cloud'
