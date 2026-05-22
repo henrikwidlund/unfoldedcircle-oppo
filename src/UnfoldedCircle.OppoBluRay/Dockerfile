@@ -1,9 +1,11 @@
-﻿FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS base
+﻿# 10.0.8
+FROM mcr.microsoft.com/dotnet/aspnet@sha256:a7f704b4b87284c80df9b90ab0e06810a241785204dc191ec05f2b26b5847623 AS base
 USER $APP_UID
 WORKDIR /app
 EXPOSE 9001
 
-FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
+# 10.0.300
+FROM mcr.microsoft.com/dotnet/sdk@sha256:69ff714a42f7931475acfcd2792d69cd4a656e4f3653d520e25c0fbe3c6d0cba AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 COPY [".editorconfig", "."]
