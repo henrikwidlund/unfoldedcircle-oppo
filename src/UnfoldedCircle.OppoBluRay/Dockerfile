@@ -1,5 +1,5 @@
 # 10.0.8
-FROM mcr.microsoft.com/dotnet/aspnet@sha256:a7f704b4b87284c80df9b90ab0e06810a241785204dc191ec05f2b26b5847623 AS base
+FROM mcr.microsoft.com/dotnet/aspnet@sha256:8c0b6857eab7b2aa57884c839bf4678414606bd7d17370f18a842ac5cf414711 AS base
 USER $APP_UID
 WORKDIR /app
 EXPOSE 9001
