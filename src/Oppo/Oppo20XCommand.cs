@@ -463,11 +463,6 @@ internal static class Oppo20XQueryCommand
 internal static class Oppo20XAdvancedCommand
 {
     /// <summary>
-    /// Query verbose mode
-    /// </summary>
-    public static readonly byte[] QueryVerboseMode = "#QVM\r"u8.ToArray();
-
-    /// <summary>
     /// Set Verbose Mode to off
     /// </summary>
     public static readonly byte[] SetVerboseModeOff = "#SVM 0\r"u8.ToArray();

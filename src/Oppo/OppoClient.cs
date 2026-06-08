@@ -1092,7 +1092,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
 
     public async ValueTask<OppoResult<VerboseMode>> QueryVerboseMode(CancellationToken cancellationToken = default)
     {
-        var command = _is20XModel ? Oppo20XAdvancedCommand.QueryVerboseMode : Oppo10XAdvancedCommand.QueryVerboseMode;
+        var command = _is20XModel ? Oppo20XQueryCommand.QueryVerboseMode : Oppo10XQueryCommand.QueryVerboseMode;
 
         // Do not use SendCommandWithRetry here to avoid infinite loop
         var result = await SendCommand(command, cancellationToken);

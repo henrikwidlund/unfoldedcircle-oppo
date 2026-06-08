@@ -438,8 +438,8 @@ public partial class OppoWebSocketHandler
         if (!snapshot.IsMovie)
             return;
 
-        // Movies shorter equal to or shorter than 60 is most likely a title screen
-        // avoid querying subtitles as it could lock up the player if player is not in a state where they are available.
+        // Movies shorter than or equal to 60 seconds are most likely a title screen.
+        // Avoid querying subtitles as it could lock up the player if the player is not in a state where they are available.
         if (snapshot.MediaDuration is > 60)
             snapshot.SubtitleTypeResponse = await oppoClientHolder.Client.QuerySubtitleTypeAsync(cancellationToken);
 

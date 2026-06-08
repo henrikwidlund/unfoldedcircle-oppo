@@ -398,11 +398,6 @@ internal static class Oppo10XQueryCommand
 internal static class Oppo10XAdvancedCommand
 {
     /// <summary>
-    /// Query verbose mode
-    /// </summary>
-    public static readonly byte[] QueryVerboseMode = "REMOTE QVM\r"u8.ToArray();
-
-    /// <summary>
     /// Set Verbose Mode to off
     /// </summary>
     public static readonly byte[] SetVerboseModeOff = "REMOTE SVM 0"u8.ToArray();
