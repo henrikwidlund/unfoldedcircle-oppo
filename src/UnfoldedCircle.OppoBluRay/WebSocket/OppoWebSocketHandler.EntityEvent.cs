@@ -923,8 +923,7 @@ public partial class OppoWebSocketHandler
     {
         return context.ClientHolder.ClientKey.Model is OppoModel.UDP203 or OppoModel.UDP205
                && IsActivePlaybackState(context.Snapshot.State)
-               && context.Snapshot.DiscTypeResponse is { Success: true, Result: DiscType.UltraHDBluRay }
-               && context.Snapshot.HdmiResolutionResponse?.Result is HDMIResolution.RUltraHDp24 or HDMIResolution.RUltraHDp50 or HDMIResolution.RUltraHDp60;
+               && context.Snapshot is { DiscTypeResponse: { Success: true, Result: DiscType.UltraHDBluRay }, HdmiResolutionResponse.Result: HDMIResolution.RUltraHDp24 or HDMIResolution.RUltraHDp50 or HDMIResolution.RUltraHDp60 };
     }
 
     private static bool IsActivePlaybackState(in State state) =>
