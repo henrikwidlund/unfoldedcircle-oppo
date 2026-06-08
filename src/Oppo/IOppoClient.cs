@@ -421,6 +421,11 @@ public interface IOppoClient : IDisposable
     ValueTask<OppoResult<string>> QueryTrackPerformerAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Query verbose mode
+    /// </summary>
+    ValueTask<OppoResult<VerboseMode>> QueryVerboseMode(CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Set verbose mode.
     /// </summary>
     ValueTask<OppoResult<VerboseMode>> SetVerboseMode(VerboseMode verboseMode, CancellationToken cancellationToken = default);
