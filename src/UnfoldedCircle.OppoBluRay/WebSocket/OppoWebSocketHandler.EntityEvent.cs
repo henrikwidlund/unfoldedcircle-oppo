@@ -438,12 +438,22 @@ public partial class OppoWebSocketHandler
         if (!snapshot.IsMovie)
             return;
 
-        snapshot.SubtitleTypeResponse = await oppoClientHolder.Client.QuerySubtitleTypeAsync(cancellationToken);
+        // Movies shorter than or equal to 60 seconds are most likely a title screen.
+        // Avoid querying subtitles as it could lock up the player if the player is not in a state where they are available.
+        if (snapshot.MediaDuration is > 60)
+            snapshot.SubtitleTypeResponse = await oppoClientHolder.Client.QuerySubtitleTypeAsync(cancellationToken);
+
         if (oppoClientHolder.ClientKey.Model is not (OppoModel.UDP203 or OppoModel.UDP205))
             return;
 
-        snapshot.ThreeDStatusResponse = await oppoClientHolder.Client.QueryThreeDStatusAsync(cancellationToken);
-        snapshot.HdrStatusResponse = await oppoClientHolder.Client.QueryHDRStatusAsync(cancellationToken);
+        // 3D is only possible on BD movies
+        if (snapshot.DiscTypeResponse is { Success: true, Result: DiscType.BlueRayMovie })
+            snapshot.ThreeDStatusResponse = await oppoClientHolder.Client.QueryThreeDStatusAsync(cancellationToken);
+
+        // HDR is only possible on Ultra HD movies
+        if (snapshot.DiscTypeResponse is { Success: true, Result: DiscType.UltraHDBluRay })
+            snapshot.HdrStatusResponse = await oppoClientHolder.Client.QueryHDRStatusAsync(cancellationToken);
+
         snapshot.AspectRatioResponse = await oppoClientHolder.Client.QueryAspectRatioAsync(cancellationToken);
     }
 
@@ -913,7 +923,7 @@ public partial class OppoWebSocketHandler
     {
         return context.ClientHolder.ClientKey.Model is OppoModel.UDP203 or OppoModel.UDP205
                && IsActivePlaybackState(context.Snapshot.State)
-               && context.Snapshot.HdmiResolutionResponse?.Result is HDMIResolution.RUltraHDp24 or HDMIResolution.RUltraHDp50 or HDMIResolution.RUltraHDp60;
+               && context.Snapshot is { DiscTypeResponse: { Success: true, Result: DiscType.UltraHDBluRay }, HdmiResolutionResponse.Result: HDMIResolution.RUltraHDp24 or HDMIResolution.RUltraHDp50 or HDMIResolution.RUltraHDp60 };
     }
 
     private static bool IsActivePlaybackState(in State state) =>

@@ -43,9 +43,15 @@ public class OppoClientFactory(ILoggerFactory loggerFactory, ILogger<OppoClientF
                     _oppoClientLogger ??= _loggerFactory.CreateLogger<OppoClient>();
                     client = new OppoClient(oppoClientKey.HostName, oppoClientKey.Model, _oppoClientLogger);
                     await client.IsConnectedAsync();
-                    await client.SetVerboseMode(
-                        client.SupportsStreamingUpdates && oppoClientKey.UseStreamingEvents ? VerboseMode.DetailedStatus : VerboseMode.Off,
-                        cancellationToken);
+
+                    var desiredMode = client.SupportsStreamingUpdates && oppoClientKey.UseStreamingEvents
+                        ? VerboseMode.DetailedStatus
+                        : VerboseMode.Off;
+                    var currentMode = await client.QueryVerboseMode(cancellationToken);
+                    if (!currentMode.Success || currentMode.Result != desiredMode)
+                    {
+                        await client.SetVerboseMode(desiredMode, cancellationToken);
+                    }
                 }
 
                 _clients[clientKeyHash] = client;

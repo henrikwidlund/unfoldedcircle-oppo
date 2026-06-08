@@ -399,6 +399,8 @@ public sealed class MagnetarClient(string hostName, string macAddress, ILogger<M
         => ValueTask.FromResult(new OppoResult<string> { Success = false });
     public ValueTask<OppoResult<string>> QueryTrackPerformerAsync(CancellationToken cancellationToken = default)
         => ValueTask.FromResult(new OppoResult<string> { Success = false });
+    public ValueTask<OppoResult<VerboseMode>> QueryVerboseMode(CancellationToken cancellationToken = default)
+        => ValueTask.FromResult(new OppoResult<VerboseMode> { Success = false });
     public ValueTask<OppoResult<VerboseMode>> SetVerboseMode(VerboseMode verboseMode, CancellationToken cancellationToken = default)
         => ValueTask.FromResult(new OppoResult<VerboseMode> { Success = false });
 

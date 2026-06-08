@@ -1090,6 +1090,29 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         };
     }
 
+    public async ValueTask<OppoResult<VerboseMode>> QueryVerboseMode(CancellationToken cancellationToken = default)
+    {
+        var command = _is20XModel ? Oppo20XQueryCommand.QueryVerboseMode : Oppo10XQueryCommand.QueryVerboseMode;
+
+        var result = await SendCommand(command, cancellationToken);
+        return result.Success switch
+        {
+            false => false,
+            _ => new OppoResult<VerboseMode>
+            {
+                Success = true,
+                Result = result.Response.AsSpan()[4..] switch
+                {
+                    "0" => VerboseMode.Off,
+                    "1" => VerboseMode.EchoCommandsInResponse,
+                    "2" => VerboseMode.ModeUnsolicitedStatusUpdates,
+                    "3" => VerboseMode.DetailedStatus,
+                    _ => LogError(result.Response, VerboseMode.Unknown)
+                }
+            }
+        };
+    }
+
     public async ValueTask<OppoResult<VerboseMode>> SetVerboseMode(VerboseMode verboseMode, CancellationToken cancellationToken = default)
     {
         var command = verboseMode switch
@@ -1101,7 +1124,6 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
             _ => throw new ArgumentOutOfRangeException(nameof(verboseMode), verboseMode, "Unknown verbose mode")
         };
 
-        // Do not use SendCommandWithRetry here to avoid infinite loop
         var result = await SendCommand(command, cancellationToken);
         return result.Success switch
         {
