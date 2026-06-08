@@ -1094,7 +1094,6 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
     {
         var command = _is20XModel ? Oppo20XQueryCommand.QueryVerboseMode : Oppo10XQueryCommand.QueryVerboseMode;
 
-        // Do not use SendCommandWithRetry here to avoid infinite loop
         var result = await SendCommand(command, cancellationToken);
         return result.Success switch
         {
@@ -1125,7 +1124,6 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
             _ => throw new ArgumentOutOfRangeException(nameof(verboseMode), verboseMode, "Unknown verbose mode")
         };
 
-        // Do not use SendCommandWithRetry here to avoid infinite loop
         var result = await SendCommand(command, cancellationToken);
         return result.Success switch
         {
