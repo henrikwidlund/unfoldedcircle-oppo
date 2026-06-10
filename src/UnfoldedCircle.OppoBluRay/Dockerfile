@@ -5,7 +5,7 @@ WORKDIR /app
 EXPOSE 9001
 
 # 10.0.300
-FROM mcr.microsoft.com/dotnet/sdk@sha256:c0790639332692a0d56cdd81ed581cfd24d040d9839764c138994866df89a3b6 AS build
+FROM mcr.microsoft.com/dotnet/sdk@sha256:548d93f8a18a1acbe6cc127bc4f47281430d34a9e35c18afa80a8d6741c2adc3 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 COPY [".editorconfig", "."]
