@@ -35,6 +35,9 @@ public partial class OppoWebSocketHandler
 
         if (powerState is not null)
         {
+            if (powerState.Value.Result == PowerState.On)
+                await EnsureStreamingVerboseModeAsync(oppoClientHolder, commandCancellationToken);
+
             return powerState.Value.Result switch
             {
                 PowerState.On => EntityCommandResult.PowerOn,
@@ -296,6 +299,7 @@ public partial class OppoWebSocketHandler
             // media player power toggle sends play_pause, power the device on first if needed
             if (await oppoClientHolder.Client.QueryPowerStatusAsync(commandCancellationToken) is { Result: PowerState.On })
             {
+                await EnsureStreamingVerboseModeAsync(oppoClientHolder, commandCancellationToken);
                 await oppoClientHolder.Client.PauseAsync(commandCancellationToken);
                 return true;
             }
@@ -332,6 +336,9 @@ public partial class OppoWebSocketHandler
 
         if (powerState is not null)
         {
+            if (powerState.Value.Result == PowerState.On)
+                await EnsureStreamingVerboseModeAsync(oppoClientHolder, commandCancellationToken);
+
             return powerState.Value.Result switch
             {
                 PowerState.On => EntityCommandResult.PowerOn,
@@ -431,5 +438,13 @@ public partial class OppoWebSocketHandler
             powerStateResponse = await oppoClientHolder.Client.PowerOffAsync(cancellationToken);
 
         return powerStateResponse;
+    }
+
+    private static async ValueTask EnsureStreamingVerboseModeAsync(OppoClientHolder oppoClientHolder, CancellationToken cancellationToken)
+    {
+        if (!oppoClientHolder.Client.SupportsStreamingUpdates || !oppoClientHolder.ClientKey.UseStreamingEvents)
+            return;
+
+        await oppoClientHolder.Client.SetVerboseMode(VerboseMode.DetailedStatus, cancellationToken);
     }
 }
