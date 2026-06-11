@@ -926,6 +926,18 @@ public partial class OppoWebSocketHandler
             context.LastHdrRefreshUtc = DateTimeOffset.UtcNow;
     }
 
+    private static async ValueTask EnsureStreamingVerboseModeAsync(OppoClientHolder oppoClientHolder, ClientSnapshot snapshot, CancellationToken cancellationToken)
+    {
+        if (snapshot.VerboseModeSet)
+            return;
+        if (!oppoClientHolder.Client.SupportsStreamingUpdates || !oppoClientHolder.ClientKey.UseStreamingEvents)
+            return;
+
+        var result = await oppoClientHolder.Client.SetVerboseMode(VerboseMode.DetailedStatus, cancellationToken);
+        if (result.Success)
+            snapshot.VerboseModeSet = true;
+    }
+
     private static bool ShouldQueryHdrStatus(StreamingClientContext context)
     {
         return context.ClientHolder.ClientKey.Model is OppoModel.UDP203 or OppoModel.UDP205

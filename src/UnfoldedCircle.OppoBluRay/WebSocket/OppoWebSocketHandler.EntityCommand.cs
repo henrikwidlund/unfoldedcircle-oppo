@@ -435,16 +435,4 @@ public partial class OppoWebSocketHandler
 
         return powerStateResponse;
     }
-
-    private static async ValueTask EnsureStreamingVerboseModeAsync(OppoClientHolder oppoClientHolder, ClientSnapshot snapshot, CancellationToken cancellationToken)
-    {
-        if (snapshot.VerboseModeSet)
-            return;
-        if (!oppoClientHolder.Client.SupportsStreamingUpdates || !oppoClientHolder.ClientKey.UseStreamingEvents)
-            return;
-
-        var result = await oppoClientHolder.Client.SetVerboseMode(VerboseMode.DetailedStatus, cancellationToken);
-        if (result.Success)
-            snapshot.VerboseModeSet = true;
-    }
 }
