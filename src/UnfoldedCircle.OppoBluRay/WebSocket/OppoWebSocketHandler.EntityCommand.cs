@@ -35,9 +35,6 @@ public partial class OppoWebSocketHandler
 
         if (powerState is not null)
         {
-            if (powerState.Value.Result == PowerState.On)
-                await EnsureStreamingVerboseModeAsync(oppoClientHolder, commandCancellationToken);
-
             return powerState.Value.Result switch
             {
                 PowerState.On => EntityCommandResult.PowerOn,
@@ -50,8 +47,9 @@ public partial class OppoWebSocketHandler
         switch (payload.MsgData.CommandId)
         {
             case OppoCommandId.PlayPause:
-                if (!await HandleMediaPlayerPowerToggle(oppoClientHolder, commandCancellationToken))
-                    return EntityCommandResult.Failure;
+                var playPauseResult = await HandleMediaPlayerPowerToggle(oppoClientHolder, commandCancellationToken);
+                if (playPauseResult != EntityCommandResult.Other)
+                    return playPauseResult;
                 break;
             case OppoCommandId.Stop:
                 await oppoClientHolder.Client.StopAsync(commandCancellationToken);
@@ -291,24 +289,25 @@ public partial class OppoWebSocketHandler
         return success ? EntityCommandResult.Other : EntityCommandResult.Failure;
     }
 
-    private static async ValueTask<bool> HandleMediaPlayerPowerToggle(OppoClientHolder oppoClientHolder, CancellationToken commandCancellationToken)
+    private static async ValueTask<EntityCommandResult> HandleMediaPlayerPowerToggle(OppoClientHolder oppoClientHolder, CancellationToken commandCancellationToken)
     {
         var startTime = Stopwatch.GetTimestamp();
+        var poweredOnHere = false;
         do
         {
             // media player power toggle sends play_pause, power the device on first if needed
             if (await oppoClientHolder.Client.QueryPowerStatusAsync(commandCancellationToken) is { Result: PowerState.On })
             {
-                await EnsureStreamingVerboseModeAsync(oppoClientHolder, commandCancellationToken);
                 await oppoClientHolder.Client.PauseAsync(commandCancellationToken);
-                return true;
+                return poweredOnHere ? EntityCommandResult.PowerOn : EntityCommandResult.Other;
             }
 
             await oppoClientHolder.Client.PowerOnAsync(commandCancellationToken);
+            poweredOnHere = true;
             await Task.Delay(1000, commandCancellationToken);
         } while (Stopwatch.GetElapsedTime(startTime) < TimeSpan.FromSeconds(10));
 
-        return false;
+        return EntityCommandResult.Failure;
     }
 
     protected override async ValueTask<EntityCommandResult> OnRemoteCommandAsync(System.Net.WebSockets.WebSocket socket,
@@ -336,9 +335,6 @@ public partial class OppoWebSocketHandler
 
         if (powerState is not null)
         {
-            if (powerState.Value.Result == PowerState.On)
-                await EnsureStreamingVerboseModeAsync(oppoClientHolder, commandCancellationToken);
-
             return powerState.Value.Result switch
             {
                 PowerState.On => EntityCommandResult.PowerOn,
@@ -440,11 +436,15 @@ public partial class OppoWebSocketHandler
         return powerStateResponse;
     }
 
-    private static async ValueTask EnsureStreamingVerboseModeAsync(OppoClientHolder oppoClientHolder, CancellationToken cancellationToken)
+    private static async ValueTask EnsureStreamingVerboseModeAsync(OppoClientHolder oppoClientHolder, ClientSnapshot snapshot, CancellationToken cancellationToken)
     {
+        if (snapshot.VerboseModeSet)
+            return;
         if (!oppoClientHolder.Client.SupportsStreamingUpdates || !oppoClientHolder.ClientKey.UseStreamingEvents)
             return;
 
-        await oppoClientHolder.Client.SetVerboseMode(VerboseMode.DetailedStatus, cancellationToken);
+        var result = await oppoClientHolder.Client.SetVerboseMode(VerboseMode.DetailedStatus, cancellationToken);
+        if (result.Success)
+            snapshot.VerboseModeSet = true;
     }
 }
