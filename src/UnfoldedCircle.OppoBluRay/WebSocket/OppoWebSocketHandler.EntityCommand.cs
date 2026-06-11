@@ -47,8 +47,9 @@ public partial class OppoWebSocketHandler
         switch (payload.MsgData.CommandId)
         {
             case OppoCommandId.PlayPause:
-                if (!await HandleMediaPlayerPowerToggle(oppoClientHolder, commandCancellationToken))
-                    return EntityCommandResult.Failure;
+                var playPauseResult = await HandleMediaPlayerPowerToggle(oppoClientHolder, commandCancellationToken);
+                if (playPauseResult != EntityCommandResult.Other)
+                    return playPauseResult;
                 break;
             case OppoCommandId.Stop:
                 await oppoClientHolder.Client.StopAsync(commandCancellationToken);
@@ -288,23 +289,25 @@ public partial class OppoWebSocketHandler
         return success ? EntityCommandResult.Other : EntityCommandResult.Failure;
     }
 
-    private static async ValueTask<bool> HandleMediaPlayerPowerToggle(OppoClientHolder oppoClientHolder, CancellationToken commandCancellationToken)
+    private static async ValueTask<EntityCommandResult> HandleMediaPlayerPowerToggle(OppoClientHolder oppoClientHolder, CancellationToken commandCancellationToken)
     {
         var startTime = Stopwatch.GetTimestamp();
+        var poweredOnHere = false;
         do
         {
             // media player power toggle sends play_pause, power the device on first if needed
             if (await oppoClientHolder.Client.QueryPowerStatusAsync(commandCancellationToken) is { Result: PowerState.On })
             {
                 await oppoClientHolder.Client.PauseAsync(commandCancellationToken);
-                return true;
+                return poweredOnHere ? EntityCommandResult.PowerOn : EntityCommandResult.Other;
             }
 
             await oppoClientHolder.Client.PowerOnAsync(commandCancellationToken);
+            poweredOnHere = true;
             await Task.Delay(1000, commandCancellationToken);
         } while (Stopwatch.GetElapsedTime(startTime) < TimeSpan.FromSeconds(10));
 
-        return false;
+        return EntityCommandResult.Failure;
     }
 
     protected override async ValueTask<EntityCommandResult> OnRemoteCommandAsync(System.Net.WebSockets.WebSocket socket,

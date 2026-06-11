@@ -306,6 +306,11 @@ public partial class OppoWebSocketHandler
             context.LastHdrRefreshUtc = context.Snapshot.HdrStatusResponse is null
                 ? DateTimeOffset.MinValue
                 : DateTimeOffset.UtcNow;
+
+            // If the player is already on when the streaming subscription starts, the player will not emit
+            // a power-on event to bootstrap verbose mode. Set it here so unsolicited updates start flowing.
+            if (context.Snapshot.State is not State.Off and not State.Unknown)
+                await EnsureStreamingVerboseModeAsync(context.ClientHolder, context.Snapshot, cancellationToken);
         }
         finally
         {
@@ -607,6 +612,8 @@ public partial class OppoWebSocketHandler
             case OppoPowerStateStreamingEvent:
                 // Device turned on – rebuild to determine current playback state
                 await RebuildSnapshotAndRefreshHdrTimestampAsync(context, cancellationToken);
+                if (context.Snapshot.State is not State.Off and not State.Unknown)
+                    await EnsureStreamingVerboseModeAsync(context.ClientHolder, context.Snapshot, cancellationToken);
                 return MediaPlayerUpdateType.Full;
 
             case OppoPlaybackStatusStreamingEvent playbackStatusEvent:
@@ -917,6 +924,18 @@ public partial class OppoWebSocketHandler
         context.Snapshot = await BuildSnapshotAsync(context.ClientHolder, cancellationToken);
         if (context.Snapshot.HdrStatusResponse is not null)
             context.LastHdrRefreshUtc = DateTimeOffset.UtcNow;
+    }
+
+    private static async ValueTask EnsureStreamingVerboseModeAsync(OppoClientHolder oppoClientHolder, ClientSnapshot snapshot, CancellationToken cancellationToken)
+    {
+        if (snapshot.VerboseModeSet)
+            return;
+        if (!oppoClientHolder.Client.SupportsStreamingUpdates || !oppoClientHolder.ClientKey.UseStreamingEvents)
+            return;
+
+        var result = await oppoClientHolder.Client.SetVerboseMode(VerboseMode.DetailedStatus, cancellationToken);
+        if (result.Success)
+            snapshot.VerboseModeSet = true;
     }
 
     private static bool ShouldQueryHdrStatus(StreamingClientContext context)
@@ -1449,6 +1468,7 @@ public partial class OppoWebSocketHandler
     private sealed class ClientSnapshot
     {
         public State State { get; set; } = State.Unknown;
+        public bool VerboseModeSet { get; set; }
         public bool IsMovie { get; set; }
         public ushort? LastProgressTitle { get; set; }
         public ushort? LastProgressChapter { get; set; }
