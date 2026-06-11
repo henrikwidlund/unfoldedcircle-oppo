@@ -306,6 +306,11 @@ public partial class OppoWebSocketHandler
             context.LastHdrRefreshUtc = context.Snapshot.HdrStatusResponse is null
                 ? DateTimeOffset.MinValue
                 : DateTimeOffset.UtcNow;
+
+            // If the player is already on when the streaming subscription starts, the player will not emit
+            // a power-on event to bootstrap verbose mode. Set it here so unsolicited updates start flowing.
+            if (context.Snapshot.State is not State.Off and not State.Unknown)
+                await EnsureStreamingVerboseModeAsync(context.ClientHolder, cancellationToken);
         }
         finally
         {
