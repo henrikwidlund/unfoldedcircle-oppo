@@ -84,5 +84,13 @@ internal static partial class IntegrationLogger
 
     public static void FailureDuringRestore(this ILogger logger, Exception exception, string wsId) =>
         FailureDuringRestoreAction(logger, wsId, exception);
+
+    private static readonly Action<ILogger, string, Exception> FailureSettingVerboseModeAction = LoggerMessage.Define<string>(
+        LogLevel.Error,
+        new EventId(22, nameof(FailureSettingVerboseMode)),
+        "Failure setting streaming verbose mode for {EntityId}.");
+
+    public static void FailureSettingVerboseMode(this ILogger logger, Exception exception, string entityId) =>
+        FailureSettingVerboseModeAction(logger, entityId, exception);
 }
 

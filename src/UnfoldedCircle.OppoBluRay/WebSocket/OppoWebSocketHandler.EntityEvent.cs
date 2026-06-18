@@ -310,7 +310,7 @@ public partial class OppoWebSocketHandler
             // If the player is already on when the streaming subscription starts, the player will not emit
             // a power-on event to bootstrap verbose mode. Set it here so unsolicited updates start flowing.
             if (context.Snapshot.State is not State.Off and not State.Unknown)
-                await EnsureStreamingVerboseModeAsync(context.ClientHolder, context.Snapshot, cancellationToken);
+                EnsureStreamingVerboseMode(context, _logger, cancellationToken);
         }
         finally
         {
@@ -613,7 +613,7 @@ public partial class OppoWebSocketHandler
                 // Device turned on – rebuild to determine current playback state
                 await RebuildSnapshotAndRefreshHdrTimestampAsync(context, cancellationToken);
                 if (context.Snapshot.State is not State.Off and not State.Unknown)
-                    await EnsureStreamingVerboseModeAsync(context.ClientHolder, context.Snapshot, cancellationToken);
+                    EnsureStreamingVerboseMode(context, _logger, cancellationToken);
                 return MediaPlayerUpdateType.Full;
 
             case OppoPlaybackStatusStreamingEvent playbackStatusEvent:
@@ -926,16 +926,42 @@ public partial class OppoWebSocketHandler
             context.LastHdrRefreshUtc = DateTimeOffset.UtcNow;
     }
 
-    private static async ValueTask EnsureStreamingVerboseModeAsync(OppoClientHolder oppoClientHolder, ClientSnapshot snapshot, CancellationToken cancellationToken)
+    private static void EnsureStreamingVerboseMode(StreamingClientContext context, ILogger logger, CancellationToken cancellationToken)
     {
-        if (snapshot.VerboseModeSet)
-            return;
-        if (!oppoClientHolder.Client.SupportsStreamingUpdates || !oppoClientHolder.ClientKey.UseStreamingEvents)
+        if (context.Snapshot.VerboseModeSet)
             return;
 
-        var result = await oppoClientHolder.Client.SetVerboseMode(VerboseMode.DetailedStatus, cancellationToken);
-        if (result.Success)
-            snapshot.VerboseModeSet = true;
+        if (!context.ClientHolder.Client.SupportsStreamingUpdates || !context.ClientHolder.ClientKey.UseStreamingEvents)
+            return;
+
+        // Only let one ensure operation be scheduled at a time. The flag is released once the
+        // operation finishes so a failed attempt can be retried by a later caller.
+        if (!context.TryClaimVerboseModeEnsure() || cancellationToken.IsCancellationRequested)
+            return;
+
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                // Player is ready to receive SVM 3 after 1s
+                await Task.Delay(1000, cancellationToken);
+                var result = await context.ClientHolder.Client.SetVerboseMode(VerboseMode.DetailedStatus, cancellationToken);
+                if (result.Success)
+                    context.Snapshot.VerboseModeSet = true;
+            }
+            catch (OperationCanceledException)
+            {
+                // expected on shutdown / unsubscribe
+            }
+            catch (Exception e)
+            {
+                logger.FailureSettingVerboseMode(e, context.ClientHolder.ClientKey.EntityId);
+            }
+            finally
+            {
+                context.ReleaseVerboseModeEnsure();
+            }
+        }, cancellationToken);
     }
 
     private static bool ShouldQueryHdrStatus(StreamingClientContext context)
@@ -1386,9 +1412,22 @@ public partial class OppoWebSocketHandler
     {
         private SubscribedEntity[] _subscribedEntities = [];
         private CancellationTokenSource? _cancellationTokenSource;
+        private byte _verboseModeEnsureInProgress;
 
         public OppoClientHolder ClientHolder { get; } = clientHolder;
         public SemaphoreSlim Gate { get; } = new(1, 1);
+
+        /// <summary>
+        /// Attempts to claim the right to schedule the verbose-mode ensure operation.
+        /// Returns <c>true</c> for the single caller that wins the claim; subsequent callers
+        /// get <c>false</c> until <see cref="ReleaseVerboseModeEnsure"/> is invoked.
+        /// </summary>
+        public bool TryClaimVerboseModeEnsure() =>
+            Interlocked.CompareExchange(ref _verboseModeEnsureInProgress, 1, 0) == 0;
+
+        public void ReleaseVerboseModeEnsure() =>
+            Interlocked.Exchange(ref _verboseModeEnsureInProgress, 0);
+
         public ClientSnapshot Snapshot { get; set; } = new();
         public Task? StreamingTask { get; private set; }
         public DateTimeOffset LastHdrRefreshUtc { get; set; } = DateTimeOffset.MinValue;
