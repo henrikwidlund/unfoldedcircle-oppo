@@ -277,7 +277,7 @@ public static class OppoEntitySettings
         ],
         [OppoModel.Magnetar] = []
     }.ToFrozenDictionary();
-    
+
     public static readonly FrozenDictionary<string, InputSource> SourceMap = new Dictionary<string, InputSource>(StringComparer.OrdinalIgnoreCase)
     {
         [OppoConstants.InputSource.BluRayPlayer] = InputSource.BluRayPlayer,

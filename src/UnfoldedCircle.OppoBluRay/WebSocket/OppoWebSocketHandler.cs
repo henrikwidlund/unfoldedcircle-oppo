@@ -158,7 +158,7 @@ public partial class OppoWebSocketHandler(
                 Options = configurationItem.Model == OppoModel.Magnetar ? OppoEntitySettings.MagnetarRemoteOptions : OppoEntitySettings.RemoteOptions
             };
 
-        SensorAvailableEntity GetSensorEntity(OppoConfigurationItem configurationItem, in OppoSensorType sensorType)
+        static SensorAvailableEntity GetSensorEntity(OppoConfigurationItem configurationItem, in OppoSensorType sensorType)
         {
             var sensorSuffix = sensorType.ToStringFast();
             RegisterSensor(configurationItem.EntityId.GetBaseIdentifier(), sensorSuffix);

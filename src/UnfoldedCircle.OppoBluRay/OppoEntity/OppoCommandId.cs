@@ -348,55 +348,55 @@ public enum OppoCommandId : sbyte
 
     [Display(Name = MediaPlayerCommandIdConstants.Search)]
     Search,
-    
+
     Dimmer,
 
     [Display(Name = EntitySettingsConstants.PureAudioToggle)]
     PureAudioToggle,
 
     Clear,
-    
+
     [Display(Name = EntitySettingsConstants.PopUpMenu)]
     PopUpMenu,
-    
+
     Pause,
     Play,
     Angle,
     Zoom,
-    
+
     [Display(Name = EntitySettingsConstants.SecondaryAudioProgram)]
     SecondaryAudioProgram,
-    
+
     [Display(Name = EntitySettingsConstants.AbReplay)]
     AbReplay,
-    
+
     [Display(Name = EntitySettingsConstants.PictureInPicture)]
     PictureInPicture,
-    
+
     Resolution,
-    
+
     [Display(Name = EntitySettingsConstants.SubtitleHold)]
     SubtitleHold,
-    
+
     Option,
-    
+
     [Display(Name = EntitySettingsConstants.ThreeD)]
     ThreeD,
-    
+
     [Display(Name = EntitySettingsConstants.PictureAdjustment)]
     PictureAdjustment,
-    
+
     Hdr,
-    
+
     [Display(Name = EntitySettingsConstants.InfoHold)]
     InfoHold,
-    
+
     [Display(Name = EntitySettingsConstants.ResolutionHold)]
     ResolutionHold,
-    
+
     [Display(Name = EntitySettingsConstants.AvSync)]
     AvSync,
-    
+
     [Display(Name = EntitySettingsConstants.GaplessPlay)]
     GaplessPlay
 }

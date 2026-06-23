@@ -512,7 +512,8 @@ public partial class OppoWebSocketHandler
                     mediaPlayerTask = SendMediaPlayerEventAsync(socket, wsId, oppoClientHolder,
                         new DeltaMediaPlayerStateChangedEventMessageDataAttributes
                         {
-                            Volume = snapshot.VolumeResponse?.Result.Volume, Muted = snapshot.VolumeResponse?.Result.Muted
+                            Volume = snapshot.VolumeResponse?.Result.Volume,
+                            Muted = snapshot.VolumeResponse?.Result.Muted
                         }, cancellationToken);
                     break;
             }
@@ -1161,12 +1162,15 @@ public partial class OppoWebSocketHandler
         PreviousRemoteStatesMap[clientHashCode] = state;
         return SendMessageAsync(socket,
             ResponsePayloadHelpers.CreateRemoteStateChangedResponsePayload(
-                new RemoteStateChangedEventMessageDataAttributes { State = state switch
+                new RemoteStateChangedEventMessageDataAttributes
                 {
-                    State.Buffering or State.Playing or State.Paused or State.On => RemoteState.On,
-                    State.Off => RemoteState.Off,
-                    _ => RemoteState.Unknown
-                } },
+                    State = state switch
+                    {
+                        State.Buffering or State.Playing or State.Paused or State.On => RemoteState.On,
+                        State.Off => RemoteState.Off,
+                        _ => RemoteState.Unknown
+                    }
+                },
                 oppoClientHolder.ClientKey.EntityId),
             wsId,
             cancellationToken);

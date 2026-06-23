@@ -59,7 +59,7 @@ internal sealed class AlbumCoverService(
 
             if (artistAlbumsResponse is not { Releases.Length: > 0 })
                 return null;
-            
+
             foreach (var release in artistAlbumsResponse.Releases.Where(static x => x.Score > 90))
             {
                 var coverUri = await SendAndLogAsync(release.Id, cancellationToken);
@@ -78,7 +78,7 @@ internal sealed class AlbumCoverService(
         var url = string.IsNullOrEmpty(album)
             ? $"https://musicbrainz.org/ws/2/recording/?query=artist:{artist}%20AND%20track:{track}&fmt=json"
             : $"https://musicbrainz.org/ws/2/release/?query=artist:{artist}%20AND%20release:{album}&fmt=json";
-        
+
         try
         {
             using var requestMessage = new HttpRequestMessage(HttpMethod.Get, url);
@@ -101,7 +101,7 @@ internal sealed class AlbumCoverService(
             return null;
         }
     }
-    
+
     private async Task<Uri?> SendAndLogAsync(string releaseId, CancellationToken cancellationToken)
     {
         try
@@ -131,7 +131,7 @@ internal sealed record ArtistAlbumsResponse(
 internal sealed record ArtistAlbumsReleases(
     [property: JsonPropertyName("id")]
     string Id,
-    
+
     [property: JsonPropertyName("score")]
     int Score
 );
@@ -154,4 +154,3 @@ internal sealed record RecordingsRelease(
     [property: JsonPropertyName("id")]
     string Id
 );
-

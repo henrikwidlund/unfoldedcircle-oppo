@@ -6,7 +6,7 @@ namespace Oppo;
 
 internal static class AsyncExtensions
 {
-    extension (TokenBucketRateLimiter limiter)
+    extension(TokenBucketRateLimiter limiter)
     {
         public async ValueTask<RateLimitLease> AcquireAsyncWithoutCancellationException(ILogger logger,
             CancellationToken cancellationToken,

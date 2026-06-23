@@ -54,4 +54,3 @@ public sealed record OppoPlaybackProgressStreamingEvent(
     in OppoTimeCodeType TimeCodeType,
     in uint Seconds)
     : OppoStreamingEvent;
-

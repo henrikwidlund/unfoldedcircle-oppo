@@ -93,4 +93,3 @@ internal static partial class IntegrationLogger
     public static void FailureSettingVerboseMode(this ILogger logger, Exception exception, string entityId) =>
         FailureSettingVerboseModeAction(logger, entityId, exception);
 }
-

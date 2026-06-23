@@ -64,32 +64,32 @@ public enum RepeatMode : sbyte
     /// Only used if return value is unknown. Do not use this value to set the repeat mode.
     /// </summary>
     Unknown,
-    
+
     /// <summary>
     /// Repeat chapter
     /// </summary>
     Chapter,
-    
+
     /// <summary>
     /// Repeat title or CD track
     /// </summary>
     Title,
-    
+
     /// <summary>
     /// Repeat all
     /// </summary>
     All,
-    
+
     /// <summary>
     /// Repeat off
     /// </summary>
     Off,
-    
+
     /// <summary>
     /// Shuffle
     /// </summary>
     Shuffle,
-    
+
     /// <summary>
     /// Random
     /// </summary>
@@ -112,7 +112,7 @@ public enum PlaybackStatus : sbyte
     MediaCenter,
     ScreenSaver,
     DiscMenu,
-    
+
     // Pre 20X models
     NoDisc,
     Loading,
@@ -151,7 +151,7 @@ public enum DiscType : sbyte
 
     [Display(Name = "Unknown Disc")]
     UnknownDisc,
-    
+
     // Pre 20X models
     HDCD,
     VCD2,
@@ -209,13 +209,13 @@ public enum InputSource : sbyte
 
     [Display(Name = "Blu-Ray Player")]
     BluRayPlayer,
-    
+
     // 20x models,
     [Display(Name = "HDMI In")]
     HDMIIn,
     [Display(Name = "ARC HDMI Out")]
     ARCHDMIOut,
-    
+
     // 10x and 205 models
     [Display(Name = "Optical")]
     Optical,
@@ -225,7 +225,7 @@ public enum InputSource : sbyte
 
     [Display(Name = "USB Audio")]
     USBAudio,
-    
+
     // pre 20x models
     [Display(Name = "HDMI Front")]
     HDMIFront,

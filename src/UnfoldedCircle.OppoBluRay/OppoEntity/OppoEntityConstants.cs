@@ -11,7 +11,7 @@ public static class EntitySettingsConstants
     public const string PopUpMenu = "Pop-Up Menu";
     public const string Pause = "Pause";
     public const string Play = "Play";
-    
+
     public const string Angle = "Angle";
     public const string Zoom = "Zoom";
     public const string SecondaryAudioProgram = "Secondary Audio Program";

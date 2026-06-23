@@ -62,7 +62,7 @@ public class OppoClientFactory(ILoggerFactory loggerFactory, ILogger<OppoClientF
         _logger.CreateClientSemaphoreFailure(oppoClientKey);
         return null;
     }
-    
+
     public void TryDisposeClient(in OppoClientKey oppoClientKey)
     {
         try
@@ -76,7 +76,7 @@ public class OppoClientFactory(ILoggerFactory loggerFactory, ILogger<OppoClientF
             throw;
         }
     }
-    
+
     public void TryDisposeAllClients()
     {
         foreach (var client in _clients)
@@ -90,7 +90,7 @@ public class OppoClientFactory(ILoggerFactory loggerFactory, ILogger<OppoClientF
                 _logger.FailedToDisposeClient(e, client.Key);
             }
         }
-        
+
         _clients.Clear();
     }
 }
