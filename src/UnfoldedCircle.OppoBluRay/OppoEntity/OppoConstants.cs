@@ -8,9 +8,6 @@ internal static class OppoConstants
     internal const string EntityName = "entity_name";
     internal const string UseMediaEventsKey = "use_media_events";
     internal const string UseStreamingEventsKey = "use_streaming_events";
-    internal const string ChapterLengthValue = "chapter_length";
-    internal const string MovieLengthValue = "movie_length";
-    internal const string ChapterOrMovieLengthKey = "chapter_or_movie_length";
     internal const string MaxMessageHandlingWaitTimeInSecondsKey = "max_message_handling_wait_time_in_seconds";
 
     internal const string IpAddressRegex = @"^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)|(([0-9a-fA-F]{1,4}:)" +
