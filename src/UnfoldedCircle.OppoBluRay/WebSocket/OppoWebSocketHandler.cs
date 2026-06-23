@@ -316,30 +316,6 @@ public partial class OppoWebSocketHandler(
                 },
                 new Setting
                 {
-                    Id = OppoConstants.ChapterOrMovieLengthKey,
-                    Field = new SettingTypeDropdown
-                    {
-                        Dropdown = new SettingTypeDropdownInner
-                        {
-                            Value = configurationItem?.UseChapterLengthForMovies == true ? OppoConstants.ChapterLengthValue : OppoConstants.MovieLengthValue,
-                            Items = [
-                                new SettingTypeDropdownItem
-                                {
-                                    Label = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { ["en"] = "Chapter Length" },
-                                    Value = OppoConstants.ChapterLengthValue
-                                },
-                                new SettingTypeDropdownItem
-                                {
-                                    Label = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { ["en"] = "Movie Length" },
-                                    Value = OppoConstants.MovieLengthValue
-                                }
-                            ]
-                        }
-                    },
-                    Label = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { ["en"] = "Use chapter or movie length for progress bar (only applicable if Media Events is enabled)? - Oppo Only" }
-                },
-                new Setting
-                {
                     Id = OppoConstants.MaxMessageHandlingWaitTimeInSecondsKey,
                     Field = new SettingTypeNumber
                     {
@@ -368,15 +344,11 @@ public partial class OppoWebSocketHandler(
         var useStreamingEvents = payload.MsgData.InputValues!.TryGetValue(OppoConstants.UseStreamingEventsKey, out var useStreamingEventsValue) &&
                                  useStreamingEventsValue.Equals(bool.TrueString, StringComparison.OrdinalIgnoreCase);
 
-        var useChapterLengthForMovies = payload.MsgData.InputValues!.TryGetValue(OppoConstants.ChapterOrMovieLengthKey, out var chapterOrMovieLengthValue) &&
-                                        chapterOrMovieLengthValue.Equals(OppoConstants.ChapterLengthValue, StringComparison.OrdinalIgnoreCase);
-
         var newConfigurationItem = configurationItem with
         {
             Model = oppoModel,
             UseMediaEvents = useMediaEvents,
-            UseStreamingEvents = useStreamingEvents,
-            UseChapterLengthForMovies = useChapterLengthForMovies
+            UseStreamingEvents = useStreamingEvents
         };
         var configuration = await _configurationService.GetConfigurationAsync(cancellationToken);
         configuration.Entities.Remove(configurationItem);
@@ -451,10 +423,6 @@ public partial class OppoWebSocketHandler(
             ? useStreamingEventsValue.Equals(bool.TrueString, StringComparison.OrdinalIgnoreCase)
             : null;
 
-        bool? useChapterLengthForMovies = payload.MsgData.InputValues!.TryGetValue(OppoConstants.ChapterOrMovieLengthKey, out var chapterOrMovieLengthValue)
-                                        ? chapterOrMovieLengthValue.Equals(OppoConstants.ChapterLengthValue, StringComparison.OrdinalIgnoreCase)
-                                        : null;
-
         var entity = configuration.Entities.FirstOrDefault(x => x.EntityId.Equals(host, StringComparison.OrdinalIgnoreCase));
         if (entity is null)
         {
@@ -468,7 +436,6 @@ public partial class OppoWebSocketHandler(
                 EntityId = host,
                 UseMediaEvents = useMediaEvents ?? false,
                 UseStreamingEvents = useStreamingEvents ?? false,
-                UseChapterLengthForMovies = useChapterLengthForMovies ?? false,
                 MacAddress = macAddress
             };
         }
@@ -479,7 +446,6 @@ public partial class OppoWebSocketHandler(
             entity = entity with
             {
                 Host = host,
-                UseChapterLengthForMovies = useChapterLengthForMovies ?? entity.UseChapterLengthForMovies,
                 UseMediaEvents = useMediaEvents ?? entity.UseMediaEvents,
                 EntityName = entityName,
                 Model = oppoModel

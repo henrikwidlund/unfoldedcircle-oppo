@@ -389,16 +389,11 @@ public partial class OppoWebSocketHandler
     {
         if (snapshot.IsMovie)
         {
-            snapshot.ElapsedResponse = oppoClientHolder.ClientKey.UseChapterLengthForMovies
-                ? await oppoClientHolder.Client.QueryChapterElapsedTimeAsync(cancellationToken)
-                : await oppoClientHolder.Client.QueryTotalElapsedTimeAsync(cancellationToken);
+            snapshot.ElapsedResponse = await oppoClientHolder.Client.QueryTotalElapsedTimeAsync(cancellationToken);
 
             if (snapshot.ElapsedResponse is { Success: true })
             {
-                snapshot.RemainingResponse = oppoClientHolder.ClientKey.UseChapterLengthForMovies
-                    ? await oppoClientHolder.Client.QueryChapterRemainingTimeAsync(cancellationToken)
-                    : await oppoClientHolder.Client.QueryTotalRemainingTimeAsync(cancellationToken);
-
+                snapshot.RemainingResponse = await oppoClientHolder.Client.QueryTotalRemainingTimeAsync(cancellationToken);
                 snapshot.MediaDuration = GetMediaDuration(snapshot.ElapsedResponse, snapshot.RemainingResponse);
             }
 
@@ -798,9 +793,17 @@ public partial class OppoWebSocketHandler
         OppoPlaybackProgressStreamingEvent playbackProgressEvent,
         CancellationToken cancellationToken)
     {
-        // Rebuild if title/chapter changed – this invalidates track metadata and progress domain
-        if (context.Snapshot.LastProgressTitle != playbackProgressEvent.Title
-            || context.Snapshot.LastProgressChapter != playbackProgressEvent.Chapter)
+        var titleChanged = context.Snapshot.LastProgressTitle != playbackProgressEvent.Title;
+        var chapterChanged = context.Snapshot.LastProgressChapter != playbackProgressEvent.Chapter;
+
+        // Decide whether the new title/chapter invalidates the snapshot:
+        //  - movie: the progress bar spans the whole title (the player reports title time), so chapters
+        //    are just position markers within the same media – only a title change needs a rebuild.
+        //  - audio (non-movie): a chapter is a track, so any title or chapter change is a new track –
+        //    rebuild for fresh track metadata/cover.
+        var requiresRebuild = context.Snapshot.IsMovie ? titleChanged : titleChanged || chapterChanged;
+
+        if (requiresRebuild)
         {
             await RebuildSnapshotAndRefreshHdrTimestampAsync(context, cancellationToken);
             context.Snapshot.LastProgressTitle = playbackProgressEvent.Title;
@@ -808,7 +811,16 @@ public partial class OppoWebSocketHandler
             return MediaPlayerUpdateType.Full;
         }
 
-        // Same title/chapter – apply progress directly from event (no rebuild needed)
+        // No rebuild (movie with only a chapter change, or nothing changed). Keep the chapter tracked
+        // so the next change is detected, then apply progress directly from the event.
+        context.Snapshot.LastProgressChapter = playbackProgressEvent.Chapter;
+
+        // Movies report title-relative time; ignore any stray chapter-domain code so the position
+        // stays consistent with MediaDuration (full title) and does not reset at each chapter.
+        if (context.Snapshot.IsMovie
+            && playbackProgressEvent.TimeCodeType is OppoTimeCodeType.ChapterElapsed or OppoTimeCodeType.ChapterRemaining)
+            return MediaPlayerUpdateType.Nothing;
+
         var elapsedChanged = UpdateProgress(context.Snapshot, playbackProgressEvent);
         return elapsedChanged ? MediaPlayerUpdateType.DeltaProgress : MediaPlayerUpdateType.Nothing;
     }
