@@ -815,6 +815,12 @@ public partial class OppoWebSocketHandler
         // so the next change is detected, then apply progress directly from the event.
         context.Snapshot.LastProgressChapter = playbackProgressEvent.Chapter;
 
+        // Movies report title-relative time; ignore any stray chapter-domain code so the position
+        // stays consistent with MediaDuration (full title) and does not reset at each chapter.
+        if (context.Snapshot.IsMovie
+            && playbackProgressEvent.TimeCodeType is OppoTimeCodeType.ChapterElapsed or OppoTimeCodeType.ChapterRemaining)
+            return MediaPlayerUpdateType.Nothing;
+
         var elapsedChanged = UpdateProgress(context.Snapshot, playbackProgressEvent);
         return elapsedChanged ? MediaPlayerUpdateType.DeltaProgress : MediaPlayerUpdateType.Nothing;
     }
