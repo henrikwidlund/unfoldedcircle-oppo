@@ -337,11 +337,13 @@ public interface IOppoClient : IDisposable
     /// <summary>
     /// Query Chapter elapsed time
     /// </summary>
+    // ReSharper disable once UnusedMember.Global
     ValueTask<OppoResult<uint>> QueryChapterElapsedTimeAsync(CancellationToken cancellationToken = default);
     
     /// <summary>
     /// Query Chapter remaining time
     /// </summary>
+    // ReSharper disable once UnusedMember.Global
     ValueTask<OppoResult<uint>> QueryChapterRemainingTimeAsync(CancellationToken cancellationToken = default);
     
     /// <summary>
