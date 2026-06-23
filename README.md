@@ -143,6 +143,7 @@ This will produce a self-contained binary in the `publish` directory in the root
 - Selecting input on the player can only be done when the player reports that it is on, this means that you have to place a delay between the `Switch on` and `Input source` commands if you want to use this in the `On sequence`, or the remote will think the start sequence fails. This is because the player may accept power commands and report success while still transitioning between states — for example, sending Power On shortly after Power Off may return success but the player continues shutting down. When using macros or sequences, place a delay of a couple of seconds after any power state change before sending subsequent commands.
 - The artist, album and track information might not always be available or accurate. This can't be helped as it's the information the player provides.
 - The album cover might be incorrect or missing. This is because the CDDB database no longer exists, as such, the application tries to get covers by matching the current artist and album. This is not always accurate enough.
+- Reported progress follows the unit's own front-panel time display. Movie progress only supports total (whole-title) length, the player's default. Changing the display to something else (e.g. chapter time) for movies makes progress inconsistent or missing. Leave the player's time display on its defaults for accurate progress.
 
 ## Licenses / Copyright
 
