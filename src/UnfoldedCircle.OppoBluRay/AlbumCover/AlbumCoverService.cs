@@ -26,6 +26,9 @@ internal sealed class AlbumCoverService(
     {
         if (string.IsNullOrWhiteSpace(album))
         {
+            if (string.IsNullOrWhiteSpace(track))
+                return null;
+
             return await _memoryCache.GetOrCreateAsync((artist, track), async entry =>
             {
                 entry.SetSlidingExpiration(CacheDuration);
@@ -37,7 +40,8 @@ internal sealed class AlbumCoverService(
                     return null;
 
                 foreach (var release in artistTrackResponse.Recordings
-                             .Where(static x => x.Score > 90)
+                             .Where(static x => x.Score > 80)
+                             .OrderByDescending(static x => x.Score)
                              .SelectMany(static x => x.Releases))
                 {
                     var coverUri = await SendAndLogAsync(release.Id, cancellationToken);
@@ -60,7 +64,8 @@ internal sealed class AlbumCoverService(
             if (artistAlbumsResponse is not { Releases.Length: > 0 })
                 return null;
 
-            foreach (var release in artistAlbumsResponse.Releases.Where(static x => x.Score > 90))
+            foreach (var release in artistAlbumsResponse.Releases.Where(static x => x.Score > 80)
+                         .OrderByDescending(static x => x.Score))
             {
                 var coverUri = await SendAndLogAsync(release.Id, cancellationToken);
                 if (coverUri is not null)
@@ -75,9 +80,9 @@ internal sealed class AlbumCoverService(
     private async Task<T?> SendAndDeserializeAsync<T>(string artist, string? album, string? track, JsonTypeInfo<T> jsonTypeInfo, CancellationToken cancellationToken)
         where T : class
     {
-        var url = string.IsNullOrEmpty(album)
-            ? $"https://musicbrainz.org/ws/2/recording/?query=artist:{artist}%20AND%20track:{track}&fmt=json"
-            : $"https://musicbrainz.org/ws/2/release/?query=artist:{artist}%20AND%20release:{album}&fmt=json";
+        var url = string.IsNullOrWhiteSpace(album)
+            ? $"https://musicbrainz.org/ws/2/recording/?query={Uri.EscapeDataString($"artist:{ToLucenePhrase(artist)} AND recording:{ToLucenePhrase(track!)}")}&fmt=json"
+            : $"https://musicbrainz.org/ws/2/release/?query={Uri.EscapeDataString($"artist:{ToLucenePhrase(artist)} AND release:{ToLucenePhrase(album)}")}&fmt=json";
 
         try
         {
@@ -101,6 +106,11 @@ internal sealed class AlbumCoverService(
             return null;
         }
     }
+
+    // Wrap the term in a Lucene phrase ("...") so its contents are treated literally instead of as
+    // query operators or field separators. Inside a phrase only \ and " are special, so escape those.
+    private static string ToLucenePhrase(string value) =>
+        $"\"{value.Replace("\\", @"\\", StringComparison.Ordinal).Replace("\"", "\\\"", StringComparison.Ordinal)}\"";
 
     private async Task<Uri?> SendAndLogAsync(string releaseId, CancellationToken cancellationToken)
     {

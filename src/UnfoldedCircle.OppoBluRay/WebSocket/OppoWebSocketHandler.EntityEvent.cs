@@ -426,7 +426,7 @@ public partial class OppoWebSocketHandler
             snapshot.Album = snapshot.Album.AsSpan()[(snapshot.Performer.Length + 3)..].ToString();
         }
 
-        snapshot.CoverUri = await _albumCoverService.GetAlbumCoverAsync(snapshot.Performer, snapshot.Album, null, cancellationToken);
+        snapshot.CoverUri = await _albumCoverService.GetAlbumCoverAsync(snapshot.Performer, snapshot.Album, snapshot.TrackResponse?.Result, cancellationToken);
     }
 
     private static async ValueTask PopulatePlaybackSensorsAsync(
