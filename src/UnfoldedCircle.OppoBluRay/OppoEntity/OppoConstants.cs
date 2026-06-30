@@ -21,6 +21,7 @@ internal static class OppoConstants
 
     internal static class InputSource
     {
+        // ReSharper disable InconsistentNaming
         internal const string BluRayPlayer = "Blu-Ray Player";
         internal const string HDMIFront = "HDMI/MHL IN-FRONT";
         internal const string HDMIBack = "HDMI IN-BACK";
@@ -31,5 +32,6 @@ internal static class OppoConstants
         internal const string USBAudio = "USB AUDIO IN";
         internal const string HDMIIn = "HDMI IN";
         internal const string ARCHDMIOut = "ARC: HDMI OUT";
+        // ReSharper restore InconsistentNaming
     }
 }
