@@ -29,38 +29,77 @@ public sealed class MagnetarClient(string hostName, string macAddress, ILogger<M
 
     public async ValueTask<OppoResult<PowerState>> PowerToggleAsync(CancellationToken cancellationToken = default)
     {
+        CancellationTokenSource? cancellationTokenSource;
         if (_lastPowerState == PowerState.Off)
+        {
             await WakeOnLan.SendWakeOnLanAsync(_macAddress, _ipAddress);
+            cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            cancellationTokenSource.CancelAfter(_timeout);
+        }
+        else
+            cancellationTokenSource = null;
 
-        var result = await SendCommand("#POW", cancellationToken);
-        if (!result.Success)
-            return false;
-        _lastPowerState = _lastPowerState switch
+        using (cancellationTokenSource)
         {
-            PowerState.Off => PowerState.On,
-            PowerState.On => PowerState.Off,
-            _ => _lastPowerState
-        };
-        return new OppoResult<PowerState>
-        {
-            Success = true,
-            Result = _lastPowerState
-        };
+            try
+            {
+                var result = await SendCommand("#POW", cancellationToken, cancellationTokenSource?.Token);
+                if (!result.Success)
+                    return false;
+
+                _lastPowerState = _lastPowerState switch
+                {
+                    PowerState.Off => PowerState.On,
+                    PowerState.On => PowerState.Off,
+                    _ => _lastPowerState
+                };
+                return new OppoResult<PowerState> { Success = true, Result = _lastPowerState };
+            }
+            catch (Exception e)
+            {
+                if (e is OperationCanceledException && cancellationTokenSource is { IsCancellationRequested: true })
+                {
+                    _lastPowerState = _lastPowerState switch
+                    {
+                        PowerState.Off => PowerState.On,
+                        PowerState.On => PowerState.Off,
+                        _ => _lastPowerState
+                    };
+
+                    return new OppoResult<PowerState> { Success = true, Result = _lastPowerState };
+                }
+
+                _logger.FailedToSendCommandException(e);
+                return false;
+            }
+        }
     }
 
     public async ValueTask<OppoResult<PowerState>> PowerOnAsync(CancellationToken cancellationToken = default)
     {
         await WakeOnLan.SendWakeOnLanAsync(_macAddress, _ipAddress);
-        var result = await SendCommand("#PON", cancellationToken);
-        if (!result.Success)
-            return false;
-
-        _lastPowerState = PowerState.On;
-        return new OppoResult<PowerState>
+        using var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        cancellationTokenSource.CancelAfter(_timeout);
+        try
         {
-            Success = true,
-            Result = PowerState.On
-        };
+            var result = await SendCommand("#PON", cancellationToken, cancellationTokenSource.Token);
+            if (!result.Success)
+                return false;
+
+            _lastPowerState = PowerState.On;
+            return new OppoResult<PowerState> { Success = true, Result = PowerState.On };
+        }
+        catch (Exception e)
+        {
+            if (e is OperationCanceledException && cancellationTokenSource.IsCancellationRequested)
+            {
+                _lastPowerState = PowerState.On;
+                return new OppoResult<PowerState> { Success = true, Result = PowerState.On };
+            }
+
+            _logger.FailedToSendCommandException(e);
+            return false;
+        }
     }
 
     public async ValueTask<OppoResult<PowerState>> PowerOffAsync(CancellationToken cancellationToken = default)
@@ -414,7 +453,7 @@ public sealed class MagnetarClient(string hostName, string macAddress, ILogger<M
 
     private static readonly byte[] CarriageReturnLineFeed = "\r\n"u8.ToArray();
 
-    private async ValueTask<OppoResultCore> SendCommand(string command, CancellationToken cancellationToken, [CallerMemberName] string? caller = null)
+    private async ValueTask<OppoResultCore> SendCommand(string command, CancellationToken cancellationToken, CancellationToken? commandCancellationToken = null, [CallerMemberName] string? caller = null)
     {
         using var lease = await _rateLimiter.AcquireAsyncWithoutCancellationException(_logger, cancellationToken, caller);
         if (!lease.IsAcquired)
@@ -434,13 +473,17 @@ public sealed class MagnetarClient(string hostName, string macAddress, ILogger<M
             await IsConnectedAsync();
 
             var networkStream = _tcpClient.GetStream();
-            await networkStream.WriteAsync(Encoding.ASCII.GetBytes(command), cancellationToken);
-            await networkStream.WriteAsync(CarriageReturnLineFeed, cancellationToken);
+            await networkStream.WriteAsync(Encoding.ASCII.GetBytes(command), commandCancellationToken ?? cancellationToken);
+            await networkStream.WriteAsync(CarriageReturnLineFeed, commandCancellationToken ?? cancellationToken);
 
             return OppoResultCore.SuccessResult("ack");
         }
         catch (Exception e)
         {
+            // let the caller take care of the exception since it specified a different token for the command
+            if (e is OperationCanceledException && commandCancellationToken is { IsCancellationRequested: true })
+                throw;
+
             _logger.FailedToSendCommandException(e);
             return OppoResultCore.FalseResult;
         }
