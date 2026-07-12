@@ -269,16 +269,23 @@ public partial class OppoWebSocketHandler
         string entityId,
         CancellationToken cancellationToken)
     {
+        var oppoClientKey = await TryGetOppoClientKeyAsync(wsId, IdentifierType.EntityId, entityId, cancellationToken);
+        if (oppoClientKey is null)
+            return null;
+
+        if (!oppoClientKey.Value.UseStreamingEvents || oppoClientKey.Value.Model == OppoModel.Magnetar)
+            return null;
+
         _logger.TryingToGetOppoClientHolder(wsId);
 
-        var oppoClientHolder = await TryGetOppoClientHolderAsync(wsId, entityId, IdentifierType.EntityId, cancellationToken);
+        var oppoClientHolder = await TryGetOppoClientHolderAsync(oppoClientKey.Value, cancellationToken);
         if (oppoClientHolder is null)
         {
             _logger.CouldNotFindOppoClientForEntityId(wsId, entityId);
             return null;
         }
 
-        if (!oppoClientHolder.Client.SupportsStreamingUpdates || !oppoClientHolder.ClientKey.UseStreamingEvents || oppoClientHolder.ClientKey.Model == OppoModel.Magnetar)
+        if (!oppoClientHolder.Client.SupportsStreamingUpdates)
             return null;
 
         _logger.StartingEventsForDevice(wsId, oppoClientHolder.Client.HostName);
