@@ -16,12 +16,12 @@ jobs:
       checks: write
       security-events: write
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           ref: ${{ github.event.pull_request.head.sha }}  # to check out the actual pull request commit, not the merge commit
           fetch-depth: 0
       - name: 'Qodana Scan'
-        uses: JetBrains/qodana-action@4861e015da555e86a72b862892aba6c2b93e6891
+        uses: JetBrains/qodana-action@4861e015da555e86a72b862892aba6c2b93e6891 # v2026.1.3
         with:
           pr-mode: true
           args: |
@@ -32,6 +32,6 @@ jobs:
         env:
           QODANA_TOKEN: ${{ secrets.QODANA_TOKEN_477633446 }}
           QODANA_ENDPOINT: 'https://qodana.cloud'
-      - uses: github/codeql-action/upload-sarif@54f647b7e1bb85c95cddabcd46b0c578ec92bc1a
+      - uses: github/codeql-action/upload-sarif@54f647b7e1bb85c95cddabcd46b0c578ec92bc1a # v4.36.3
         with:
           sarif_file: ${{ runner.temp }}/qodana/results/qodana.sarif.json

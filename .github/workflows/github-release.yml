@@ -38,12 +38,12 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           fetch-depth: 0
 
       - name: Setup dotnet
-        uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1
+        uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5.4.0
         with:
           dotnet-version: 10.0.x
 
@@ -56,10 +56,10 @@ jobs:
           jq --arg version "$ASSEMBLY_VERSION" --arg date "$date" \
             '.version = $version | .release_date = $date' \
             src/UnfoldedCircle.OppoBluRay/driver.json > tmp.json && mv tmp.json src/UnfoldedCircle.OppoBluRay/driver.json
-          
+
           # Build everything
           release_name="unfolded-circle-oppo-$tag-${{ matrix.kind }}"
-          
+
           dotnet restore "./src/UnfoldedCircle.OppoBluRay/UnfoldedCircle.OppoBluRay.csproj" --locked-mode -p:PublishAot=true
           dotnet publish "./src/UnfoldedCircle.OppoBluRay/UnfoldedCircle.OppoBluRay.csproj" -r ${{ matrix.target }} -c Release -o ./publish -p:Version="$ASSEMBLY_VERSION" -p:PublishAot=true --no-restore
           if [ "${{ matrix.target }}" == "linux-arm64" ]; then
@@ -76,7 +76,7 @@ jobs:
             # Delete output directory
             rm -r "./driverdir"
           fi
-          
+
           if [ "${{ matrix.kind }}" = "windows-amd64" ] || [ "${{ matrix.kind }}" = "windows-arm64" ]; then
             # Pack to zip for Windows
             7z a -tzip "${release_name}.zip" "./publish/*"
@@ -84,12 +84,12 @@ jobs:
             # Pack tar.gz for non-Windows
             tar -czvf "${release_name}.tar.gz" -C ./publish .
           fi
-          
+
           # Delete output directory
           rm -r "./publish"
 
       - name: Publish
-        uses: softprops/action-gh-release@718ea10b132b3b2eba29c1007bb80653f286566b
+        uses: softprops/action-gh-release@718ea10b132b3b2eba29c1007bb80653f286566b # v3.0.1
         with:
           files: |
             unfolded-circle-oppo*.zip
@@ -98,7 +98,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Attest build provenance
-        uses: actions/attest@a1948c3f048ba23858d222213b7c278aabede763
+        uses: actions/attest@a1948c3f048ba23858d222213b7c278aabede763 # v4.1.1
         with:
           subject-path: |
             unfolded-circle-oppo*.tar.gz
