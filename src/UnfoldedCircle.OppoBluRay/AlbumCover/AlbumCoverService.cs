@@ -1,3 +1,4 @@
+using System.Text;
 using System.Text.Json.Serialization.Metadata;
 
 using Microsoft.Extensions.Caching.Memory;
@@ -81,8 +82,8 @@ internal sealed class AlbumCoverService(
         where T : class
     {
         var url = string.IsNullOrWhiteSpace(album)
-            ? $"https://musicbrainz.org/ws/2/recording/?query={Uri.EscapeDataString($"artist:{ToLucenePhrase(artist)} AND recording:{ToLucenePhrase(track!)}")}&fmt=json"
-            : $"https://musicbrainz.org/ws/2/release/?query={Uri.EscapeDataString($"artist:{ToLucenePhrase(artist)} AND release:{ToLucenePhrase(album)}")}&fmt=json";
+            ? $"https://musicbrainz.org/ws/2/recording/?query={Uri.EscapeDataString($"artist:{ToLuceneTerm(artist)} AND recording:{ToLuceneTerm(track!)}")}&fmt=json"
+            : $"https://musicbrainz.org/ws/2/release/?query={Uri.EscapeDataString($"artist:{ToLuceneTerm(artist)} AND release:{ToLuceneTerm(album)}")}&fmt=json";
 
         try
         {
@@ -107,10 +108,50 @@ internal sealed class AlbumCoverService(
         }
     }
 
-    // Wrap the term in a Lucene phrase ("...") so its contents are treated literally instead of as
-    // query operators or field separators. Inside a phrase only \ and " are special, so escape those.
-    private static string ToLucenePhrase(string value) =>
-        $"\"{value.Replace("\\", @"\\", StringComparison.Ordinal).Replace("\"", "\\\"", StringComparison.Ordinal)}\"";
+    // Lucene special characters that must be escaped so they are treated literally rather than as
+    // query operators. '*' is intentionally excluded so it can act as a prefix wildcard (see below).
+    private const string LuceneSpecials = @"+-&|!(){}[]^""~?:\/";
+
+    private static string EscapeLucene(ReadOnlySpan<char> value)
+    {
+        var sb = new StringBuilder(value.Length + 8);
+        foreach (var c in value)
+        {
+            if (LuceneSpecials.Contains(c, StringComparison.Ordinal))
+                sb.Append('\\');
+            sb.Append(c);
+        }
+        return sb.ToString();
+    }
+
+    // Build a Lucene term. The Oppo player truncates long fields with a trailing '*'. Wildcards only
+    // work on bare terms, not inside a phrase query, so a truncated value must not be fully quoted.
+    // For multi-word truncated values we quote all but the last word so Lucene treats the leading
+    // words as a contiguous required unit: +"NORTHERN" LIGHTS*
+    private static string ToLuceneTerm(string value)
+    {
+        if (!value.EndsWith('*'))
+            return $"\"{EscapeLucene(value)}\"";
+
+        var core = value.AsSpan(0, value.Length - 1).TrimEnd();
+
+        var lastWs = -1;
+        for (var i = core.Length - 1; i >= 0; i--)
+        {
+            if (char.IsWhiteSpace(core[i]))
+            {
+                lastWs = i;
+                break;
+            }
+        }
+
+        if (lastWs < 0)
+            return $"{EscapeLucene(core)}*";
+
+        var prefix = EscapeLucene(core[..lastWs].TrimEnd());
+        var tail = EscapeLucene(core[(lastWs + 1)..]);
+        return $"+\"{prefix}\" {tail}*";
+    }
 
     private async Task<Uri?> SendAndLogAsync(string releaseId, CancellationToken cancellationToken)
     {
