@@ -124,33 +124,36 @@ internal sealed class AlbumCoverService(
         return sb.ToString();
     }
 
-    // Build a Lucene term. The Oppo player truncates long fields with a trailing '*'. Wildcards only
-    // work on bare terms, not inside a phrase query, so a truncated value must not be fully quoted.
-    // For multi-word truncated values we quote all but the last word so Lucene treats the leading
-    // words as a contiguous required unit: +"NORTHERN" LIGHTS*
+    // Build a Lucene term, handling the Oppo player's trailing '*' truncation marker. The value is
+    // lower-cased throughout: MusicBrainz text fields are analyzed (case-insensitive), and lowercase
+    // keeps a truncated "AND"/"OR"/"NOT" from being parsed as a boolean operator in a bare-term query.
+    //
+    // The player appends '*' when a field is truncated at a fixed buffer boundary:
+    //   - " *" (space before '*'): truncation fell on a word boundary, so every captured word is a
+    //     whole token -> exact phrase query.
+    //   - "word*" (no space): the last captured word is partial. Wildcards only work on bare terms,
+    //     not inside a phrase, so quote the complete leading words and match the partial last word
+    //     with a prefix wildcard, grouped so the field distributes over both: ("northern" AND lig*).
+    //     A single truncated word becomes a bare prefix wildcard (e.g. norther*).
     private static string ToLuceneTerm(string value)
     {
+        value = value.ToLowerInvariant();
+
         if (!value.EndsWith('*'))
             return $"\"{EscapeLucene(value)}\"";
 
+        if (value.EndsWith(" *", StringComparison.Ordinal))
+            return $"\"{EscapeLucene(value.AsSpan(0, value.Length - 2).TrimEnd())}\"";
+
         var core = value.AsSpan(0, value.Length - 1).TrimEnd();
 
-        var lastWs = -1;
-        for (var i = core.Length - 1; i >= 0; i--)
-        {
-            if (char.IsWhiteSpace(core[i]))
-            {
-                lastWs = i;
-                break;
-            }
-        }
-
+        var lastWs = core.LastIndexOf(' ');
         if (lastWs < 0)
             return $"{EscapeLucene(core)}*";
 
         var prefix = EscapeLucene(core[..lastWs].TrimEnd());
         var tail = EscapeLucene(core[(lastWs + 1)..]);
-        return $"+\"{prefix}\" {tail}*";
+        return $"(\"{prefix}\" AND {tail}*)";
     }
 
     private async Task<Uri?> SendAndLogAsync(string releaseId, CancellationToken cancellationToken)
