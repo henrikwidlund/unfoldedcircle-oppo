@@ -2,6 +2,7 @@ using System.Diagnostics;
 
 using Oppo;
 
+using UnfoldedCircle.Models.Events;
 using UnfoldedCircle.Models.Sync;
 using UnfoldedCircle.OppoBluRay.Logging;
 using UnfoldedCircle.OppoBluRay.OppoEntity;
@@ -219,10 +220,10 @@ public partial class OppoWebSocketHandler
                 await oppoClientHolder.Client.PopUpMenuAsync(commandCancellationToken);
                 break;
             case OppoCommandId.Pause:
-                await oppoClientHolder.Client.PauseAsync(commandCancellationToken);
+                await SendPauseIfNotPaused(oppoClientHolder, commandCancellationToken);
                 break;
             case OppoCommandId.Play:
-                await oppoClientHolder.Client.PlayAsync(commandCancellationToken);
+                await SendPlayIfNotPlaying(oppoClientHolder, commandCancellationToken);
                 break;
             case OppoCommandId.Angle:
                 await oppoClientHolder.Client.AngleAsync(commandCancellationToken);
@@ -289,6 +290,28 @@ public partial class OppoWebSocketHandler
         return success ? EntityCommandResult.Other : EntityCommandResult.Failure;
     }
 
+    private static ValueTask<bool> SendPlayIfNotPlaying(OppoClientHolder oppoClientHolder, CancellationToken cancellationToken) =>
+        PreviousRemoteStatesMap.TryGetValue(oppoClientHolder.GetHashCode(), out var previousState) && previousState != State.Playing
+            ? oppoClientHolder.Client.PlayAsync(cancellationToken)
+            : ValueTask.FromResult(true);
+
+    private static ValueTask<bool> SendPauseIfNotPaused(OppoClientHolder oppoClientHolder, CancellationToken cancellationToken) =>
+        PreviousRemoteStatesMap.TryGetValue(oppoClientHolder.GetHashCode(), out var previousState) && previousState != State.Paused
+            ? oppoClientHolder.Client.PauseAsync(cancellationToken)
+            : ValueTask.FromResult(true);
+
+    private static ValueTask<bool> SendPlayOrPause(OppoClientHolder oppoClientHolder, CancellationToken cancellationToken)
+    {
+        if (PreviousRemoteStatesMap.TryGetValue(oppoClientHolder.GetHashCode(), out var previousState))
+        {
+            return previousState == State.Playing
+                ? oppoClientHolder.Client.PauseAsync(cancellationToken)
+                : oppoClientHolder.Client.PlayAsync(cancellationToken);
+        }
+
+        return oppoClientHolder.Client.PlayAsync(cancellationToken);
+    }
+
     private static async ValueTask<EntityCommandResult> HandleMediaPlayerPowerToggle(OppoClientHolder oppoClientHolder, CancellationToken commandCancellationToken)
     {
         var startTime = Stopwatch.GetTimestamp();
@@ -298,7 +321,8 @@ public partial class OppoWebSocketHandler
             // media player power toggle sends play_pause, power the device on first if needed
             if (await oppoClientHolder.Client.QueryPowerStatusAsync(commandCancellationToken) is { Result: PowerState.On })
             {
-                await oppoClientHolder.Client.PauseAsync(commandCancellationToken);
+                await SendPlayOrPause(oppoClientHolder, commandCancellationToken);
+
                 return poweredOnHere ? EntityCommandResult.PowerOn : EntityCommandResult.Other;
             }
 
@@ -345,7 +369,7 @@ public partial class OppoWebSocketHandler
 
         var result = command switch
         {
-            _ when command.Equals(MediaPlayerCommandIdConstants.PlayPause, StringComparison.OrdinalIgnoreCase) => await client.PauseAsync(commandCancellationToken),
+            _ when command.Equals(MediaPlayerCommandIdConstants.PlayPause, StringComparison.OrdinalIgnoreCase) => await SendPlayOrPause(oppoClientHolder, commandCancellationToken),
             _ when command.Equals(RemoteButtonConstants.Stop, StringComparison.OrdinalIgnoreCase) => await client.StopAsync(commandCancellationToken),
             _ when command.Equals(RemoteButtonConstants.Menu, StringComparison.OrdinalIgnoreCase) => await client.TopMenuAsync(commandCancellationToken),
             _ when command.Equals(RemoteButtonConstants.Previous, StringComparison.OrdinalIgnoreCase) => await client.PreviousAsync(commandCancellationToken),
@@ -389,8 +413,8 @@ public partial class OppoWebSocketHandler
             _ when command.Equals(EntitySettingsConstants.Clear, StringComparison.OrdinalIgnoreCase) => await client.ClearAsync(commandCancellationToken),
             _ when command.Equals(EntitySettingsConstants.TopMenu, StringComparison.OrdinalIgnoreCase) => await client.TopMenuAsync(commandCancellationToken),
             _ when command.Equals(EntitySettingsConstants.PopUpMenu, StringComparison.OrdinalIgnoreCase) => await client.PopUpMenuAsync(commandCancellationToken),
-            _ when command.Equals(EntitySettingsConstants.Pause, StringComparison.OrdinalIgnoreCase) => await client.PauseAsync(commandCancellationToken),
-            _ when command.Equals(EntitySettingsConstants.Play, StringComparison.OrdinalIgnoreCase) => await client.PlayAsync(commandCancellationToken),
+            _ when command.Equals(EntitySettingsConstants.Pause, StringComparison.OrdinalIgnoreCase) => await SendPlayIfNotPlaying(oppoClientHolder, commandCancellationToken),
+            _ when command.Equals(EntitySettingsConstants.Play, StringComparison.OrdinalIgnoreCase) => await SendPauseIfNotPaused(oppoClientHolder, commandCancellationToken),
             _ when command.Equals(EntitySettingsConstants.Angle, StringComparison.OrdinalIgnoreCase) => (bool)await client.AngleAsync(commandCancellationToken),
             _ when command.Equals(EntitySettingsConstants.Zoom, StringComparison.OrdinalIgnoreCase) => (bool)await client.ZoomAsync(commandCancellationToken),
             _ when command.Equals(EntitySettingsConstants.SecondaryAudioProgram, StringComparison.OrdinalIgnoreCase) => (bool)await client.SecondaryAudioProgramAsync(commandCancellationToken),
