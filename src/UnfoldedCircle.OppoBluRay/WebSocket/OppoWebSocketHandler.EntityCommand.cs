@@ -291,18 +291,18 @@ public partial class OppoWebSocketHandler
     }
 
     private static ValueTask<bool> SendPlayIfNotPlaying(OppoClientHolder oppoClientHolder, CancellationToken cancellationToken) =>
-        PreviousRemoteStatesMap.TryGetValue(oppoClientHolder.GetHashCode(), out var previousState) && previousState != State.Playing
+        PreviousRemoteStatesMap.TryGetValue(oppoClientHolder.ClientKey.GetHashCode(), out var previousState) && previousState != State.Playing
             ? oppoClientHolder.Client.PlayAsync(cancellationToken)
             : ValueTask.FromResult(true);
 
     private static ValueTask<bool> SendPauseIfNotPaused(OppoClientHolder oppoClientHolder, CancellationToken cancellationToken) =>
-        PreviousRemoteStatesMap.TryGetValue(oppoClientHolder.GetHashCode(), out var previousState) && previousState != State.Paused
+        PreviousRemoteStatesMap.TryGetValue(oppoClientHolder.ClientKey.GetHashCode(), out var previousState) && previousState != State.Paused
             ? oppoClientHolder.Client.PauseAsync(cancellationToken)
             : ValueTask.FromResult(true);
 
     private static ValueTask<bool> SendPlayOrPause(OppoClientHolder oppoClientHolder, CancellationToken cancellationToken)
     {
-        if (PreviousRemoteStatesMap.TryGetValue(oppoClientHolder.GetHashCode(), out var previousState))
+        if (PreviousRemoteStatesMap.TryGetValue(oppoClientHolder.ClientKey.GetHashCode(), out var previousState))
         {
             return previousState == State.Playing
                 ? oppoClientHolder.Client.PauseAsync(cancellationToken)
