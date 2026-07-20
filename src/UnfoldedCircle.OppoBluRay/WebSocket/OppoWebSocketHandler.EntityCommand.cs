@@ -290,15 +290,21 @@ public partial class OppoWebSocketHandler
         return success ? EntityCommandResult.Other : EntityCommandResult.Failure;
     }
 
-    private static ValueTask<bool> SendPlayIfNotPlaying(OppoClientHolder oppoClientHolder, CancellationToken cancellationToken) =>
-        PreviousRemoteStatesMap.TryGetValue(oppoClientHolder.ClientKey.GetHashCode(), out var previousState) && previousState != State.Playing
-            ? oppoClientHolder.Client.PlayAsync(cancellationToken)
-            : ValueTask.FromResult(true);
+    private static ValueTask<bool> SendPlayIfNotPlaying(OppoClientHolder oppoClientHolder, CancellationToken cancellationToken)
+    {
+        if (PreviousRemoteStatesMap.TryGetValue(oppoClientHolder.ClientKey.GetHashCode(), out var previousState))
+            return previousState != State.Playing ? oppoClientHolder.Client.PlayAsync(cancellationToken) : ValueTask.FromResult(true);
 
-    private static ValueTask<bool> SendPauseIfNotPaused(OppoClientHolder oppoClientHolder, CancellationToken cancellationToken) =>
-        PreviousRemoteStatesMap.TryGetValue(oppoClientHolder.ClientKey.GetHashCode(), out var previousState) && previousState != State.Paused
-            ? oppoClientHolder.Client.PauseAsync(cancellationToken)
-            : ValueTask.FromResult(true);
+        return oppoClientHolder.Client.PlayAsync(cancellationToken);
+    }
+
+    private static ValueTask<bool> SendPauseIfNotPaused(OppoClientHolder oppoClientHolder, CancellationToken cancellationToken)
+    {
+        if (PreviousRemoteStatesMap.TryGetValue(oppoClientHolder.ClientKey.GetHashCode(), out var previousState))
+            return previousState != State.Paused ? oppoClientHolder.Client.PauseAsync(cancellationToken) : ValueTask.FromResult(true);
+
+        return oppoClientHolder.Client.PauseAsync(cancellationToken);
+    }
 
     private static ValueTask<bool> SendPlayOrPause(OppoClientHolder oppoClientHolder, CancellationToken cancellationToken)
     {
@@ -309,7 +315,7 @@ public partial class OppoWebSocketHandler
                 : oppoClientHolder.Client.PlayAsync(cancellationToken);
         }
 
-        return oppoClientHolder.Client.PlayAsync(cancellationToken);
+        return oppoClientHolder.Client.PauseAsync(cancellationToken);
     }
 
     private static async ValueTask<EntityCommandResult> HandleMediaPlayerPowerToggle(OppoClientHolder oppoClientHolder, CancellationToken commandCancellationToken)
