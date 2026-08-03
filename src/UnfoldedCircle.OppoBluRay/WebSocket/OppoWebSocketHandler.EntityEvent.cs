@@ -104,7 +104,7 @@ public partial class OppoWebSocketHandler
                 var hasNewSubscriptions = existingContext.SetSubscribedEntities(subscribedEntity.Value);
                 if (hasNewSubscriptions)
                     await PublishCurrentSnapshotAsync(socket, wsId, existingContext, cancellationToken);
-                else if (ShouldPollHdr(existingContext))
+                else
                     await RefreshHdrIfNeededAsync(socket, wsId, existingContext, cancellationToken);
 
                 return true;
@@ -446,9 +446,11 @@ public partial class OppoWebSocketHandler
             return;
 
         // Movies shorter than or equal to 60 seconds are most likely a title screen.
-        // Avoid querying subtitles as it could lock up the player if the player is not in a state where they are available.
-        if (snapshot.MediaDuration is > 60)
-            snapshot.SubtitleTypeResponse = await oppoClientHolder.Client.QuerySubtitleTypeAsync(cancellationToken);
+        // Avoid querying info that could lock up the player if the player is not in a state where they are available.
+        if (snapshot.MediaDuration is <= 60)
+            return;
+
+        snapshot.SubtitleTypeResponse = await oppoClientHolder.Client.QuerySubtitleTypeAsync(cancellationToken);
 
         if (oppoClientHolder.ClientKey.Model is not (OppoModel.UDP203 or OppoModel.UDP205))
             return;
@@ -988,6 +990,9 @@ public partial class OppoWebSocketHandler
     {
         return context.ClientHolder.ClientKey.Model is OppoModel.UDP203 or OppoModel.UDP205
                && IsActivePlaybackState(context.Snapshot.State)
+               // Movies shorter than or equal to 60 seconds are most likely a title screen.
+               // Avoid querying HDR status as it could lock up the player if it is not in a state where it is available.
+               && context.Snapshot.MediaDuration is > 60
                && context.Snapshot is { DiscTypeResponse: { Success: true, Result: DiscType.UltraHDBluRay }, HdmiResolutionResponse.Result: HDMIResolution.RUltraHDp24 or HDMIResolution.RUltraHDp50 or HDMIResolution.RUltraHDp60 };
     }
 
