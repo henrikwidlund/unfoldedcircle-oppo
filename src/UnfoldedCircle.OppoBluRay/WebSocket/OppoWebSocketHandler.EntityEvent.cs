@@ -25,6 +25,9 @@ public partial class OppoWebSocketHandler
     private static readonly ConcurrentDictionary<int, HDRStatus?> PreviousSensorHDRStatusMap = new();
     private static readonly ConcurrentDictionary<int, AspectRatio?> PreviousSensorAspectRatiosMap = new();
 
+    // Threshold to not query movie data if we most likely are in a title screen
+    // that doesn't allow for querying that info.
+    private const ushort ShortMoveThresholdSeconds = 300;
     protected override async Task HandleEventUpdatesAsync(System.Net.WebSockets.WebSocket socket,
         string wsId,
         SubscribedEntitiesHolder subscribedEntitiesHolder,
@@ -445,9 +448,9 @@ public partial class OppoWebSocketHandler
         if (!snapshot.IsMovie)
             return;
 
-        // Movies shorter than or equal to 60 seconds are most likely a title screen.
+        // Movies shorter than or equal to 300 seconds are most likely a title screen.
         // Avoid querying info that could lock up the player if the player is not in a state where they are available.
-        if (snapshot.MediaDuration is <= 60)
+        if (snapshot.MediaDuration is <= ShortMoveThresholdSeconds)
             return;
 
         snapshot.SubtitleTypeResponse = await oppoClientHolder.Client.QuerySubtitleTypeAsync(cancellationToken);
@@ -990,9 +993,9 @@ public partial class OppoWebSocketHandler
     {
         return context.ClientHolder.ClientKey.Model is OppoModel.UDP203 or OppoModel.UDP205
                && IsActivePlaybackState(context.Snapshot.State)
-               // Movies shorter than or equal to 60 seconds are most likely a title screen.
+               // Movies shorter than or equal to 300 seconds are most likely a title screen.
                // Avoid querying HDR status as it could lock up the player if it is not in a state where it is available.
-               && context.Snapshot.MediaDuration is > 60
+               && context.Snapshot.MediaDuration is > ShortMoveThresholdSeconds
                && context.Snapshot is { DiscTypeResponse: { Success: true, Result: DiscType.UltraHDBluRay }, HdmiResolutionResponse.Result: HDMIResolution.RUltraHDp24 or HDMIResolution.RUltraHDp50 or HDMIResolution.RUltraHDp60 };
     }
 
