@@ -1237,8 +1237,9 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
             if (_logger.IsEnabled(LogLevel.Trace))
                 _logger.SendingCommand(Encoding.ASCII.GetString(command));
 
-            if (Interlocked.CompareExchange(ref _failedResponseCount, 0, 2) > 2)
+            if (Volatile.Read(ref _failedResponseCount) > 2)
             {
+                Interlocked.Exchange(ref _failedResponseCount, 0);
                 _logger.TooManyFailedResponses(caller);
 
                 _tcpClient.Close();
