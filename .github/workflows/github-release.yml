@@ -47,22 +47,20 @@ jobs:
         uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
         with:
           dotnet-version: 10.0.x
+          cache: true
+
+      - name: Prepare driver.json
+        shell: bash
+        run: .github/scripts/prepare-driver-json.sh
 
       - name: Build
         shell: bash
         run: |
-          tag=$(git describe --tags --abbrev=0)
-          date=$(date -u +"%Y-%m-%d")
-          ASSEMBLY_VERSION="${tag//v}"
-          jq --arg version "$ASSEMBLY_VERSION" --arg date "$date" \
-            '.version = $version | .release_date = $date' \
-            src/UnfoldedCircle.OppoBluRay/driver.json > tmp.json && mv tmp.json src/UnfoldedCircle.OppoBluRay/driver.json
-
           # Build everything
-          release_name="unfolded-circle-oppo-$tag-${{ matrix.kind }}"
+          release_name="unfolded-circle-oppo-$DRIVER_TAG-${{ matrix.kind }}"
 
           dotnet restore "./src/UnfoldedCircle.OppoBluRay/UnfoldedCircle.OppoBluRay.csproj" --locked-mode -p:PublishAot=true
-          dotnet publish "./src/UnfoldedCircle.OppoBluRay/UnfoldedCircle.OppoBluRay.csproj" -r ${{ matrix.target }} -c Release -o ./publish -p:Version="$ASSEMBLY_VERSION" -p:PublishAot=true --no-restore
+          dotnet publish "./src/UnfoldedCircle.OppoBluRay/UnfoldedCircle.OppoBluRay.csproj" -r ${{ matrix.target }} -c Release -o ./publish -p:Version="$DRIVER_VERSION" -p:PublishAot=true --no-restore
           if [ "${{ matrix.target }}" == "linux-arm64" ]; then
             mkdir driverdir && mkdir driverdir/bin && mkdir driverdir/config && mkdir driverdir/data
             cp publish/driver.json driverdir/driver.json
@@ -72,7 +70,7 @@ jobs:
             cp publish/driver driverdir/bin/
             cp publish/driver.dbg driverdir/bin/
 
-            tar -czvf unfolded-circle-oppo-$tag-remote.tar.gz -C ./driverdir .
+            tar -czvf unfolded-circle-oppo-$DRIVER_TAG-remote.tar.gz -C ./driverdir .
 
             # Delete output directory
             rm -r "./driverdir"
