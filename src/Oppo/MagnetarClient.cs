@@ -32,7 +32,7 @@ public sealed class MagnetarClient(string hostName, string macAddress, ILogger<M
         CancellationTokenSource? cancellationTokenSource;
         if (_lastPowerState == PowerState.Off)
         {
-            await WakeOnLan.SendWakeOnLanAsync(_macAddress, _ipAddress);
+            await WakeOnLan.SendWakeOnLanAsync(_macAddress, _ipAddress, _logger);
             cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             cancellationTokenSource.CancelAfter(_timeout);
         }
@@ -77,7 +77,7 @@ public sealed class MagnetarClient(string hostName, string macAddress, ILogger<M
 
     public async ValueTask<OppoResult<PowerState>> PowerOnAsync(CancellationToken cancellationToken = default)
     {
-        await WakeOnLan.SendWakeOnLanAsync(_macAddress, _ipAddress);
+        await WakeOnLan.SendWakeOnLanAsync(_macAddress, _ipAddress, _logger);
         using var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         cancellationTokenSource.CancelAfter(_timeout);
         try
@@ -470,7 +470,8 @@ public sealed class MagnetarClient(string hostName, string macAddress, ILogger<M
             if (_logger.IsEnabled(LogLevel.Trace))
                 _logger.SendingCommand(command);
 
-            await IsConnectedAsync();
+            // Connect without semaphore - we already acquired lock
+            await ConnectHelper.IsConnectedNoLockAsync(_tcpClient, _hostName, Port, _logger);
 
             var networkStream = _tcpClient.GetStream();
             await networkStream.WriteAsync(Encoding.ASCII.GetBytes(command), commandCancellationToken ?? cancellationToken);

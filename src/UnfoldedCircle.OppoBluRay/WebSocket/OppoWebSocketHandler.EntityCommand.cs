@@ -292,7 +292,7 @@ public partial class OppoWebSocketHandler
 
     private static ValueTask<bool> SendPlayIfNotPlaying(OppoClientHolder oppoClientHolder, CancellationToken cancellationToken)
     {
-        if (PreviousRemoteStatesMap.TryGetValue(oppoClientHolder.ClientKey.GetHashCode(), out var previousState))
+        if (PreviousRemoteStatesMap.TryGetValue(oppoClientHolder.ClientKey, out var previousState))
             return previousState != State.Playing ? oppoClientHolder.Client.PlayAsync(cancellationToken) : ValueTask.FromResult(true);
 
         return oppoClientHolder.Client.PlayAsync(cancellationToken);
@@ -300,7 +300,7 @@ public partial class OppoWebSocketHandler
 
     private static ValueTask<bool> SendPauseIfNotPaused(OppoClientHolder oppoClientHolder, CancellationToken cancellationToken)
     {
-        if (PreviousRemoteStatesMap.TryGetValue(oppoClientHolder.ClientKey.GetHashCode(), out var previousState))
+        if (PreviousRemoteStatesMap.TryGetValue(oppoClientHolder.ClientKey, out var previousState))
             return previousState != State.Paused ? oppoClientHolder.Client.PauseAsync(cancellationToken) : ValueTask.FromResult(true);
 
         return oppoClientHolder.Client.PauseAsync(cancellationToken);
@@ -308,7 +308,7 @@ public partial class OppoWebSocketHandler
 
     private static ValueTask<bool> SendPlayOrPause(OppoClientHolder oppoClientHolder, CancellationToken cancellationToken)
     {
-        if (PreviousRemoteStatesMap.TryGetValue(oppoClientHolder.ClientKey.GetHashCode(), out var previousState))
+        if (PreviousRemoteStatesMap.TryGetValue(oppoClientHolder.ClientKey, out var previousState))
         {
             return previousState == State.Playing
                 ? oppoClientHolder.Client.PauseAsync(cancellationToken)
@@ -419,8 +419,8 @@ public partial class OppoWebSocketHandler
             _ when command.Equals(EntitySettingsConstants.Clear, StringComparison.OrdinalIgnoreCase) => await client.ClearAsync(commandCancellationToken),
             _ when command.Equals(EntitySettingsConstants.TopMenu, StringComparison.OrdinalIgnoreCase) => await client.TopMenuAsync(commandCancellationToken),
             _ when command.Equals(EntitySettingsConstants.PopUpMenu, StringComparison.OrdinalIgnoreCase) => await client.PopUpMenuAsync(commandCancellationToken),
-            _ when command.Equals(EntitySettingsConstants.Pause, StringComparison.OrdinalIgnoreCase) => await SendPlayIfNotPlaying(oppoClientHolder, commandCancellationToken),
-            _ when command.Equals(EntitySettingsConstants.Play, StringComparison.OrdinalIgnoreCase) => await SendPauseIfNotPaused(oppoClientHolder, commandCancellationToken),
+            _ when command.Equals(EntitySettingsConstants.Pause, StringComparison.OrdinalIgnoreCase) => await SendPauseIfNotPaused(oppoClientHolder, commandCancellationToken),
+            _ when command.Equals(EntitySettingsConstants.Play, StringComparison.OrdinalIgnoreCase) => await SendPlayIfNotPlaying(oppoClientHolder, commandCancellationToken),
             _ when command.Equals(EntitySettingsConstants.Angle, StringComparison.OrdinalIgnoreCase) => (bool)await client.AngleAsync(commandCancellationToken),
             _ when command.Equals(EntitySettingsConstants.Zoom, StringComparison.OrdinalIgnoreCase) => (bool)await client.ZoomAsync(commandCancellationToken),
             _ when command.Equals(EntitySettingsConstants.SecondaryAudioProgram, StringComparison.OrdinalIgnoreCase) => (bool)await client.SecondaryAudioProgramAsync(commandCancellationToken),

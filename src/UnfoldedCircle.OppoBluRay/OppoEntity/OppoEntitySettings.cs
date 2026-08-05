@@ -281,10 +281,10 @@ public static class OppoEntitySettings
     public static readonly FrozenDictionary<string, InputSource> SourceMap = new Dictionary<string, InputSource>(StringComparer.OrdinalIgnoreCase)
     {
         [OppoConstants.InputSource.BluRayPlayer] = InputSource.BluRayPlayer,
-        [OppoConstants.InputSource.HDMIFront] = InputSource.HDMIIn,
-        [OppoConstants.InputSource.HDMIBack] = InputSource.HDMIIn,
-        [OppoConstants.InputSource.ARCHDMIOut1] = InputSource.ARCHDMIOut,
-        [OppoConstants.InputSource.ARCHDMIOut2] = InputSource.ARCHDMIOut,
+        [OppoConstants.InputSource.HDMIFront] = InputSource.HDMIFront,
+        [OppoConstants.InputSource.HDMIBack] = InputSource.HDMIBack,
+        [OppoConstants.InputSource.ARCHDMIOut1] = InputSource.ARCHDMIOut1,
+        [OppoConstants.InputSource.ARCHDMIOut2] = InputSource.ARCHDMIOut2,
         [OppoConstants.InputSource.Optical] = InputSource.Optical,
         [OppoConstants.InputSource.Coaxial] = InputSource.Coaxial,
         [OppoConstants.InputSource.USBAudio] = InputSource.USBAudio,
