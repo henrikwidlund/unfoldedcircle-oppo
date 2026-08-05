@@ -21,18 +21,8 @@ internal static partial class OppoLogger
         new EventId(3, nameof(FailedToDisposeClient)),
         "Failed to dispose client {ClientKey}");
 
-    private static readonly Action<ILogger, int, Exception> FailedToDisposeClientIntAction = LoggerMessage.Define<int>(
-        LogLevel.Error,
-        new EventId(4, nameof(FailedToDisposeClient)),
-        "Failed to dispose client {ClientKey}");
-
-    // ReSharper disable ConvertToExtensionBlock
     public static void FailedToDisposeClient(this ILogger logger, Exception exception, in OppoClientKey clientKey) =>
         FailedToDisposeClientAction(logger, clientKey, exception);
-
-    public static void FailedToDisposeClient(this ILogger logger, Exception exception, in int clientKey) =>
-        FailedToDisposeClientIntAction(logger, clientKey, exception);
-    // ReSharper restore ConvertToExtensionBlock
 
     private static readonly Action<ILogger, string, int, Exception> FailedToConnectToOppoPlayerAction = LoggerMessage.Define<string, int>(
         LogLevel.Error,

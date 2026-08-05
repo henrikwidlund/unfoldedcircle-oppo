@@ -1247,7 +1247,8 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
                 _tcpClient = ConnectHelper.CreateTcpClient();
             }
 
-            await IsConnectedAsync();
+            // Connect without semaphore - we already acquired lock
+            await ConnectHelper.IsConnectedNoLockAsync(_tcpClient, _hostName, _port, _logger);
 
             EnsureReaderLoopStarted();
 
@@ -2032,9 +2033,11 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         var hoursRange = ranges[0];
         var minutesRange = ranges[1];
         var secondsRange = ranges[2];
-        return uint.Parse(time[hoursRange]) * 3600
-               + uint.Parse(time[minutesRange]) * 60
-               + uint.Parse(time[secondsRange]);
+        return uint.TryParse(time[hoursRange], out var hours)
+               && uint.TryParse(time[minutesRange], out var minutes)
+               && uint.TryParse(time[secondsRange], out var seconds)
+            ? hours * 3600 + minutes * 60 + seconds
+            : 0;
     }
 
     private readonly record struct CommandCode(in uint Value)

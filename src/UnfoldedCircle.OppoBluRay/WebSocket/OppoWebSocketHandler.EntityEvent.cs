@@ -14,16 +14,16 @@ namespace UnfoldedCircle.OppoBluRay.WebSocket;
 
 public partial class OppoWebSocketHandler
 {
-    private static readonly ConcurrentDictionary<int, int> PreviousMediaStatesMap = new();
-    private static readonly ConcurrentDictionary<int, State> PreviousRemoteStatesMap = new();
-    private static readonly ConcurrentDictionary<int, InputSource?> PreviousSensorInputSourcesMap = new();
-    private static readonly ConcurrentDictionary<int, DiscType?> PreviousSensorDiscTypesMap = new();
-    private static readonly ConcurrentDictionary<int, HDMIResolution?> PreviousSensorHDMIResolutionsMap = new();
-    private static readonly ConcurrentDictionary<int, string?> PreviousSensorAudioTypesMap = new();
-    private static readonly ConcurrentDictionary<int, string?> PreviousSensorSubtitleTypesMap = new();
-    private static readonly ConcurrentDictionary<int, bool?> PreviousSensorThreeDsMap = new();
-    private static readonly ConcurrentDictionary<int, HDRStatus?> PreviousSensorHDRStatusMap = new();
-    private static readonly ConcurrentDictionary<int, AspectRatio?> PreviousSensorAspectRatiosMap = new();
+    private static readonly ConcurrentDictionary<OppoClientKey, int> PreviousMediaStatesMap = new();
+    private static readonly ConcurrentDictionary<OppoClientKey, State> PreviousRemoteStatesMap = new();
+    private static readonly ConcurrentDictionary<OppoClientKey, InputSource?> PreviousSensorInputSourcesMap = new();
+    private static readonly ConcurrentDictionary<OppoClientKey, DiscType?> PreviousSensorDiscTypesMap = new();
+    private static readonly ConcurrentDictionary<OppoClientKey, HDMIResolution?> PreviousSensorHDMIResolutionsMap = new();
+    private static readonly ConcurrentDictionary<OppoClientKey, string?> PreviousSensorAudioTypesMap = new();
+    private static readonly ConcurrentDictionary<OppoClientKey, string?> PreviousSensorSubtitleTypesMap = new();
+    private static readonly ConcurrentDictionary<OppoClientKey, bool?> PreviousSensorThreeDsMap = new();
+    private static readonly ConcurrentDictionary<OppoClientKey, HDRStatus?> PreviousSensorHDRStatusMap = new();
+    private static readonly ConcurrentDictionary<OppoClientKey, AspectRatio?> PreviousSensorAspectRatiosMap = new();
 
     // Threshold to not query movie data if we most likely are in a title screen
     // that doesn't allow for querying that info.
@@ -143,19 +143,17 @@ public partial class OppoWebSocketHandler
             }
         }
 
-        var seen = new HashSet<int>();
+        var seen = new HashSet<OppoClientKey>();
         foreach (var context in streamingClientContexts.Values)
         {
-            var hash = context.ClientHolder.ClientKey.GetHashCode();
-            if (seen.Add(hash))
-                CleanupPreviousMaps(hash);
+            if (seen.Add(context.ClientHolder.ClientKey))
+                CleanupPreviousMaps(context.ClientHolder.ClientKey);
         }
 
         foreach (var holder in pollingClientHolders.Values)
         {
-            var hash = holder.ClientKey.GetHashCode();
-            if (seen.Add(hash))
-                CleanupPreviousMaps(hash);
+            if (seen.Add(holder.ClientKey))
+                CleanupPreviousMaps(holder.ClientKey);
         }
     }
 
@@ -172,7 +170,7 @@ public partial class OppoWebSocketHandler
 
     private static ValueTask DisposeStreamingContextAsync(StreamingClientContext context)
     {
-        CleanupPreviousMaps(context.ClientHolder.ClientKey.GetHashCode());
+        CleanupPreviousMaps(context.ClientHolder.ClientKey);
         return context.DisposeAsync();
     }
 
@@ -880,7 +878,7 @@ public partial class OppoWebSocketHandler
             if (!pollingClientHolders.TryRemove(staleKey, out var clientHolder))
                 continue;
 
-            CleanupPreviousMaps(clientHolder.ClientKey.GetHashCode());
+            CleanupPreviousMaps(clientHolder.ClientKey);
         }
     }
 
@@ -1106,18 +1104,18 @@ public partial class OppoWebSocketHandler
         };
     }
 
-    private static void CleanupPreviousMaps(in int clientHashCode)
+    private static void CleanupPreviousMaps(in OppoClientKey clientKey)
     {
-        PreviousMediaStatesMap.TryRemove(clientHashCode, out _);
-        PreviousRemoteStatesMap.TryRemove(clientHashCode, out _);
-        PreviousSensorInputSourcesMap.TryRemove(clientHashCode, out _);
-        PreviousSensorDiscTypesMap.TryRemove(clientHashCode, out _);
-        PreviousSensorHDMIResolutionsMap.TryRemove(clientHashCode, out _);
-        PreviousSensorAudioTypesMap.TryRemove(clientHashCode, out _);
-        PreviousSensorSubtitleTypesMap.TryRemove(clientHashCode, out _);
-        PreviousSensorThreeDsMap.TryRemove(clientHashCode, out _);
-        PreviousSensorHDRStatusMap.TryRemove(clientHashCode, out _);
-        PreviousSensorAspectRatiosMap.TryRemove(clientHashCode, out _);
+        PreviousMediaStatesMap.TryRemove(clientKey, out _);
+        PreviousRemoteStatesMap.TryRemove(clientKey, out _);
+        PreviousSensorInputSourcesMap.TryRemove(clientKey, out _);
+        PreviousSensorDiscTypesMap.TryRemove(clientKey, out _);
+        PreviousSensorHDMIResolutionsMap.TryRemove(clientKey, out _);
+        PreviousSensorAudioTypesMap.TryRemove(clientKey, out _);
+        PreviousSensorSubtitleTypesMap.TryRemove(clientKey, out _);
+        PreviousSensorThreeDsMap.TryRemove(clientKey, out _);
+        PreviousSensorHDRStatusMap.TryRemove(clientKey, out _);
+        PreviousSensorAspectRatiosMap.TryRemove(clientKey, out _);
     }
 
     private static string? ReplaceStarWithEllipsis(string? input) =>
@@ -1149,12 +1147,11 @@ public partial class OppoWebSocketHandler
         CancellationToken cancellationToken) where TMediaPlayerStateChangedEventMessageDataAttributes : MediaPlayerStateChangedEventMessageDataAttributesBase
     {
         var stateHash = mediaPlayerState.GetHashCode();
-        var clientHashCode = oppoClientHolder.ClientKey.GetHashCode();
-        if (PreviousMediaStatesMap.TryGetValue(clientHashCode, out var previousStateHash) &&
+        if (PreviousMediaStatesMap.TryGetValue(oppoClientHolder.ClientKey, out var previousStateHash) &&
             previousStateHash == stateHash)
             return Task.CompletedTask;
 
-        PreviousMediaStatesMap[clientHashCode] = stateHash;
+        PreviousMediaStatesMap[oppoClientHolder.ClientKey] = stateHash;
         return SendMessageAsync(socket,
             ResponsePayloadHelpers.CreateMediaPlayerStateChangedResponsePayload(
                 mediaPlayerState,
@@ -1169,12 +1166,11 @@ public partial class OppoWebSocketHandler
         State state,
         CancellationToken cancellationToken)
     {
-        var clientHashCode = oppoClientHolder.ClientKey.GetHashCode();
-        if (PreviousRemoteStatesMap.TryGetValue(clientHashCode, out var previousState) &&
+        if (PreviousRemoteStatesMap.TryGetValue(oppoClientHolder.ClientKey, out var previousState) &&
             previousState == state)
             return Task.CompletedTask;
 
-        PreviousRemoteStatesMap[clientHashCode] = state;
+        PreviousRemoteStatesMap[oppoClientHolder.ClientKey] = state;
         return SendMessageAsync(socket,
             ResponsePayloadHelpers.CreateRemoteStateChangedResponsePayload(
                 new RemoteStateChangedEventMessageDataAttributes
@@ -1205,7 +1201,6 @@ public partial class OppoWebSocketHandler
         AspectRatio? aspectRatio,
         CancellationToken cancellationToken)
     {
-        var clientHashCode = oppoClientHolder.ClientKey.GetHashCode();
         List<Task>? tasks = null;
         foreach (var subscribedEntity in subscribedEntities)
         {
@@ -1214,14 +1209,14 @@ public partial class OppoWebSocketHandler
 
             var task = subscribedEntity.EntityId switch
             {
-                _ when subscribedEntity.EntityId.EndsWith(nameof(OppoSensorType.InputSource), StringComparison.OrdinalIgnoreCase) => SendInputSourceSensor(socket, wsId, oppoClientHolder, clientHashCode, inputSource, cancellationToken),
-                _ when subscribedEntity.EntityId.EndsWith(nameof(OppoSensorType.DiscType), StringComparison.OrdinalIgnoreCase) => SendDiscTypeSensor(socket, wsId, oppoClientHolder, clientHashCode, discType, cancellationToken),
-                _ when subscribedEntity.EntityId.EndsWith(nameof(OppoSensorType.HDMIResolution), StringComparison.OrdinalIgnoreCase) => SendHDMIResolutionSensor(socket, wsId, oppoClientHolder, clientHashCode, hdmiResolution, cancellationToken),
-                _ when subscribedEntity.EntityId.EndsWith(nameof(OppoSensorType.AudioType), StringComparison.OrdinalIgnoreCase) => SendAudioTypeSensor(socket, wsId, oppoClientHolder, clientHashCode, audioType, cancellationToken),
-                _ when subscribedEntity.EntityId.EndsWith(nameof(OppoSensorType.SubtitleType), StringComparison.OrdinalIgnoreCase) => SendSubtitleTypeSensor(socket, wsId, oppoClientHolder, clientHashCode, subtitleType, cancellationToken),
-                _ when subscribedEntity.EntityId.EndsWith(nameof(OppoSensorType.ThreeDStatus), StringComparison.OrdinalIgnoreCase) => SendThreeDSensor(socket, wsId, oppoClientHolder, clientHashCode, threeDStatus, cancellationToken),
-                _ when subscribedEntity.EntityId.EndsWith(nameof(OppoSensorType.HDRStatus), StringComparison.OrdinalIgnoreCase) => SendHDRStatusSensor(socket, wsId, oppoClientHolder, clientHashCode, hdrStatus, cancellationToken),
-                _ when subscribedEntity.EntityId.EndsWith(nameof(OppoSensorType.AspectRatio), StringComparison.OrdinalIgnoreCase) => SendAspectRatioSensor(socket, wsId, oppoClientHolder, clientHashCode, aspectRatio, cancellationToken),
+                _ when subscribedEntity.EntityId.EndsWith(nameof(OppoSensorType.InputSource), StringComparison.OrdinalIgnoreCase) => SendInputSourceSensor(socket, wsId, oppoClientHolder, inputSource, cancellationToken),
+                _ when subscribedEntity.EntityId.EndsWith(nameof(OppoSensorType.DiscType), StringComparison.OrdinalIgnoreCase) => SendDiscTypeSensor(socket, wsId, oppoClientHolder, discType, cancellationToken),
+                _ when subscribedEntity.EntityId.EndsWith(nameof(OppoSensorType.HDMIResolution), StringComparison.OrdinalIgnoreCase) => SendHDMIResolutionSensor(socket, wsId, oppoClientHolder, hdmiResolution, cancellationToken),
+                _ when subscribedEntity.EntityId.EndsWith(nameof(OppoSensorType.AudioType), StringComparison.OrdinalIgnoreCase) => SendAudioTypeSensor(socket, wsId, oppoClientHolder, audioType, cancellationToken),
+                _ when subscribedEntity.EntityId.EndsWith(nameof(OppoSensorType.SubtitleType), StringComparison.OrdinalIgnoreCase) => SendSubtitleTypeSensor(socket, wsId, oppoClientHolder, subtitleType, cancellationToken),
+                _ when subscribedEntity.EntityId.EndsWith(nameof(OppoSensorType.ThreeDStatus), StringComparison.OrdinalIgnoreCase) => SendThreeDSensor(socket, wsId, oppoClientHolder, threeDStatus, cancellationToken),
+                _ when subscribedEntity.EntityId.EndsWith(nameof(OppoSensorType.HDRStatus), StringComparison.OrdinalIgnoreCase) => SendHDRStatusSensor(socket, wsId, oppoClientHolder, hdrStatus, cancellationToken),
+                _ when subscribedEntity.EntityId.EndsWith(nameof(OppoSensorType.AspectRatio), StringComparison.OrdinalIgnoreCase) => SendAspectRatioSensor(socket, wsId, oppoClientHolder, aspectRatio, cancellationToken),
                 _ => null
             };
 
@@ -1237,15 +1232,14 @@ public partial class OppoWebSocketHandler
     private Task SendDiscTypeSensor(System.Net.WebSockets.WebSocket socket,
         string wsId,
         OppoClientHolder oppoClientHolder,
-        int clientHashCode,
         DiscType? discType,
         CancellationToken cancellationToken)
     {
-        if (PreviousSensorDiscTypesMap.TryGetValue(clientHashCode, out var previousState) &&
+        if (PreviousSensorDiscTypesMap.TryGetValue(oppoClientHolder.ClientKey, out var previousState) &&
             previousState == discType)
             return Task.CompletedTask;
 
-        PreviousSensorDiscTypesMap[clientHashCode] = discType;
+        PreviousSensorDiscTypesMap[oppoClientHolder.ClientKey] = discType;
         return SendMessageAsync(socket,
             ResponsePayloadHelpers.CreateSensorStateChangedPayload(
                 new SensorStateChangedEventMessageDataAttributes<string>
@@ -1262,15 +1256,14 @@ public partial class OppoWebSocketHandler
     private Task SendInputSourceSensor(System.Net.WebSockets.WebSocket socket,
         string wsId,
         OppoClientHolder oppoClientHolder,
-        int clientHashCode,
         InputSource? inputSource,
         CancellationToken cancellationToken)
     {
-        if (PreviousSensorInputSourcesMap.TryGetValue(clientHashCode, out var previousState) &&
+        if (PreviousSensorInputSourcesMap.TryGetValue(oppoClientHolder.ClientKey, out var previousState) &&
             previousState == inputSource)
             return Task.CompletedTask;
 
-        PreviousSensorInputSourcesMap[clientHashCode] = inputSource;
+        PreviousSensorInputSourcesMap[oppoClientHolder.ClientKey] = inputSource;
         return SendMessageAsync(socket,
             ResponsePayloadHelpers.CreateSensorStateChangedPayload(
                 new SensorStateChangedEventMessageDataAttributes<string>
@@ -1287,15 +1280,14 @@ public partial class OppoWebSocketHandler
     private Task SendHDMIResolutionSensor(System.Net.WebSockets.WebSocket socket,
         string wsId,
         OppoClientHolder oppoClientHolder,
-        int clientHashCode,
         HDMIResolution? hdmiResolution,
         CancellationToken cancellationToken)
     {
-        if (PreviousSensorHDMIResolutionsMap.TryGetValue(clientHashCode, out var previousState) &&
+        if (PreviousSensorHDMIResolutionsMap.TryGetValue(oppoClientHolder.ClientKey, out var previousState) &&
             previousState == hdmiResolution)
             return Task.CompletedTask;
 
-        PreviousSensorHDMIResolutionsMap[clientHashCode] = hdmiResolution;
+        PreviousSensorHDMIResolutionsMap[oppoClientHolder.ClientKey] = hdmiResolution;
         return SendMessageAsync(socket,
             ResponsePayloadHelpers.CreateSensorStateChangedPayload(
                 new SensorStateChangedEventMessageDataAttributes<string>
@@ -1312,15 +1304,14 @@ public partial class OppoWebSocketHandler
     private Task SendAudioTypeSensor(System.Net.WebSockets.WebSocket socket,
         string wsId,
         OppoClientHolder oppoClientHolder,
-        int clientHashCode,
         string? audioType,
         CancellationToken cancellationToken)
     {
-        if (PreviousSensorAudioTypesMap.TryGetValue(clientHashCode, out var previousState) &&
+        if (PreviousSensorAudioTypesMap.TryGetValue(oppoClientHolder.ClientKey, out var previousState) &&
             string.Equals(previousState, audioType, StringComparison.Ordinal))
             return Task.CompletedTask;
 
-        PreviousSensorAudioTypesMap[clientHashCode] = audioType;
+        PreviousSensorAudioTypesMap[oppoClientHolder.ClientKey] = audioType;
         return SendMessageAsync(socket,
             ResponsePayloadHelpers.CreateSensorStateChangedPayload(
                 new SensorStateChangedEventMessageDataAttributes<string>
@@ -1337,15 +1328,14 @@ public partial class OppoWebSocketHandler
     private Task SendSubtitleTypeSensor(System.Net.WebSockets.WebSocket socket,
         string wsId,
         OppoClientHolder oppoClientHolder,
-        int clientHashCode,
         string? subtitleType,
         CancellationToken cancellationToken)
     {
-        if (PreviousSensorSubtitleTypesMap.TryGetValue(clientHashCode, out var previousState) &&
+        if (PreviousSensorSubtitleTypesMap.TryGetValue(oppoClientHolder.ClientKey, out var previousState) &&
             string.Equals(previousState, subtitleType, StringComparison.Ordinal))
             return Task.CompletedTask;
 
-        PreviousSensorSubtitleTypesMap[clientHashCode] = subtitleType;
+        PreviousSensorSubtitleTypesMap[oppoClientHolder.ClientKey] = subtitleType;
         return SendMessageAsync(socket,
             ResponsePayloadHelpers.CreateSensorStateChangedPayload(
                 new SensorStateChangedEventMessageDataAttributes<string>
@@ -1362,15 +1352,14 @@ public partial class OppoWebSocketHandler
     private Task SendThreeDSensor(System.Net.WebSockets.WebSocket socket,
         string wsId,
         OppoClientHolder oppoClientHolder,
-        int clientHashCode,
         bool? threeD,
         CancellationToken cancellationToken)
     {
-        if (PreviousSensorThreeDsMap.TryGetValue(clientHashCode, out var previousState) &&
+        if (PreviousSensorThreeDsMap.TryGetValue(oppoClientHolder.ClientKey, out var previousState) &&
             previousState == threeD)
             return Task.CompletedTask;
 
-        PreviousSensorThreeDsMap[clientHashCode] = threeD;
+        PreviousSensorThreeDsMap[oppoClientHolder.ClientKey] = threeD;
         return SendMessageAsync(socket,
             ResponsePayloadHelpers.CreateSensorStateChangedPayload(
                 new SensorStateChangedEventMessageDataAttributes<string>
@@ -1392,15 +1381,14 @@ public partial class OppoWebSocketHandler
     private Task SendHDRStatusSensor(System.Net.WebSockets.WebSocket socket,
         string wsId,
         OppoClientHolder oppoClientHolder,
-        int clientHashCode,
         HDRStatus? hdrStatus,
         CancellationToken cancellationToken)
     {
-        if (PreviousSensorHDRStatusMap.TryGetValue(clientHashCode, out var previousState) &&
+        if (PreviousSensorHDRStatusMap.TryGetValue(oppoClientHolder.ClientKey, out var previousState) &&
             previousState == hdrStatus)
             return Task.CompletedTask;
 
-        PreviousSensorHDRStatusMap[clientHashCode] = hdrStatus;
+        PreviousSensorHDRStatusMap[oppoClientHolder.ClientKey] = hdrStatus;
         return SendMessageAsync(socket,
             ResponsePayloadHelpers.CreateSensorStateChangedPayload(
                 new SensorStateChangedEventMessageDataAttributes<string>
@@ -1417,15 +1405,14 @@ public partial class OppoWebSocketHandler
     private Task SendAspectRatioSensor(System.Net.WebSockets.WebSocket socket,
         string wsId,
         OppoClientHolder oppoClientHolder,
-        int clientHashCode,
         AspectRatio? aspectRatio,
         CancellationToken cancellationToken)
     {
-        if (PreviousSensorAspectRatiosMap.TryGetValue(clientHashCode, out var previousState) &&
+        if (PreviousSensorAspectRatiosMap.TryGetValue(oppoClientHolder.ClientKey, out var previousState) &&
             previousState == aspectRatio)
             return Task.CompletedTask;
 
-        PreviousSensorAspectRatiosMap[clientHashCode] = aspectRatio;
+        PreviousSensorAspectRatiosMap[oppoClientHolder.ClientKey] = aspectRatio;
         return SendMessageAsync(socket,
             ResponsePayloadHelpers.CreateSensorStateChangedPayload(
                 new SensorStateChangedEventMessageDataAttributes<string>

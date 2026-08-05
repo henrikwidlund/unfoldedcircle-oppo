@@ -22,7 +22,7 @@ internal static partial class IntegrationLogger
         Message = "[{WSId}] WS: Could not find client for entity ID '{EntityId}'")]
     public static partial void CouldNotFindOppoClientForEntityId(this ILogger logger, string wsId, string entityId);
 
-    [LoggerMessage(EventId = 20, EventName = nameof(CouldNotFindOppoClientForEntityIdMemory), Level = LogLevel.Warning,
+    [LoggerMessage(EventId = 23, EventName = nameof(CouldNotFindOppoClientForEntityIdMemory), Level = LogLevel.Warning,
         Message = "[{WSId}] WS: Could not find client for entity ID '{EntityId}'")]
     public static partial void CouldNotFindOppoClientForEntityIdMemory(this ILogger logger, string wsId, ReadOnlyMemory<char> entityId);
 

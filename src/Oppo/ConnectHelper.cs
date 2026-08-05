@@ -18,7 +18,7 @@ internal static class ConnectHelper
         TimeSpan? timeout = null)
     {
         if (tcpClient.Connected)
-            return tcpClient.Connected;
+            return true;
 
         var acquired = await semaphore.WaitAsync(timeout ?? TimeSpan.FromSeconds(5));
         if (!acquired)
@@ -26,15 +26,39 @@ internal static class ConnectHelper
 
         try
         {
-            if (tcpClient.Connected)
-                return tcpClient.Connected;
-
-            return await DoConnect(true);
+            return await ConnectIfNeededAsync(tcpClient, hostName, port, logger, timeout);
         }
         finally
         {
             semaphore.Release();
         }
+    }
+
+    /// <summary>
+    /// Same connect logic as <see cref="IsConnectedAsync"/>, but without acquiring <c>semaphore</c>.
+    /// For callers that already hold it for the duration of the call (e.g. SendCommandCore, which owns
+    /// the semaphore for the whole command) - acquiring it again here would self-deadlock since
+    /// SemaphoreSlim has no concept of a reentrant owner.
+    /// </summary>
+    internal static ValueTask<bool> IsConnectedNoLockAsync(
+        TcpClient tcpClient,
+        string hostName,
+        int port,
+        ILogger logger,
+        TimeSpan? timeout = null)
+        => ConnectIfNeededAsync(tcpClient, hostName, port, logger, timeout);
+
+    private static async ValueTask<bool> ConnectIfNeededAsync(
+        TcpClient tcpClient,
+        string hostName,
+        int port,
+        ILogger logger,
+        TimeSpan? timeout)
+    {
+        if (tcpClient.Connected)
+            return true;
+
+        return await DoConnect(true);
 
         async ValueTask<bool> DoConnect(bool allowRetry)
         {

@@ -8,22 +8,21 @@ public class OppoClientFactory(ILoggerFactory loggerFactory, ILogger<OppoClientF
 {
     private readonly ILoggerFactory _loggerFactory = loggerFactory;
     private readonly ILogger<OppoClientFactory> _logger = logger;
-    private readonly ConcurrentDictionary<int, IOppoClient> _clients = new();
+    private readonly ConcurrentDictionary<OppoClientKey, IOppoClient> _clients = new();
     private ILogger<OppoClient>? _oppoClientLogger;
     private ILogger<MagnetarClient>? _magnetarClientLogger;
     private readonly SemaphoreSlim _semaphoreSlim = new(1, 1);
 
     public async ValueTask<IOppoClient?> TryGetOrCreateClient(OppoClientKey oppoClientKey, CancellationToken cancellationToken)
     {
-        var clientKeyHash = oppoClientKey.GetHashCode();
-        if (_clients.TryGetValue(clientKeyHash, out var client))
+        if (_clients.TryGetValue(oppoClientKey, out var client))
             return client;
 
         if (await _semaphoreSlim.WaitAsync(TimeSpan.FromSeconds(5), cancellationToken))
         {
             try
             {
-                if (_clients.TryGetValue(clientKeyHash, out client) &&
+                if (_clients.TryGetValue(oppoClientKey, out client) &&
                     client is OppoClient { IsDisposed: false } or MagnetarClient { IsDisposed: false })
                     return client;
 
@@ -45,7 +44,7 @@ public class OppoClientFactory(ILoggerFactory loggerFactory, ILogger<OppoClientF
                     await client.IsConnectedAsync();
                 }
 
-                _clients[clientKeyHash] = client;
+                _clients[oppoClientKey] = client;
                 return client;
             }
             catch (Exception e)
@@ -67,7 +66,7 @@ public class OppoClientFactory(ILoggerFactory loggerFactory, ILogger<OppoClientF
     {
         try
         {
-            if (_clients.TryRemove(oppoClientKey.GetHashCode(), out var client))
+            if (_clients.TryRemove(oppoClientKey, out var client))
                 client.Dispose();
         }
         catch (Exception e)

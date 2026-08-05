@@ -1,6 +1,8 @@
 using System.Net;
 using System.Net.Sockets;
 
+using Microsoft.Extensions.Logging;
+
 namespace Oppo;
 
 internal static class WakeOnLan
@@ -8,20 +10,27 @@ internal static class WakeOnLan
     private static readonly IPEndPoint BroadcastIpEndPointPort7 = new(IPAddress.Parse("255.255.255.255"), 7);
     private static readonly IPEndPoint BroadcastIpEndPointPort9 = new(IPAddress.Parse("255.255.255.255"), 9);
 
-    public static async ValueTask SendWakeOnLanAsync(string macAddress, IPAddress ipAddress)
+    public static async ValueTask SendWakeOnLanAsync(string macAddress, IPAddress ipAddress, ILogger logger)
     {
-        var magicPacket = CreateMagicPacket(macAddress);
-        using var socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-        socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.Broadcast, 1);
-        var broadcastAddress = ipAddress.ToString();
-        var lastDotIndex = broadcastAddress.LastIndexOf('.');
-        broadcastAddress = $"{broadcastAddress[..(lastDotIndex + 1)]}255";
-        var broadcastIp = IPAddress.Parse(broadcastAddress);
+        try
+        {
+            var magicPacket = CreateMagicPacket(macAddress);
+            using var socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+            socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.Broadcast, 1);
+            var broadcastAddress = ipAddress.ToString();
+            var lastDotIndex = broadcastAddress.LastIndexOf('.');
+            broadcastAddress = $"{broadcastAddress[..(lastDotIndex + 1)]}255";
+            var broadcastIp = IPAddress.Parse(broadcastAddress);
 
-        await socket.SendToAsync(magicPacket, BroadcastIpEndPointPort7);
-        await socket.SendToAsync(magicPacket, BroadcastIpEndPointPort9);
-        await socket.SendToAsync(magicPacket, new IPEndPoint(broadcastIp, 7));
-        await socket.SendToAsync(magicPacket, new IPEndPoint(broadcastIp, 9));
+            await socket.SendToAsync(magicPacket, BroadcastIpEndPointPort7);
+            await socket.SendToAsync(magicPacket, BroadcastIpEndPointPort9);
+            await socket.SendToAsync(magicPacket, new IPEndPoint(broadcastIp, 7));
+            await socket.SendToAsync(magicPacket, new IPEndPoint(broadcastIp, 9));
+        }
+        catch (Exception e)
+        {
+            logger.FailedToSendCommandException(e);
+        }
     }
 
     private static byte[] CreateMagicPacket(string macAddress) =>
