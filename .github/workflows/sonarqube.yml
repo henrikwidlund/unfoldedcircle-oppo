@@ -38,6 +38,7 @@ jobs:
         with:
           dotnet-version: 10.0.x
           cache: true
+          cache-dependency-path: '**/packages.lock.json'
       - name: Install SonarQube Cloud scanner
         if: steps.cache-sonar-scanner.outputs.cache-hit != 'true'
         shell: powershell
