@@ -43,6 +43,10 @@
     </ItemGroup>
 
     <ItemGroup>
+        <EmbeddedResource Include="Icons\*.png" LogicalName="Icons/%(Filename)%(Extension)" />
+    </ItemGroup>
+
+    <ItemGroup>
         <ProjectReference Include="..\Oppo\Oppo.csproj" />
     </ItemGroup>
 

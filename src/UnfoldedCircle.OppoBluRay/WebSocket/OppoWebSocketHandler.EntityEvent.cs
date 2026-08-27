@@ -4,6 +4,7 @@ using Oppo;
 
 using UnfoldedCircle.Models.Events;
 using UnfoldedCircle.Models.Shared;
+using UnfoldedCircle.OppoBluRay.AlbumCover;
 using UnfoldedCircle.OppoBluRay.Configuration;
 using UnfoldedCircle.OppoBluRay.Logging;
 using UnfoldedCircle.OppoBluRay.OppoEntity;
@@ -14,7 +15,7 @@ namespace UnfoldedCircle.OppoBluRay.WebSocket;
 
 public partial class OppoWebSocketHandler
 {
-    private static readonly ConcurrentDictionary<OppoClientKey, int> PreviousMediaStatesMap = new();
+    private static readonly ConcurrentDictionary<OppoClientKey, MediaPlayerStateChangedEventMessageDataAttributesBase> PreviousMediaStatesMap = new();
     private static readonly ConcurrentDictionary<OppoClientKey, State> PreviousRemoteStatesMap = new();
     private static readonly ConcurrentDictionary<OppoClientKey, InputSource?> PreviousSensorInputSourcesMap = new();
     private static readonly ConcurrentDictionary<OppoClientKey, DiscType?> PreviousSensorDiscTypesMap = new();
@@ -424,9 +425,16 @@ public partial class OppoWebSocketHandler
 
     private async ValueTask TryPopulateAlbumCoverAsync(ClientSnapshot snapshot, CancellationToken cancellationToken)
     {
+        var defaultIconUri = snapshot.DiscTypeResponse is { Success: true } discTypeResponse
+            ? DefaultArtwork.GetIconUri(discTypeResponse.Result)
+            : null;
+
         if (snapshot.IsMovie || (string.IsNullOrWhiteSpace(snapshot.Performer)
             || (string.IsNullOrWhiteSpace(snapshot.Album) && string.IsNullOrWhiteSpace(snapshot.TrackResponse?.Result))))
+        {
+            snapshot.CoverUri = defaultIconUri;
             return;
+        }
 
         if (snapshot.Album?.StartsWith(snapshot.Performer, StringComparison.OrdinalIgnoreCase) is true
             && snapshot.Album.AsSpan()[snapshot.Performer.Length..].StartsWith("   ", StringComparison.Ordinal))
@@ -434,7 +442,8 @@ public partial class OppoWebSocketHandler
             snapshot.Album = snapshot.Album.AsSpan()[(snapshot.Performer.Length + 3)..].ToString();
         }
 
-        snapshot.CoverUri = await _albumCoverService.GetAlbumCoverAsync(snapshot.Performer, snapshot.Album, snapshot.TrackResponse?.Result, cancellationToken);
+        snapshot.CoverUri = await _albumCoverService.GetAlbumCoverAsync(snapshot.Performer, snapshot.Album, snapshot.TrackResponse?.Result, cancellationToken)
+            ?? defaultIconUri;
     }
 
     private static async ValueTask PopulatePlaybackSensorsAsync(
@@ -1146,12 +1155,11 @@ public partial class OppoWebSocketHandler
         TMediaPlayerStateChangedEventMessageDataAttributes mediaPlayerState,
         CancellationToken cancellationToken) where TMediaPlayerStateChangedEventMessageDataAttributes : MediaPlayerStateChangedEventMessageDataAttributesBase
     {
-        var stateHash = mediaPlayerState.GetHashCode();
-        if (PreviousMediaStatesMap.TryGetValue(oppoClientHolder.ClientKey, out var previousStateHash) &&
-            previousStateHash == stateHash)
+        if (PreviousMediaStatesMap.TryGetValue(oppoClientHolder.ClientKey, out var previousState) &&
+            previousState.Equals(mediaPlayerState))
             return Task.CompletedTask;
 
-        PreviousMediaStatesMap[oppoClientHolder.ClientKey] = stateHash;
+        PreviousMediaStatesMap[oppoClientHolder.ClientKey] = mediaPlayerState;
         return SendMessageAsync(socket,
             ResponsePayloadHelpers.CreateMediaPlayerStateChangedResponsePayload(
                 mediaPlayerState,
