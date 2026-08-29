@@ -366,6 +366,9 @@ public partial class OppoWebSocketHandler
             : State.Unknown;
 
         snapshot.IsMovie = snapshot.DiscTypeResponse is { Success: true, Result: DiscType.BlueRayMovie or DiscType.DVDVideo or DiscType.UltraHDBluRay };
+        snapshot.CoverUri = snapshot.DiscTypeResponse is { Success: true } discTypeResponse
+            ? DefaultArtwork.GetIconUri(discTypeResponse.Result)
+            : null;
 
         if (playbackStatusResponse is not { Success: true, Result: PlaybackStatus.Play or PlaybackStatus.Pause }
             || snapshot.DiscTypeResponse is not { Success: true, Result: not (DiscType.Unknown or DiscType.UnknownDisc or DiscType.DataDisc) })
@@ -425,16 +428,11 @@ public partial class OppoWebSocketHandler
 
     private async ValueTask TryPopulateAlbumCoverAsync(ClientSnapshot snapshot, CancellationToken cancellationToken)
     {
-        var defaultIconUri = snapshot.DiscTypeResponse is { Success: true } discTypeResponse
-            ? DefaultArtwork.GetIconUri(discTypeResponse.Result)
-            : null;
-
+        // snapshot.CoverUri already holds the disc-type fallback icon set by the caller; only overwrite it
+        // if we can look up and find real album art.
         if (snapshot.IsMovie || (string.IsNullOrWhiteSpace(snapshot.Performer)
             || (string.IsNullOrWhiteSpace(snapshot.Album) && string.IsNullOrWhiteSpace(snapshot.TrackResponse?.Result))))
-        {
-            snapshot.CoverUri = defaultIconUri;
             return;
-        }
 
         if (snapshot.Album?.StartsWith(snapshot.Performer, StringComparison.OrdinalIgnoreCase) is true
             && snapshot.Album.AsSpan()[snapshot.Performer.Length..].StartsWith("   ", StringComparison.Ordinal))
@@ -442,8 +440,9 @@ public partial class OppoWebSocketHandler
             snapshot.Album = snapshot.Album.AsSpan()[(snapshot.Performer.Length + 3)..].ToString();
         }
 
-        snapshot.CoverUri = await _albumCoverService.GetAlbumCoverAsync(snapshot.Performer, snapshot.Album, snapshot.TrackResponse?.Result, cancellationToken)
-            ?? defaultIconUri;
+        var albumCoverUri = await _albumCoverService.GetAlbumCoverAsync(snapshot.Performer, snapshot.Album, snapshot.TrackResponse?.Result, cancellationToken);
+        if (albumCoverUri is not null)
+            snapshot.CoverUri = albumCoverUri;
     }
 
     private static async ValueTask PopulatePlaybackSensorsAsync(
@@ -773,7 +772,9 @@ public partial class OppoWebSocketHandler
             context.Snapshot.TrackResponse = null;
             context.Snapshot.Album = null;
             context.Snapshot.Performer = null;
-            context.Snapshot.CoverUri = null;
+            context.Snapshot.CoverUri = context.Snapshot.DiscTypeResponse is { Success: true } discTypeResponse
+                ? DefaultArtwork.GetIconUri(discTypeResponse.Result)
+                : null;
             context.Snapshot.RepeatMode = null;
             context.Snapshot.Shuffle = null;
             context.Snapshot.LastProgressTitle = null;
