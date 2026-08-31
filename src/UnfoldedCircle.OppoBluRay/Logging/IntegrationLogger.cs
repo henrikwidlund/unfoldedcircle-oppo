@@ -11,7 +11,7 @@ internal static partial class IntegrationLogger
 
     [LoggerMessage(EventId = 2, EventName = nameof(NoConfigurationFoundForIdentifier), Level = LogLevel.Information,
         Message = "[{WSId}] WS: No configuration found for identifier '{Identifier}' with type {Type}")]
-    public static partial void NoConfigurationFoundForIdentifier(this ILogger logger, string wsId, in ReadOnlyMemory<char> identifier, in OppoWebSocketHandler.IdentifierType type);
+    public static partial void NoConfigurationFoundForIdentifier(this ILogger logger, string wsId, in ReadOnlyMemory<char> identifier, OppoWebSocketHandler.IdentifierType type);
 
     [LoggerMessage(EventId = 3, EventName = nameof(NoConfigurationFoundForDeviceId), Level = LogLevel.Information,
         Message = "[{WSId}] WS: No configuration found for device ID '{DeviceId}'")]
@@ -51,7 +51,7 @@ internal static partial class IntegrationLogger
 
     [LoggerMessage(EventId = 17, EventName = nameof(FailedToFetchUrl), Level = LogLevel.Error,
         Message = "Failed to fetch {Url}: {StatusCode} - {Content}")]
-    public static partial void FailedToFetchUrl(this ILogger logger, string url, in System.Net.HttpStatusCode statusCode, string content);
+    public static partial void FailedToFetchUrl(this ILogger logger, string url, System.Net.HttpStatusCode statusCode, string content);
 
     private static readonly Action<ILogger, string, Exception> FailedToFetchUrlExceptionAction = LoggerMessage.Define<string>(
         LogLevel.Error,

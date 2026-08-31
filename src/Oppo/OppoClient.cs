@@ -11,7 +11,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Oppo;
 
-public sealed class OppoClient(string hostName, in OppoModel model, ILogger<OppoClient> logger) : IOppoClient
+public sealed class OppoClient(string hostName, OppoModel model, ILogger<OppoClient> logger) : IOppoClient
 {
     private readonly string _hostName = hostName;
     private readonly OppoModel _model = model;
@@ -982,7 +982,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
             }
         };
 
-        static bool IsValidCommand(in OppoModel model, in InputSource inputSource)
+        static bool IsValidCommand(OppoModel model, InputSource inputSource)
         {
             return model switch
             {
@@ -1574,7 +1574,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         return rentedBuffer.AsSpan(0, length);
     }
 
-    private bool TryCompletePendingCommand(in CommandCode? responseCommandCode, string normalizedResponse)
+    private bool TryCompletePendingCommand(CommandCode? responseCommandCode, string normalizedResponse)
     {
         var pendingResponse = Volatile.Read(ref _pendingCommandResponse);
         if (pendingResponse is null)
@@ -1599,8 +1599,8 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         return true;
     }
 
-    private static bool IsStreamingPlayPauseAlternateCommandResponse(in CommandCode expectedCommandCode,
-        in CommandCode actualCommandCode,
+    private static bool IsStreamingPlayPauseAlternateCommandResponse(CommandCode expectedCommandCode,
+        CommandCode actualCommandCode,
         string normalizedResponse)
     {
         // when using streaming and using the play/pause command, the player will return PLA when resuming playback
@@ -1815,7 +1815,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         return seconds > 0 || timeSpan.SequenceEqual("00:00:00"u8);
     }
 
-    private bool TryParseTimeCodeType(in byte value, out OppoTimeCodeType timeCodeType)
+    private bool TryParseTimeCodeType(byte value, out OppoTimeCodeType timeCodeType)
     {
         timeCodeType = value switch
         {
@@ -1999,7 +1999,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
 
     private uint _failedResponseCount;
 
-    private TEnum LogError<TEnum>(string response, in TEnum returnValue, [CallerMemberName] string? callerMemberName = null)
+    private TEnum LogError<TEnum>(string response, TEnum returnValue, [CallerMemberName] string? callerMemberName = null)
         where TEnum : Enum
     {
         Interlocked.Increment(ref _failedResponseCount);
@@ -2040,7 +2040,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
             : 0;
     }
 
-    private readonly record struct CommandCode(in uint Value)
+    private readonly record struct CommandCode(uint Value)
     {
         public static bool TryParse(in ReadOnlySpan<byte> value, out CommandCode commandCode)
         {
@@ -2055,7 +2055,7 @@ public sealed class OppoClient(string hostName, in OppoModel model, ILogger<Oppo
         }
     }
 
-    private sealed record PendingCommandResponse(in CommandCode? Code, TaskCompletionSource<OppoResultCore> Completion);
+    private sealed record PendingCommandResponse(CommandCode? Code, TaskCompletionSource<OppoResultCore> Completion);
 
     public void Dispose()
     {

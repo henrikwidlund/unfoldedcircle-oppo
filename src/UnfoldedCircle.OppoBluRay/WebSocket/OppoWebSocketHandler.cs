@@ -158,7 +158,7 @@ public partial class OppoWebSocketHandler(
                 Options = configurationItem.Model == OppoModel.Magnetar ? OppoEntitySettings.MagnetarRemoteOptions : OppoEntitySettings.RemoteOptions
             };
 
-        static SensorAvailableEntity GetSensorEntity(OppoConfigurationItem configurationItem, in OppoSensorType sensorType)
+        static SensorAvailableEntity GetSensorEntity(OppoConfigurationItem configurationItem, OppoSensorType sensorType)
         {
             var sensorSuffix = sensorType.ToStringFast();
             RegisterSensor(configurationItem.EntityId.GetBaseIdentifier(), sensorSuffix);
@@ -397,7 +397,7 @@ public partial class OppoWebSocketHandler(
             ? SetupDriverUserDataResult.Finalized
             : SetupDriverUserDataResult.Error;
 
-    private static string GetOppoModelName(in OppoModel oppoModel) =>
+    private static string GetOppoModelName(OppoModel oppoModel) =>
         oppoModel switch
         {
             OppoModel.BDP83 => "BDP-83",

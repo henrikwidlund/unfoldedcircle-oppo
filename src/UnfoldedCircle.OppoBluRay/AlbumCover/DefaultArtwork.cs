@@ -22,7 +22,7 @@ internal static class DefaultArtwork
 
     private static readonly ConcurrentDictionary<DiscType, Uri?> CachedUris = new();
 
-    public static Uri? GetIconUri(in DiscType discType) =>
+    public static Uri? GetIconUri(DiscType discType) =>
         CachedUris.GetOrAdd(discType, static dt => IconFileNames.TryGetValue(dt, out var fileName) ? LoadUri(fileName) : null);
 
     private static Uri LoadUri(string fileName)

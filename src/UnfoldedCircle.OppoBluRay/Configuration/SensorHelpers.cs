@@ -13,7 +13,7 @@ internal static class SensorHelpers
         OppoSensorType.DiscType, OppoSensorType.InputSource, OppoSensorType.HDMIResolution, OppoSensorType.AudioType, OppoSensorType.SubtitleType
     }).ToFrozenSet();
 
-    public static IReadOnlySet<OppoSensorType> GetOppoSensorTypes(in OppoModel oppoModel) =>
+    public static IReadOnlySet<OppoSensorType> GetOppoSensorTypes(OppoModel oppoModel) =>
         oppoModel switch
         {
             OppoModel.UDP203 or OppoModel.UDP205 => AllSensorTypes,

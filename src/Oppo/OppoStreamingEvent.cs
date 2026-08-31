@@ -16,24 +16,24 @@ public abstract record OppoStreamingEvent;
 public sealed record OppoUnknownStreamingEvent
     : OppoStreamingEvent;
 
-public sealed record OppoPowerStateStreamingEvent(in PowerState PowerState)
+public sealed record OppoPowerStateStreamingEvent(PowerState PowerState)
     : OppoStreamingEvent;
 
-public sealed record OppoPlaybackStatusStreamingEvent(in PlaybackStatus PlaybackStatus)
+public sealed record OppoPlaybackStatusStreamingEvent(PlaybackStatus PlaybackStatus)
     : OppoStreamingEvent;
 
-public sealed record OppoVolumeStreamingEvent(in VolumeInfo VolumeInfo)
-    : OppoStreamingEvent;
-
-// ReSharper disable once NotAccessedPositionalProperty.Global
-public sealed record OppoDiscTypeStreamingEvent(in DiscType DiscType)
+public sealed record OppoVolumeStreamingEvent(VolumeInfo VolumeInfo)
     : OppoStreamingEvent;
 
 // ReSharper disable once NotAccessedPositionalProperty.Global
-public sealed record OppoInputSourceStreamingEvent(in InputSource InputSource)
+public sealed record OppoDiscTypeStreamingEvent(DiscType DiscType)
     : OppoStreamingEvent;
 
-public sealed record OppoVideoResolutionStreamingEvent(in HDMIResolution Resolution)
+// ReSharper disable once NotAccessedPositionalProperty.Global
+public sealed record OppoInputSourceStreamingEvent(InputSource InputSource)
+    : OppoStreamingEvent;
+
+public sealed record OppoVideoResolutionStreamingEvent(HDMIResolution Resolution)
     : OppoStreamingEvent;
 
 public sealed record OppoAudioTypeStreamingEvent(string AudioType)
@@ -42,15 +42,15 @@ public sealed record OppoAudioTypeStreamingEvent(string AudioType)
 public sealed record OppoSubtitleTypeStreamingEvent(string SubtitleType)
     : OppoStreamingEvent;
 
-public sealed record OppoThreeDStatusStreamingEvent(in bool Is3D)
+public sealed record OppoThreeDStatusStreamingEvent(bool Is3D)
     : OppoStreamingEvent;
 
-public sealed record OppoAspectRatioStreamingEvent(in AspectRatio AspectRatio)
+public sealed record OppoAspectRatioStreamingEvent(AspectRatio AspectRatio)
     : OppoStreamingEvent;
 
 public sealed record OppoPlaybackProgressStreamingEvent(
-    in ushort Title,
-    in ushort Chapter,
-    in OppoTimeCodeType TimeCodeType,
-    in uint Seconds)
+    ushort Title,
+    ushort Chapter,
+    OppoTimeCodeType TimeCodeType,
+    uint Seconds)
     : OppoStreamingEvent;

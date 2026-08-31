@@ -46,7 +46,7 @@ internal static class OppoResponsePayloadHelpers
         }
     }
 
-    private static MediaPlayerEntityAttribute[] GetMediaPlayerAttributes(in OppoModel model) =>
+    private static MediaPlayerEntityAttribute[] GetMediaPlayerAttributes(OppoModel model) =>
         model switch
         {
             OppoModel.BDP83 or OppoModel.BDP9X =>

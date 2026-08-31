@@ -1,4 +1,4 @@
 namespace Oppo;
 
-public record struct OppoClientKey(string HostName, in OppoModel Model, in bool UseMediaEvents, in bool UseStreamingEvents,
+public record struct OppoClientKey(string HostName, OppoModel Model, bool UseMediaEvents, bool UseStreamingEvents,
     string EntityId, string? DeviceId, string? MacAddress);

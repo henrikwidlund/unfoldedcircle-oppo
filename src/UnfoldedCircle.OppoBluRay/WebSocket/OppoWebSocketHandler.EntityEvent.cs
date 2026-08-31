@@ -1007,10 +1007,10 @@ public partial class OppoWebSocketHandler
                && context.Snapshot is { DiscTypeResponse: { Success: true, Result: DiscType.UltraHDBluRay }, HdmiResolutionResponse.Result: HDMIResolution.RUltraHDp24 or HDMIResolution.RUltraHDp50 or HDMIResolution.RUltraHDp60 };
     }
 
-    private static bool IsActivePlaybackState(in State state) =>
+    private static bool IsActivePlaybackState(State state) =>
         state is State.Playing or State.Paused or State.Buffering;
 
-    private static State MapPowerState(in PowerState powerState) =>
+    private static State MapPowerState(PowerState powerState) =>
         powerState switch
         {
             PowerState.On => State.On,
@@ -1018,7 +1018,7 @@ public partial class OppoWebSocketHandler
             _ => State.Unknown
         };
 
-    private static State MapPlaybackState(in PlaybackStatus playbackStatus) =>
+    private static State MapPlaybackState(PlaybackStatus playbackStatus) =>
         playbackStatus switch
         {
             PlaybackStatus.Unknown => State.Unknown,
@@ -1131,7 +1131,7 @@ public partial class OppoWebSocketHandler
     private static string? ReplaceStarWithEllipsis(string? input) =>
         string.IsNullOrWhiteSpace(input) ? input : input.Replace('*', '…');
 
-    private static string? GetInputSource(in OppoResult<InputSource>? inputSourceResponse) =>
+    private static string? GetInputSource(OppoResult<InputSource>? inputSourceResponse) =>
         inputSourceResponse is not { Success: true }
             ? null
             : inputSourceResponse.Value.Result switch
@@ -1559,7 +1559,7 @@ public partial class OppoWebSocketHandler
         public OppoResult<AspectRatio>? AspectRatioResponse { get; set; }
     }
 
-    private static (Models.Shared.RepeatMode? RepeatMode, bool? shuffle) GetRepeatMode(in OppoResult<CurrentRepeatMode> repeatModeResponse) =>
+    private static (Models.Shared.RepeatMode? RepeatMode, bool? shuffle) GetRepeatMode(OppoResult<CurrentRepeatMode> repeatModeResponse) =>
         !repeatModeResponse
             ? (null, null)
             : repeatModeResponse.Result switch
