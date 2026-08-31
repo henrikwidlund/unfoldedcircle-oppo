@@ -60,7 +60,7 @@
         <PackageReference Include="Theodicean.SourceGenerators" Version="0.0.11" PrivateAssets="all" ExcludeAssets="runtime">
             <IncludeAssets>compile; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Theodicean.UnfoldedCircle.Server" Version="0.0.17-pre04" />
+        <PackageReference Include="Theodicean.UnfoldedCircle.Server" Version="0.0.17-pre05" />
     </ItemGroup>
 
 </Project>
