@@ -7,7 +7,7 @@ using UnfoldedCircle.OppoBluRay.WebSocket;
 
 var builder = WebApplication.CreateSlimBuilder(args);
 
-builder.AddUnfoldedCircleServer<OppoWebSocketHandler, OppoCommandId, OppoConfigurationService, OppoConfigurationItem>();
+builder.AddUnfoldedCircleServer<OppoWebSocketHandler, OppoCommandId, OppoConfigurationService, OppoGlobalConfiguration, OppoConfigurationItem>();
 builder.Services.AddSingleton<IOppoClientFactory, OppoClientFactory>();
 builder.Services.AddHttpClient<IAlbumCoverService, AlbumCoverService>(static client =>
 {
@@ -18,6 +18,6 @@ builder.Services.AddHttpClient<IAlbumCoverService, AlbumCoverService>(static cli
 builder.Services.AddMemoryCache();
 
 var app = builder.Build();
-app.UseUnfoldedCircleServer<OppoWebSocketHandler, OppoCommandId, OppoConfigurationItem>();
+app.UseUnfoldedCircleServer<OppoWebSocketHandler, OppoCommandId, OppoGlobalConfiguration, OppoConfigurationItem>();
 
 await app.RunAsync();

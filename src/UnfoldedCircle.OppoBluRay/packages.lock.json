@@ -37,12 +37,12 @@
       },
       "Theodicean.UnfoldedCircle.Server": {
         "type": "Direct",
-        "requested": "[0.0.16, )",
-        "resolved": "0.0.16",
-        "contentHash": "BpGF7/IvMuBa7d6rLVzgCt79o4SRrQJ1+1ox42Lqqwfpk1XhQ1HXmLUV9q50W0zzLrEUEI+cCTs9dg0+iM3J8A==",
+        "requested": "[0.0.17-pre04, )",
+        "resolved": "0.0.17-pre04",
+        "contentHash": "gvHWXznjy0Q8EEnVe/YmUZkyHmiTHIlIw5xeLuuq4ADpv4e7425LDjGck/PWMp097CAMheAlHsY1XheBw1K7tw==",
         "dependencies": {
           "Theodicean.Makaretu.Dns.Multicast": "0.0.13",
-          "Theodicean.UnfoldedCircle.Models": "0.0.16"
+          "Theodicean.UnfoldedCircle.Models": "0.0.17-pre04"
         }
       },
       "NetEscapades.EnumGenerators": {
@@ -79,8 +79,8 @@
       },
       "Theodicean.UnfoldedCircle.Models": {
         "type": "Transitive",
-        "resolved": "0.0.16",
-        "contentHash": "ZHxzef69EAxY7pQHliHey38RdrNrCO6muwe6WaaSPjRgj0TKoayXQ2XeRYToZJzATZ9/1ka3o3N9xFg8f//sGQ=="
+        "resolved": "0.0.17-pre04",
+        "contentHash": "jLmg33DMfBxh32lHwNZnC2L9CyoUTbDu7+3BxnUvDXf9D8voc4PSSEDeOyD9HnXSy4JySUs4s+wzdN1AQWCyew=="
       },
       "oppo": {
         "type": "Project",

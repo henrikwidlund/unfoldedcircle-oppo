@@ -24,10 +24,10 @@ namespace UnfoldedCircle.OppoBluRay.WebSocket;
 public partial class OppoWebSocketHandler(
     IOppoClientFactory oppoClientFactory,
     IAlbumCoverService albumCoverService,
-    IConfigurationService<OppoConfigurationItem> configurationService,
+    IConfigurationService<OppoGlobalConfiguration, OppoConfigurationItem> configurationService,
     IOptions<UnfoldedCircleOptions> options,
-    ILogger<UnfoldedCircleWebSocketHandler<OppoCommandId, OppoConfigurationItem>> logger)
-    : UnfoldedCircleWebSocketHandler<OppoCommandId, OppoConfigurationItem>(configurationService, options, logger)
+    ILogger<UnfoldedCircleWebSocketHandler<OppoCommandId, OppoGlobalConfiguration, OppoConfigurationItem>> logger)
+    : UnfoldedCircleWebSocketHandler<OppoCommandId, OppoGlobalConfiguration, OppoConfigurationItem>(configurationService, options, logger)
 {
     private readonly IOppoClientFactory _oppoClientFactory = oppoClientFactory;
     private readonly IAlbumCoverService _albumCoverService = albumCoverService;
@@ -187,19 +187,19 @@ public partial class OppoWebSocketHandler(
     protected override async ValueTask<string> GetJsonBackupDataAsync(CancellationToken cancellationToken)
     {
         var unfoldedCircleConfiguration = await _configurationService.GetConfigurationAsync(cancellationToken);
-        return JsonSerializer.Serialize(unfoldedCircleConfiguration, OppoJsonSerializerContext.Instance.UnfoldedCircleConfigurationOppoConfigurationItem);
+        return JsonSerializer.Serialize(unfoldedCircleConfiguration, OppoJsonSerializerContext.Instance.UnfoldedCircleConfigurationOppoGlobalConfigurationOppoConfigurationItem);
     }
 
     protected override async ValueTask<SettingsPage> CreateNewEntitySettingsPageAsync(CancellationToken cancellationToken)
     {
         var configuration = await _configurationService.GetConfigurationAsync(cancellationToken);
-        return CreateSettingsPage(null, configuration.MaxMessageHandlingWaitTimeInSeconds ?? 9.5);
+        return CreateSettingsPage(null, configuration.GlobalConfiguration.MaxMessageHandlingWaitTimeInSeconds ?? 9.5);
     }
 
     protected override async ValueTask<SettingsPage> CreateReconfigureEntitySettingsPageAsync(OppoConfigurationItem configurationItem, CancellationToken cancellationToken)
     {
         var configuration = await _configurationService.GetConfigurationAsync(cancellationToken);
-        var settingsPage = CreateSettingsPage(configurationItem, configuration.MaxMessageHandlingWaitTimeInSeconds ?? 9.5);
+        var settingsPage = CreateSettingsPage(configurationItem, configuration.GlobalConfiguration.MaxMessageHandlingWaitTimeInSeconds ?? 9.5);
         return settingsPage with
         {
             Settings = settingsPage.Settings.Where(static x =>
@@ -363,11 +363,15 @@ public partial class OppoWebSocketHandler(
         try
         {
             var configuration = JsonSerializer.Deserialize(jsonRestoreData,
-                OppoJsonSerializerContext.Instance.UnfoldedCircleConfigurationOppoConfigurationItem);
+                OppoJsonSerializerContext.Instance.UnfoldedCircleConfigurationOppoGlobalConfigurationOppoConfigurationItem);
             if (configuration is null)
                 return RestoreResult.Failure;
 
-            await _configurationService.UpdateConfigurationAsync(configuration, cancellationToken);
+            // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract // source generated deserialize doesn't care about default values
+            var restoredConfiguration = configuration.GlobalConfiguration is null
+                ? configuration with { GlobalConfiguration = new OppoGlobalConfiguration() }
+                : configuration;
+            await _configurationService.UpdateConfigurationAsync(restoredConfiguration, cancellationToken);
             _oppoClientFactory.TryDisposeAllClients();
             return RestoreResult.Success;
         }

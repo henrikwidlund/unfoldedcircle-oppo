@@ -6,8 +6,8 @@ using UnfoldedCircle.Server.Configuration;
 namespace UnfoldedCircle.OppoBluRay.Configuration;
 
 internal sealed class OppoConfigurationService(IConfiguration configuration)
-    : ConfigurationService<OppoConfigurationItem>(configuration)
+    : ConfigurationService<OppoGlobalConfiguration, OppoConfigurationItem>(configuration)
 {
-    protected override JsonTypeInfo<UnfoldedCircleConfiguration<OppoConfigurationItem>> GetSerializer()
-        => OppoJsonSerializerContext.Instance.UnfoldedCircleConfigurationOppoConfigurationItem;
+    protected override JsonTypeInfo<UnfoldedCircleConfiguration<OppoGlobalConfiguration, OppoConfigurationItem>> GetSerializer()
+        => OppoJsonSerializerContext.Instance.UnfoldedCircleConfigurationOppoGlobalConfigurationOppoConfigurationItem;
 }
