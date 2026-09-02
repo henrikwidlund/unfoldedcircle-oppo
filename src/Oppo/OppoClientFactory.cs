@@ -4,7 +4,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Oppo;
 
-public class OppoClientFactory(ILoggerFactory loggerFactory, ILogger<OppoClientFactory> logger) : IOppoClientFactory
+public sealed class OppoClientFactory(ILoggerFactory loggerFactory, ILogger<OppoClientFactory> logger) : IOppoClientFactory, IDisposable, IAsyncDisposable
 {
     private readonly ILoggerFactory _loggerFactory = loggerFactory;
     private readonly ILogger<OppoClientFactory> _logger = logger;
@@ -91,5 +91,53 @@ public class OppoClientFactory(ILoggerFactory loggerFactory, ILogger<OppoClientF
         }
 
         _clients.Clear();
+    }
+
+    public void Dispose()
+    {
+        _semaphoreSlim.Dispose();
+
+        foreach (var keyValuePair in _clients)
+        {
+            try
+            {
+                keyValuePair.Value.Dispose();
+            }
+            catch
+            {
+                // don't throw in dispose
+            }
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        await CastAndDispose(_semaphoreSlim);
+
+        foreach (var keyValuePair in _clients)
+        {
+            await CastAndDispose(keyValuePair.Value);
+        }
+
+        return;
+
+        static async ValueTask CastAndDispose(IDisposable resource)
+        {
+            try
+            {
+                if (resource is IAsyncDisposable resourceAsyncDisposable)
+                {
+                    await resourceAsyncDisposable.DisposeAsync();
+                }
+                else
+                {
+                    resource.Dispose();
+                }
+            }
+            catch
+            {
+                // don't throw in dispose
+            }
+        }
     }
 }

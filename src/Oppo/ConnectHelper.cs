@@ -7,7 +7,32 @@ namespace Oppo;
 
 internal static class ConnectHelper
 {
-    internal static TcpClient CreateTcpClient() => new() { NoDelay = true };
+    internal static TcpClient CreateTcpClient()
+    {
+        var tcpClient = new TcpClient { NoDelay = true };
+        ConfigureKeepAlive(tcpClient.Client);
+        return tcpClient;
+    }
+
+    /// <summary>
+    /// Enables TCP keepalive so a half-dead connection (e.g. the remote's Wi-Fi radio sleeping without
+    /// sending a clean FIN/RST) gets probed and torn down instead of lingering as "connected" until
+    /// the next write attempt.
+    /// </summary>
+    private static void ConfigureKeepAlive(Socket socket)
+    {
+        try
+        {
+            socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, true);
+            socket.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.TcpKeepAliveTime, 30);
+            socket.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.TcpKeepAliveInterval, 10);
+            socket.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.TcpKeepAliveRetryCount, 3);
+        }
+        catch (Exception e) when (e is SocketException or PlatformNotSupportedException)
+        {
+            // Best-effort: not every OS/runtime exposes tunable TCP keepalive. Connection still works without it.
+        }
+    }
 
     public static async ValueTask<bool> IsConnectedAsync(
         TcpClient tcpClient,
