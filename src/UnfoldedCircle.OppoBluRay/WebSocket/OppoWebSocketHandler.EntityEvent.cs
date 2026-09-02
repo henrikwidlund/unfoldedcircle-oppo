@@ -740,14 +740,7 @@ public partial class OppoWebSocketHandler
         OppoPlaybackStatusStreamingEvent playbackStatusEvent,
         CancellationToken cancellationToken)
     {
-        var newState = playbackStatusEvent.PlaybackStatus switch
-        {
-            PlaybackStatus.Play => State.Playing,
-            PlaybackStatus.Pause => State.Paused,
-            PlaybackStatus.FastForward or PlaybackStatus.FastRewind
-                or PlaybackStatus.SlowForward or PlaybackStatus.SlowRewind => State.Buffering,
-            _ => State.On
-        };
+        var newState = MapPlaybackState(playbackStatusEvent.PlaybackStatus);
 
         var prevState = context.Snapshot.State;
         if (prevState == newState)
@@ -772,9 +765,7 @@ public partial class OppoWebSocketHandler
             context.Snapshot.TrackResponse = null;
             context.Snapshot.Album = null;
             context.Snapshot.Performer = null;
-            context.Snapshot.CoverUri = context.Snapshot.DiscTypeResponse is { Success: true } discTypeResponse
-                ? DefaultArtwork.GetIconUri(discTypeResponse.Result)
-                : null;
+            context.Snapshot.CoverUri = null;
             context.Snapshot.RepeatMode = null;
             context.Snapshot.Shuffle = null;
             context.Snapshot.LastProgressTitle = null;
@@ -1024,7 +1015,9 @@ public partial class OppoWebSocketHandler
             PlaybackStatus.Unknown => State.Unknown,
             PlaybackStatus.Play => State.Playing,
             PlaybackStatus.Pause => State.Paused,
-            PlaybackStatus.FastForward or PlaybackStatus.FastRewind or PlaybackStatus.SlowForward or PlaybackStatus.SlowRewind => State.Buffering,
+            PlaybackStatus.FastForward or PlaybackStatus.FastRewind
+                or PlaybackStatus.SlowForward or PlaybackStatus.SlowRewind
+                or PlaybackStatus.Step or PlaybackStatus.DiscMenu => State.Buffering,
             _ => State.On
         };
 
