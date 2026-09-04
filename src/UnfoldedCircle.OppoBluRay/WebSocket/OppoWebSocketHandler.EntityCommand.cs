@@ -465,4 +465,79 @@ public partial class OppoWebSocketHandler
 
         return powerStateResponse;
     }
+
+    protected override async ValueTask<SelectCommandResult> OnSelectOptionCommandAsync(System.Net.WebSockets.WebSocket socket,
+        SelectEntityCommandMsgData payload,
+        string option,
+        string wsId,
+        CancellationTokenWrapper cancellationTokenWrapper,
+        CancellationToken commandCancellationToken)
+    {
+        if (await TryGetOppoClientHolderAsync(wsId, payload.MsgData.EntityId, IdentifierType.EntityId, commandCancellationToken) is not { } oppoClientHolder)
+            return new SelectCommandResult(EntityCommandResult.Failure, string.Empty);
+
+        return await TrySetInputSourceAsync(oppoClientHolder, option, commandCancellationToken);
+    }
+
+    protected override async ValueTask<SelectCommandResult> OnSelectFirstLastCommandAsync(System.Net.WebSockets.WebSocket socket,
+        SelectEntityCommandMsgData payload,
+        bool first,
+        string wsId,
+        CancellationTokenWrapper cancellationTokenWrapper,
+        CancellationToken commandCancellationToken)
+    {
+        if (await TryGetOppoClientHolderAsync(wsId, payload.MsgData.EntityId, IdentifierType.EntityId, commandCancellationToken) is not { } oppoClientHolder)
+            return new SelectCommandResult(EntityCommandResult.Failure, string.Empty);
+
+        var sourceList = OppoEntitySettings.SourceList[oppoClientHolder.ClientKey.Model];
+        if (sourceList.Length == 0)
+            return new SelectCommandResult(EntityCommandResult.Failure, string.Empty);
+
+        return await TrySetInputSourceAsync(oppoClientHolder, first ? sourceList[0] : sourceList[^1], commandCancellationToken);
+    }
+
+    protected override async ValueTask<SelectCommandResult> OnSelectNextPreviousCommandAsync(System.Net.WebSockets.WebSocket socket,
+        SelectEntityCommandMsgData payload,
+        bool next,
+        bool cycle,
+        string wsId,
+        CancellationTokenWrapper cancellationTokenWrapper,
+        CancellationToken commandCancellationToken)
+    {
+        if (await TryGetOppoClientHolderAsync(wsId, payload.MsgData.EntityId, IdentifierType.EntityId, commandCancellationToken) is not { } oppoClientHolder)
+            return new SelectCommandResult(EntityCommandResult.Failure, string.Empty);
+
+        var sourceList = OppoEntitySettings.SourceList[oppoClientHolder.ClientKey.Model];
+        if (sourceList.Length == 0)
+            return new SelectCommandResult(EntityCommandResult.Failure, string.Empty);
+
+        var currentSource = await oppoClientHolder.Client.QueryInputSourceAsync(commandCancellationToken);
+        var currentIndex = Array.IndexOf(sourceList, GetInputSource(currentSource));
+
+        int nextIndex;
+        if (currentIndex < 0)
+            nextIndex = next ? 0 : sourceList.Length - 1;
+        else if (next)
+            nextIndex = currentIndex + 1 < sourceList.Length ? currentIndex + 1 : cycle ? 0 : currentIndex;
+        else
+            nextIndex = currentIndex - 1 >= 0 ? currentIndex - 1 : cycle ? sourceList.Length - 1 : currentIndex;
+
+        return await TrySetInputSourceAsync(oppoClientHolder, sourceList[nextIndex], commandCancellationToken);
+    }
+
+    private static async ValueTask<SelectCommandResult> TrySetInputSourceAsync(OppoClientHolder oppoClientHolder, string option, CancellationToken cancellationToken)
+    {
+        if (!OppoEntitySettings.SourceMap.TryGetValue(option, out var inputSource))
+            return new SelectCommandResult(EntityCommandResult.Failure, string.Empty);
+
+        // Sending input source is only allowed if the unit is on - avoid locking up the driver by only sending it when the unit is ready
+        var currentPowerState = await oppoClientHolder.Client.QueryPowerStatusAsync(cancellationToken);
+        if (currentPowerState is not { Result: PowerState.On })
+            return new SelectCommandResult(EntityCommandResult.Failure, string.Empty);
+
+        var result = await oppoClientHolder.Client.SetInputSourceAsync(inputSource, cancellationToken);
+        return result is { Success: true }
+            ? new SelectCommandResult(EntityCommandResult.Other, option)
+            : new SelectCommandResult(EntityCommandResult.Failure, string.Empty);
+    }
 }
