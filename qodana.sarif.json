@@ -8,8 +8,8 @@
           "name": "QDNETC",
           "organization": "JetBrains, Inc",
           "fullName": "Qodana Community for .NET",
-          "version": "2026.1.503",
-          "semanticVersion": "261.0.20260430.104857",
+          "version": "2026.1.515",
+          "semanticVersion": "261.0.20260607.153749",
           "informationUri": "http://www.jetbrains.com/resharper/features/command-line.html",
           "rules": [
             {
@@ -78255,13 +78255,13 @@
       "versionControlProvenance": [
         {
           "repositoryUri": "https://github.com/henrikwidlund/unfoldedcircle-oppo.git",
-          "revisionId": "487bd71bafbcbaa1bf4d856bfffc67284d63c826",
-          "branch": "fix/verbose_mode",
+          "revisionId": "eabc83dc08b8b3e801ace2eecb8b7c01507aee73",
+          "branch": "main",
           "properties": {
             "repoUrl": "https://github.com/henrikwidlund/unfoldedcircle-oppo.git",
-            "lastAuthorName": "Henrik Widlund",
+            "lastAuthorName": "dependabot[bot]",
             "vcsType": "Git",
-            "lastAuthorEmail": "4659350+henrikwidlund@users.noreply.github.com"
+            "lastAuthorEmail": "49699333+dependabot[bot]@users.noreply.github.com"
           }
         }
       ],
@@ -78274,13 +78274,6 @@
         }
       },
       "artifacts": [
-        {
-          "location": {
-            "uri": "src/UnfoldedCircle.OppoBluRay/OppoEntity/OppoConstants.cs",
-            "uriBaseId": "solutionDir"
-          },
-          "hashes": {}
-        },
         {
           "location": {
             "uri": "src/Oppo/Oppo10XCommand.cs",
@@ -78340,162 +78333,6 @@
       ],
       "results": [
         {
-          "ruleId": "InconsistentNaming",
-          "ruleIndex": 2342,
-          "kind": "fail",
-          "level": "note",
-          "message": {
-            "text": "Name 'ARCHDMIOut' does not match rule 'public_constant_fields_should_be_pascalcase'. Suggested name is 'ArchdmiOut'."
-          },
-          "locations": [
-            {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "src/UnfoldedCircle.OppoBluRay/OppoEntity/OppoConstants.cs",
-                  "uriBaseId": "solutionDir"
-                },
-                "region": {
-                  "startLine": 36,
-                  "startColumn": 31,
-                  "endLine": 36,
-                  "endColumn": 41,
-                  "charOffset": 2548,
-                  "charLength": 10,
-                  "snippet": {
-                    "text": "ARCHDMIOut"
-                  }
-                },
-                "contextRegion": {
-                  "startLine": 35,
-                  "startColumn": 1,
-                  "endLine": 37,
-                  "endColumn": 6,
-                  "charOffset": 2468,
-                  "charLength": 115,
-                  "snippet": {
-                    "text": "        internal const string HDMIIn = \"HDMI IN\";\n        internal const string ARCHDMIOut = \"ARC: HDMI OUT\";\n    }"
-                  }
-                }
-              }
-            }
-          ],
-          "partialFingerprints": {
-            "equalIndicator/v1": "DE7D113E316E8705CF1DB3D3CDB67FE983C47BF2BEF0FF0226AAA742DA716B03"
-          },
-          "baselineState": "unchanged",
-          "properties": {
-            "qodanaSeverity": "Moderate",
-            "tags": [
-              "C#",
-              ".NET 10.0"
-            ]
-          }
-        },
-        {
-          "ruleId": "InconsistentNaming",
-          "ruleIndex": 2342,
-          "kind": "fail",
-          "level": "note",
-          "message": {
-            "text": "Name 'ARCHDMIOut1' does not match rule 'public_constant_fields_should_be_pascalcase'. Suggested name is 'ArchdmiOut1'."
-          },
-          "locations": [
-            {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "src/UnfoldedCircle.OppoBluRay/OppoEntity/OppoConstants.cs",
-                  "uriBaseId": "solutionDir"
-                },
-                "region": {
-                  "startLine": 30,
-                  "startColumn": 31,
-                  "endLine": 30,
-                  "endColumn": 42,
-                  "charOffset": 2205,
-                  "charLength": 11,
-                  "snippet": {
-                    "text": "ARCHDMIOut1"
-                  }
-                },
-                "contextRegion": {
-                  "startLine": 29,
-                  "startColumn": 1,
-                  "endLine": 31,
-                  "endColumn": 64,
-                  "charOffset": 2118,
-                  "charLength": 184,
-                  "snippet": {
-                    "text": "        internal const string HDMIBack = \"HDMI IN-BACK\";\n        internal const string ARCHDMIOut1 = \"ARC on HDMI OUT1\";\n        internal const string ARCHDMIOut2 = \"ARC on HDMI OUT2\";"
-                  }
-                }
-              }
-            }
-          ],
-          "partialFingerprints": {
-            "equalIndicator/v1": "63FB030E8AFA1C1298C23A77153A422DDAB981B1E94714ED150EE4D86B100330"
-          },
-          "baselineState": "unchanged",
-          "properties": {
-            "qodanaSeverity": "Moderate",
-            "tags": [
-              "C#",
-              ".NET 10.0"
-            ]
-          }
-        },
-        {
-          "ruleId": "InconsistentNaming",
-          "ruleIndex": 2342,
-          "kind": "fail",
-          "level": "note",
-          "message": {
-            "text": "Name 'ARCHDMIOut2' does not match rule 'public_constant_fields_should_be_pascalcase'. Suggested name is 'ArchdmiOut2'."
-          },
-          "locations": [
-            {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "src/UnfoldedCircle.OppoBluRay/OppoEntity/OppoConstants.cs",
-                  "uriBaseId": "solutionDir"
-                },
-                "region": {
-                  "startLine": 31,
-                  "startColumn": 31,
-                  "endLine": 31,
-                  "endColumn": 42,
-                  "charOffset": 2269,
-                  "charLength": 11,
-                  "snippet": {
-                    "text": "ARCHDMIOut2"
-                  }
-                },
-                "contextRegion": {
-                  "startLine": 30,
-                  "startColumn": 1,
-                  "endLine": 32,
-                  "endColumn": 54,
-                  "charOffset": 2175,
-                  "charLength": 181,
-                  "snippet": {
-                    "text": "        internal const string ARCHDMIOut1 = \"ARC on HDMI OUT1\";\n        internal const string ARCHDMIOut2 = \"ARC on HDMI OUT2\";\n        internal const string Optical = \"OPTICAL IN\";"
-                  }
-                }
-              }
-            }
-          ],
-          "partialFingerprints": {
-            "equalIndicator/v1": "875158E4C7D9743AAF960E320B19E41560D1A03887EE13216EFA133FC1810DDB"
-          },
-          "baselineState": "unchanged",
-          "properties": {
-            "qodanaSeverity": "Moderate",
-            "tags": [
-              "C#",
-              ".NET 10.0"
-            ]
-          }
-        },
-        {
           "ruleId": "UnusedMember.Global",
           "ruleIndex": 2921,
           "kind": "fail",
@@ -78508,15 +78345,14 @@
               "physicalLocation": {
                 "artifactLocation": {
                   "uri": "src/Oppo/Oppo10XCommand.cs",
-                  "uriBaseId": "solutionDir",
-                  "index": 1
+                  "uriBaseId": "solutionDir"
                 },
                 "region": {
                   "startLine": 423,
                   "startColumn": 35,
                   "endLine": 423,
                   "endColumn": 57,
-                  "charOffset": 12865,
+                  "charOffset": 12565,
                   "charLength": 22,
                   "snippet": {
                     "text": "SetHDMIResolution1080I"
@@ -78527,7 +78363,7 @@
                   "startColumn": 1,
                   "endLine": 424,
                   "endColumn": 91,
-                  "charOffset": 12742,
+                  "charOffset": 12442,
                   "charLength": 270,
                   "snippet": {
                     "text": "    public static readonly byte[] SetHDMIResolution720P = \"REMOTE SHD 720P\"u8.ToArray();\n    public static readonly byte[] SetHDMIResolution1080I = \"REMOTE SHD 1080I\"u8.ToArray();\n    public static readonly byte[] SetHDMIResolution1080P = \"REMOTE SHD 1080P\"u8.ToArray();"
@@ -78562,14 +78398,14 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/Oppo20XCommand.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 2
+                  "index": 1
                 },
                 "region": {
                   "startLine": 495,
                   "startColumn": 35,
                   "endLine": 495,
                   "endColumn": 59,
-                  "charOffset": 15189,
+                  "charOffset": 14861,
                   "charLength": 24,
                   "snippet": {
                     "text": "SetHDMIResolution1080I50"
@@ -78580,7 +78416,7 @@
                   "startColumn": 1,
                   "endLine": 496,
                   "endColumn": 91,
-                  "charOffset": 15064,
+                  "charOffset": 14736,
                   "charLength": 272,
                   "snippet": {
                     "text": "    public static readonly byte[] SetHDMIResolution1080P60 = \"#SHD 1080P60\\r\"u8.ToArray();\n    public static readonly byte[] SetHDMIResolution1080I50 = \"#SHD 1080I50\\r\"u8.ToArray();\n    public static readonly byte[] SetHDMIResolution1080I60 = \"#SHD 1080I60\\r\"u8.ToArray();"
@@ -78615,14 +78451,14 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/Oppo20XCommand.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 2
+                  "index": 1
                 },
                 "region": {
                   "startLine": 496,
                   "startColumn": 35,
                   "endLine": 496,
                   "endColumn": 59,
-                  "charOffset": 15280,
+                  "charOffset": 14952,
                   "charLength": 24,
                   "snippet": {
                     "text": "SetHDMIResolution1080I60"
@@ -78633,7 +78469,7 @@
                   "startColumn": 1,
                   "endLine": 497,
                   "endColumn": 89,
-                  "charOffset": 15155,
+                  "charOffset": 14827,
                   "charLength": 270,
                   "snippet": {
                     "text": "    public static readonly byte[] SetHDMIResolution1080I50 = \"#SHD 1080I50\\r\"u8.ToArray();\n    public static readonly byte[] SetHDMIResolution1080I60 = \"#SHD 1080I60\\r\"u8.ToArray();\n    public static readonly byte[] SetHDMIResolution720P50 = \"#SHD 720P50\\r\"u8.ToArray();"
@@ -78667,15 +78503,14 @@
               "physicalLocation": {
                 "artifactLocation": {
                   "uri": "src/Oppo/Oppo10XCommand.cs",
-                  "uriBaseId": "solutionDir",
-                  "index": 1
+                  "uriBaseId": "solutionDir"
                 },
                 "region": {
                   "startLine": 424,
                   "startColumn": 35,
                   "endLine": 424,
                   "endColumn": 57,
-                  "charOffset": 12956,
+                  "charOffset": 12656,
                   "charLength": 22,
                   "snippet": {
                     "text": "SetHDMIResolution1080P"
@@ -78686,7 +78521,7 @@
                   "startColumn": 1,
                   "endLine": 425,
                   "endColumn": 90,
-                  "charOffset": 12831,
+                  "charOffset": 12531,
                   "charLength": 271,
                   "snippet": {
                     "text": "    public static readonly byte[] SetHDMIResolution1080I = \"REMOTE SHD 1080I\"u8.ToArray();\n    public static readonly byte[] SetHDMIResolution1080P = \"REMOTE SHD 1080P\"u8.ToArray();\n    public static readonly byte[] SetHDMIResolutionSource = \"REMOTE SHD SRC\"u8.ToArray();"
@@ -78721,14 +78556,14 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/Oppo20XCommand.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 2
+                  "index": 1
                 },
                 "region": {
                   "startLine": 492,
                   "startColumn": 35,
                   "endLine": 492,
                   "endColumn": 59,
-                  "charOffset": 14916,
+                  "charOffset": 14588,
                   "charLength": 24,
                   "snippet": {
                     "text": "SetHDMIResolution1080P24"
@@ -78739,7 +78574,7 @@
                   "startColumn": 1,
                   "endLine": 493,
                   "endColumn": 91,
-                  "charOffset": 14786,
+                  "charOffset": 14458,
                   "charLength": 277,
                   "snippet": {
                     "text": "    public static readonly byte[] SetHDMIResolution1080PAuto = \"#SHD 1080P_AUTO\\r\"u8.ToArray();\n    public static readonly byte[] SetHDMIResolution1080P24 = \"#SHD 1080P24\\r\"u8.ToArray();\n    public static readonly byte[] SetHDMIResolution1080P50 = \"#SHD 1080P50\\r\"u8.ToArray();"
@@ -78774,14 +78609,14 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/Oppo20XCommand.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 2
+                  "index": 1
                 },
                 "region": {
                   "startLine": 493,
                   "startColumn": 35,
                   "endLine": 493,
                   "endColumn": 59,
-                  "charOffset": 15007,
+                  "charOffset": 14679,
                   "charLength": 24,
                   "snippet": {
                     "text": "SetHDMIResolution1080P50"
@@ -78792,7 +78627,7 @@
                   "startColumn": 1,
                   "endLine": 494,
                   "endColumn": 91,
-                  "charOffset": 14882,
+                  "charOffset": 14554,
                   "charLength": 272,
                   "snippet": {
                     "text": "    public static readonly byte[] SetHDMIResolution1080P24 = \"#SHD 1080P24\\r\"u8.ToArray();\n    public static readonly byte[] SetHDMIResolution1080P50 = \"#SHD 1080P50\\r\"u8.ToArray();\n    public static readonly byte[] SetHDMIResolution1080P60 = \"#SHD 1080P60\\r\"u8.ToArray();"
@@ -78827,14 +78662,14 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/Oppo20XCommand.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 2
+                  "index": 1
                 },
                 "region": {
                   "startLine": 494,
                   "startColumn": 35,
                   "endLine": 494,
                   "endColumn": 59,
-                  "charOffset": 15098,
+                  "charOffset": 14770,
                   "charLength": 24,
                   "snippet": {
                     "text": "SetHDMIResolution1080P60"
@@ -78845,7 +78680,7 @@
                   "startColumn": 1,
                   "endLine": 495,
                   "endColumn": 91,
-                  "charOffset": 14973,
+                  "charOffset": 14645,
                   "charLength": 272,
                   "snippet": {
                     "text": "    public static readonly byte[] SetHDMIResolution1080P50 = \"#SHD 1080P50\\r\"u8.ToArray();\n    public static readonly byte[] SetHDMIResolution1080P60 = \"#SHD 1080P60\\r\"u8.ToArray();\n    public static readonly byte[] SetHDMIResolution1080I50 = \"#SHD 1080I50\\r\"u8.ToArray();"
@@ -78880,14 +78715,14 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/Oppo20XCommand.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 2
+                  "index": 1
                 },
                 "region": {
                   "startLine": 491,
                   "startColumn": 35,
                   "endLine": 491,
                   "endColumn": 61,
-                  "charOffset": 14820,
+                  "charOffset": 14492,
                   "charLength": 26,
                   "snippet": {
                     "text": "SetHDMIResolution1080PAuto"
@@ -78898,7 +78733,7 @@
                   "startColumn": 1,
                   "endLine": 492,
                   "endColumn": 91,
-                  "charOffset": 14696,
+                  "charOffset": 14368,
                   "charLength": 276,
                   "snippet": {
                     "text": "    public static readonly byte[] SetHDMIResolutionUHDUHD60 = \"#SHD UHD60\\r\"u8.ToArray();\n    public static readonly byte[] SetHDMIResolution1080PAuto = \"#SHD 1080P_AUTO\\r\"u8.ToArray();\n    public static readonly byte[] SetHDMIResolution1080P24 = \"#SHD 1080P24\\r\"u8.ToArray();"
@@ -78925,59 +78760,6 @@
           "kind": "fail",
           "level": "note",
           "message": {
-            "text": "Field 'SetHDMIResolution480I' is never used"
-          },
-          "locations": [
-            {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "src/Oppo/Oppo20XCommand.cs",
-                  "uriBaseId": "solutionDir",
-                  "index": 2
-                },
-                "region": {
-                  "startLine": 502,
-                  "startColumn": 35,
-                  "endLine": 502,
-                  "endColumn": 56,
-                  "charOffset": 15804,
-                  "charLength": 21,
-                  "snippet": {
-                    "text": "SetHDMIResolution480I"
-                  }
-                },
-                "contextRegion": {
-                  "startLine": 501,
-                  "startColumn": 1,
-                  "endLine": 503,
-                  "endColumn": 5,
-                  "charOffset": 15685,
-                  "charLength": 174,
-                  "snippet": {
-                    "text": "    public static readonly byte[] SetHDMIResolution480P = \"#SHD 480P\\r\"u8.ToArray();\n    public static readonly byte[] SetHDMIResolution480I = \"#SHD 480I\\r\"u8.ToArray();\n    "
-                  }
-                }
-              }
-            }
-          ],
-          "partialFingerprints": {
-            "equalIndicator/v1": "A15CA1B9839B9805172C05223736EE9AA84D2A8CA015EF9CE3A6477B30703DA1"
-          },
-          "baselineState": "unchanged",
-          "properties": {
-            "qodanaSeverity": "Moderate",
-            "tags": [
-              "C#",
-              ".NET 10.0"
-            ]
-          }
-        },
-        {
-          "ruleId": "UnusedMember.Global",
-          "ruleIndex": 2921,
-          "kind": "fail",
-          "level": "note",
-          "message": {
             "text": "Field 'SetHDMIResolution480P' is never used"
           },
           "locations": [
@@ -78986,14 +78768,14 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/Oppo20XCommand.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 2
+                  "index": 1
                 },
                 "region": {
                   "startLine": 501,
                   "startColumn": 35,
                   "endLine": 501,
                   "endColumn": 56,
-                  "charOffset": 15719,
+                  "charOffset": 15391,
                   "charLength": 21,
                   "snippet": {
                     "text": "SetHDMIResolution480P"
@@ -79004,7 +78786,7 @@
                   "startColumn": 1,
                   "endLine": 502,
                   "endColumn": 85,
-                  "charOffset": 15600,
+                  "charOffset": 15272,
                   "charLength": 254,
                   "snippet": {
                     "text": "    public static readonly byte[] SetHDMIResolution576I = \"#SHD 576I\\r\"u8.ToArray();\n    public static readonly byte[] SetHDMIResolution480P = \"#SHD 480P\\r\"u8.ToArray();\n    public static readonly byte[] SetHDMIResolution480I = \"#SHD 480I\\r\"u8.ToArray();"
@@ -79039,14 +78821,14 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/Oppo20XCommand.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 2
+                  "index": 1
                 },
                 "region": {
                   "startLine": 500,
                   "startColumn": 35,
                   "endLine": 500,
                   "endColumn": 56,
-                  "charOffset": 15634,
+                  "charOffset": 15306,
                   "charLength": 21,
                   "snippet": {
                     "text": "SetHDMIResolution576I"
@@ -79057,7 +78839,7 @@
                   "startColumn": 1,
                   "endLine": 501,
                   "endColumn": 85,
-                  "charOffset": 15515,
+                  "charOffset": 15187,
                   "charLength": 254,
                   "snippet": {
                     "text": "    public static readonly byte[] SetHDMIResolution576P = \"#SHD 576P\\r\"u8.ToArray();\n    public static readonly byte[] SetHDMIResolution576I = \"#SHD 576I\\r\"u8.ToArray();\n    public static readonly byte[] SetHDMIResolution480P = \"#SHD 480P\\r\"u8.ToArray();"
@@ -79092,14 +78874,14 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/Oppo20XCommand.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 2
+                  "index": 1
                 },
                 "region": {
                   "startLine": 499,
                   "startColumn": 35,
                   "endLine": 499,
                   "endColumn": 56,
-                  "charOffset": 15549,
+                  "charOffset": 15221,
                   "charLength": 21,
                   "snippet": {
                     "text": "SetHDMIResolution576P"
@@ -79110,7 +78892,7 @@
                   "startColumn": 1,
                   "endLine": 500,
                   "endColumn": 85,
-                  "charOffset": 15426,
+                  "charOffset": 15098,
                   "charLength": 258,
                   "snippet": {
                     "text": "    public static readonly byte[] SetHDMIResolution720P60 = \"#SHD 720P60\\r\"u8.ToArray();\n    public static readonly byte[] SetHDMIResolution576P = \"#SHD 576P\\r\"u8.ToArray();\n    public static readonly byte[] SetHDMIResolution576I = \"#SHD 576I\\r\"u8.ToArray();"
@@ -79144,15 +78926,14 @@
               "physicalLocation": {
                 "artifactLocation": {
                   "uri": "src/Oppo/Oppo10XCommand.cs",
-                  "uriBaseId": "solutionDir",
-                  "index": 1
+                  "uriBaseId": "solutionDir"
                 },
                 "region": {
                   "startLine": 422,
                   "startColumn": 35,
                   "endLine": 422,
                   "endColumn": 56,
-                  "charOffset": 12776,
+                  "charOffset": 12476,
                   "charLength": 21,
                   "snippet": {
                     "text": "SetHDMIResolution720P"
@@ -79163,7 +78944,7 @@
                   "startColumn": 1,
                   "endLine": 423,
                   "endColumn": 91,
-                  "charOffset": 12655,
+                  "charOffset": 12355,
                   "charLength": 266,
                   "snippet": {
                     "text": "    public static readonly byte[] SetHDMIResolutionSDP = \"REMOTE SHD SDP\"u8.ToArray();\n    public static readonly byte[] SetHDMIResolution720P = \"REMOTE SHD 720P\"u8.ToArray();\n    public static readonly byte[] SetHDMIResolution1080I = \"REMOTE SHD 1080I\"u8.ToArray();"
@@ -79198,14 +78979,14 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/Oppo20XCommand.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 2
+                  "index": 1
                 },
                 "region": {
                   "startLine": 497,
                   "startColumn": 35,
                   "endLine": 497,
                   "endColumn": 58,
-                  "charOffset": 15371,
+                  "charOffset": 15043,
                   "charLength": 23,
                   "snippet": {
                     "text": "SetHDMIResolution720P50"
@@ -79216,7 +78997,7 @@
                   "startColumn": 1,
                   "endLine": 498,
                   "endColumn": 89,
-                  "charOffset": 15246,
+                  "charOffset": 14918,
                   "charLength": 268,
                   "snippet": {
                     "text": "    public static readonly byte[] SetHDMIResolution1080I60 = \"#SHD 1080I60\\r\"u8.ToArray();\n    public static readonly byte[] SetHDMIResolution720P50 = \"#SHD 720P50\\r\"u8.ToArray();\n    public static readonly byte[] SetHDMIResolution720P60 = \"#SHD 720P60\\r\"u8.ToArray();"
@@ -79251,14 +79032,14 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/Oppo20XCommand.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 2
+                  "index": 1
                 },
                 "region": {
                   "startLine": 498,
                   "startColumn": 35,
                   "endLine": 498,
                   "endColumn": 58,
-                  "charOffset": 15460,
+                  "charOffset": 15132,
                   "charLength": 23,
                   "snippet": {
                     "text": "SetHDMIResolution720P60"
@@ -79269,7 +79050,7 @@
                   "startColumn": 1,
                   "endLine": 499,
                   "endColumn": 85,
-                  "charOffset": 15337,
+                  "charOffset": 15009,
                   "charLength": 262,
                   "snippet": {
                     "text": "    public static readonly byte[] SetHDMIResolution720P50 = \"#SHD 720P50\\r\"u8.ToArray();\n    public static readonly byte[] SetHDMIResolution720P60 = \"#SHD 720P60\\r\"u8.ToArray();\n    public static readonly byte[] SetHDMIResolution576P = \"#SHD 576P\\r\"u8.ToArray();"
@@ -79280,165 +79061,6 @@
           ],
           "partialFingerprints": {
             "equalIndicator/v1": "84752B92C1C62BD6794266C4E637E793B4B11494A52B4DBFC008E057F2154428"
-          },
-          "baselineState": "unchanged",
-          "properties": {
-            "qodanaSeverity": "Moderate",
-            "tags": [
-              "C#",
-              ".NET 10.0"
-            ]
-          }
-        },
-        {
-          "ruleId": "UnusedMember.Global",
-          "ruleIndex": 2921,
-          "kind": "fail",
-          "level": "note",
-          "message": {
-            "text": "Field 'SetHDMIResolutionAuto' is never used"
-          },
-          "locations": [
-            {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "src/Oppo/Oppo10XCommand.cs",
-                  "uriBaseId": "solutionDir",
-                  "index": 1
-                },
-                "region": {
-                  "startLine": 426,
-                  "startColumn": 35,
-                  "endLine": 426,
-                  "endColumn": 56,
-                  "charOffset": 13137,
-                  "charLength": 21,
-                  "snippet": {
-                    "text": "SetHDMIResolutionAuto"
-                  }
-                },
-                "contextRegion": {
-                  "startLine": 425,
-                  "startColumn": 1,
-                  "endLine": 427,
-                  "endColumn": 5,
-                  "charOffset": 13013,
-                  "charLength": 183,
-                  "snippet": {
-                    "text": "    public static readonly byte[] SetHDMIResolutionSource = \"REMOTE SHD SRC\"u8.ToArray();\n    public static readonly byte[] SetHDMIResolutionAuto = \"REMOTE SHD AUTO\"u8.ToArray();\n    "
-                  }
-                }
-              }
-            }
-          ],
-          "partialFingerprints": {
-            "equalIndicator/v1": "CE18C9B422080616670B15D52E2A36D51E04C0944F1CC0DE3A94FE8B8FCAF43C"
-          },
-          "baselineState": "unchanged",
-          "properties": {
-            "qodanaSeverity": "Moderate",
-            "tags": [
-              "C#",
-              ".NET 10.0"
-            ]
-          }
-        },
-        {
-          "ruleId": "UnusedMember.Global",
-          "ruleIndex": 2921,
-          "kind": "fail",
-          "level": "note",
-          "message": {
-            "text": "Field 'SetHDMIResolutionAuto' is never used"
-          },
-          "locations": [
-            {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "src/Oppo/Oppo20XCommand.cs",
-                  "uriBaseId": "solutionDir",
-                  "index": 2
-                },
-                "region": {
-                  "startLine": 485,
-                  "startColumn": 35,
-                  "endLine": 485,
-                  "endColumn": 56,
-                  "charOffset": 14287,
-                  "charLength": 21,
-                  "snippet": {
-                    "text": "SetHDMIResolutionAuto"
-                  }
-                },
-                "contextRegion": {
-                  "startLine": 484,
-                  "startColumn": 1,
-                  "endLine": 486,
-                  "endColumn": 86,
-                  "charOffset": 14248,
-                  "charLength": 175,
-                  "snippet": {
-                    "text": "    \n    public static readonly byte[] SetHDMIResolutionAuto = \"#SHD AUTO\\r\"u8.ToArray();\n    public static readonly byte[] SetHDMIResolutionSource = \"#SHD SRC\\r\"u8.ToArray();"
-                  }
-                }
-              }
-            }
-          ],
-          "partialFingerprints": {
-            "equalIndicator/v1": "75D854982809F93FA69D1F89D9C5CA9BD07E79FE2069D48E7DEE6B38049EB0E0"
-          },
-          "baselineState": "unchanged",
-          "properties": {
-            "qodanaSeverity": "Moderate",
-            "tags": [
-              "C#",
-              ".NET 10.0"
-            ]
-          }
-        },
-        {
-          "ruleId": "InconsistentNaming",
-          "ruleIndex": 2342,
-          "kind": "fail",
-          "level": "note",
-          "message": {
-            "text": "Name 'SetHDMIResolutionSDI' does not match rule 'public_static_readonly_fields_should_be_pascalcase'. Suggested name is 'SetHDMIResolutionSdi'."
-          },
-          "locations": [
-            {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "src/Oppo/Oppo10XCommand.cs",
-                  "uriBaseId": "solutionDir",
-                  "index": 1
-                },
-                "region": {
-                  "startLine": 420,
-                  "startColumn": 35,
-                  "endLine": 420,
-                  "endColumn": 55,
-                  "charOffset": 12602,
-                  "charLength": 20,
-                  "snippet": {
-                    "text": "SetHDMIResolutionSDI"
-                  }
-                },
-                "contextRegion": {
-                  "startLine": 419,
-                  "startColumn": 1,
-                  "endLine": 421,
-                  "endColumn": 87,
-                  "charOffset": 12563,
-                  "charLength": 178,
-                  "snippet": {
-                    "text": "    \n    public static readonly byte[] SetHDMIResolutionSDI = \"REMOTE SHD SDI\"u8.ToArray();\n    public static readonly byte[] SetHDMIResolutionSDP = \"REMOTE SHD SDP\"u8.ToArray();"
-                  }
-                }
-              }
-            }
-          ],
-          "partialFingerprints": {
-            "equalIndicator/v1": "3E5D83B75E9233245BB77ED0FE77D5B4B9D63704FA3FE595281D353B629A77BE"
           },
           "baselineState": "unchanged",
           "properties": {
@@ -79462,15 +79084,14 @@
               "physicalLocation": {
                 "artifactLocation": {
                   "uri": "src/Oppo/Oppo10XCommand.cs",
-                  "uriBaseId": "solutionDir",
-                  "index": 1
+                  "uriBaseId": "solutionDir"
                 },
                 "region": {
                   "startLine": 421,
                   "startColumn": 35,
                   "endLine": 421,
                   "endColumn": 55,
-                  "charOffset": 12689,
+                  "charOffset": 12389,
                   "charLength": 20,
                   "snippet": {
                     "text": "SetHDMIResolutionSDP"
@@ -79481,7 +79102,7 @@
                   "startColumn": 1,
                   "endLine": 422,
                   "endColumn": 89,
-                  "charOffset": 12568,
+                  "charOffset": 12268,
                   "charLength": 262,
                   "snippet": {
                     "text": "    public static readonly byte[] SetHDMIResolutionSDI = \"REMOTE SHD SDI\"u8.ToArray();\n    public static readonly byte[] SetHDMIResolutionSDP = \"REMOTE SHD SDP\"u8.ToArray();\n    public static readonly byte[] SetHDMIResolution720P = \"REMOTE SHD 720P\"u8.ToArray();"
@@ -79515,15 +79136,14 @@
               "physicalLocation": {
                 "artifactLocation": {
                   "uri": "src/Oppo/Oppo10XCommand.cs",
-                  "uriBaseId": "solutionDir",
-                  "index": 1
+                  "uriBaseId": "solutionDir"
                 },
                 "region": {
                   "startLine": 425,
                   "startColumn": 35,
                   "endLine": 425,
                   "endColumn": 58,
-                  "charOffset": 13047,
+                  "charOffset": 12747,
                   "charLength": 23,
                   "snippet": {
                     "text": "SetHDMIResolutionSource"
@@ -79534,7 +79154,7 @@
                   "startColumn": 1,
                   "endLine": 426,
                   "endColumn": 89,
-                  "charOffset": 12922,
+                  "charOffset": 12622,
                   "charLength": 269,
                   "snippet": {
                     "text": "    public static readonly byte[] SetHDMIResolution1080P = \"REMOTE SHD 1080P\"u8.ToArray();\n    public static readonly byte[] SetHDMIResolutionSource = \"REMOTE SHD SRC\"u8.ToArray();\n    public static readonly byte[] SetHDMIResolutionAuto = \"REMOTE SHD AUTO\"u8.ToArray();"
@@ -79569,14 +79189,14 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/Oppo20XCommand.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 2
+                  "index": 1
                 },
                 "region": {
                   "startLine": 486,
                   "startColumn": 35,
                   "endLine": 486,
                   "endColumn": 58,
-                  "charOffset": 14372,
+                  "charOffset": 14044,
                   "charLength": 23,
                   "snippet": {
                     "text": "SetHDMIResolutionSource"
@@ -79587,7 +79207,7 @@
                   "startColumn": 1,
                   "endLine": 487,
                   "endColumn": 92,
-                  "charOffset": 14253,
+                  "charOffset": 13925,
                   "charLength": 262,
                   "snippet": {
                     "text": "    public static readonly byte[] SetHDMIResolutionAuto = \"#SHD AUTO\\r\"u8.ToArray();\n    public static readonly byte[] SetHDMIResolutionSource = \"#SHD SRC\\r\"u8.ToArray();\n    public static readonly byte[] SetHDMIResolutionUHDAuto = \"#SHD UHD_AUTO\\r\"u8.ToArray();"
@@ -79622,14 +79242,14 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/Oppo20XCommand.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 2
+                  "index": 1
                 },
                 "region": {
                   "startLine": 487,
                   "startColumn": 35,
                   "endLine": 487,
                   "endColumn": 59,
-                  "charOffset": 14458,
+                  "charOffset": 14130,
                   "charLength": 24,
                   "snippet": {
                     "text": "SetHDMIResolutionUHDAuto"
@@ -79640,7 +79260,7 @@
                   "startColumn": 1,
                   "endLine": 488,
                   "endColumn": 90,
-                  "charOffset": 14338,
+                  "charOffset": 14010,
                   "charLength": 267,
                   "snippet": {
                     "text": "    public static readonly byte[] SetHDMIResolutionSource = \"#SHD SRC\\r\"u8.ToArray();\n    public static readonly byte[] SetHDMIResolutionUHDAuto = \"#SHD UHD_AUTO\\r\"u8.ToArray();\n    public static readonly byte[] SetHDMIResolutionUHDUHD24 = \"#SHD UHD24\\r\"u8.ToArray();"
@@ -79675,14 +79295,14 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/Oppo20XCommand.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 2
+                  "index": 1
                 },
                 "region": {
                   "startLine": 488,
                   "startColumn": 35,
                   "endLine": 488,
                   "endColumn": 60,
-                  "charOffset": 14550,
+                  "charOffset": 14222,
                   "charLength": 25,
                   "snippet": {
                     "text": "SetHDMIResolutionUHDUHD24"
@@ -79693,7 +79313,7 @@
                   "startColumn": 1,
                   "endLine": 489,
                   "endColumn": 90,
-                  "charOffset": 14424,
+                  "charOffset": 14096,
                   "charLength": 271,
                   "snippet": {
                     "text": "    public static readonly byte[] SetHDMIResolutionUHDAuto = \"#SHD UHD_AUTO\\r\"u8.ToArray();\n    public static readonly byte[] SetHDMIResolutionUHDUHD24 = \"#SHD UHD24\\r\"u8.ToArray();\n    public static readonly byte[] SetHDMIResolutionUHDUHD50 = \"#SHD UHD50\\r\"u8.ToArray();"
@@ -79728,14 +79348,14 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/Oppo20XCommand.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 2
+                  "index": 1
                 },
                 "region": {
                   "startLine": 489,
                   "startColumn": 35,
                   "endLine": 489,
                   "endColumn": 60,
-                  "charOffset": 14640,
+                  "charOffset": 14312,
                   "charLength": 25,
                   "snippet": {
                     "text": "SetHDMIResolutionUHDUHD50"
@@ -79746,7 +79366,7 @@
                   "startColumn": 1,
                   "endLine": 490,
                   "endColumn": 90,
-                  "charOffset": 14516,
+                  "charOffset": 14188,
                   "charLength": 269,
                   "snippet": {
                     "text": "    public static readonly byte[] SetHDMIResolutionUHDUHD24 = \"#SHD UHD24\\r\"u8.ToArray();\n    public static readonly byte[] SetHDMIResolutionUHDUHD50 = \"#SHD UHD50\\r\"u8.ToArray();\n    public static readonly byte[] SetHDMIResolutionUHDUHD60 = \"#SHD UHD60\\r\"u8.ToArray();"
@@ -79781,14 +79401,14 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/Oppo20XCommand.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 2
+                  "index": 1
                 },
                 "region": {
                   "startLine": 490,
                   "startColumn": 35,
                   "endLine": 490,
                   "endColumn": 60,
-                  "charOffset": 14730,
+                  "charOffset": 14402,
                   "charLength": 25,
                   "snippet": {
                     "text": "SetHDMIResolutionUHDUHD60"
@@ -79799,7 +79419,7 @@
                   "startColumn": 1,
                   "endLine": 491,
                   "endColumn": 96,
-                  "charOffset": 14606,
+                  "charOffset": 14278,
                   "charLength": 275,
                   "snippet": {
                     "text": "    public static readonly byte[] SetHDMIResolutionUHDUHD50 = \"#SHD UHD50\\r\"u8.ToArray();\n    public static readonly byte[] SetHDMIResolutionUHDUHD60 = \"#SHD UHD60\\r\"u8.ToArray();\n    public static readonly byte[] SetHDMIResolution1080PAuto = \"#SHD 1080P_AUTO\\r\"u8.ToArray();"
@@ -79810,58 +79430,6 @@
           ],
           "partialFingerprints": {
             "equalIndicator/v1": "69255A4DCFD2A5019CB70429FB39EC6698952BAF08F663F29E81B094515FEAF6"
-          },
-          "baselineState": "unchanged",
-          "properties": {
-            "qodanaSeverity": "Moderate",
-            "tags": [
-              "C#",
-              ".NET 10.0"
-            ]
-          }
-        },
-        {
-          "ruleId": "InconsistentNaming",
-          "ruleIndex": 2342,
-          "kind": "fail",
-          "level": "note",
-          "message": {
-            "text": "Name 'USBAudio' does not match rule 'public_constant_fields_should_be_pascalcase'. Suggested name is 'UsbAudio'."
-          },
-          "locations": [
-            {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "src/UnfoldedCircle.OppoBluRay/OppoEntity/OppoConstants.cs",
-                  "uriBaseId": "solutionDir"
-                },
-                "region": {
-                  "startLine": 34,
-                  "startColumn": 31,
-                  "endLine": 34,
-                  "endColumn": 39,
-                  "charOffset": 2441,
-                  "charLength": 8,
-                  "snippet": {
-                    "text": "USBAudio"
-                  }
-                },
-                "contextRegion": {
-                  "startLine": 33,
-                  "startColumn": 1,
-                  "endLine": 35,
-                  "endColumn": 50,
-                  "charOffset": 2357,
-                  "charLength": 160,
-                  "snippet": {
-                    "text": "        internal const string Coaxial = \"COAXIAL IN\";\n        internal const string USBAudio = \"USB AUDIO IN\";\n        internal const string HDMIIn = \"HDMI IN\";"
-                  }
-                }
-              }
-            }
-          ],
-          "partialFingerprints": {
-            "equalIndicator/v1": "A1DF5CFDA561CE8E6C71A9B210ECE1499B852C73B42DE09285E7018B0BED8C22"
           },
           "baselineState": "unchanged",
           "properties": {
@@ -79886,14 +79454,14 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/OppoClient.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 4
+                  "index": 3
                 },
                 "region": {
                   "startLine": 16,
                   "startColumn": 5,
                   "endLine": 16,
                   "endColumn": 50,
-                  "charOffset": 419,
+                  "charOffset": 416,
                   "charLength": 45,
                   "snippet": {
                     "text": "private readonly string _hostName = hostName;"
@@ -79904,7 +79472,7 @@
                   "startColumn": 1,
                   "endLine": 17,
                   "endColumn": 47,
-                  "charOffset": 413,
+                  "charOffset": 410,
                   "charLength": 98,
                   "snippet": {
                     "text": "{\n    private readonly string _hostName = hostName;\n    private readonly OppoModel _model = model;"
@@ -79939,14 +79507,14 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/OppoClientFactory.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 5
+                  "index": 4
                 },
                 "region": {
                   "startLine": 9,
                   "startColumn": 5,
                   "endLine": 9,
                   "endColumn": 68,
-                  "charOffset": 215,
+                  "charOffset": 253,
                   "charLength": 63,
                   "snippet": {
                     "text": "private readonly ILoggerFactory _loggerFactory = loggerFactory;"
@@ -79957,7 +79525,7 @@
                   "startColumn": 1,
                   "endLine": 10,
                   "endColumn": 66,
-                  "charOffset": 209,
+                  "charOffset": 247,
                   "charLength": 135,
                   "snippet": {
                     "text": "{\n    private readonly ILoggerFactory _loggerFactory = loggerFactory;\n    private readonly ILogger<OppoClientFactory> _logger = logger;"
@@ -79990,80 +79558,27 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/Oppo/OppoClientFactory.cs",
+                  "uri": "src/UnfoldedCircle.OppoBluRay/AlbumCover/AlbumCoverService.cs",
                   "uriBaseId": "solutionDir",
                   "index": 5
                 },
                 "region": {
-                  "startLine": 10,
+                  "startLine": 21,
                   "startColumn": 5,
-                  "endLine": 10,
-                  "endColumn": 66,
-                  "charOffset": 283,
-                  "charLength": 61,
-                  "snippet": {
-                    "text": "private readonly ILogger<OppoClientFactory> _logger = logger;"
-                  }
-                },
-                "contextRegion": {
-                  "startLine": 9,
-                  "startColumn": 1,
-                  "endLine": 11,
-                  "endColumn": 78,
-                  "charOffset": 211,
-                  "charLength": 211,
-                  "snippet": {
-                    "text": "    private readonly ILoggerFactory _loggerFactory = loggerFactory;\n    private readonly ILogger<OppoClientFactory> _logger = logger;\n    private readonly ConcurrentDictionary<int, IOppoClient> _clients = new();"
-                  }
-                }
-              }
-            }
-          ],
-          "partialFingerprints": {
-            "equalIndicator/v1": "39D030675593948A4E6A94F5D4426A49DF274DD77692C2B7B837AA0BCB428D0D"
-          },
-          "baselineState": "unchanged",
-          "properties": {
-            "qodanaSeverity": "Moderate",
-            "tags": [
-              "C#",
-              ".NET 10.0"
-            ]
-          }
-        },
-        {
-          "ruleId": "ReplaceWithPrimaryConstructorParameter",
-          "ruleIndex": 2706,
-          "kind": "fail",
-          "level": "note",
-          "message": {
-            "text": "Replace with primary constructor parameter"
-          },
-          "locations": [
-            {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "src/UnfoldedCircle.OppoBluRay/AlbumCover/AlbumCoverService.cs",
-                  "uriBaseId": "solutionDir",
-                  "index": 6
-                },
-                "region": {
-                  "startLine": 20,
-                  "startColumn": 5,
-                  "endLine": 20,
+                  "endLine": 21,
                   "endColumn": 58,
-                  "charOffset": 558,
+                  "charOffset": 577,
                   "charLength": 53,
                   "snippet": {
                     "text": "private readonly HttpClient _httpClient = httpClient;"
                   }
                 },
                 "contextRegion": {
-                  "startLine": 19,
+                  "startLine": 20,
                   "startColumn": 1,
-                  "endLine": 21,
+                  "endLine": 22,
                   "endColumn": 62,
-                  "charOffset": 552,
+                  "charOffset": 571,
                   "charLength": 121,
                   "snippet": {
                     "text": "{\n    private readonly HttpClient _httpClient = httpClient;\n    private readonly IMemoryCache _memoryCache = memoryCache;"
@@ -80098,25 +79613,25 @@
                 "artifactLocation": {
                   "uri": "src/UnfoldedCircle.OppoBluRay/AlbumCover/AlbumCoverService.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 6
+                  "index": 5
                 },
                 "region": {
-                  "startLine": 21,
+                  "startLine": 22,
                   "startColumn": 5,
-                  "endLine": 21,
+                  "endLine": 22,
                   "endColumn": 62,
-                  "charOffset": 616,
+                  "charOffset": 635,
                   "charLength": 57,
                   "snippet": {
                     "text": "private readonly IMemoryCache _memoryCache = memoryCache;"
                   }
                 },
                 "contextRegion": {
-                  "startLine": 20,
+                  "startLine": 21,
                   "startColumn": 1,
-                  "endLine": 22,
+                  "endLine": 23,
                   "endColumn": 66,
-                  "charOffset": 554,
+                  "charOffset": 573,
                   "charLength": 185,
                   "snippet": {
                     "text": "    private readonly HttpClient _httpClient = httpClient;\n    private readonly IMemoryCache _memoryCache = memoryCache;\n    private readonly ILogger<AlbumCoverService> _logger = logger;"
@@ -80151,25 +79666,25 @@
                 "artifactLocation": {
                   "uri": "src/UnfoldedCircle.OppoBluRay/AlbumCover/AlbumCoverService.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 6
+                  "index": 5
                 },
                 "region": {
-                  "startLine": 22,
+                  "startLine": 23,
                   "startColumn": 5,
-                  "endLine": 22,
+                  "endLine": 23,
                   "endColumn": 66,
-                  "charOffset": 678,
+                  "charOffset": 697,
                   "charLength": 61,
                   "snippet": {
                     "text": "private readonly ILogger<AlbumCoverService> _logger = logger;"
                   }
                 },
                 "contextRegion": {
-                  "startLine": 21,
+                  "startLine": 22,
                   "startColumn": 1,
-                  "endLine": 23,
+                  "endLine": 24,
                   "endColumn": 76,
-                  "charOffset": 612,
+                  "charOffset": 631,
                   "charLength": 203,
                   "snippet": {
                     "text": "    private readonly IMemoryCache _memoryCache = memoryCache;\n    private readonly ILogger<AlbumCoverService> _logger = logger;\n    private static readonly TimeSpan CacheDuration = TimeSpan.FromHours(3);"
@@ -80180,165 +79695,6 @@
           ],
           "partialFingerprints": {
             "equalIndicator/v1": "4598705BE7BF3681DD3C3F969D445345061E585E7CE2125C61FF1B0E3E95BA7A"
-          },
-          "baselineState": "unchanged",
-          "properties": {
-            "qodanaSeverity": "Moderate",
-            "tags": [
-              "C#",
-              ".NET 10.0"
-            ]
-          }
-        },
-        {
-          "ruleId": "UnusedMember.Global",
-          "ruleIndex": 2921,
-          "kind": "fail",
-          "level": "note",
-          "message": {
-            "text": "Field 'QueryFirmwareVersion' is never used"
-          },
-          "locations": [
-            {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "src/Oppo/Oppo10XCommand.cs",
-                  "uriBaseId": "solutionDir",
-                  "index": 1
-                },
-                "region": {
-                  "startLine": 323,
-                  "startColumn": 35,
-                  "endLine": 323,
-                  "endColumn": 55,
-                  "charOffset": 9346,
-                  "charLength": 20,
-                  "snippet": {
-                    "text": "QueryFirmwareVersion"
-                  }
-                },
-                "contextRegion": {
-                  "startLine": 322,
-                  "startColumn": 1,
-                  "endLine": 324,
-                  "endColumn": 5,
-                  "charOffset": 9293,
-                  "charLength": 106,
-                  "snippet": {
-                    "text": "    /// </summary>\n    public static readonly byte[] QueryFirmwareVersion = \"REMOTE QVR\"u8.ToArray();\n    "
-                  }
-                }
-              }
-            }
-          ],
-          "partialFingerprints": {
-            "equalIndicator/v1": "EF145432904AF582F6805821260FEF2520A6C7D085C090AE1A234C01BABD5AD4"
-          },
-          "baselineState": "unchanged",
-          "properties": {
-            "qodanaSeverity": "Moderate",
-            "tags": [
-              "C#",
-              ".NET 10.0"
-            ]
-          }
-        },
-        {
-          "ruleId": "UnusedMember.Global",
-          "ruleIndex": 2921,
-          "kind": "fail",
-          "level": "note",
-          "message": {
-            "text": "Field 'QueryFirmwareVersion' is never used"
-          },
-          "locations": [
-            {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "src/Oppo/Oppo20XCommand.cs",
-                  "uriBaseId": "solutionDir",
-                  "index": 2
-                },
-                "region": {
-                  "startLine": 352,
-                  "startColumn": 35,
-                  "endLine": 352,
-                  "endColumn": 55,
-                  "charOffset": 10070,
-                  "charLength": 20,
-                  "snippet": {
-                    "text": "QueryFirmwareVersion"
-                  }
-                },
-                "contextRegion": {
-                  "startLine": 351,
-                  "startColumn": 1,
-                  "endLine": 353,
-                  "endColumn": 5,
-                  "charOffset": 10017,
-                  "charLength": 102,
-                  "snippet": {
-                    "text": "    /// </summary>\n    public static readonly byte[] QueryFirmwareVersion = \"#QVR\\r\"u8.ToArray();\n    "
-                  }
-                }
-              }
-            }
-          ],
-          "partialFingerprints": {
-            "equalIndicator/v1": "6A3F242C499AD7054117C04AE2EE2439A04DC03893A1A62065CCC027B166BA13"
-          },
-          "baselineState": "unchanged",
-          "properties": {
-            "qodanaSeverity": "Moderate",
-            "tags": [
-              "C#",
-              ".NET 10.0"
-            ]
-          }
-        },
-        {
-          "ruleId": "InconsistentNaming",
-          "ruleIndex": 2342,
-          "kind": "fail",
-          "level": "note",
-          "message": {
-            "text": "Name 'SetHDMIResolutionSDI' does not match rule 'public_static_readonly_fields_should_be_pascalcase'. Suggested name is 'SetHDMIResolutionSdi'."
-          },
-          "locations": [
-            {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "src/Oppo/Oppo10XCommand.cs",
-                  "uriBaseId": "solutionDir",
-                  "index": 1
-                },
-                "region": {
-                  "startLine": 420,
-                  "startColumn": 35,
-                  "endLine": 420,
-                  "endColumn": 55,
-                  "charOffset": 12602,
-                  "charLength": 20,
-                  "snippet": {
-                    "text": "SetHDMIResolutionSDI"
-                  }
-                },
-                "contextRegion": {
-                  "startLine": 419,
-                  "startColumn": 1,
-                  "endLine": 421,
-                  "endColumn": 87,
-                  "charOffset": 12563,
-                  "charLength": 178,
-                  "snippet": {
-                    "text": "    \n    public static readonly byte[] SetHDMIResolutionSDI = \"REMOTE SHD SDI\"u8.ToArray();\n    public static readonly byte[] SetHDMIResolutionSDP = \"REMOTE SHD SDP\"u8.ToArray();"
-                  }
-                }
-              }
-            }
-          ],
-          "partialFingerprints": {
-            "equalIndicator/v1": "3E5D83B75E9233245BB77ED0FE77D5B4B9D63704FA3FE595281D353B629A77BE"
           },
           "baselineState": "unchanged",
           "properties": {
@@ -80362,15 +79718,14 @@
               "physicalLocation": {
                 "artifactLocation": {
                   "uri": "src/Oppo/Oppo10XCommand.cs",
-                  "uriBaseId": "solutionDir",
-                  "index": 1
+                  "uriBaseId": "solutionDir"
                 },
                 "region": {
                   "startLine": 421,
                   "startColumn": 35,
                   "endLine": 421,
                   "endColumn": 55,
-                  "charOffset": 12689,
+                  "charOffset": 12389,
                   "charLength": 20,
                   "snippet": {
                     "text": "SetHDMIResolutionSDP"
@@ -80381,7 +79736,7 @@
                   "startColumn": 1,
                   "endLine": 422,
                   "endColumn": 89,
-                  "charOffset": 12568,
+                  "charOffset": 12268,
                   "charLength": 262,
                   "snippet": {
                     "text": "    public static readonly byte[] SetHDMIResolutionSDI = \"REMOTE SHD SDI\"u8.ToArray();\n    public static readonly byte[] SetHDMIResolutionSDP = \"REMOTE SHD SDP\"u8.ToArray();\n    public static readonly byte[] SetHDMIResolution720P = \"REMOTE SHD 720P\"u8.ToArray();"
@@ -80416,14 +79771,14 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/Oppo20XCommand.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 2
+                  "index": 1
                 },
                 "region": {
                   "startLine": 487,
                   "startColumn": 35,
                   "endLine": 487,
                   "endColumn": 59,
-                  "charOffset": 14458,
+                  "charOffset": 14130,
                   "charLength": 24,
                   "snippet": {
                     "text": "SetHDMIResolutionUHDAuto"
@@ -80434,7 +79789,7 @@
                   "startColumn": 1,
                   "endLine": 488,
                   "endColumn": 90,
-                  "charOffset": 14338,
+                  "charOffset": 14010,
                   "charLength": 267,
                   "snippet": {
                     "text": "    public static readonly byte[] SetHDMIResolutionSource = \"#SHD SRC\\r\"u8.ToArray();\n    public static readonly byte[] SetHDMIResolutionUHDAuto = \"#SHD UHD_AUTO\\r\"u8.ToArray();\n    public static readonly byte[] SetHDMIResolutionUHDUHD24 = \"#SHD UHD24\\r\"u8.ToArray();"
@@ -80469,14 +79824,14 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/Oppo20XCommand.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 2
+                  "index": 1
                 },
                 "region": {
                   "startLine": 488,
                   "startColumn": 35,
                   "endLine": 488,
                   "endColumn": 60,
-                  "charOffset": 14550,
+                  "charOffset": 14222,
                   "charLength": 25,
                   "snippet": {
                     "text": "SetHDMIResolutionUHDUHD24"
@@ -80487,7 +79842,7 @@
                   "startColumn": 1,
                   "endLine": 489,
                   "endColumn": 90,
-                  "charOffset": 14424,
+                  "charOffset": 14096,
                   "charLength": 271,
                   "snippet": {
                     "text": "    public static readonly byte[] SetHDMIResolutionUHDAuto = \"#SHD UHD_AUTO\\r\"u8.ToArray();\n    public static readonly byte[] SetHDMIResolutionUHDUHD24 = \"#SHD UHD24\\r\"u8.ToArray();\n    public static readonly byte[] SetHDMIResolutionUHDUHD50 = \"#SHD UHD50\\r\"u8.ToArray();"
@@ -80522,14 +79877,14 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/Oppo20XCommand.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 2
+                  "index": 1
                 },
                 "region": {
                   "startLine": 489,
                   "startColumn": 35,
                   "endLine": 489,
                   "endColumn": 60,
-                  "charOffset": 14640,
+                  "charOffset": 14312,
                   "charLength": 25,
                   "snippet": {
                     "text": "SetHDMIResolutionUHDUHD50"
@@ -80540,7 +79895,7 @@
                   "startColumn": 1,
                   "endLine": 490,
                   "endColumn": 90,
-                  "charOffset": 14516,
+                  "charOffset": 14188,
                   "charLength": 269,
                   "snippet": {
                     "text": "    public static readonly byte[] SetHDMIResolutionUHDUHD24 = \"#SHD UHD24\\r\"u8.ToArray();\n    public static readonly byte[] SetHDMIResolutionUHDUHD50 = \"#SHD UHD50\\r\"u8.ToArray();\n    public static readonly byte[] SetHDMIResolutionUHDUHD60 = \"#SHD UHD60\\r\"u8.ToArray();"
@@ -80575,14 +79930,14 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/Oppo20XCommand.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 2
+                  "index": 1
                 },
                 "region": {
                   "startLine": 490,
                   "startColumn": 35,
                   "endLine": 490,
                   "endColumn": 60,
-                  "charOffset": 14730,
+                  "charOffset": 14402,
                   "charLength": 25,
                   "snippet": {
                     "text": "SetHDMIResolutionUHDUHD60"
@@ -80593,7 +79948,7 @@
                   "startColumn": 1,
                   "endLine": 491,
                   "endColumn": 96,
-                  "charOffset": 14606,
+                  "charOffset": 14278,
                   "charLength": 275,
                   "snippet": {
                     "text": "    public static readonly byte[] SetHDMIResolutionUHDUHD50 = \"#SHD UHD50\\r\"u8.ToArray();\n    public static readonly byte[] SetHDMIResolutionUHDUHD60 = \"#SHD UHD60\\r\"u8.ToArray();\n    public static readonly byte[] SetHDMIResolution1080PAuto = \"#SHD 1080P_AUTO\\r\"u8.ToArray();"
@@ -80604,112 +79959,6 @@
           ],
           "partialFingerprints": {
             "equalIndicator/v1": "69255A4DCFD2A5019CB70429FB39EC6698952BAF08F663F29E81B094515FEAF6"
-          },
-          "baselineState": "unchanged",
-          "properties": {
-            "qodanaSeverity": "Moderate",
-            "tags": [
-              "C#",
-              ".NET 10.0"
-            ]
-          }
-        },
-        {
-          "ruleId": "UnusedMember.Global",
-          "ruleIndex": 2921,
-          "kind": "fail",
-          "level": "note",
-          "message": {
-            "text": "Method 'NoopAsync' is never used"
-          },
-          "locations": [
-            {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "src/Oppo/IOppoClient.cs",
-                  "uriBaseId": "solutionDir",
-                  "index": 8
-                },
-                "region": {
-                  "startLine": 289,
-                  "startColumn": 21,
-                  "endLine": 289,
-                  "endColumn": 30,
-                  "charOffset": 9369,
-                  "charLength": 9,
-                  "snippet": {
-                    "text": "NoopAsync"
-                  }
-                },
-                "contextRegion": {
-                  "startLine": 288,
-                  "startColumn": 1,
-                  "endLine": 290,
-                  "endColumn": 5,
-                  "charOffset": 9330,
-                  "charLength": 101,
-                  "snippet": {
-                    "text": "    /// </summary>\n    ValueTask<bool> NoopAsync(CancellationToken cancellationToken = default);\n    "
-                  }
-                }
-              }
-            }
-          ],
-          "partialFingerprints": {
-            "equalIndicator/v1": "1E187B80604420435137851DFCBD4C676D3C361909A2EA59DAC58653482B40F6"
-          },
-          "baselineState": "unchanged",
-          "properties": {
-            "qodanaSeverity": "Moderate",
-            "tags": [
-              "C#",
-              ".NET 10.0"
-            ]
-          }
-        },
-        {
-          "ruleId": "UnusedMember.Global",
-          "ruleIndex": 2921,
-          "kind": "fail",
-          "level": "note",
-          "message": {
-            "text": "Method 'QueryCDDBNumberAsync' is never used"
-          },
-          "locations": [
-            {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "src/Oppo/IOppoClient.cs",
-                  "uriBaseId": "solutionDir",
-                  "index": 8
-                },
-                "region": {
-                  "startLine": 406,
-                  "startColumn": 35,
-                  "endLine": 406,
-                  "endColumn": 55,
-                  "charOffset": 13754,
-                  "charLength": 20,
-                  "snippet": {
-                    "text": "QueryCDDBNumberAsync"
-                  }
-                },
-                "contextRegion": {
-                  "startLine": 405,
-                  "startColumn": 1,
-                  "endLine": 407,
-                  "endColumn": 5,
-                  "charOffset": 13671,
-                  "charLength": 156,
-                  "snippet": {
-                    "text": "    // ReSharper disable once InconsistentNaming\n    ValueTask<OppoResult<string>> QueryCDDBNumberAsync(CancellationToken cancellationToken = default);\n    "
-                  }
-                }
-              }
-            }
-          ],
-          "partialFingerprints": {
-            "equalIndicator/v1": "E8E5E035B4E3602890ED80D7D870932EAF386CF579FE5C77BEB7889DAA2B21C6"
           },
           "baselineState": "unchanged",
           "properties": {
@@ -80734,14 +79983,14 @@
                 "artifactLocation": {
                   "uri": "src/UnfoldedCircle.OppoBluRay/WebSocket/OppoWebSocketHandler.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 7
+                  "index": 6
                 },
                 "region": {
                   "startLine": 32,
                   "startColumn": 5,
                   "endLine": 32,
                   "endColumn": 80,
-                  "charOffset": 1157,
+                  "charOffset": 1232,
                   "charLength": 75,
                   "snippet": {
                     "text": "private readonly IOppoClientFactory _oppoClientFactory = oppoClientFactory;"
@@ -80752,7 +80001,7 @@
                   "startColumn": 1,
                   "endLine": 33,
                   "endColumn": 80,
-                  "charOffset": 1151,
+                  "charOffset": 1226,
                   "charLength": 161,
                   "snippet": {
                     "text": "{\n    private readonly IOppoClientFactory _oppoClientFactory = oppoClientFactory;\n    private readonly IAlbumCoverService _albumCoverService = albumCoverService;"
@@ -80787,14 +80036,14 @@
                 "artifactLocation": {
                   "uri": "src/UnfoldedCircle.OppoBluRay/WebSocket/OppoWebSocketHandler.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 7
+                  "index": 6
                 },
                 "region": {
                   "startLine": 33,
                   "startColumn": 5,
                   "endLine": 33,
                   "endColumn": 80,
-                  "charOffset": 1237,
+                  "charOffset": 1312,
                   "charLength": 75,
                   "snippet": {
                     "text": "private readonly IAlbumCoverService _albumCoverService = albumCoverService;"
@@ -80805,7 +80054,7 @@
                   "startColumn": 1,
                   "endLine": 34,
                   "endColumn": 1,
-                  "charOffset": 1153,
+                  "charOffset": 1228,
                   "charLength": 160,
                   "snippet": {
                     "text": "    private readonly IOppoClientFactory _oppoClientFactory = oppoClientFactory;\n    private readonly IAlbumCoverService _albumCoverService = albumCoverService;\n"
@@ -80840,7 +80089,7 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/MagnetarClient.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 3
+                  "index": 2
                 },
                 "region": {
                   "startLine": 14,
@@ -80893,7 +80142,7 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/MagnetarClient.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 3
+                  "index": 2
                 },
                 "region": {
                   "startLine": 15,
@@ -80946,7 +80195,7 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/MagnetarClient.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 3
+                  "index": 2
                 },
                 "region": {
                   "startLine": 17,
@@ -80999,14 +80248,14 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/OppoClient.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 4
+                  "index": 3
                 },
                 "region": {
                   "startLine": 18,
                   "startColumn": 5,
                   "endLine": 18,
                   "endColumn": 59,
-                  "charOffset": 516,
+                  "charOffset": 513,
                   "charLength": 54,
                   "snippet": {
                     "text": "private readonly ILogger<OppoClient> _logger = logger;"
@@ -81017,7 +80266,7 @@
                   "startColumn": 1,
                   "endLine": 19,
                   "endColumn": 94,
-                  "charOffset": 465,
+                  "charOffset": 462,
                   "charLength": 199,
                   "snippet": {
                     "text": "    private readonly OppoModel _model = model;\n    private readonly ILogger<OppoClient> _logger = logger;\n    private readonly TokenBucketRateLimiter _rateLimiter = ConnectHelper.CreateRateLimiter();"
@@ -81052,25 +80301,25 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/IOppoClient.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 8
+                  "index": 7
                 },
                 "region": {
-                  "startLine": 426,
+                  "startLine": 428,
                   "startColumn": 40,
-                  "endLine": 426,
+                  "endLine": 428,
                   "endColumn": 56,
-                  "charOffset": 14446,
+                  "charOffset": 14270,
                   "charLength": 16,
                   "snippet": {
                     "text": "QueryVerboseMode"
                   }
                 },
                 "contextRegion": {
-                  "startLine": 425,
+                  "startLine": 427,
                   "startColumn": 1,
-                  "endLine": 427,
+                  "endLine": 429,
                   "endColumn": 1,
-                  "charOffset": 14388,
+                  "charOffset": 14212,
                   "charLength": 123,
                   "snippet": {
                     "text": "    /// </summary>\n    ValueTask<OppoResult<VerboseMode>> QueryVerboseMode(CancellationToken cancellationToken = default);\n"
@@ -81082,7 +80331,586 @@
           "partialFingerprints": {
             "equalIndicator/v1": "3E3D2473D37BAA071EE5DA0B098E706FD26DBD93A76AC3D2D33E3B3F9F7BEACB"
           },
+          "baselineState": "unchanged",
+          "properties": {
+            "qodanaSeverity": "Moderate",
+            "tags": [
+              "C#",
+              ".NET 10.0"
+            ]
+          }
+        },
+        {
+          "ruleId": "InconsistentNaming",
+          "ruleIndex": 2342,
+          "kind": "fail",
+          "level": "note",
+          "message": {
+            "text": "Name 'SetHDMIResolutionSDI' does not match rule 'public_static_readonly_fields_should_be_pascalcase'. Suggested name is 'SetHDMIResolutionSdi'."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/Oppo/Oppo10XCommand.cs",
+                  "uriBaseId": "solutionDir"
+                },
+                "region": {
+                  "startLine": 420,
+                  "startColumn": 35,
+                  "endLine": 420,
+                  "endColumn": 55,
+                  "charOffset": 12302,
+                  "charLength": 20,
+                  "snippet": {
+                    "text": "SetHDMIResolutionSDI"
+                  }
+                },
+                "contextRegion": {
+                  "startLine": 419,
+                  "startColumn": 1,
+                  "endLine": 421,
+                  "endColumn": 87,
+                  "charOffset": 12267,
+                  "charLength": 174,
+                  "snippet": {
+                    "text": "\n    public static readonly byte[] SetHDMIResolutionSDI = \"REMOTE SHD SDI\"u8.ToArray();\n    public static readonly byte[] SetHDMIResolutionSDP = \"REMOTE SHD SDP\"u8.ToArray();"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "equalIndicator/v1": "52B70CF7CC27D0E93848643CD6760453473DAC11672FFE682793DBBA135668BB"
+          },
+          "baselineState": "unchanged",
+          "properties": {
+            "qodanaSeverity": "Moderate",
+            "tags": [
+              "C#",
+              ".NET 10.0"
+            ]
+          }
+        },
+        {
+          "ruleId": "ReplaceWithPrimaryConstructorParameter",
+          "ruleIndex": 2706,
+          "kind": "fail",
+          "level": "note",
+          "message": {
+            "text": "Replace with primary constructor parameter"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/Oppo/OppoClient.cs",
+                  "uriBaseId": "solutionDir",
+                  "index": 3
+                },
+                "region": {
+                  "startLine": 17,
+                  "startColumn": 5,
+                  "endLine": 17,
+                  "endColumn": 47,
+                  "charOffset": 466,
+                  "charLength": 42,
+                  "snippet": {
+                    "text": "private readonly OppoModel _model = model;"
+                  }
+                },
+                "contextRegion": {
+                  "startLine": 16,
+                  "startColumn": 1,
+                  "endLine": 18,
+                  "endColumn": 59,
+                  "charOffset": 412,
+                  "charLength": 155,
+                  "snippet": {
+                    "text": "    private readonly string _hostName = hostName;\n    private readonly OppoModel _model = model;\n    private readonly ILogger<OppoClient> _logger = logger;"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "equalIndicator/v1": "CD3986031EEE501D52AC841BBB191A8A6829F3C49804C6EC0F16E1191FBE5A67"
+          },
           "baselineState": "new",
+          "properties": {
+            "qodanaSeverity": "Moderate",
+            "tags": [
+              "C#",
+              ".NET 10.0"
+            ]
+          }
+        },
+        {
+          "ruleId": "ReplaceWithPrimaryConstructorParameter",
+          "ruleIndex": 2706,
+          "kind": "fail",
+          "level": "note",
+          "message": {
+            "text": "Replace with primary constructor parameter"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/Oppo/OppoClientFactory.cs",
+                  "uriBaseId": "solutionDir",
+                  "index": 4
+                },
+                "region": {
+                  "startLine": 10,
+                  "startColumn": 5,
+                  "endLine": 10,
+                  "endColumn": 66,
+                  "charOffset": 321,
+                  "charLength": 61,
+                  "snippet": {
+                    "text": "private readonly ILogger<OppoClientFactory> _logger = logger;"
+                  }
+                },
+                "contextRegion": {
+                  "startLine": 9,
+                  "startColumn": 1,
+                  "endLine": 11,
+                  "endColumn": 88,
+                  "charOffset": 249,
+                  "charLength": 221,
+                  "snippet": {
+                    "text": "    private readonly ILoggerFactory _loggerFactory = loggerFactory;\n    private readonly ILogger<OppoClientFactory> _logger = logger;\n    private readonly ConcurrentDictionary<OppoClientKey, IOppoClient> _clients = new();"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "equalIndicator/v1": "DCAC3C58696589F078D902A7912E26DC023CDE9745AB7A0646FAD48749FBCC58"
+          },
+          "baselineState": "unchanged",
+          "properties": {
+            "qodanaSeverity": "Moderate",
+            "tags": [
+              "C#",
+              ".NET 10.0"
+            ]
+          }
+        },
+        {
+          "ruleId": "UnusedMember.Global",
+          "ruleIndex": 2921,
+          "kind": "fail",
+          "level": "note",
+          "message": {
+            "text": "Field 'QueryFirmwareVersion' is never used"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/Oppo/Oppo10XCommand.cs",
+                  "uriBaseId": "solutionDir"
+                },
+                "region": {
+                  "startLine": 323,
+                  "startColumn": 35,
+                  "endLine": 323,
+                  "endColumn": 55,
+                  "charOffset": 9106,
+                  "charLength": 20,
+                  "snippet": {
+                    "text": "QueryFirmwareVersion"
+                  }
+                },
+                "contextRegion": {
+                  "startLine": 322,
+                  "startColumn": 1,
+                  "endLine": 324,
+                  "endColumn": 1,
+                  "charOffset": 9053,
+                  "charLength": 102,
+                  "snippet": {
+                    "text": "    /// </summary>\n    public static readonly byte[] QueryFirmwareVersion = \"REMOTE QVR\"u8.ToArray();\n"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "equalIndicator/v1": "394525D0607D24C0D3AFC7FE2B3227B85F6147FF317ED31B78D171C5816C44EF"
+          },
+          "baselineState": "unchanged",
+          "properties": {
+            "qodanaSeverity": "Moderate",
+            "tags": [
+              "C#",
+              ".NET 10.0"
+            ]
+          }
+        },
+        {
+          "ruleId": "UnusedMember.Global",
+          "ruleIndex": 2921,
+          "kind": "fail",
+          "level": "note",
+          "message": {
+            "text": "Field 'QueryFirmwareVersion' is never used"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/Oppo/Oppo20XCommand.cs",
+                  "uriBaseId": "solutionDir",
+                  "index": 1
+                },
+                "region": {
+                  "startLine": 352,
+                  "startColumn": 35,
+                  "endLine": 352,
+                  "endColumn": 55,
+                  "charOffset": 9810,
+                  "charLength": 20,
+                  "snippet": {
+                    "text": "QueryFirmwareVersion"
+                  }
+                },
+                "contextRegion": {
+                  "startLine": 351,
+                  "startColumn": 1,
+                  "endLine": 353,
+                  "endColumn": 1,
+                  "charOffset": 9757,
+                  "charLength": 98,
+                  "snippet": {
+                    "text": "    /// </summary>\n    public static readonly byte[] QueryFirmwareVersion = \"#QVR\\r\"u8.ToArray();\n"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "equalIndicator/v1": "C062463D7DFC3BDA87CF029C5D6905EABF4C46EBA670F64C685D33C9BA66F754"
+          },
+          "baselineState": "unchanged",
+          "properties": {
+            "qodanaSeverity": "Moderate",
+            "tags": [
+              "C#",
+              ".NET 10.0"
+            ]
+          }
+        },
+        {
+          "ruleId": "UnusedMember.Global",
+          "ruleIndex": 2921,
+          "kind": "fail",
+          "level": "note",
+          "message": {
+            "text": "Field 'SetHDMIResolution480I' is never used"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/Oppo/Oppo20XCommand.cs",
+                  "uriBaseId": "solutionDir",
+                  "index": 1
+                },
+                "region": {
+                  "startLine": 502,
+                  "startColumn": 35,
+                  "endLine": 502,
+                  "endColumn": 56,
+                  "charOffset": 15476,
+                  "charLength": 21,
+                  "snippet": {
+                    "text": "SetHDMIResolution480I"
+                  }
+                },
+                "contextRegion": {
+                  "startLine": 501,
+                  "startColumn": 1,
+                  "endLine": 503,
+                  "endColumn": 1,
+                  "charOffset": 15357,
+                  "charLength": 170,
+                  "snippet": {
+                    "text": "    public static readonly byte[] SetHDMIResolution480P = \"#SHD 480P\\r\"u8.ToArray();\n    public static readonly byte[] SetHDMIResolution480I = \"#SHD 480I\\r\"u8.ToArray();\n"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "equalIndicator/v1": "862E196DB56AF9011D6ED50E254D5F9963522B3DC8A708E7300AC87F8E606FBD"
+          },
+          "baselineState": "unchanged",
+          "properties": {
+            "qodanaSeverity": "Moderate",
+            "tags": [
+              "C#",
+              ".NET 10.0"
+            ]
+          }
+        },
+        {
+          "ruleId": "UnusedMember.Global",
+          "ruleIndex": 2921,
+          "kind": "fail",
+          "level": "note",
+          "message": {
+            "text": "Field 'SetHDMIResolutionAuto' is never used"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/Oppo/Oppo10XCommand.cs",
+                  "uriBaseId": "solutionDir"
+                },
+                "region": {
+                  "startLine": 426,
+                  "startColumn": 35,
+                  "endLine": 426,
+                  "endColumn": 56,
+                  "charOffset": 12837,
+                  "charLength": 21,
+                  "snippet": {
+                    "text": "SetHDMIResolutionAuto"
+                  }
+                },
+                "contextRegion": {
+                  "startLine": 425,
+                  "startColumn": 1,
+                  "endLine": 427,
+                  "endColumn": 1,
+                  "charOffset": 12713,
+                  "charLength": 179,
+                  "snippet": {
+                    "text": "    public static readonly byte[] SetHDMIResolutionSource = \"REMOTE SHD SRC\"u8.ToArray();\n    public static readonly byte[] SetHDMIResolutionAuto = \"REMOTE SHD AUTO\"u8.ToArray();\n"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "equalIndicator/v1": "81551AAA2F19D2D543F2AA10C1BC821B36F8DAB4F4EC99E42989151A43C4DE3A"
+          },
+          "baselineState": "unchanged",
+          "properties": {
+            "qodanaSeverity": "Moderate",
+            "tags": [
+              "C#",
+              ".NET 10.0"
+            ]
+          }
+        },
+        {
+          "ruleId": "UnusedMember.Global",
+          "ruleIndex": 2921,
+          "kind": "fail",
+          "level": "note",
+          "message": {
+            "text": "Field 'SetHDMIResolutionAuto' is never used"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/Oppo/Oppo20XCommand.cs",
+                  "uriBaseId": "solutionDir",
+                  "index": 1
+                },
+                "region": {
+                  "startLine": 485,
+                  "startColumn": 35,
+                  "endLine": 485,
+                  "endColumn": 56,
+                  "charOffset": 13959,
+                  "charLength": 21,
+                  "snippet": {
+                    "text": "SetHDMIResolutionAuto"
+                  }
+                },
+                "contextRegion": {
+                  "startLine": 484,
+                  "startColumn": 1,
+                  "endLine": 486,
+                  "endColumn": 86,
+                  "charOffset": 13924,
+                  "charLength": 171,
+                  "snippet": {
+                    "text": "\n    public static readonly byte[] SetHDMIResolutionAuto = \"#SHD AUTO\\r\"u8.ToArray();\n    public static readonly byte[] SetHDMIResolutionSource = \"#SHD SRC\\r\"u8.ToArray();"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "equalIndicator/v1": "02869444B8464FEEF1F3CC305083E4D20D58E7635A1F836324BD58DDC52F8709"
+          },
+          "baselineState": "unchanged",
+          "properties": {
+            "qodanaSeverity": "Moderate",
+            "tags": [
+              "C#",
+              ".NET 10.0"
+            ]
+          }
+        },
+        {
+          "ruleId": "UnusedMember.Global",
+          "ruleIndex": 2921,
+          "kind": "fail",
+          "level": "note",
+          "message": {
+            "text": "Field 'SetHDMIResolutionSDI' is never used"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/Oppo/Oppo10XCommand.cs",
+                  "uriBaseId": "solutionDir"
+                },
+                "region": {
+                  "startLine": 420,
+                  "startColumn": 35,
+                  "endLine": 420,
+                  "endColumn": 55,
+                  "charOffset": 12302,
+                  "charLength": 20,
+                  "snippet": {
+                    "text": "SetHDMIResolutionSDI"
+                  }
+                },
+                "contextRegion": {
+                  "startLine": 419,
+                  "startColumn": 1,
+                  "endLine": 421,
+                  "endColumn": 87,
+                  "charOffset": 12267,
+                  "charLength": 174,
+                  "snippet": {
+                    "text": "\n    public static readonly byte[] SetHDMIResolutionSDI = \"REMOTE SHD SDI\"u8.ToArray();\n    public static readonly byte[] SetHDMIResolutionSDP = \"REMOTE SHD SDP\"u8.ToArray();"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "equalIndicator/v1": "52B70CF7CC27D0E93848643CD6760453473DAC11672FFE682793DBBA135668BB"
+          },
+          "baselineState": "new",
+          "properties": {
+            "qodanaSeverity": "Moderate",
+            "tags": [
+              "C#",
+              ".NET 10.0"
+            ]
+          }
+        },
+        {
+          "ruleId": "UnusedMember.Global",
+          "ruleIndex": 2921,
+          "kind": "fail",
+          "level": "note",
+          "message": {
+            "text": "Method 'NoopAsync' is never used"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/Oppo/IOppoClient.cs",
+                  "uriBaseId": "solutionDir",
+                  "index": 7
+                },
+                "region": {
+                  "startLine": 289,
+                  "startColumn": 21,
+                  "endLine": 289,
+                  "endColumn": 30,
+                  "charOffset": 9153,
+                  "charLength": 9,
+                  "snippet": {
+                    "text": "NoopAsync"
+                  }
+                },
+                "contextRegion": {
+                  "startLine": 288,
+                  "startColumn": 1,
+                  "endLine": 290,
+                  "endColumn": 1,
+                  "charOffset": 9114,
+                  "charLength": 97,
+                  "snippet": {
+                    "text": "    /// </summary>\n    ValueTask<bool> NoopAsync(CancellationToken cancellationToken = default);\n"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "equalIndicator/v1": "45796A5D6CD51397503D5A4829CB37864A4E15F7AEF1C1E70D0AEC515BDDFEFE"
+          },
+          "baselineState": "unchanged",
+          "properties": {
+            "qodanaSeverity": "Moderate",
+            "tags": [
+              "C#",
+              ".NET 10.0"
+            ]
+          }
+        },
+        {
+          "ruleId": "UnusedMember.Global",
+          "ruleIndex": 2921,
+          "kind": "fail",
+          "level": "note",
+          "message": {
+            "text": "Method 'QueryCDDBNumberAsync' is never used"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/Oppo/IOppoClient.cs",
+                  "uriBaseId": "solutionDir",
+                  "index": 7
+                },
+                "region": {
+                  "startLine": 408,
+                  "startColumn": 35,
+                  "endLine": 408,
+                  "endColumn": 55,
+                  "charOffset": 13590,
+                  "charLength": 20,
+                  "snippet": {
+                    "text": "QueryCDDBNumberAsync"
+                  }
+                },
+                "contextRegion": {
+                  "startLine": 407,
+                  "startColumn": 1,
+                  "endLine": 409,
+                  "endColumn": 1,
+                  "charOffset": 13507,
+                  "charLength": 152,
+                  "snippet": {
+                    "text": "    // ReSharper disable once InconsistentNaming\n    ValueTask<OppoResult<string>> QueryCDDBNumberAsync(CancellationToken cancellationToken = default);\n"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "equalIndicator/v1": "62618707D48C49FCB476107893101014005D930A414EABFADD0FDEB73A5A7524"
+          },
+          "baselineState": "unchanged",
           "properties": {
             "qodanaSeverity": "Moderate",
             "tags": [
@@ -81093,10 +80921,10 @@
         }
       ],
       "automationDetails": {
-        "id": "QDNETC/qodana/2026-06-11",
-        "guid": "0d8f1b27-f3a5-43c0-b68a-f3a5a00ad9cc",
+        "id": "QDNETC/qodana/2026-09-04",
+        "guid": "673d71ee-4805-4340-b92a-96affe92219f",
         "properties": {
-          "jobUrl": "https://github.com/henrikwidlund/unfoldedcircle-oppo/actions/runs/27343196651"
+          "jobUrl": "https://github.com/henrikwidlund/unfoldedcircle-oppo/actions/runs/33846363572"
         }
       },
       "newlineSequences": [
