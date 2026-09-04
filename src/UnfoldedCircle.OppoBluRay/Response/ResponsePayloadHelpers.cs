@@ -3,6 +3,7 @@ using Oppo;
 using UnfoldedCircle.Models.Shared;
 using UnfoldedCircle.Models.Sync;
 using UnfoldedCircle.OppoBluRay.Configuration;
+using UnfoldedCircle.OppoBluRay.OppoEntity;
 using UnfoldedCircle.Server.Extensions;
 
 namespace UnfoldedCircle.OppoBluRay.Response;
@@ -41,6 +42,17 @@ internal static class OppoResponsePayloadHelpers
                     EntityType = EntityType.Sensor,
                     Attributes = [SensorEntityAttribute.State, SensorEntityAttribute.Unit, SensorEntityAttribute.Value],
                     DeviceId = entityIdDeviceId.DeviceId.GetNullableIdentifier(EntityType.Sensor, suffix)
+                };
+            }
+
+            if (OppoEntitySettings.SourceList[entityIdDeviceId.Model].Length > 0)
+            {
+                yield return new SelectEntityStateChanged
+                {
+                    EntityId = entityIdDeviceId.EntityId.GetIdentifier(EntityType.Select, OppoConstants.InputSourceSelectSuffix),
+                    EntityType = EntityType.Select,
+                    Attributes = [SelectEntityAttribute.State, SelectEntityAttribute.CurrentOption, SelectEntityAttribute.Options],
+                    DeviceId = entityIdDeviceId.DeviceId.GetNullableIdentifier(EntityType.Select, OppoConstants.InputSourceSelectSuffix)
                 };
             }
         }

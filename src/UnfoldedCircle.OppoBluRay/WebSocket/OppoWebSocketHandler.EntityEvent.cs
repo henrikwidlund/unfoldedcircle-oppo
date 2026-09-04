@@ -18,6 +18,7 @@ public partial class OppoWebSocketHandler
     private static readonly ConcurrentDictionary<OppoClientKey, MediaPlayerStateChangedEventMessageDataAttributesBase> PreviousMediaStatesMap = new();
     private static readonly ConcurrentDictionary<OppoClientKey, State> PreviousRemoteStatesMap = new();
     private static readonly ConcurrentDictionary<OppoClientKey, InputSource?> PreviousSensorInputSourcesMap = new();
+    private static readonly ConcurrentDictionary<OppoClientKey, InputSource?> PreviousSelectInputSourcesMap = new();
     private static readonly ConcurrentDictionary<OppoClientKey, DiscType?> PreviousSensorDiscTypesMap = new();
     private static readonly ConcurrentDictionary<OppoClientKey, HDMIResolution?> PreviousSensorHDMIResolutionsMap = new();
     private static readonly ConcurrentDictionary<OppoClientKey, string?> PreviousSensorAudioTypesMap = new();
@@ -483,7 +484,7 @@ public partial class OppoWebSocketHandler
         MediaPlayerUpdateType mediaPlayerUpdateType,
         CancellationToken cancellationToken)
     {
-        (bool hasMediaPlayer, bool hasRemote, bool hasSensor) = GetSubscriptionFlags(subscribedEntities);
+        (bool hasMediaPlayer, bool hasRemote, bool hasSensor, bool hasSelect) = GetSubscriptionFlags(subscribedEntities);
 
         if (oppoClientHolder.ClientKey.Model == OppoModel.Magnetar)
         {
@@ -505,6 +506,9 @@ public partial class OppoWebSocketHandler
                 hasSensor
                     ? SendSensorEventAsync(socket, wsId, oppoClientHolder, subscribedEntities,
                         null, null, null, null, null, null, null, null, cancellationToken)
+                    : Task.CompletedTask,
+                hasSelect
+                    ? SendSelectEventAsync(socket, wsId, oppoClientHolder, null, cancellationToken)
                     : Task.CompletedTask);
             return;
         }
@@ -553,6 +557,9 @@ public partial class OppoWebSocketHandler
                     snapshot.HdrStatusResponse?.Result,
                     snapshot.AspectRatioResponse?.Result,
                     cancellationToken)
+                : Task.CompletedTask,
+            hasSelect
+                ? SendSelectEventAsync(socket, wsId, oppoClientHolder, snapshot.InputSourceResponse?.Result, cancellationToken)
                 : Task.CompletedTask);
     }
 
@@ -1021,10 +1028,10 @@ public partial class OppoWebSocketHandler
             _ => State.On
         };
 
-    private static (bool HasMediaPlayer, bool HasRemote, bool HasSensor) GetSubscriptionFlags(
+    private static (bool HasMediaPlayer, bool HasRemote, bool HasSensor, bool HasSelect) GetSubscriptionFlags(
         IReadOnlyCollection<SubscribedEntity> subscribedEntities)
     {
-        bool hasMediaPlayer = false, hasRemote = false, hasSensor = false;
+        bool hasMediaPlayer = false, hasRemote = false, hasSensor = false, hasSelect = false;
         foreach (var entity in subscribedEntities)
         {
             switch (entity.EntityType)
@@ -1038,13 +1045,16 @@ public partial class OppoWebSocketHandler
                 case EntityType.Sensor:
                     hasSensor = true;
                     break;
+                case EntityType.Select:
+                    hasSelect = true;
+                    break;
             }
 
-            if (hasMediaPlayer && hasRemote && hasSensor)
+            if (hasMediaPlayer && hasRemote && hasSensor && hasSelect)
                 break;
         }
 
-        return (hasMediaPlayer, hasRemote, hasSensor);
+        return (hasMediaPlayer, hasRemote, hasSensor, hasSelect);
     }
 
     private static bool UpdateProgress(ClientSnapshot snapshot, OppoPlaybackProgressStreamingEvent playbackProgressEvent)
@@ -1112,6 +1122,7 @@ public partial class OppoWebSocketHandler
         PreviousMediaStatesMap.TryRemove(clientKey, out _);
         PreviousRemoteStatesMap.TryRemove(clientKey, out _);
         PreviousSensorInputSourcesMap.TryRemove(clientKey, out _);
+        PreviousSelectInputSourcesMap.TryRemove(clientKey, out _);
         PreviousSensorDiscTypesMap.TryRemove(clientKey, out _);
         PreviousSensorHDMIResolutionsMap.TryRemove(clientKey, out _);
         PreviousSensorAudioTypesMap.TryRemove(clientKey, out _);
@@ -1127,21 +1138,24 @@ public partial class OppoWebSocketHandler
     private static string? GetInputSource(OppoResult<InputSource>? inputSourceResponse) =>
         inputSourceResponse is not { Success: true }
             ? null
-            : inputSourceResponse.Value.Result switch
-            {
-                InputSource.Unknown => null,
-                InputSource.BluRayPlayer => OppoConstants.InputSource.BluRayPlayer,
-                InputSource.HDMIIn => OppoConstants.InputSource.HDMIIn,
-                InputSource.ARCHDMIOut => OppoConstants.InputSource.ARCHDMIOut,
-                InputSource.Optical => OppoConstants.InputSource.Optical,
-                InputSource.Coaxial => OppoConstants.InputSource.Coaxial,
-                InputSource.USBAudio => OppoConstants.InputSource.USBAudio,
-                InputSource.HDMIFront => OppoConstants.InputSource.HDMIFront,
-                InputSource.HDMIBack => OppoConstants.InputSource.HDMIBack,
-                InputSource.ARCHDMIOut1 => OppoConstants.InputSource.ARCHDMIOut1,
-                InputSource.ARCHDMIOut2 => OppoConstants.InputSource.ARCHDMIOut2,
-                _ => null
-            };
+            : GetInputSource(inputSourceResponse.Value.Result);
+
+    private static string? GetInputSource(InputSource? inputSource) =>
+        inputSource switch
+        {
+            null or InputSource.Unknown => null,
+            InputSource.BluRayPlayer => OppoConstants.InputSource.BluRayPlayer,
+            InputSource.HDMIIn => OppoConstants.InputSource.HDMIIn,
+            InputSource.ARCHDMIOut => OppoConstants.InputSource.ARCHDMIOut,
+            InputSource.Optical => OppoConstants.InputSource.Optical,
+            InputSource.Coaxial => OppoConstants.InputSource.Coaxial,
+            InputSource.USBAudio => OppoConstants.InputSource.USBAudio,
+            InputSource.HDMIFront => OppoConstants.InputSource.HDMIFront,
+            InputSource.HDMIBack => OppoConstants.InputSource.HDMIBack,
+            InputSource.ARCHDMIOut1 => OppoConstants.InputSource.ARCHDMIOut1,
+            InputSource.ARCHDMIOut2 => OppoConstants.InputSource.ARCHDMIOut2,
+            _ => null
+        };
 
     private Task SendMediaPlayerEventAsync<TMediaPlayerStateChangedEventMessageDataAttributes>(System.Net.WebSockets.WebSocket socket,
         string wsId,
@@ -1275,6 +1289,29 @@ public partial class OppoWebSocketHandler
                 },
                 oppoClientHolder.ClientKey.EntityId,
                 nameof(OppoSensorType.InputSource)),
+            wsId,
+            cancellationToken);
+    }
+
+    private Task SendSelectEventAsync(System.Net.WebSockets.WebSocket socket,
+        string wsId,
+        OppoClientHolder oppoClientHolder,
+        InputSource? inputSource,
+        CancellationToken cancellationToken)
+    {
+        if (PreviousSelectInputSourcesMap.TryGetValue(oppoClientHolder.ClientKey, out var previousState) &&
+            previousState == inputSource)
+            return Task.CompletedTask;
+
+        PreviousSelectInputSourcesMap[oppoClientHolder.ClientKey] = inputSource;
+        return SendMessageAsync(socket,
+            ResponsePayloadHelpers.CreateSelectStateChangedPayload(
+                new SelectStateChangedEventMessageDataAttributes
+                {
+                    CurrentOption = GetInputSource(inputSource) ?? string.Empty
+                },
+                oppoClientHolder.ClientKey.EntityId,
+                OppoConstants.InputSourceSelectSuffix),
             wsId,
             cancellationToken);
     }
