@@ -1032,7 +1032,7 @@ public partial class OppoWebSocketHandler
         IReadOnlyCollection<SubscribedEntity> subscribedEntities)
     {
         bool hasMediaPlayer = false, hasRemote = false, hasSensor = false, hasSelect = false;
-        foreach (var entity in subscribedEntities)
+        foreach (var entity in subscribedEntities.DistinctBy(static x => x.EntityType))
         {
             switch (entity.EntityType)
             {
@@ -1049,9 +1049,6 @@ public partial class OppoWebSocketHandler
                     hasSelect = true;
                     break;
             }
-
-            if (hasMediaPlayer && hasRemote && hasSensor && hasSelect)
-                break;
         }
 
         return (hasMediaPlayer, hasRemote, hasSensor, hasSelect);
