@@ -1305,7 +1305,7 @@ public partial class OppoWebSocketHandler
             ResponsePayloadHelpers.CreateSelectStateChangedPayload(
                 new SelectStateChangedEventMessageDataAttributes
                 {
-                    CurrentOption = GetInputSource(inputSource) ?? "--",
+                    CurrentOption = GetInputSource(inputSource),
                     State = SelectState.On
                 },
                 oppoClientHolder.ClientKey.EntityId,
