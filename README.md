@@ -6,7 +6,7 @@
 [![Qodana](https://img.shields.io/github/actions/workflow/status/henrikwidlund/unfoldedcircle-oppo/qodana_code_quality.yml?branch=main&label=Qodana&logo=github)](https://github.com/henrikwidlund/unfoldedcircle-oppo/actions/workflows/qodana_code_quality.yml)
 [![Docker](https://img.shields.io/github/actions/workflow/status/henrikwidlund/unfoldedcircle-oppo/docker.yml?label=Docker&logo=docker)](https://github.com/henrikwidlund/unfoldedcircle-oppo/actions/workflows/docker.yml)
 
-This repository contains the server code for hosting an Oppo/Magnetar Blu-ray integration driver for the Unfolded Circle Remotes.
+This repository contains the server code for hosting an Oppo/Magnetar Blu-ray integration driver for the Unfolded Circle Remotes, Linux, macOS, Windows and Docker Images.
 
 ## Supported devices
 
@@ -22,8 +22,7 @@ This repository contains the server code for hosting an Oppo/Magnetar Blu-ray in
 ### Supported features limitations
 
 - All features are supported for the UDP-20X series.
-- The Oppo players only allows one connection at a time, so if you have multiple remotes or other systems connected to the same player,
-the integration will keep getting disconnected and commands will fail. Use the [Oppo Multiplexer](https://github.com/henrikwidlund/oppo-multiplexer) to work around this issue.
+- The Oppo and Magnetar players only allows one connection at a time. If you have multiple remotes or other systems that you want to connect to the same player, then you'll need to use the [Oppo Multiplexer](https://github.com/henrikwidlund/oppo-multiplexer) in order to avoid getting continuous disconnects and failed commands.
 
 | Feature            | Oppo BDP-83/93/95 | Oppo BDP-10X | Magnetar |
 |--------------------|-------------------|--------------|----------|
@@ -44,20 +43,20 @@ the integration will keep getting disconnected and commands will fail. Use the [
 
 ### Running
 
-- The published binary is self-contained and doesn't require any additional software. It's compiled for Linux ARM64 and is meant to be running on the remote.
-- Use the [Docker Image](https://hub.docker.com/r/henrikwidlund/unfoldedcircle-oppo) in the [Core Simulator](https://github.com/unfoldedcircle/core-simulator)
+- The published binaries are self-contained and doesn't require any additional software.
+- Use the [Docker Image](https://hub.docker.com/r/henrikwidlund/unfoldedcircle-oppo).
 
 ### Network
 
 | Service      | Port  | Protocol   |
 |--------------|-------|------------|
-| Server       | Random* | HTTP (TCP) |
+| Server       | 9001* | HTTP (TCP) |
 | Oppo BDP-83  | 19999 | TCP        |
 | Oppo BDP-9X  | 48360 | TCP        |
 | Oppo BDP-10X | 48360 | TCP        |
 | Oppo UDP-20X | 23    | TCP        |
 
-\* Server port can be adjusted by specifying the desired port with the `UC_INTEGRATION_HTTP_PORT` environment variable.
+\* Server port can be adjusted by specifying the desired port with the `UC_INTEGRATION_HTTP_PORT` environment variable. Port can't be controlled when running on the remote.
 
 ### Development
 
@@ -141,8 +140,8 @@ This will produce a self-contained binary in the `publish` directory in the root
 ## Limitations
 
 - Selecting input on the player can only be done when the player reports that it is on, this means that you have to place a delay between the `Switch on` and `Input source` commands if you want to use this in the `On sequence`, or the remote will think the start sequence fails. This is because the player may accept power commands and report success while still transitioning between states — for example, sending Power On shortly after Power Off may return success but the player continues shutting down. When using macros or sequences, place a delay of a couple of seconds after any power state change before sending subsequent commands.
-- The artist, album and track information might not always be available or accurate. This can't be helped as it's the information the player provides.
-- The album cover might be incorrect or missing. This is because the CDDB database no longer exists, as such, the application tries to get covers by matching the current artist and album. This is not always accurate enough.
+- The artist, album and track information might not always be available or accurate - the integration displays whatever information the player provides.
+- The album cover might be incorrect or missing. This is because the CDDB database, which the Oppo players use, no longer exists, as such, the application tries to get covers by matching the current artist and album. This is not always accurate enough.
 - Reported progress follows the unit's own front-panel time display. Movie progress only supports total (whole-title) length, the player's default. Changing the display to something else (e.g. chapter time) for movies makes progress inconsistent or missing. Leave the player's time display on its defaults for accurate progress.
 
 ## Licenses / Copyright
