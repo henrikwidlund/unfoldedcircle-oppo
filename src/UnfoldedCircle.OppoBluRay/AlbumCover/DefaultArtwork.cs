@@ -20,10 +20,17 @@ internal static class DefaultArtwork
         [DiscType.SVCD] = "svcd.png"
     }.ToFrozenDictionary();
 
+    private const string MagnetarBrandIconFileName = "magnetar.png";
+    private const string OppoBrandIconFileName = "oppo.png";
+
     private static readonly ConcurrentDictionary<DiscType, Uri?> CachedUris = new();
+    private static readonly ConcurrentDictionary<OppoModel, Uri> BrandCachedUris = new();
 
     public static Uri? GetIconUri(DiscType discType) =>
         CachedUris.GetOrAdd(discType, static dt => IconFileNames.TryGetValue(dt, out var fileName) ? LoadUri(fileName) : null);
+
+    public static Uri GetBrandIconUri(OppoModel model) =>
+        BrandCachedUris.GetOrAdd(model, static m => LoadUri(m == OppoModel.Magnetar ? MagnetarBrandIconFileName : OppoBrandIconFileName));
 
     private static Uri LoadUri(string fileName)
     {

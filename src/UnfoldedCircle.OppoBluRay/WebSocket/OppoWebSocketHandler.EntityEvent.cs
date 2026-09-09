@@ -367,9 +367,7 @@ public partial class OppoWebSocketHandler
             : State.Unknown;
 
         snapshot.IsMovie = snapshot.DiscTypeResponse is { Success: true, Result: DiscType.BlueRayMovie or DiscType.DVDVideo or DiscType.UltraHDBluRay };
-        snapshot.CoverUri = snapshot.DiscTypeResponse is { Success: true } discTypeResponse
-            ? DefaultArtwork.GetIconUri(discTypeResponse.Result)
-            : null;
+        snapshot.CoverUri = GetCoverUri(oppoClientHolder, snapshot);
 
         if (playbackStatusResponse is not { Success: true, Result: PlaybackStatus.Play or PlaybackStatus.Pause }
             || snapshot.DiscTypeResponse is not { Success: true, Result: not (DiscType.Unknown or DiscType.UnknownDisc or DiscType.DataDisc) })
@@ -377,6 +375,13 @@ public partial class OppoWebSocketHandler
 
         await PopulateActivePlaybackSnapshotAsync(oppoClientHolder, snapshot, cancellationToken);
     }
+
+    private static Uri GetCoverUri(OppoClientHolder oppoClientHolder, ClientSnapshot snapshot) =>
+        (snapshot.DiscTypeResponse switch
+        {
+            { Success: true } discTypeResponse => DefaultArtwork.GetIconUri(discTypeResponse.Result),
+            _ => null
+        }) ?? DefaultArtwork.GetBrandIconUri(oppoClientHolder.ClientKey.Model);
 
     private async ValueTask PopulateActivePlaybackSnapshotAsync(
         OppoClientHolder oppoClientHolder,
@@ -772,7 +777,7 @@ public partial class OppoWebSocketHandler
             context.Snapshot.TrackResponse = null;
             context.Snapshot.Album = null;
             context.Snapshot.Performer = null;
-            context.Snapshot.CoverUri = null;
+            context.Snapshot.CoverUri = DefaultArtwork.GetBrandIconUri(context.ClientHolder.ClientKey.Model);
             context.Snapshot.RepeatMode = null;
             context.Snapshot.Shuffle = null;
             context.Snapshot.LastProgressTitle = null;
