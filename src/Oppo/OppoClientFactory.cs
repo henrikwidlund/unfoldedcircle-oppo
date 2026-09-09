@@ -49,7 +49,7 @@ public sealed class OppoClientFactory(ILoggerFactory loggerFactory, ILogger<Oppo
             }
             catch (Exception e)
             {
-                _logger.TryGetOrCreateClientException(e, oppoClientKey);
+                _logger.TryGetOrCreateClientException(oppoClientKey, e);
                 return null;
             }
             finally
@@ -71,7 +71,7 @@ public sealed class OppoClientFactory(ILoggerFactory loggerFactory, ILogger<Oppo
         }
         catch (Exception e)
         {
-            _logger.FailedToDisposeClient(e, oppoClientKey);
+            _logger.FailedToDisposeClient(oppoClientKey, e);
             throw;
         }
     }
@@ -86,7 +86,7 @@ public sealed class OppoClientFactory(ILoggerFactory loggerFactory, ILogger<Oppo
             }
             catch (Exception e)
             {
-                _logger.FailedToDisposeClient(e, client.Key);
+                _logger.FailedToDisposeClient(client.Key, e);
             }
         }
 

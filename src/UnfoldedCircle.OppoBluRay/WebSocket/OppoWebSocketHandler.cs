@@ -412,7 +412,7 @@ public partial class OppoWebSocketHandler(
         }
         catch (Exception e)
         {
-            _logger.FailureDuringRestore(e, wsId);
+            _logger.FailureDuringRestore(wsId, e);
             return RestoreResult.Failure;
         }
     }

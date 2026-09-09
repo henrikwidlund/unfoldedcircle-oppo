@@ -5,91 +5,55 @@ namespace UnfoldedCircle.OppoBluRay.Logging;
 internal static partial class IntegrationLogger
 {
     // WebSocket - Oppo handler logging
-    [LoggerMessage(EventId = 1, EventName = nameof(NoConfigurationsFound), Level = LogLevel.Information,
-        Message = "[{WSId}] WS: No configurations found")]
+    [LoggerMessage(EventId = 1, Level = LogLevel.Information, Message = "[{WSId}] WS: No configurations found")]
     public static partial void NoConfigurationsFound(this ILogger logger, string wsId);
 
-    [LoggerMessage(EventId = 2, EventName = nameof(NoConfigurationFoundForIdentifier), Level = LogLevel.Information,
-        Message = "[{WSId}] WS: No configuration found for identifier '{Identifier}' with type {Type}")]
+    [LoggerMessage(EventId = 2, Level = LogLevel.Information, Message = "[{WSId}] WS: No configuration found for identifier '{Identifier}' with type {Type}")]
     public static partial void NoConfigurationFoundForIdentifier(this ILogger logger, string wsId, in ReadOnlyMemory<char> identifier, OppoWebSocketHandler.IdentifierType type);
 
-    [LoggerMessage(EventId = 3, EventName = nameof(NoConfigurationFoundForDeviceId), Level = LogLevel.Information,
-        Message = "[{WSId}] WS: No configuration found for device ID '{DeviceId}'")]
+    [LoggerMessage(EventId = 3, Level = LogLevel.Information, Message = "[{WSId}] WS: No configuration found for device ID '{DeviceId}'")]
     public static partial void NoConfigurationFoundForDeviceId(this ILogger logger, string wsId, in ReadOnlyMemory<char> deviceId);
 
     // WebSocket - Entity command logging
-    [LoggerMessage(EventId = 4, EventName = nameof(CouldNotFindOppoClientForEntityId), Level = LogLevel.Warning,
-        Message = "[{WSId}] WS: Could not find client for entity ID '{EntityId}'")]
+    [LoggerMessage(EventId = 4, Level = LogLevel.Warning, Message = "[{WSId}] WS: Could not find client for entity ID '{EntityId}'")]
     public static partial void CouldNotFindOppoClientForEntityId(this ILogger logger, string wsId, string entityId);
 
-    [LoggerMessage(EventId = 23, EventName = nameof(CouldNotFindOppoClientForEntityIdMemory), Level = LogLevel.Warning,
-        Message = "[{WSId}] WS: Could not find client for entity ID '{EntityId}'")]
+    [LoggerMessage(EventId = 23, Level = LogLevel.Warning, Message = "[{WSId}] WS: Could not find client for entity ID '{EntityId}'")]
     public static partial void CouldNotFindOppoClientForEntityIdMemory(this ILogger logger, string wsId, ReadOnlyMemory<char> entityId);
 
     // WebSocket - Entity event logging
-    [LoggerMessage(EventId = 9, EventName = nameof(TryingToGetOppoClientHolder), Level = LogLevel.Debug,
-        Message = "{WSId} Trying to get OppoClientHolder.")]
+    [LoggerMessage(EventId = 9, Level = LogLevel.Debug, Message = "{WSId} Trying to get OppoClientHolder.")]
     public static partial void TryingToGetOppoClientHolder(this ILogger logger, string wsId);
 
-    [LoggerMessage(EventId = 12, EventName = nameof(StartingEventsForDevice), Level = LogLevel.Debug,
-        Message = "{WSId} Starting events for {DeviceId}")]
+    [LoggerMessage(EventId = 12, Level = LogLevel.Debug, Message = "{WSId} Starting events for {DeviceId}")]
     public static partial void StartingEventsForDevice(this ILogger logger, string wsId, string deviceId);
 
     // WebSocket - Configuration logging
-    [LoggerMessage(EventId = 14, EventName = nameof(AddingConfiguration), Level = LogLevel.Information,
-        Message = "Adding configuration for entity_id '{EntityId}'")]
+    [LoggerMessage(EventId = 14, Level = LogLevel.Information, Message = "Adding configuration for entity_id '{EntityId}'")]
     public static partial void AddingConfiguration(this ILogger logger, string entityId);
 
-    [LoggerMessage(EventId = 15, EventName = nameof(UpdatingConfiguration), Level = LogLevel.Information,
-        Message = "Updating configuration for entity_id '{EntityId}'")]
+    [LoggerMessage(EventId = 15, Level = LogLevel.Information, Message = "Updating configuration for entity_id '{EntityId}'")]
     public static partial void UpdatingConfiguration(this ILogger logger, string entityId);
 
     // AlbumCover service logging
-    [LoggerMessage(EventId = 16, EventName = nameof(NoAlbumCoverFound), Level = LogLevel.Debug,
-        Message = "No album cover found for {Artist} - {Album}")]
+    [LoggerMessage(EventId = 16, Level = LogLevel.Debug, Message = "No album cover found for {Artist} - {Album}")]
     public static partial void NoAlbumCoverFound(this ILogger logger, string artist, string? album);
 
-    [LoggerMessage(EventId = 17, EventName = nameof(FailedToFetchUrl), Level = LogLevel.Error,
-        Message = "Failed to fetch {Url}: {StatusCode} - {Content}")]
+    [LoggerMessage(EventId = 17, Level = LogLevel.Error, Message = "Failed to fetch {Url}: {StatusCode} - {Content}")]
     public static partial void FailedToFetchUrl(this ILogger logger, string url, System.Net.HttpStatusCode statusCode, string content);
 
-    private static readonly Action<ILogger, string, Exception> FailedToFetchUrlExceptionAction = LoggerMessage.Define<string>(
-        LogLevel.Error,
-        new EventId(18, nameof(FailedToFetchUrlException)),
-        "Failed to fetch {Url}");
+    [LoggerMessage(EventId = 18, Level = LogLevel.Error, Message = "Failed to fetch {Url}")]
+    public static partial void FailedToFetchUrlException(this ILogger logger, string url, Exception exception);
 
-    public static void FailedToFetchUrlException(this ILogger logger, Exception exception, string url) =>
-        FailedToFetchUrlExceptionAction(logger, url, exception);
+    [LoggerMessage(EventId = 19, Level = LogLevel.Error, Message = "Failed to fetch album cover for {ReleaseId}")]
+    public static partial void FailedToFetchAlbumCover(this ILogger logger, string releaseId, Exception exception);
 
-    private static readonly Action<ILogger, string, Exception> FailedToFetchAlbumCoverAction = LoggerMessage.Define<string>(
-        LogLevel.Error,
-        new EventId(19, nameof(FailedToFetchAlbumCover)),
-        "Failed to fetch album cover for {ReleaseId}");
+    [LoggerMessage(EventId = 20, Level = LogLevel.Error, Message = "{WSId} Failure during event for {Key}.")]
+    public static partial void FailureDuringEvent(this ILogger logger, string wsId, string key, Exception exception);
 
-    public static void FailedToFetchAlbumCover(this ILogger logger, Exception exception, string releaseId) =>
-        FailedToFetchAlbumCoverAction(logger, releaseId, exception);
+    [LoggerMessage(EventId = 21, Level = LogLevel.Error, Message = "{WSId} Failure during restore.")]
+    public static partial void FailureDuringRestore(this ILogger logger, string wsId, Exception exception);
 
-    private static readonly Action<ILogger, string, string, Exception> FailureDuringEventAction = LoggerMessage.Define<string, string>(
-        LogLevel.Error,
-        new EventId(20, nameof(FailureDuringEvent)),
-        "{WSId} Failure during event for {Key}.");
-
-    public static void FailureDuringEvent(this ILogger logger, Exception exception, string wsId, string key) =>
-        FailureDuringEventAction(logger, wsId, key, exception);
-
-    private static readonly Action<ILogger, string, Exception> FailureDuringRestoreAction = LoggerMessage.Define<string>(
-        LogLevel.Error,
-        new EventId(21, nameof(FailureDuringRestore)),
-        "{WSId} Failure during restore.");
-
-    public static void FailureDuringRestore(this ILogger logger, Exception exception, string wsId) =>
-        FailureDuringRestoreAction(logger, wsId, exception);
-
-    private static readonly Action<ILogger, string, Exception> FailureSettingVerboseModeAction = LoggerMessage.Define<string>(
-        LogLevel.Error,
-        new EventId(22, nameof(FailureSettingVerboseMode)),
-        "Failure setting streaming verbose mode for {EntityId}.");
-
-    public static void FailureSettingVerboseMode(this ILogger logger, Exception exception, string entityId) =>
-        FailureSettingVerboseModeAction(logger, entityId, exception);
+    [LoggerMessage(EventId = 22, Level = LogLevel.Error, Message = "Failure setting streaming verbose mode for {EntityId}.")]
+    public static partial void FailureSettingVerboseMode(this ILogger logger, string entityId, Exception exception);
 }

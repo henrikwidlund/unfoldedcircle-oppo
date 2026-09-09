@@ -87,7 +87,7 @@ public partial class OppoWebSocketHandler
             {
                 // This is expected from control flow, no need to spam logs
                 if (e is not OperationCanceledException)
-                    _logger.FailureDuringEvent(e, wsId, subscribedEntity.Key);
+                    _logger.FailureDuringEvent(wsId, subscribedEntity.Key, e);
             }
         }
 
@@ -141,7 +141,7 @@ public partial class OppoWebSocketHandler
             }
             catch (Exception e) when (e is not OperationCanceledException)
             {
-                _logger.FailureDuringEvent(e, wsId, context.ClientHolder.ClientKey.EntityId);
+                _logger.FailureDuringEvent(wsId, context.ClientHolder.ClientKey.EntityId, e);
             }
         }
 
@@ -600,7 +600,7 @@ public partial class OppoWebSocketHandler
         }
         catch (Exception e)
         {
-            _logger.FailureDuringEvent(e, wsId, entityId);
+            _logger.FailureDuringEvent(wsId, entityId, e);
         }
     }
 
@@ -986,7 +986,7 @@ public partial class OppoWebSocketHandler
             }
             catch (Exception e)
             {
-                logger.FailureSettingVerboseMode(e, context.ClientHolder.ClientKey.EntityId);
+                logger.FailureSettingVerboseMode(context.ClientHolder.ClientKey.EntityId, e);
             }
             finally
             {

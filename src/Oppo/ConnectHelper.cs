@@ -106,7 +106,7 @@ internal static class ConnectHelper
             }
             catch (Exception e)
             {
-                logger.FailedToConnectToOppoPlayer(e, hostName, port);
+                logger.FailedToConnectToOppoPlayer(hostName, port, e);
             }
 
             return tcpClient.Connected;

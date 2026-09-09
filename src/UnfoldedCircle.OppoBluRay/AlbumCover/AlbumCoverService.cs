@@ -102,7 +102,7 @@ internal sealed class AlbumCoverService(
         }
         catch (Exception e)
         {
-            _logger.FailedToFetchUrlException(e, url);
+            _logger.FailedToFetchUrlException(url, e);
 
             return null;
         }
@@ -170,7 +170,7 @@ internal sealed class AlbumCoverService(
         }
         catch (Exception ex)
         {
-            _logger.FailedToFetchAlbumCover(ex, releaseId);
+            _logger.FailedToFetchAlbumCover(releaseId, ex);
 
             return null;
         }
