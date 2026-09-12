@@ -377,11 +377,9 @@ public partial class OppoWebSocketHandler
     }
 
     private static Uri GetCoverUri(OppoClientHolder oppoClientHolder, ClientSnapshot snapshot) =>
-        (snapshot.DiscTypeResponse switch
-        {
-            { Success: true } discTypeResponse => DefaultArtwork.GetIconUri(discTypeResponse.Result),
-            _ => null
-        }) ?? DefaultArtwork.GetBrandIconUri(oppoClientHolder.ClientKey.Model);
+        (IsActivePlaybackState(snapshot.State) && snapshot.DiscTypeResponse is { Success: true } discTypeResponse
+            ? DefaultArtwork.GetIconUri(discTypeResponse.Result)
+            : null) ?? DefaultArtwork.GetBrandIconUri(oppoClientHolder.ClientKey.Model);
 
     private async ValueTask PopulateActivePlaybackSnapshotAsync(
         OppoClientHolder oppoClientHolder,
@@ -777,7 +775,7 @@ public partial class OppoWebSocketHandler
             context.Snapshot.TrackResponse = null;
             context.Snapshot.Album = null;
             context.Snapshot.Performer = null;
-            context.Snapshot.CoverUri = DefaultArtwork.GetBrandIconUri(context.ClientHolder.ClientKey.Model);
+            context.Snapshot.CoverUri = GetCoverUri(context.ClientHolder, context.Snapshot);
             context.Snapshot.RepeatMode = null;
             context.Snapshot.Shuffle = null;
             context.Snapshot.LastProgressTitle = null;
