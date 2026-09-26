@@ -11,6 +11,7 @@ using UnfoldedCircle.OppoBluRay.AlbumCover;
 using UnfoldedCircle.OppoBluRay.Configuration;
 using UnfoldedCircle.OppoBluRay.Json;
 using UnfoldedCircle.OppoBluRay.Logging;
+using UnfoldedCircle.OppoBluRay.Metadata;
 using UnfoldedCircle.OppoBluRay.OppoEntity;
 using UnfoldedCircle.OppoBluRay.Response;
 using UnfoldedCircle.Server.Configuration;
@@ -24,13 +25,15 @@ namespace UnfoldedCircle.OppoBluRay.WebSocket;
 public partial class OppoWebSocketHandler(
     IOppoClientFactory oppoClientFactory,
     IAlbumCoverService albumCoverService,
+    OppoHttpMetadataClient httpMetadataClient,
     IConfigurationService<OppoGlobalConfiguration, OppoConfigurationItem> configurationService,
     IOptions<UnfoldedCircleOptions> options,
-    ILogger<UnfoldedCircleWebSocketHandler<OppoCommandId, OppoGlobalConfiguration, OppoConfigurationItem>> logger)
+    ILogger<OppoWebSocketHandler> logger)
     : UnfoldedCircleWebSocketHandler<OppoCommandId, OppoGlobalConfiguration, OppoConfigurationItem>(configurationService, options, logger)
 {
     private readonly IOppoClientFactory _oppoClientFactory = oppoClientFactory;
     private readonly IAlbumCoverService _albumCoverService = albumCoverService;
+    private readonly OppoHttpMetadataClient _httpMetadataClient = httpMetadataClient;
 
     protected override FrozenSet<EntityType> SupportedEntityTypes { get; } = [EntityType.MediaPlayer, EntityType.Remote, EntityType.Sensor, EntityType.Select];
 
@@ -376,7 +379,7 @@ public partial class OppoWebSocketHandler(
         var oppoModel = GetOppoModel(payload.MsgData.InputValues!);
         var useMediaEvents = payload.MsgData.InputValues!.TryGetValue(OppoConstants.UseMediaEventsKey, out var useMediaEventsValue) &&
                                useMediaEventsValue.Equals(bool.TrueString, StringComparison.OrdinalIgnoreCase);
-        var useStreamingEvents = payload.MsgData.InputValues!.TryGetValue(OppoConstants.UseStreamingEventsKey, out var useStreamingEventsValue) &&
+        var useStreamingEvents = payload.MsgData.InputValues.TryGetValue(OppoConstants.UseStreamingEventsKey, out var useStreamingEventsValue) &&
                                  useStreamingEventsValue.Equals(bool.TrueString, StringComparison.OrdinalIgnoreCase);
 
         var newConfigurationItem = configurationItem with
@@ -452,13 +455,13 @@ public partial class OppoWebSocketHandler(
         var configuration = await _configurationService.GetConfigurationAsync(cancellationToken);
         var driverMetadata = await _configurationService.GetDriverMetadataAsync(cancellationToken);
         var host = payload.MsgData.InputValues![OppoConstants.IpAddressKey];
-        var oppoModel = GetOppoModel(payload.MsgData.InputValues!);
-        var entityName = payload.MsgData.InputValues!.GetStringValueOrDefault(OppoConstants.EntityName, $"{driverMetadata.Name["en"]} ({GetOppoModelName(oppoModel)}) - {host}");
-        var macAddress = payload.MsgData.InputValues!.GetStringValueOrDefault(OppoConstants.MacAddressKey, string.Empty);
-        bool? useMediaEvents = payload.MsgData.InputValues!.TryGetValue(OppoConstants.UseMediaEventsKey, out var useMediaEventsValue)
+        var oppoModel = GetOppoModel(payload.MsgData.InputValues);
+        var entityName = payload.MsgData.InputValues.GetStringValueOrDefault(OppoConstants.EntityName, $"{driverMetadata.Name["en"]} ({GetOppoModelName(oppoModel)}) - {host}");
+        var macAddress = payload.MsgData.InputValues.GetStringValueOrDefault(OppoConstants.MacAddressKey, string.Empty);
+        bool? useMediaEvents = payload.MsgData.InputValues.TryGetValue(OppoConstants.UseMediaEventsKey, out var useMediaEventsValue)
             ? useMediaEventsValue.Equals(bool.TrueString, StringComparison.OrdinalIgnoreCase)
             : null;
-        bool? useStreamingEvents = payload.MsgData.InputValues!.TryGetValue(OppoConstants.UseStreamingEventsKey, out var useStreamingEventsValue)
+        bool? useStreamingEvents = payload.MsgData.InputValues.TryGetValue(OppoConstants.UseStreamingEventsKey, out var useStreamingEventsValue)
             ? useStreamingEventsValue.Equals(bool.TrueString, StringComparison.OrdinalIgnoreCase)
             : null;
 

@@ -2,6 +2,7 @@ using Oppo;
 
 using UnfoldedCircle.OppoBluRay.AlbumCover;
 using UnfoldedCircle.OppoBluRay.Configuration;
+using UnfoldedCircle.OppoBluRay.Metadata;
 using UnfoldedCircle.OppoBluRay.OppoEntity;
 using UnfoldedCircle.OppoBluRay.WebSocket;
 
@@ -15,6 +16,8 @@ builder.Services.AddHttpClient<IAlbumCoverService, AlbumCoverService>(static cli
     client.DefaultRequestHeaders.UserAgent.ParseAdd("UnfoldedCircle/1.0");
     client.Timeout = TimeSpan.FromSeconds(7);
 });
+builder.Services.AddHttpClient<OppoHttpMetadataClient>(static client =>
+    client.Timeout = TimeSpan.FromSeconds(3));
 builder.Services.AddMemoryCache();
 
 var app = builder.Build();
