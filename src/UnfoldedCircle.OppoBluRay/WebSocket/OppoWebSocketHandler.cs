@@ -28,7 +28,7 @@ public partial class OppoWebSocketHandler(
     OppoHttpMetadataClient httpMetadataClient,
     IConfigurationService<OppoGlobalConfiguration, OppoConfigurationItem> configurationService,
     IOptions<UnfoldedCircleOptions> options,
-    ILogger<UnfoldedCircleWebSocketHandler<OppoCommandId, OppoGlobalConfiguration, OppoConfigurationItem>> logger)
+    ILogger<OppoWebSocketHandler> logger)
     : UnfoldedCircleWebSocketHandler<OppoCommandId, OppoGlobalConfiguration, OppoConfigurationItem>(configurationService, options, logger)
 {
     private readonly IOppoClientFactory _oppoClientFactory = oppoClientFactory;
@@ -457,7 +457,7 @@ public partial class OppoWebSocketHandler(
         var host = payload.MsgData.InputValues![OppoConstants.IpAddressKey];
         var oppoModel = GetOppoModel(payload.MsgData.InputValues);
         var entityName = payload.MsgData.InputValues.GetStringValueOrDefault(OppoConstants.EntityName, $"{driverMetadata.Name["en"]} ({GetOppoModelName(oppoModel)}) - {host}");
-        var macAddress = payload.MsgData.InputValues!.GetStringValueOrDefault(OppoConstants.MacAddressKey, string.Empty);
+        var macAddress = payload.MsgData.InputValues.GetStringValueOrDefault(OppoConstants.MacAddressKey, string.Empty);
         bool? useMediaEvents = payload.MsgData.InputValues.TryGetValue(OppoConstants.UseMediaEventsKey, out var useMediaEventsValue)
             ? useMediaEventsValue.Equals(bool.TrueString, StringComparison.OrdinalIgnoreCase)
             : null;
