@@ -683,8 +683,13 @@ public partial class OppoWebSocketHandler
     // now-playing snapshot - there is nothing to query, so this sets every relevant field directly and
     // always reports a Full update (dedup against the previous payload already happens downstream in
     // SendMediaPlayerEventAsync).
-    private static void ApplyMagnetarPlayStateStreamingEvent(ClientSnapshot snapshot, OppoMagnetarPlayStateStreamingEvent playStateEvent)
+    private async ValueTask ApplyMagnetarPlayStateStreamingEventAsync(
+        StreamingClientContext context,
+        OppoMagnetarPlayStateStreamingEvent playStateEvent,
+        CancellationToken cancellationToken)
     {
+        var snapshot = context.Snapshot;
+
         snapshot.State = State.On;
         if (MapMagnetarPlaybackState(playStateEvent.State) is { } mappedState)
             snapshot.State = mappedState;
@@ -727,6 +732,8 @@ public partial class OppoWebSocketHandler
         snapshot.MediaDuration = ParseHhMmSs(playStateEvent.TotalTime);
 
         (snapshot.RepeatMode, snapshot.Shuffle) = MapMagnetarRepeatMode(playStateEvent.RepeatMode);
+
+        await TryPopulateAlbumCoverAsync(snapshot, cancellationToken);
     }
 
     // The exact <state> vocabulary beyond play/pause/stop is unconfirmed (no live device to check
