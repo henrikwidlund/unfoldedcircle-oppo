@@ -276,7 +276,7 @@ public partial class OppoWebSocketHandler
         if (oppoClientKey is null)
             return null;
 
-        if (!oppoClientKey.Value.UseStreamingEvents || oppoClientKey.Value.Model == OppoModel.Magnetar)
+        if (!oppoClientKey.Value.UseStreamingEvents)
             return null;
 
         _logger.TryingToGetOppoClientHolder(wsId);
@@ -489,13 +489,6 @@ public partial class OppoWebSocketHandler
     {
         (bool hasMediaPlayer, bool hasRemote, bool hasSensor, bool hasSelect) = GetSubscriptionFlags(subscribedEntities);
 
-        if (oppoClientHolder.ClientKey.Model == OppoModel.Magnetar)
-        {
-            if (hasRemote)
-                await SendRemotePowerEventAsync(socket, wsId, oppoClientHolder, snapshot.State, cancellationToken);
-            return;
-        }
-
         if (oppoClientHolder is { ClientKey.UseMediaEvents: false })
         {
             var mediaPlayerState = new MediaPlayerStateChangedEventMessageDataAttributes { State = snapshot.State };
@@ -677,9 +670,174 @@ public partial class OppoWebSocketHandler
             case OppoPlaybackProgressStreamingEvent playbackProgressEvent:
                 return await HandlePlaybackProgressStreamingEventAsync(context, playbackProgressEvent, cancellationToken);
 
+            case OppoMagnetarPlayStateStreamingEvent playStateEvent:
+                ApplyMagnetarPlayStateStreamingEvent(context.Snapshot, playStateEvent);
+                return MediaPlayerUpdateType.Full;
+
             default:
                 return MediaPlayerUpdateType.Nothing;
         }
+    }
+
+    // Unlike the older 10X/20X protocol, a Magnetar UpdatePlayState push is a complete, self-contained
+    // now-playing snapshot - there is nothing to query, so this sets every relevant field directly and
+    // always reports a Full update (dedup against the previous payload already happens downstream in
+    // SendMediaPlayerEventAsync).
+    private static void ApplyMagnetarPlayStateStreamingEvent(ClientSnapshot snapshot, OppoMagnetarPlayStateStreamingEvent playStateEvent)
+    {
+        snapshot.State = State.On;
+        if (MapMagnetarPlaybackState(playStateEvent.State) is { } mappedState)
+            snapshot.State = mappedState;
+
+        Span<char> mediaTypeBuffer = stackalloc char[16];
+        var mediaTypeKey = ToLowerTrimmed(playStateEvent.MediaType, mediaTypeBuffer);
+        snapshot.IsMovie = mediaTypeKey is "bd" or "vcd" or "dvd" or "video";
+        snapshot.MediaTypeOverride = mediaTypeKey switch
+        {
+            "bd" or "vcd" or "dvd" or "video" => MediaType.Movie,
+            "cd" or "sacd" or "audio" => MediaType.Music,
+            _ => null
+        };
+
+        var discType = MapMagnetarMediaTypeToDiscType(mediaTypeKey);
+        snapshot.CoverUri = (discType is { } dt ? DefaultArtwork.GetIconUri(dt) : null) ?? DefaultArtwork.GetBrandIconUri(OppoModel.Magnetar);
+        snapshot.DiscTypeResponse = discType is { } discTypeResult
+            ? new OppoResult<DiscType> { Success = true, Result = discTypeResult }
+            : null;
+
+        snapshot.HdmiResolutionResponse = MapMagnetarResolution(playStateEvent.FourK, playStateEvent.FrameRate) is { } resolution
+            ? new OppoResult<HDMIResolution> { Success = true, Result = resolution }
+            : null;
+        snapshot.HdrStatusResponse = MapMagnetarHdr(playStateEvent.Hdr) is { } hdrStatus
+            ? new OppoResult<HDRStatus> { Success = true, Result = hdrStatus }
+            : null;
+
+        snapshot.TrackResponse = new OppoResult<string>
+        {
+            Success = true,
+            Result = playStateEvent.TrackTitle ?? playStateEvent.Title ?? playStateEvent.FileName
+        };
+        snapshot.Performer = playStateEvent.DiscArtist ?? playStateEvent.Artist;
+        snapshot.Album = playStateEvent.DiscTitle;
+
+        var elapsedSeconds = ParseHhMmSs(playStateEvent.CurrTime);
+        snapshot.ElapsedResponse = elapsedSeconds is { } elapsed
+            ? new OppoResult<uint> { Success = true, Result = elapsed }
+            : null;
+        snapshot.MediaDuration = ParseHhMmSs(playStateEvent.TotalTime);
+
+        (snapshot.RepeatMode, snapshot.Shuffle) = MapMagnetarRepeatMode(playStateEvent.RepeatMode);
+    }
+
+    // The exact <state> vocabulary beyond play/pause/stop is unconfirmed (no live device to check
+    // against), so an unrecognized value leaves the previous playback state in place rather than guessing.
+    private static State? MapMagnetarPlaybackState(string state)
+    {
+        Span<char> buffer = stackalloc char[16];
+        return ToLowerTrimmed(state, buffer) switch
+        {
+            "play" => State.Playing,
+            "pause" => State.Paused,
+            "stop" => State.On,
+            _ => null
+        };
+    }
+
+    private static DiscType? MapMagnetarMediaTypeToDiscType(ReadOnlySpan<char> mediaTypeKey) =>
+        mediaTypeKey switch
+        {
+            "bd" => DiscType.BlueRayMovie,
+            "dvd" => DiscType.DVDVideo,
+            "vcd" => DiscType.VCD2,
+            "cd" => DiscType.CDDiscAudio,
+            "sacd" => DiscType.SACD,
+            _ => null
+        };
+
+    // "four_k"/"frame_rate" are only present for disc/video media types (absent for cd/sacd/audio),
+    // so null means "not applicable" rather than "unknown". When present but not 4K, the exact
+    // resolution isn't in the push payload, so this reports the generic Other rather than guessing.
+    private static HDMIResolution? MapMagnetarResolution(string? fourK, string? frameRate)
+    {
+        if (string.IsNullOrEmpty(fourK))
+            return null;
+
+        if (!fourK.AsSpan().Trim().Equals("true", StringComparison.OrdinalIgnoreCase))
+            return HDMIResolution.Other;
+
+        Span<char> buffer = stackalloc char[16];
+        return ToLowerTrimmed(frameRate ?? "", buffer) switch
+        {
+            "24" => HDMIResolution.RUltraHDp24,
+            "50" => HDMIResolution.RUltraHDp50,
+            "60" => HDMIResolution.RUltraHDp60,
+            _ => HDMIResolution.RUltraHDAuto
+        };
+    }
+
+    // "hdr" is only present for disc/video media types (absent for cd/sacd/audio) - null means "not
+    // applicable". The exact wire vocabulary is unconfirmed (no live device to check against), so this
+    // only classifies the tokens that are unambiguous ("dolby" / "hdr" / "sdr" or "none" or "off") and
+    // falls back to Unknown rather than guessing.
+    private static HDRStatus? MapMagnetarHdr(string? hdr)
+    {
+        if (string.IsNullOrEmpty(hdr))
+            return null;
+
+        var span = hdr.AsSpan().Trim();
+        if (span.Contains("dolby", StringComparison.OrdinalIgnoreCase))
+            return HDRStatus.DolbyVision;
+        if (span.Contains("hdr", StringComparison.OrdinalIgnoreCase))
+            return HDRStatus.HDR;
+        if (span.Contains("sdr", StringComparison.OrdinalIgnoreCase)
+            || span.Equals("none", StringComparison.OrdinalIgnoreCase)
+            || span.Equals("off", StringComparison.OrdinalIgnoreCase))
+            return HDRStatus.SDR;
+
+        return HDRStatus.Unknown;
+    }
+
+    // Only the literal "all" has been confirmed against a real capture; other values are a
+    // best-effort guess and fall back to Off rather than showing a misleading repeat icon.
+    private static (Models.Shared.RepeatMode? RepeatMode, bool? Shuffle) MapMagnetarRepeatMode(string repeatMode)
+    {
+        Span<char> buffer = stackalloc char[16];
+        return ToLowerTrimmed(repeatMode, buffer) switch
+        {
+            "off" => (Models.Shared.RepeatMode.Off, false),
+            "all" => (Models.Shared.RepeatMode.All, false),
+            "one" => (Models.Shared.RepeatMode.One, false),
+            _ => (Models.Shared.RepeatMode.Off, false)
+        };
+    }
+
+    // The device only ever sends short ASCII tokens for these fields (state/media type/repeat mode),
+    // so a small stack buffer always fits - avoids the heap allocation Trim().ToLowerInvariant() would
+    // otherwise make on every single push event.
+    private static ReadOnlySpan<char> ToLowerTrimmed(string value, Span<char> buffer)
+    {
+        var trimmed = value.AsSpan().Trim();
+        var written = trimmed.ToLowerInvariant(buffer);
+        return written < 0 ? trimmed : buffer[..written];
+    }
+
+    private static uint? ParseHhMmSs(string time)
+    {
+        var span = time.AsSpan();
+        var firstColon = span.IndexOf(':');
+        if (firstColon < 0)
+            return null;
+
+        var secondColon = span[(firstColon + 1)..].IndexOf(':');
+        if (secondColon < 0)
+            return null;
+        secondColon += firstColon + 1;
+
+        return uint.TryParse(span[..firstColon], out var hours)
+            && uint.TryParse(span[(firstColon + 1)..secondColon], out var minutes)
+            && uint.TryParse(span[(secondColon + 1)..], out var seconds)
+            ? hours * 3600 + minutes * 60 + seconds
+            : null;
     }
 
     private static bool ApplyPowerOnlyStreamingEvent(StreamingClientContext context, OppoStreamingEvent streamingEvent)
@@ -968,6 +1126,10 @@ public partial class OppoWebSocketHandler
         if (!context.ClientHolder.Client.SupportsStreamingUpdates || !context.ClientHolder.ClientKey.UseStreamingEvents)
             return;
 
+        // Magnetar has no verbose-mode concept - its push channel is enabled once via #APP.
+        if (context.ClientHolder.ClientKey.Model == OppoModel.Magnetar)
+            return;
+
         // Only let one ensure operation be scheduled at a time. The flag is released once the
         // operation finishes so a failed attempt can be retried by a later caller.
         if (!context.TryClaimVerboseModeEnsure() || cancellationToken.IsCancellationRequested)
@@ -1097,7 +1259,7 @@ public partial class OppoWebSocketHandler
         return new MediaPlayerStateChangedEventMessageDataAttributes
         {
             State = snapshot.State,
-            MediaType = snapshot.DiscTypeResponse?.Result switch
+            MediaType = snapshot.MediaTypeOverride ?? snapshot.DiscTypeResponse?.Result switch
             {
                 DiscType.BlueRayMovie or DiscType.DVDVideo or DiscType.UltraHDBluRay => MediaType.Movie,
                 DiscType.DVDAudio or DiscType.SACD or DiscType.CDDiscAudio => MediaType.Music,
@@ -1574,6 +1736,7 @@ public partial class OppoWebSocketHandler
         public OppoResult<VolumeInfo>? VolumeResponse { get; set; }
         public OppoResult<InputSource>? InputSourceResponse { get; set; }
         public OppoResult<DiscType>? DiscTypeResponse { get; set; }
+        public MediaType? MediaTypeOverride { get; set; }
         public OppoResult<uint>? ElapsedResponse { get; set; }
         public OppoResult<uint>? RemainingResponse { get; set; }
         public OppoResult<string>? TrackResponse { get; set; }

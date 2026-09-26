@@ -78,4 +78,13 @@ internal static partial class OppoLogger
 
     [LoggerMessage(EventId = 26, Level = LogLevel.Information, Message = "{Caller} - Cancellation requested while awaiting.")]
     public static partial void CancellationWhileAwaiting(this ILogger logger, string? caller);
+
+    [LoggerMessage(EventId = 27, Level = LogLevel.Debug, Message = "Failed to parse Magnetar push message '{Xml}'")]
+    public static partial void FailedToParseMagnetarPushMessage(this ILogger logger, string xml, Exception exception);
+
+    [LoggerMessage(EventId = 28, Level = LogLevel.Warning, Message = "Magnetar push buffer exceeded {MaxSize} bytes without a complete message, discarding")]
+    public static partial void MagnetarPushBufferExceeded(this ILogger logger, int maxSize);
+
+    [LoggerMessage(EventId = 29, Level = LogLevel.Debug, Message = "Magnetar streaming connection lost")]
+    public static partial void MagnetarStreamingConnectionLost(this ILogger logger, Exception? exception);
 }

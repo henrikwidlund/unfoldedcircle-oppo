@@ -54,3 +54,25 @@ public sealed record OppoPlaybackProgressStreamingEvent(
     OppoTimeCodeType TimeCodeType,
     uint Seconds)
     : OppoStreamingEvent;
+
+/// <summary>
+/// Self-contained now-playing snapshot pushed by a Magnetar player (<c>UpdatePlayState</c>).
+/// Field presence depends on <see cref="MediaType"/>: cd -&gt; TrackTitle; sacd -&gt; + DiscArtist/DiscTitle;
+/// bd/vcd/dvd/video -&gt; FileName/Hdr/FourK/FrameRate; audio -&gt; Artist/Title/FileName.
+/// </summary>
+public sealed record OppoMagnetarPlayStateStreamingEvent(
+    string MediaType,
+    string State,
+    string CurrTime,
+    string TotalTime,
+    string RepeatMode,
+    string? TrackTitle,
+    string? DiscArtist,
+    string? DiscTitle,
+    string? FileName,
+    string? Artist,
+    string? Title,
+    string? Hdr,
+    string? FourK,
+    string? FrameRate)
+    : OppoStreamingEvent;

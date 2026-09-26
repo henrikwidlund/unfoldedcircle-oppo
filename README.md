@@ -34,10 +34,10 @@ This repository contains the server code for hosting an Oppo/Magnetar Blu-ray in
 | Resolution Hold    | ❌                 | ❌️           | ❌️       |
 | A/V Sync           | ❌                 | ❌️           | ❌️       |
 | Gapless Playback   | ❌                 | ❌️           | ❌️       |
-| Track Name         | ❌                 | ❌️           | ❌️       |
-| Album Name         | ❌                 | ❌️           | ❌️       |
+| Track Name         | ❌                 | ❌️           | ✔️       |
+| Album Name         | ❌                 | ❌️           | ✔️       |
 | Album Cover        | ❌                 | ❌️           | ❌️       |
-| Artist Name        | ❌                 | ❌️           | ❌️       |
+| Artist Name        | ❌                 | ❌️           | ✔️       |
 
 ## Prerequisites
 
