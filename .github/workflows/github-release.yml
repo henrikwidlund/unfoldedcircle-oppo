@@ -54,6 +54,10 @@ jobs:
         shell: bash
         run: .github/scripts/prepare-driver-json.sh
 
+      - name: Bump log level for preview builds
+        shell: bash
+        run: .github/scripts/bump-preview-log-level.sh
+
       - name: Build
         shell: bash
         run: |

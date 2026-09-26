@@ -43,6 +43,11 @@ jobs:
         shell: bash
         run: .github/scripts/prepare-driver-json.sh
 
+      - name: Bump log level for preview builds
+        if: github.event_name != 'pull_request'
+        shell: bash
+        run: .github/scripts/bump-preview-log-level.sh
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e # v4.3.0
 
