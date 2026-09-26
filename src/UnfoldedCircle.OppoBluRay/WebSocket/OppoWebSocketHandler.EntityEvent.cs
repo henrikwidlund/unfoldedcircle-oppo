@@ -398,7 +398,7 @@ public partial class OppoWebSocketHandler
         await PopulatePlaybackSensorsAsync(oppoClientHolder, snapshot, cancellationToken);
     }
 
-    private static async ValueTask PopulatePlaybackTimingAndMetadataAsync(
+    private async ValueTask PopulatePlaybackTimingAndMetadataAsync(
         OppoClientHolder oppoClientHolder,
         ClientSnapshot snapshot,
         CancellationToken cancellationToken)
@@ -422,12 +422,25 @@ public partial class OppoWebSocketHandler
 
         snapshot.RemainingResponse = await oppoClientHolder.Client.QueryTrackOrTitleRemainingTimeAsync(cancellationToken);
         snapshot.MediaDuration = GetMediaDuration(snapshot.ElapsedResponse, snapshot.RemainingResponse);
-        if (oppoClientHolder.ClientKey.Model is not (OppoModel.UDP203 or OppoModel.UDP205))
+
+        if (oppoClientHolder.ClientKey.Model is OppoModel.UDP203 or OppoModel.UDP205)
+        {
+            snapshot.TrackResponse = await oppoClientHolder.Client.QueryTrackNameAsync(cancellationToken);
+            snapshot.Album = (await oppoClientHolder.Client.QueryTrackAlbumAsync(cancellationToken)).Result;
+            snapshot.Performer = (await oppoClientHolder.Client.QueryTrackPerformerAsync(cancellationToken)).Result;
+            return;
+        }
+
+        // Pre-20X players have no telnet equivalent for track/album/artist, but expose the same info
+        // via their own HTTP-436 JSON API - confirmed on BDP-103/105, unconfirmed on BDP-83/93/95 (fails
+        // silently there, leaving the snapshot's disc-type fallback icon/no metadata in place).
+        var musicInfo = await _httpMetadataClient.GetMusicPlayInfoAsync(oppoClientHolder.Client.HostName, cancellationToken);
+        if (musicInfo is null)
             return;
 
-        snapshot.TrackResponse = await oppoClientHolder.Client.QueryTrackNameAsync(cancellationToken);
-        snapshot.Album = (await oppoClientHolder.Client.QueryTrackAlbumAsync(cancellationToken)).Result;
-        snapshot.Performer = (await oppoClientHolder.Client.QueryTrackPerformerAsync(cancellationToken)).Result;
+        snapshot.TrackResponse = new OppoResult<string> { Success = true, Result = musicInfo.Title };
+        snapshot.Album = musicInfo.Album;
+        snapshot.Performer = musicInfo.Artist;
     }
 
     private async ValueTask TryPopulateAlbumCoverAsync(ClientSnapshot snapshot, CancellationToken cancellationToken)
@@ -671,7 +684,7 @@ public partial class OppoWebSocketHandler
                 return await HandlePlaybackProgressStreamingEventAsync(context, playbackProgressEvent, cancellationToken);
 
             case OppoMagnetarPlayStateStreamingEvent playStateEvent:
-                ApplyMagnetarPlayStateStreamingEvent(context.Snapshot, playStateEvent);
+                await ApplyMagnetarPlayStateStreamingEventAsync(context, playStateEvent, cancellationToken);
                 return MediaPlayerUpdateType.Full;
 
             default:

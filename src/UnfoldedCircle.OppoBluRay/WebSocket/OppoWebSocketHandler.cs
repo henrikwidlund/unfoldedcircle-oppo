@@ -11,6 +11,7 @@ using UnfoldedCircle.OppoBluRay.AlbumCover;
 using UnfoldedCircle.OppoBluRay.Configuration;
 using UnfoldedCircle.OppoBluRay.Json;
 using UnfoldedCircle.OppoBluRay.Logging;
+using UnfoldedCircle.OppoBluRay.Metadata;
 using UnfoldedCircle.OppoBluRay.OppoEntity;
 using UnfoldedCircle.OppoBluRay.Response;
 using UnfoldedCircle.Server.Configuration;
@@ -24,6 +25,7 @@ namespace UnfoldedCircle.OppoBluRay.WebSocket;
 public partial class OppoWebSocketHandler(
     IOppoClientFactory oppoClientFactory,
     IAlbumCoverService albumCoverService,
+    OppoHttpMetadataClient httpMetadataClient,
     IConfigurationService<OppoGlobalConfiguration, OppoConfigurationItem> configurationService,
     IOptions<UnfoldedCircleOptions> options,
     ILogger<UnfoldedCircleWebSocketHandler<OppoCommandId, OppoGlobalConfiguration, OppoConfigurationItem>> logger)
@@ -31,6 +33,7 @@ public partial class OppoWebSocketHandler(
 {
     private readonly IOppoClientFactory _oppoClientFactory = oppoClientFactory;
     private readonly IAlbumCoverService _albumCoverService = albumCoverService;
+    private readonly OppoHttpMetadataClient _httpMetadataClient = httpMetadataClient;
 
     protected override FrozenSet<EntityType> SupportedEntityTypes { get; } = [EntityType.MediaPlayer, EntityType.Remote, EntityType.Sensor, EntityType.Select];
 

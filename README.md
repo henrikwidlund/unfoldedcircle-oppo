@@ -23,6 +23,7 @@ This repository contains the server code for hosting an Oppo/Magnetar Blu-ray in
 
 - All features are supported for the UDP-20X series.
 - The Oppo and Magnetar players only allows one connection at a time. If you have multiple remotes or other systems that you want to connect to the same player, then you'll need to use the [Oppo Multiplexer](https://github.com/henrikwidlund/oppo-multiplexer) in order to avoid getting continuous disconnects and failed commands.
+- Track Name/Album Name/Album Cover/Artist Name is only available while playing audio (not movies). It's attempted on every BDP-83/93/95/10X player, but firmware support for the underlying API is only confirmed on BDP-103/105 (❓ below) - an unsupported player/content combination simply won't show this data rather than erroring.
 
 | Feature            | Oppo BDP-83/93/95 | Oppo BDP-10X | Magnetar |
 |--------------------|-------------------|--------------|----------|
@@ -34,10 +35,10 @@ This repository contains the server code for hosting an Oppo/Magnetar Blu-ray in
 | Resolution Hold    | ❌                 | ❌️           | ❌️       |
 | A/V Sync           | ❌                 | ❌️           | ❌️       |
 | Gapless Playback   | ❌                 | ❌️           | ❌️       |
-| Track Name         | ❌                 | ❌️           | ✔️       |
-| Album Name         | ❌                 | ❌️           | ✔️       |
-| Album Cover        | ❌                 | ❌️           | ❌️       |
-| Artist Name        | ❌                 | ❌️           | ✔️       |
+| Track Name         | ❓                 | ✔️           | ✔️       |
+| Album Name         | ❓                 | ✔️           | ✔️       |
+| Album Cover        | ❓                 | ✔️           | ✔️       |
+| Artist Name        | ❓                 | ✔️           | ✔️       |
 
 ## Prerequisites
 
