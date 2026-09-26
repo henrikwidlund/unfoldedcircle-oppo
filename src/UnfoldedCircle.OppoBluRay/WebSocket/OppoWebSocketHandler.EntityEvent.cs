@@ -146,16 +146,14 @@ public partial class OppoWebSocketHandler
         }
 
         var seen = new HashSet<OppoClientKey>();
-        foreach (var context in streamingClientContexts.Values)
+        foreach (var context in streamingClientContexts.Values.Where(x => seen.Add(x.ClientHolder.ClientKey)))
         {
-            if (seen.Add(context.ClientHolder.ClientKey))
-                CleanupPreviousMaps(context.ClientHolder.ClientKey);
+            CleanupPreviousMaps(context.ClientHolder.ClientKey);
         }
 
-        foreach (var holder in pollingClientHolders.Values)
+        foreach (var holder in pollingClientHolders.Values.Where(x => seen.Add(x.ClientKey)))
         {
-            if (seen.Add(holder.ClientKey))
-                CleanupPreviousMaps(holder.ClientKey);
+            CleanupPreviousMaps(holder.ClientKey);
         }
     }
 
@@ -1030,10 +1028,9 @@ public partial class OppoWebSocketHandler
         HashSet<string> activeKeys)
     {
         List<string>? stale = null;
-        foreach (var key in streamingClientContexts.Keys)
+        foreach (var key in streamingClientContexts.Keys.Where(x => !activeKeys.Contains(x)))
         {
-            if (!activeKeys.Contains(key))
-                (stale ??= []).Add(key);
+            (stale ??= []).Add(key);
         }
 
         if (stale is null)
@@ -1053,10 +1050,9 @@ public partial class OppoWebSocketHandler
         HashSet<string> activeKeys)
     {
         List<string>? stale = null;
-        foreach (var key in pollingClientHolders.Keys)
+        foreach (var key in pollingClientHolders.Keys.Where(x => !activeKeys.Contains(x)))
         {
-            if (!activeKeys.Contains(key))
-                (stale ??= []).Add(key);
+            (stale ??= []).Add(key);
         }
 
         if (stale is null)
@@ -1682,17 +1678,7 @@ public partial class OppoWebSocketHandler
                 return true;
 
             // Check whether any entity in the new set was absent from the previous set
-            foreach (var entity in subscribedEntities)
-            {
-                var found = false;
-                foreach (var prev in previous)
-                {
-                    if (prev == entity) { found = true; break; }
-                }
-                if (!found) return true;
-            }
-
-            return false;
+            return subscribedEntities.Select(entity => previous.Any(prev => prev == entity)).Any(static found => !found);
         }
 
         public SubscribedEntity[] GetSubscribedEntities() =>
