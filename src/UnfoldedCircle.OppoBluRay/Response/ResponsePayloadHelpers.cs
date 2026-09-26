@@ -22,9 +22,6 @@ internal static class OppoResponsePayloadHelpers
                 DeviceId = entityIdDeviceId.DeviceId.GetNullableIdentifier(EntityType.Remote)
             };
 
-            if (entityIdDeviceId.Model == OppoModel.Magnetar)
-                continue;
-
             yield return new MediaPlayerEntityStateChanged
             {
                 EntityId = entityIdDeviceId.EntityId.GetIdentifier(EntityType.MediaPlayer),
@@ -102,7 +99,21 @@ internal static class OppoResponsePayloadHelpers
                 MediaPlayerEntityAttribute.Source,
                 MediaPlayerEntityAttribute.SourceList
             ],
-            OppoModel.Magnetar => [],
+            OppoModel.Magnetar =>
+            [
+                MediaPlayerEntityAttribute.State,
+                MediaPlayerEntityAttribute.Volume,
+                MediaPlayerEntityAttribute.Muted,
+                MediaPlayerEntityAttribute.MediaPosition,
+                MediaPlayerEntityAttribute.MediaDuration,
+                MediaPlayerEntityAttribute.MediaTitle,
+                MediaPlayerEntityAttribute.MediaArtist,
+                MediaPlayerEntityAttribute.MediaAlbum,
+                MediaPlayerEntityAttribute.MediaImageUrl,
+                MediaPlayerEntityAttribute.MediaType,
+                MediaPlayerEntityAttribute.Repeat,
+                MediaPlayerEntityAttribute.Shuffle
+            ],
             _ => throw new ArgumentOutOfRangeException(nameof(model), model, null)
         };
 }

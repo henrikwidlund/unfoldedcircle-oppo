@@ -335,7 +335,7 @@ public partial class OppoWebSocketHandler(
                             Value = configurationItem?.UseMediaEvents ?? true
                         }
                     },
-                    Label = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { ["en"] = "Use Media Events? - Oppo Only" }
+                    Label = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { ["en"] = "Use Media Events?" }
                 },
                 new Setting
                 {
@@ -347,7 +347,7 @@ public partial class OppoWebSocketHandler(
                             Value = configurationItem?.UseStreamingEvents ?? true
                         }
                     },
-                    Label = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { ["en"] = "Use Streaming Events? - Oppo Only" }
+                    Label = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { ["en"] = "Use Streaming Events? (required for Magnetar metadata)" }
                 },
                 new Setting
                 {
