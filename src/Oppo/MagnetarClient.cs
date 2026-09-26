@@ -651,7 +651,8 @@ public sealed class MagnetarClient(string hostName, string macAddress, ILogger<M
             }
             catch (Exception e)
             {
-                _logger.FailedToParseMagnetarPushMessage(Encoding.UTF8.GetString(rented, 0, length), e);
+                if (_logger.IsEnabled(LogLevel.Debug))
+                    _logger.FailedToParseMagnetarPushMessage(Encoding.UTF8.GetString(rented, 0, length), e);
                 return null;
             }
 
