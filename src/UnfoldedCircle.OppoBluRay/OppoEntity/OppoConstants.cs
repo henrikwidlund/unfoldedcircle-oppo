@@ -9,6 +9,8 @@ internal static class OppoConstants
     internal const string UseMediaEventsKey = "use_media_events";
     internal const string UseStreamingEventsKey = "use_streaming_events";
     internal const string MaxMessageHandlingWaitTimeInSecondsKey = "max_message_handling_wait_time_in_seconds";
+    internal const string DiscoveredPlayerKey = "discovered_player";
+    internal const string ManualEntryValue = "manual_entry";
 
     internal const string InputSourceSelectSuffix = "InputSource";
 
