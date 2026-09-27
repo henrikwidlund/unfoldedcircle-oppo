@@ -2,6 +2,7 @@ using Oppo;
 
 using UnfoldedCircle.OppoBluRay.AlbumCover;
 using UnfoldedCircle.OppoBluRay.Configuration;
+using UnfoldedCircle.OppoBluRay.Discovery;
 using UnfoldedCircle.OppoBluRay.Metadata;
 using UnfoldedCircle.OppoBluRay.OppoEntity;
 using UnfoldedCircle.OppoBluRay.WebSocket;
@@ -19,6 +20,11 @@ builder.Services.AddHttpClient<IAlbumCoverService, AlbumCoverService>(static cli
 builder.Services.AddHttpClient<OppoHttpMetadataClient>(static client =>
     client.Timeout = TimeSpan.FromSeconds(3));
 builder.Services.AddMemoryCache();
+
+builder.Services.AddSingleton<IPlayerDiscovery, SsdpDiscovery>();
+builder.Services.AddSingleton<IPlayerDiscovery, OppoUdpDiscovery>();
+builder.Services.AddSingleton<IPlayerDiscovery, MagnetarDiscovery>();
+builder.Services.AddSingleton<DiscoveryService>();
 
 var app = builder.Build();
 app.UseUnfoldedCircleServer<OppoWebSocketHandler, OppoCommandId, OppoGlobalConfiguration, OppoConfigurationItem>();

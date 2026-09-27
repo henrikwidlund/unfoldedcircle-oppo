@@ -1,4 +1,5 @@
 using System.Collections.Frozen;
+using System.Diagnostics;
 
 using Microsoft.Extensions.Options;
 
@@ -9,6 +10,7 @@ using UnfoldedCircle.Models.Shared;
 using UnfoldedCircle.Models.Sync;
 using UnfoldedCircle.OppoBluRay.AlbumCover;
 using UnfoldedCircle.OppoBluRay.Configuration;
+using UnfoldedCircle.OppoBluRay.Discovery;
 using UnfoldedCircle.OppoBluRay.Json;
 using UnfoldedCircle.OppoBluRay.Logging;
 using UnfoldedCircle.OppoBluRay.Metadata;
@@ -28,12 +30,14 @@ public partial class OppoWebSocketHandler(
     OppoHttpMetadataClient httpMetadataClient,
     IConfigurationService<OppoGlobalConfiguration, OppoConfigurationItem> configurationService,
     IOptions<UnfoldedCircleOptions> options,
+    DiscoveryService discoveryService,
     ILogger<OppoWebSocketHandler> logger)
     : UnfoldedCircleWebSocketHandler<OppoCommandId, OppoGlobalConfiguration, OppoConfigurationItem>(configurationService, options, logger)
 {
     private readonly IOppoClientFactory _oppoClientFactory = oppoClientFactory;
     private readonly IAlbumCoverService _albumCoverService = albumCoverService;
     private readonly OppoHttpMetadataClient _httpMetadataClient = httpMetadataClient;
+    private readonly DiscoveryService _discoveryService = discoveryService;
 
     protected override FrozenSet<EntityType> SupportedEntityTypes { get; } = [EntityType.MediaPlayer, EntityType.Remote, EntityType.Sensor, EntityType.Select];
 
@@ -228,10 +232,62 @@ public partial class OppoWebSocketHandler(
         return JsonSerializer.Serialize(unfoldedCircleConfiguration, OppoJsonSerializerContext.Instance.UnfoldedCircleConfigurationOppoGlobalConfigurationOppoConfigurationItem);
     }
 
+    // Grace period after the first discovered player, for near-simultaneous
+    // replies from others, before responding early instead of using the full budget.
+    private static readonly TimeSpan DiscoverySettleWindow = TimeSpan.FromSeconds(1.5);
+
     protected override async ValueTask<SettingsPage> CreateNewEntitySettingsPageAsync(CancellationToken cancellationToken)
     {
         var configuration = await _configurationService.GetConfigurationAsync(cancellationToken);
-        return CreateSettingsPage(null, configuration.GlobalConfiguration.MaxMessageHandlingWaitTimeInSeconds ?? 9.5);
+        var timeoutSeconds = configuration.GlobalConfiguration.MaxMessageHandlingWaitTimeInSeconds ?? 9.5;
+        var fullBudget = TimeSpan.FromSeconds(timeoutSeconds);
+
+        // The remote disconnects if it doesn't get a response within ~10s, so
+        // discovery is capped at the same budget every setup response uses.
+        // Nothing found in time falls back to a blank form below; the first
+        // hit shortens the deadline to DiscoverySettleWindow instead.
+        using var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        cancellationTokenSource.CancelAfter(fullBudget);
+
+        var stopwatch = Stopwatch.StartNew();
+        var settleArmed = false;
+        var discoveredPlayers = new List<PlayerInfo>();
+        try
+        {
+            await foreach (var playerInfo in _discoveryService.DiscoverAsync(cancellationTokenSource.Token))
+            {
+                _logger.DiscoveredPlayer(playerInfo.Source, playerInfo.Host, playerInfo.Model, stopwatch.ElapsedMilliseconds);
+
+                // DiscoveryService re-emits a host once a later report fills
+                // in a field the first left blank - replace in place instead
+                // of listing the same host twice.
+                var existingIndex = discoveredPlayers.FindIndex(p => p.Host.Equals(playerInfo.Host, StringComparison.OrdinalIgnoreCase));
+                if (existingIndex >= 0)
+                    discoveredPlayers[existingIndex] = playerInfo;
+                else
+                    discoveredPlayers.Add(playerInfo);
+
+                if (!settleArmed)
+                {
+                    settleArmed = true;
+                    var remaining = fullBudget - stopwatch.Elapsed;
+                    var settle = remaining < DiscoverySettleWindow ? remaining : DiscoverySettleWindow;
+                    cancellationTokenSource.CancelAfter(settle < TimeSpan.Zero ? TimeSpan.Zero : settle);
+                }
+            }
+        }
+        finally
+        {
+            // Disposing a CancellationTokenSource abandons a pending
+            // CancelAfter without cancelling its token, which would leave
+            // every discovery source awaiting it running forever. Cancel
+            // explicitly first so they always stop, on any exit path.
+            await cancellationTokenSource.CancelAsync();
+        }
+
+        return discoveredPlayers.Count > 0
+            ? CreateDiscoveredPlayersSettingsPage(discoveredPlayers)
+            : CreateSettingsPage(null, timeoutSeconds);
     }
 
     protected override async ValueTask<SettingsPage> CreateReconfigureEntitySettingsPageAsync(OppoConfigurationItem configurationItem, CancellationToken cancellationToken)
@@ -246,7 +302,7 @@ public partial class OppoWebSocketHandler(
         };
     }
 
-    private static SettingsPage CreateSettingsPage(OppoConfigurationItem? configurationItem, double maxMessageHandlingWaitTimeInSeconds) =>
+    private static SettingsPage CreateSettingsPage(OppoConfigurationItem? configurationItem, double maxMessageHandlingWaitTimeInSeconds, PlayerInfo? discoveredPlayer = null) =>
         new()
         {
             Title = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { ["en"] = configurationItem == null ? "Add a new device" : "Reconfigure device" },
@@ -256,7 +312,10 @@ public partial class OppoWebSocketHandler(
                     Id = OppoConstants.EntityName,
                     Field = new SettingTypeText
                     {
-                        Text = new ValueRegex()
+                        Text = new ValueRegex
+                        {
+                            Value = discoveredPlayer?.DisplayName
+                        }
                     },
                     Label = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { ["en"] = "Enter the name of the player (optional)" }
                 },
@@ -267,7 +326,8 @@ public partial class OppoWebSocketHandler(
                     {
                         Text = new ValueRegex
                         {
-                            RegEx = OppoConstants.IpAddressRegex
+                            RegEx = OppoConstants.IpAddressRegex,
+                            Value = discoveredPlayer?.Host
                         }
                     },
                     Label = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { ["en"] = "Enter the IP address of the player (mandatory)" }
@@ -323,7 +383,7 @@ public partial class OppoWebSocketHandler(
                                     Value = nameof(OppoModel.Magnetar)
                                 }
                             ],
-                            Value = configurationItem?.Model.ToStringFast()
+                            Value = configurationItem?.Model.ToStringFast() ?? discoveredPlayer?.Model?.ToStringFast()
                         }
                     },
                     Label = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { ["en"] = "Select the model of your player (mandatory)" }
@@ -369,6 +429,64 @@ public partial class OppoWebSocketHandler(
                 }
             ]
         };
+
+    private static SettingsPage CreateDiscoveredPlayersSettingsPage(IReadOnlyList<PlayerInfo> discoveredPlayers) =>
+        new()
+        {
+            Title = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { ["en"] = "Select discovered player" },
+            Settings = [
+                new Setting
+                {
+                    Id = OppoConstants.DiscoveredPlayerKey,
+                    Field = new SettingTypeDropdown
+                    {
+                        Dropdown = new SettingTypeDropdownInner
+                        {
+                            Items = [
+                                .. discoveredPlayers.Select(static player => new SettingTypeDropdownItem
+                                {
+                                    Label = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+                                    {
+                                        ["en"] = $"{(string.IsNullOrWhiteSpace(player.DisplayName) ? player.Host : player.DisplayName)} ({player.Host})" +
+                                                 (player.Model is { } model ? $" - {GetOppoModelName(model)}" : string.Empty)
+                                    },
+                                    Value = EncodeDiscoveredPlayer(player)
+                                }),
+                                new SettingTypeDropdownItem
+                                {
+                                    Label = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { ["en"] = "Enter manually" },
+                                    Value = OppoConstants.ManualEntryValue
+                                }
+                            ],
+                            Value = EncodeDiscoveredPlayer(discoveredPlayers[0])
+                        }
+                    },
+                    Label = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { ["en"] = "Discovered players (or choose to enter one manually)" }
+                }
+            ]
+        };
+
+    // The chosen player's data round-trips through the dropdown item's value
+    // string instead of a server-side lookup: the base class gives this
+    // setup step no shared per-session state slot to keep one in.
+    private const char DiscoveredPlayerValueSeparator = '';
+
+    private static string EncodeDiscoveredPlayer(PlayerInfo player) =>
+        string.Join(DiscoveredPlayerValueSeparator, player.Host, player.Model?.ToStringFast() ?? string.Empty, player.DisplayName ?? string.Empty);
+
+    private static PlayerInfo? DecodeDiscoveredPlayer(string value)
+    {
+        var parts = value.Split(DiscoveredPlayerValueSeparator);
+        if (parts.Length != 3 || string.IsNullOrWhiteSpace(parts[0]))
+            return null;
+
+        var model = parts[1].Length > 0 && Enum.TryParse<OppoModel>(parts[1], ignoreCase: true, out var parsedModel)
+            ? parsedModel
+            : (OppoModel?)null;
+
+        // Port and Source are unused placeholders here; only Host/Model/DisplayName round-trip.
+        return new PlayerInfo(DeviceId: parts[0], Host: parts[0], Port: 0, DisplayName: parts[2], Source: DiscoverySource.Ssdp, Model: model);
+    }
 
     protected override async ValueTask<SetupDriverUserDataResult> HandleEntityReconfigured(System.Net.WebSockets.WebSocket socket,
         SetDriverUserDataMsg payload,
@@ -452,6 +570,24 @@ public partial class OppoWebSocketHandler(
 
     protected override async ValueTask<SetupDriverUserDataResult> HandleCreateNewEntity(System.Net.WebSockets.WebSocket socket, SetDriverUserDataMsg payload, string wsId, CancellationToken cancellationToken)
     {
+        // Submission of the discovery-chooser page (see CreateNewEntitySettingsPageAsync):
+        // swap in the full settings page, pre-filled from the chosen player,
+        // and stay on this same setup step for its submission.
+        if (payload.MsgData.InputValues!.TryGetValue(OppoConstants.DiscoveredPlayerKey, out var discoveredPlayerValue))
+        {
+            var globalConfiguration = await _configurationService.GetConfigurationAsync(cancellationToken);
+            var timeoutSeconds = globalConfiguration.GlobalConfiguration.MaxMessageHandlingWaitTimeInSeconds ?? 9.5;
+            var discoveredPlayer = discoveredPlayerValue.Equals(OppoConstants.ManualEntryValue, StringComparison.OrdinalIgnoreCase)
+                ? null
+                : DecodeDiscoveredPlayer(discoveredPlayerValue);
+
+            await SendMessageAsync(socket,
+                ResponsePayloadHelpers.CreateDeviceSetupChangeUserInputPayload(CreateSettingsPage(null, timeoutSeconds, discoveredPlayer)),
+                wsId,
+                cancellationToken);
+            return SetupDriverUserDataResult.Handled;
+        }
+
         var configuration = await _configurationService.GetConfigurationAsync(cancellationToken);
         var driverMetadata = await _configurationService.GetDriverMetadataAsync(cancellationToken);
         var host = payload.MsgData.InputValues![OppoConstants.IpAddressKey];

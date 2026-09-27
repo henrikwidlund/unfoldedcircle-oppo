@@ -1,3 +1,6 @@
+using Oppo;
+
+using UnfoldedCircle.OppoBluRay.Discovery;
 using UnfoldedCircle.OppoBluRay.WebSocket;
 
 namespace UnfoldedCircle.OppoBluRay.Logging;
@@ -56,4 +59,23 @@ internal static partial class IntegrationLogger
 
     [LoggerMessage(EventId = 22, Level = LogLevel.Error, Message = "Failure setting streaming verbose mode for {EntityId}.")]
     public static partial void FailureSettingVerboseMode(this ILogger logger, string entityId, Exception exception);
+
+    // Discovery logging
+    [LoggerMessage(EventId = 24, Level = LogLevel.Warning, Message = "Discovery '{DiscoveryName}' failed.")]
+    public static partial void DiscoverySourceFailed(this ILogger logger, string discoveryName, Exception exception);
+
+    [LoggerMessage(EventId = 25, Level = LogLevel.Warning, Message = "OREMOTE probe send failed.")]
+    public static partial void OremoteProbeSendFailed(this ILogger logger, Exception exception);
+
+    [LoggerMessage(EventId = 26, Level = LogLevel.Warning, Message = "Failed to parse discovery datagram.")]
+    public static partial void FailedToParseDiscoveryDatagram(this ILogger logger, Exception exception);
+
+    [LoggerMessage(EventId = 27, Level = LogLevel.Trace, Message = "Received discovery datagram: {Message}")]
+    public static partial void ReceivedDiscoveryDatagram(this ILogger logger, string message);
+
+    [LoggerMessage(EventId = 28, Level = LogLevel.Warning, Message = "Magnetar M-SEARCH burst failed.")]
+    public static partial void MagnetarBurstFailed(this ILogger logger, Exception exception);
+
+    [LoggerMessage(EventId = 29, Level = LogLevel.Trace, Message = "Discovery: {Source} reported {Host} model={Model} at {ElapsedMs}ms")]
+    public static partial void DiscoveredPlayer(this ILogger logger, DiscoverySource source, string host, OppoModel? model, long elapsedMs);
 }
