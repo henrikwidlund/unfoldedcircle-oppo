@@ -78255,13 +78255,13 @@
       "versionControlProvenance": [
         {
           "repositoryUri": "https://github.com/henrikwidlund/unfoldedcircle-oppo.git",
-          "revisionId": "eabc83dc08b8b3e801ace2eecb8b7c01507aee73",
-          "branch": "main",
+          "revisionId": "4b3c13a9ffd2113fd251cbee9154a39373596198",
+          "branch": "feature/device_discovery",
           "properties": {
             "repoUrl": "https://github.com/henrikwidlund/unfoldedcircle-oppo.git",
-            "lastAuthorName": "dependabot[bot]",
+            "lastAuthorName": "Henrik Widlund",
             "vcsType": "Git",
-            "lastAuthorEmail": "49699333+dependabot[bot]@users.noreply.github.com"
+            "lastAuthorEmail": "4659350+henrikwidlund@users.noreply.github.com"
           }
         }
       ],
@@ -78284,6 +78284,13 @@
         {
           "location": {
             "uri": "src/Oppo/Oppo20XCommand.cs",
+            "uriBaseId": "solutionDir"
+          },
+          "hashes": {}
+        },
+        {
+          "location": {
+            "uri": "src/UnfoldedCircle.OppoBluRay/WebSocket/OppoWebSocketHandler.cs",
             "uriBaseId": "solutionDir"
           },
           "hashes": {}
@@ -78318,7 +78325,28 @@
         },
         {
           "location": {
-            "uri": "src/UnfoldedCircle.OppoBluRay/WebSocket/OppoWebSocketHandler.cs",
+            "uri": "src/UnfoldedCircle.OppoBluRay/Discovery/DiscoveryService.cs",
+            "uriBaseId": "solutionDir"
+          },
+          "hashes": {}
+        },
+        {
+          "location": {
+            "uri": "src/UnfoldedCircle.OppoBluRay/Discovery/MagnetarDiscovery.cs",
+            "uriBaseId": "solutionDir"
+          },
+          "hashes": {}
+        },
+        {
+          "location": {
+            "uri": "src/UnfoldedCircle.OppoBluRay/Discovery/OppoUdpDiscovery.cs",
+            "uriBaseId": "solutionDir"
+          },
+          "hashes": {}
+        },
+        {
+          "location": {
+            "uri": "src/UnfoldedCircle.OppoBluRay/Metadata/OppoHttpMetadataClient.cs",
             "uriBaseId": "solutionDir"
           },
           "hashes": {}
@@ -79454,7 +79482,7 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/OppoClient.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 3
+                  "index": 4
                 },
                 "region": {
                   "startLine": 16,
@@ -79507,7 +79535,7 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/OppoClientFactory.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 4
+                  "index": 5
                 },
                 "region": {
                   "startLine": 9,
@@ -79560,7 +79588,7 @@
                 "artifactLocation": {
                   "uri": "src/UnfoldedCircle.OppoBluRay/AlbumCover/AlbumCoverService.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 5
+                  "index": 6
                 },
                 "region": {
                   "startLine": 21,
@@ -79613,7 +79641,7 @@
                 "artifactLocation": {
                   "uri": "src/UnfoldedCircle.OppoBluRay/AlbumCover/AlbumCoverService.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 5
+                  "index": 6
                 },
                 "region": {
                   "startLine": 22,
@@ -79666,7 +79694,7 @@
                 "artifactLocation": {
                   "uri": "src/UnfoldedCircle.OppoBluRay/AlbumCover/AlbumCoverService.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 5
+                  "index": 6
                 },
                 "region": {
                   "startLine": 23,
@@ -79983,25 +80011,25 @@
                 "artifactLocation": {
                   "uri": "src/UnfoldedCircle.OppoBluRay/WebSocket/OppoWebSocketHandler.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 6
+                  "index": 2
                 },
                 "region": {
-                  "startLine": 32,
+                  "startLine": 37,
                   "startColumn": 5,
-                  "endLine": 32,
+                  "endLine": 37,
                   "endColumn": 80,
-                  "charOffset": 1232,
+                  "charOffset": 1356,
                   "charLength": 75,
                   "snippet": {
                     "text": "private readonly IOppoClientFactory _oppoClientFactory = oppoClientFactory;"
                   }
                 },
                 "contextRegion": {
-                  "startLine": 31,
+                  "startLine": 36,
                   "startColumn": 1,
-                  "endLine": 33,
+                  "endLine": 38,
                   "endColumn": 80,
-                  "charOffset": 1226,
+                  "charOffset": 1350,
                   "charLength": 161,
                   "snippet": {
                     "text": "{\n    private readonly IOppoClientFactory _oppoClientFactory = oppoClientFactory;\n    private readonly IAlbumCoverService _albumCoverService = albumCoverService;"
@@ -80034,133 +80062,27 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "src/UnfoldedCircle.OppoBluRay/WebSocket/OppoWebSocketHandler.cs",
-                  "uriBaseId": "solutionDir",
-                  "index": 6
-                },
-                "region": {
-                  "startLine": 33,
-                  "startColumn": 5,
-                  "endLine": 33,
-                  "endColumn": 80,
-                  "charOffset": 1312,
-                  "charLength": 75,
-                  "snippet": {
-                    "text": "private readonly IAlbumCoverService _albumCoverService = albumCoverService;"
-                  }
-                },
-                "contextRegion": {
-                  "startLine": 32,
-                  "startColumn": 1,
-                  "endLine": 34,
-                  "endColumn": 1,
-                  "charOffset": 1228,
-                  "charLength": 160,
-                  "snippet": {
-                    "text": "    private readonly IOppoClientFactory _oppoClientFactory = oppoClientFactory;\n    private readonly IAlbumCoverService _albumCoverService = albumCoverService;\n"
-                  }
-                }
-              }
-            }
-          ],
-          "partialFingerprints": {
-            "equalIndicator/v1": "DE046CF0BE38AA5A2C1CBF4960D31EC191286318D06009CC1E773B9DB44AC70C"
-          },
-          "baselineState": "unchanged",
-          "properties": {
-            "qodanaSeverity": "Moderate",
-            "tags": [
-              "C#",
-              ".NET 10.0"
-            ]
-          }
-        },
-        {
-          "ruleId": "ReplaceWithPrimaryConstructorParameter",
-          "ruleIndex": 2706,
-          "kind": "fail",
-          "level": "note",
-          "message": {
-            "text": "Replace with primary constructor parameter"
-          },
-          "locations": [
-            {
-              "physicalLocation": {
-                "artifactLocation": {
                   "uri": "src/Oppo/MagnetarClient.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 2
+                  "index": 3
                 },
                 "region": {
-                  "startLine": 14,
+                  "startLine": 28,
                   "startColumn": 5,
-                  "endLine": 14,
-                  "endColumn": 63,
-                  "charOffset": 352,
-                  "charLength": 58,
-                  "snippet": {
-                    "text": "private readonly ILogger<MagnetarClient> _logger = logger;"
-                  }
-                },
-                "contextRegion": {
-                  "startLine": 13,
-                  "startColumn": 1,
-                  "endLine": 15,
+                  "endLine": 28,
                   "endColumn": 50,
-                  "charOffset": 313,
-                  "charLength": 147,
-                  "snippet": {
-                    "text": "    private const int Port = 8102;\n    private readonly ILogger<MagnetarClient> _logger = logger;\n    private readonly string _hostName = hostName;"
-                  }
-                }
-              }
-            }
-          ],
-          "partialFingerprints": {
-            "equalIndicator/v1": "71231D3DDC4158F4D7625A9F8B45A85EFED56AE9BC415C9DCB5D1D031E7864BA"
-          },
-          "baselineState": "unchanged",
-          "properties": {
-            "qodanaSeverity": "Moderate",
-            "tags": [
-              "C#",
-              ".NET 10.0"
-            ]
-          }
-        },
-        {
-          "ruleId": "ReplaceWithPrimaryConstructorParameter",
-          "ruleIndex": 2706,
-          "kind": "fail",
-          "level": "note",
-          "message": {
-            "text": "Replace with primary constructor parameter"
-          },
-          "locations": [
-            {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "src/Oppo/MagnetarClient.cs",
-                  "uriBaseId": "solutionDir",
-                  "index": 2
-                },
-                "region": {
-                  "startLine": 15,
-                  "startColumn": 5,
-                  "endLine": 15,
-                  "endColumn": 50,
-                  "charOffset": 415,
+                  "charOffset": 939,
                   "charLength": 45,
                   "snippet": {
                     "text": "private readonly string _hostName = hostName;"
                   }
                 },
                 "contextRegion": {
-                  "startLine": 14,
+                  "startLine": 27,
                   "startColumn": 1,
-                  "endLine": 16,
+                  "endLine": 29,
                   "endColumn": 71,
-                  "charOffset": 348,
+                  "charOffset": 872,
                   "charLength": 183,
                   "snippet": {
                     "text": "    private readonly ILogger<MagnetarClient> _logger = logger;\n    private readonly string _hostName = hostName;\n    private readonly IPAddress _ipAddress = IPAddress.Parse(hostName);"
@@ -80195,25 +80117,25 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/MagnetarClient.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 2
+                  "index": 3
                 },
                 "region": {
-                  "startLine": 17,
+                  "startLine": 30,
                   "startColumn": 5,
-                  "endLine": 17,
+                  "endLine": 30,
                   "endColumn": 54,
-                  "charOffset": 536,
+                  "charOffset": 1060,
                   "charLength": 49,
                   "snippet": {
                     "text": "private readonly string _macAddress = macAddress;"
                   }
                 },
                 "contextRegion": {
-                  "startLine": 16,
+                  "startLine": 29,
                   "startColumn": 1,
-                  "endLine": 18,
+                  "endLine": 31,
                   "endColumn": 1,
-                  "charOffset": 461,
+                  "charOffset": 985,
                   "charLength": 125,
                   "snippet": {
                     "text": "    private readonly IPAddress _ipAddress = IPAddress.Parse(hostName);\n    private readonly string _macAddress = macAddress;\n"
@@ -80248,7 +80170,7 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/OppoClient.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 3
+                  "index": 4
                 },
                 "region": {
                   "startLine": 18,
@@ -80301,7 +80223,7 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/IOppoClient.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 7
+                  "index": 11
                 },
                 "region": {
                   "startLine": 428,
@@ -80406,7 +80328,7 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/OppoClient.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 3
+                  "index": 4
                 },
                 "region": {
                   "startLine": 17,
@@ -80436,7 +80358,7 @@
           "partialFingerprints": {
             "equalIndicator/v1": "CD3986031EEE501D52AC841BBB191A8A6829F3C49804C6EC0F16E1191FBE5A67"
           },
-          "baselineState": "new",
+          "baselineState": "unchanged",
           "properties": {
             "qodanaSeverity": "Moderate",
             "tags": [
@@ -80459,7 +80381,7 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/OppoClientFactory.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 4
+                  "index": 5
                 },
                 "region": {
                   "startLine": 10,
@@ -80762,12 +80684,12 @@
           }
         },
         {
-          "ruleId": "UnusedMember.Global",
-          "ruleIndex": 2921,
+          "ruleId": "InconsistentNaming",
+          "ruleIndex": 2342,
           "kind": "fail",
           "level": "note",
           "message": {
-            "text": "Field 'SetHDMIResolutionSDI' is never used"
+            "text": "Name 'SetHDMIResolutionSDI' does not match rule 'public_static_readonly_fields_should_be_pascalcase'. Suggested name is 'SetHDMIResolutionSdi'."
           },
           "locations": [
             {
@@ -80804,7 +80726,7 @@
           "partialFingerprints": {
             "equalIndicator/v1": "52B70CF7CC27D0E93848643CD6760453473DAC11672FFE682793DBBA135668BB"
           },
-          "baselineState": "new",
+          "baselineState": "unchanged",
           "properties": {
             "qodanaSeverity": "Moderate",
             "tags": [
@@ -80827,7 +80749,7 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/IOppoClient.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 7
+                  "index": 11
                 },
                 "region": {
                   "startLine": 289,
@@ -80880,7 +80802,7 @@
                 "artifactLocation": {
                   "uri": "src/Oppo/IOppoClient.cs",
                   "uriBaseId": "solutionDir",
-                  "index": 7
+                  "index": 11
                 },
                 "region": {
                   "startLine": 408,
@@ -80918,13 +80840,543 @@
               ".NET 10.0"
             ]
           }
+        },
+        {
+          "ruleId": "ReplaceWithPrimaryConstructorParameter",
+          "ruleIndex": 2706,
+          "kind": "fail",
+          "level": "note",
+          "message": {
+            "text": "Replace with primary constructor parameter"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/Oppo/MagnetarClient.cs",
+                  "uriBaseId": "solutionDir",
+                  "index": 3
+                },
+                "region": {
+                  "startLine": 27,
+                  "startColumn": 5,
+                  "endLine": 27,
+                  "endColumn": 63,
+                  "charOffset": 876,
+                  "charLength": 58,
+                  "snippet": {
+                    "text": "private readonly ILogger<MagnetarClient> _logger = logger;"
+                  }
+                },
+                "contextRegion": {
+                  "startLine": 26,
+                  "startColumn": 1,
+                  "endLine": 28,
+                  "endColumn": 50,
+                  "charOffset": 871,
+                  "charLength": 113,
+                  "snippet": {
+                    "text": "\n    private readonly ILogger<MagnetarClient> _logger = logger;\n    private readonly string _hostName = hostName;"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "equalIndicator/v1": "968A52425CB6441A46E2C63A65BD38E242CE7C745DDD1F36E7E1A9C796B6D045"
+          },
+          "baselineState": "unchanged",
+          "properties": {
+            "qodanaSeverity": "Moderate",
+            "tags": [
+              "C#",
+              ".NET 10.0"
+            ]
+          }
+        },
+        {
+          "ruleId": "ReplaceWithPrimaryConstructorParameter",
+          "ruleIndex": 2706,
+          "kind": "fail",
+          "level": "note",
+          "message": {
+            "text": "Replace with primary constructor parameter"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/UnfoldedCircle.OppoBluRay/Discovery/DiscoveryService.cs",
+                  "uriBaseId": "solutionDir",
+                  "index": 7
+                },
+                "region": {
+                  "startLine": 11,
+                  "startColumn": 5,
+                  "endLine": 11,
+                  "endColumn": 79,
+                  "charOffset": 320,
+                  "charLength": 74,
+                  "snippet": {
+                    "text": "private readonly IEnumerable<IPlayerDiscovery> _discoveries = discoveries;"
+                  }
+                },
+                "contextRegion": {
+                  "startLine": 10,
+                  "startColumn": 1,
+                  "endLine": 12,
+                  "endColumn": 65,
+                  "charOffset": 314,
+                  "charLength": 145,
+                  "snippet": {
+                    "text": "{\n    private readonly IEnumerable<IPlayerDiscovery> _discoveries = discoveries;\n    private readonly ILogger<DiscoveryService> _logger = logger;"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "equalIndicator/v1": "F3506F9D47E736495149523DE2680E89C22DBB9D6419D431948BAF258B16D550"
+          },
+          "baselineState": "new",
+          "properties": {
+            "qodanaSeverity": "Moderate",
+            "tags": [
+              "C#",
+              ".NET 10.0"
+            ]
+          }
+        },
+        {
+          "ruleId": "ReplaceWithPrimaryConstructorParameter",
+          "ruleIndex": 2706,
+          "kind": "fail",
+          "level": "note",
+          "message": {
+            "text": "Replace with primary constructor parameter"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/UnfoldedCircle.OppoBluRay/Discovery/DiscoveryService.cs",
+                  "uriBaseId": "solutionDir",
+                  "index": 7
+                },
+                "region": {
+                  "startLine": 12,
+                  "startColumn": 5,
+                  "endLine": 12,
+                  "endColumn": 65,
+                  "charOffset": 399,
+                  "charLength": 60,
+                  "snippet": {
+                    "text": "private readonly ILogger<DiscoveryService> _logger = logger;"
+                  }
+                },
+                "contextRegion": {
+                  "startLine": 11,
+                  "startColumn": 1,
+                  "endLine": 13,
+                  "endColumn": 1,
+                  "charOffset": 316,
+                  "charLength": 144,
+                  "snippet": {
+                    "text": "    private readonly IEnumerable<IPlayerDiscovery> _discoveries = discoveries;\n    private readonly ILogger<DiscoveryService> _logger = logger;\n"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "equalIndicator/v1": "3826CCCB38C5904614263BAB76267A87564A205205C0CDBFFE26C6D2878566BC"
+          },
+          "baselineState": "new",
+          "properties": {
+            "qodanaSeverity": "Moderate",
+            "tags": [
+              "C#",
+              ".NET 10.0"
+            ]
+          }
+        },
+        {
+          "ruleId": "ReplaceWithPrimaryConstructorParameter",
+          "ruleIndex": 2706,
+          "kind": "fail",
+          "level": "note",
+          "message": {
+            "text": "Replace with primary constructor parameter"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/UnfoldedCircle.OppoBluRay/Discovery/MagnetarDiscovery.cs",
+                  "uriBaseId": "solutionDir",
+                  "index": 8
+                },
+                "region": {
+                  "startLine": 21,
+                  "startColumn": 5,
+                  "endLine": 21,
+                  "endColumn": 66,
+                  "charOffset": 731,
+                  "charLength": 61,
+                  "snippet": {
+                    "text": "private readonly ILogger<MagnetarDiscovery> _logger = logger;"
+                  }
+                },
+                "contextRegion": {
+                  "startLine": 20,
+                  "startColumn": 1,
+                  "endLine": 22,
+                  "endColumn": 1,
+                  "charOffset": 725,
+                  "charLength": 68,
+                  "snippet": {
+                    "text": "{\n    private readonly ILogger<MagnetarDiscovery> _logger = logger;\n"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "equalIndicator/v1": "5D1C140B4B950D2B2C2CED3F93EC5B8139DE27A97127FA1F219D3EE67915BECF"
+          },
+          "baselineState": "new",
+          "properties": {
+            "qodanaSeverity": "Moderate",
+            "tags": [
+              "C#",
+              ".NET 10.0"
+            ]
+          }
+        },
+        {
+          "ruleId": "ReplaceWithPrimaryConstructorParameter",
+          "ruleIndex": 2706,
+          "kind": "fail",
+          "level": "note",
+          "message": {
+            "text": "Replace with primary constructor parameter"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/UnfoldedCircle.OppoBluRay/Discovery/OppoUdpDiscovery.cs",
+                  "uriBaseId": "solutionDir",
+                  "index": 9
+                },
+                "region": {
+                  "startLine": 43,
+                  "startColumn": 5,
+                  "endLine": 43,
+                  "endColumn": 65,
+                  "charOffset": 1929,
+                  "charLength": 60,
+                  "snippet": {
+                    "text": "private readonly ILogger<OppoUdpDiscovery> _logger = logger;"
+                  }
+                },
+                "contextRegion": {
+                  "startLine": 42,
+                  "startColumn": 1,
+                  "endLine": 44,
+                  "endColumn": 32,
+                  "charOffset": 1828,
+                  "charLength": 193,
+                  "snippet": {
+                    "text": "    private readonly ConcurrentDictionary<Guid, ChannelWriter<PlayerInfo>> _subscribers = new();\n    private readonly ILogger<OppoUdpDiscovery> _logger = logger;\n    private UdpClient? _socket;"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "equalIndicator/v1": "B2D4D173C4CD1F80EE5C3D599D706AF920B13D45521A204F4EC38026A872DED2"
+          },
+          "baselineState": "new",
+          "properties": {
+            "qodanaSeverity": "Moderate",
+            "tags": [
+              "C#",
+              ".NET 10.0"
+            ]
+          }
+        },
+        {
+          "ruleId": "ReplaceWithPrimaryConstructorParameter",
+          "ruleIndex": 2706,
+          "kind": "fail",
+          "level": "note",
+          "message": {
+            "text": "Replace with primary constructor parameter"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/UnfoldedCircle.OppoBluRay/Metadata/OppoHttpMetadataClient.cs",
+                  "uriBaseId": "solutionDir",
+                  "index": 10
+                },
+                "region": {
+                  "startLine": 19,
+                  "startColumn": 5,
+                  "endLine": 19,
+                  "endColumn": 58,
+                  "charOffset": 1076,
+                  "charLength": 53,
+                  "snippet": {
+                    "text": "private readonly HttpClient _httpClient = httpClient;"
+                  }
+                },
+                "contextRegion": {
+                  "startLine": 18,
+                  "startColumn": 1,
+                  "endLine": 20,
+                  "endColumn": 71,
+                  "charOffset": 1038,
+                  "charLength": 162,
+                  "snippet": {
+                    "text": "    private const int Port = 436;\n    private readonly HttpClient _httpClient = httpClient;\n    private readonly ILogger<OppoHttpMetadataClient> _logger = logger;"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "equalIndicator/v1": "0A19B68E05427E26012CC07BD20BFF92CD756D6091FDAA8307DD61264CDA3722"
+          },
+          "baselineState": "new",
+          "properties": {
+            "qodanaSeverity": "Moderate",
+            "tags": [
+              "C#",
+              ".NET 10.0"
+            ]
+          }
+        },
+        {
+          "ruleId": "ReplaceWithPrimaryConstructorParameter",
+          "ruleIndex": 2706,
+          "kind": "fail",
+          "level": "note",
+          "message": {
+            "text": "Replace with primary constructor parameter"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/UnfoldedCircle.OppoBluRay/Metadata/OppoHttpMetadataClient.cs",
+                  "uriBaseId": "solutionDir",
+                  "index": 10
+                },
+                "region": {
+                  "startLine": 20,
+                  "startColumn": 5,
+                  "endLine": 20,
+                  "endColumn": 71,
+                  "charOffset": 1134,
+                  "charLength": 66,
+                  "snippet": {
+                    "text": "private readonly ILogger<OppoHttpMetadataClient> _logger = logger;"
+                  }
+                },
+                "contextRegion": {
+                  "startLine": 19,
+                  "startColumn": 1,
+                  "endLine": 21,
+                  "endColumn": 1,
+                  "charOffset": 1072,
+                  "charLength": 129,
+                  "snippet": {
+                    "text": "    private readonly HttpClient _httpClient = httpClient;\n    private readonly ILogger<OppoHttpMetadataClient> _logger = logger;\n"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "equalIndicator/v1": "B7E607B6533E1BFF415E52AE9A226CF1F2C0D5D3EDD409783D5867132D4D2E80"
+          },
+          "baselineState": "new",
+          "properties": {
+            "qodanaSeverity": "Moderate",
+            "tags": [
+              "C#",
+              ".NET 10.0"
+            ]
+          }
+        },
+        {
+          "ruleId": "ReplaceWithPrimaryConstructorParameter",
+          "ruleIndex": 2706,
+          "kind": "fail",
+          "level": "note",
+          "message": {
+            "text": "Replace with primary constructor parameter"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/UnfoldedCircle.OppoBluRay/WebSocket/OppoWebSocketHandler.cs",
+                  "uriBaseId": "solutionDir",
+                  "index": 2
+                },
+                "region": {
+                  "startLine": 38,
+                  "startColumn": 5,
+                  "endLine": 38,
+                  "endColumn": 80,
+                  "charOffset": 1436,
+                  "charLength": 75,
+                  "snippet": {
+                    "text": "private readonly IAlbumCoverService _albumCoverService = albumCoverService;"
+                  }
+                },
+                "contextRegion": {
+                  "startLine": 37,
+                  "startColumn": 1,
+                  "endLine": 39,
+                  "endColumn": 86,
+                  "charOffset": 1352,
+                  "charLength": 245,
+                  "snippet": {
+                    "text": "    private readonly IOppoClientFactory _oppoClientFactory = oppoClientFactory;\n    private readonly IAlbumCoverService _albumCoverService = albumCoverService;\n    private readonly OppoHttpMetadataClient _httpMetadataClient = httpMetadataClient;"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "equalIndicator/v1": "B42EAD3D89FB27C3566486F410762E7314F959A83C790A13C0E0C58292482A21"
+          },
+          "baselineState": "unchanged",
+          "properties": {
+            "qodanaSeverity": "Moderate",
+            "tags": [
+              "C#",
+              ".NET 10.0"
+            ]
+          }
+        },
+        {
+          "ruleId": "ReplaceWithPrimaryConstructorParameter",
+          "ruleIndex": 2706,
+          "kind": "fail",
+          "level": "note",
+          "message": {
+            "text": "Replace with primary constructor parameter"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/UnfoldedCircle.OppoBluRay/WebSocket/OppoWebSocketHandler.cs",
+                  "uriBaseId": "solutionDir",
+                  "index": 2
+                },
+                "region": {
+                  "startLine": 39,
+                  "startColumn": 5,
+                  "endLine": 39,
+                  "endColumn": 86,
+                  "charOffset": 1516,
+                  "charLength": 81,
+                  "snippet": {
+                    "text": "private readonly OppoHttpMetadataClient _httpMetadataClient = httpMetadataClient;"
+                  }
+                },
+                "contextRegion": {
+                  "startLine": 38,
+                  "startColumn": 1,
+                  "endLine": 40,
+                  "endColumn": 76,
+                  "charOffset": 1432,
+                  "charLength": 241,
+                  "snippet": {
+                    "text": "    private readonly IAlbumCoverService _albumCoverService = albumCoverService;\n    private readonly OppoHttpMetadataClient _httpMetadataClient = httpMetadataClient;\n    private readonly DiscoveryService _discoveryService = discoveryService;"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "equalIndicator/v1": "6F616BBC5C6C62FC0833AA85E2FBBEC2787977C130EEC5CBF3BBBC8B57A08882"
+          },
+          "baselineState": "new",
+          "properties": {
+            "qodanaSeverity": "Moderate",
+            "tags": [
+              "C#",
+              ".NET 10.0"
+            ]
+          }
+        },
+        {
+          "ruleId": "ReplaceWithPrimaryConstructorParameter",
+          "ruleIndex": 2706,
+          "kind": "fail",
+          "level": "note",
+          "message": {
+            "text": "Replace with primary constructor parameter"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/UnfoldedCircle.OppoBluRay/WebSocket/OppoWebSocketHandler.cs",
+                  "uriBaseId": "solutionDir",
+                  "index": 2
+                },
+                "region": {
+                  "startLine": 40,
+                  "startColumn": 5,
+                  "endLine": 40,
+                  "endColumn": 76,
+                  "charOffset": 1602,
+                  "charLength": 71,
+                  "snippet": {
+                    "text": "private readonly DiscoveryService _discoveryService = discoveryService;"
+                  }
+                },
+                "contextRegion": {
+                  "startLine": 39,
+                  "startColumn": 1,
+                  "endLine": 41,
+                  "endColumn": 1,
+                  "charOffset": 1512,
+                  "charLength": 162,
+                  "snippet": {
+                    "text": "    private readonly OppoHttpMetadataClient _httpMetadataClient = httpMetadataClient;\n    private readonly DiscoveryService _discoveryService = discoveryService;\n"
+                  }
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "equalIndicator/v1": "730834502F51B9715D6D884F547E2B5F31145793B345098252926F5D7059027E"
+          },
+          "baselineState": "new",
+          "properties": {
+            "qodanaSeverity": "Moderate",
+            "tags": [
+              "C#",
+              ".NET 10.0"
+            ]
+          }
         }
       ],
       "automationDetails": {
-        "id": "QDNETC/qodana/2026-09-04",
-        "guid": "673d71ee-4805-4340-b92a-96affe92219f",
+        "id": "QDNETC/qodana/2026-09-27",
+        "guid": "61e08ae9-9f25-4beb-a79b-98f246ca552d",
         "properties": {
-          "jobUrl": "https://github.com/henrikwidlund/unfoldedcircle-oppo/actions/runs/33846363572"
+          "jobUrl": "https://github.com/henrikwidlund/unfoldedcircle-oppo/actions/runs/36332792875"
         }
       },
       "newlineSequences": [

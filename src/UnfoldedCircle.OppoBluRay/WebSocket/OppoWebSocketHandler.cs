@@ -430,7 +430,7 @@ public partial class OppoWebSocketHandler(
             ]
         };
 
-    private static SettingsPage CreateDiscoveredPlayersSettingsPage(IReadOnlyList<PlayerInfo> discoveredPlayers) =>
+    private static SettingsPage CreateDiscoveredPlayersSettingsPage(List<PlayerInfo> discoveredPlayers) =>
         new()
         {
             Title = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { ["en"] = "Select discovered player" },
@@ -472,7 +472,7 @@ public partial class OppoWebSocketHandler(
     private const char DiscoveredPlayerValueSeparator = '';
 
     private static string EncodeDiscoveredPlayer(PlayerInfo player) =>
-        string.Join(DiscoveredPlayerValueSeparator, player.Host, player.Model?.ToStringFast() ?? string.Empty, player.DisplayName ?? string.Empty);
+        string.Join(DiscoveredPlayerValueSeparator, player.Host, player.Model?.ToStringFast() ?? string.Empty, player.DisplayName);
 
     private static PlayerInfo? DecodeDiscoveredPlayer(string value)
     {
@@ -590,7 +590,7 @@ public partial class OppoWebSocketHandler(
 
         var configuration = await _configurationService.GetConfigurationAsync(cancellationToken);
         var driverMetadata = await _configurationService.GetDriverMetadataAsync(cancellationToken);
-        var host = payload.MsgData.InputValues![OppoConstants.IpAddressKey];
+        var host = payload.MsgData.InputValues[OppoConstants.IpAddressKey];
         var oppoModel = GetOppoModel(payload.MsgData.InputValues);
         var entityName = payload.MsgData.InputValues.GetStringValueOrDefault(OppoConstants.EntityName, $"{driverMetadata.Name["en"]} ({GetOppoModelName(oppoModel)}) - {host}");
         var macAddress = payload.MsgData.InputValues.GetStringValueOrDefault(OppoConstants.MacAddressKey, string.Empty);

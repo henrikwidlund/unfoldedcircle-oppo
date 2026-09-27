@@ -123,9 +123,11 @@ public sealed class OppoUdpDiscovery(ILogger<OppoUdpDiscovery> logger) : IPlayer
         }
         catch (OperationCanceledException)
         {
+            // Ignore
         }
         catch (ObjectDisposedException)
         {
+            // Ignore
         }
         catch (Exception ex)
         {

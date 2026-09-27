@@ -76,6 +76,7 @@ public sealed class DiscoveryService(IEnumerable<IPlayerDiscovery> discoveries, 
         }
         catch (OperationCanceledException)
         {
+            // Ignore
         }
         catch (Exception ex)
         {
