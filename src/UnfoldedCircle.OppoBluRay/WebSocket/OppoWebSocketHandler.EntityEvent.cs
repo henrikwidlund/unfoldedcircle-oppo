@@ -747,14 +747,14 @@ public partial class OppoWebSocketHandler
         await TryPopulateAlbumCoverAsync(snapshot, cancellationToken);
     }
 
-    // The exact <state> vocabulary beyond play/pause/stop is unconfirmed (no live device to check
-    // against), so an unrecognized value leaves the previous playback state in place rather than guessing.
+    // playing/pause/stop are confirmed against a real capture; anything beyond that is unconfirmed,
+    // so an unrecognized value leaves the previous playback state in place rather than guessing.
     private static State? MapMagnetarPlaybackState(string state)
     {
         Span<char> buffer = stackalloc char[16];
         return ToLowerTrimmed(state, buffer) switch
         {
-            "play" => State.Playing,
+            "playing" => State.Playing,
             "pause" => State.Paused,
             "stop" => State.On,
             _ => null

@@ -676,8 +676,9 @@ public sealed class MagnetarClient(string hostName, string macAddress, ILogger<M
 
     private static OppoMagnetarPlayStateStreamingEvent? ParsePlayState(XElement data)
     {
-        var mediaType = data.Element("media")?.Attribute("type")?.Value;
-        if (string.IsNullOrEmpty(mediaType))
+        var media = data.Element("media");
+        var mediaType = media?.Attribute("type")?.Value;
+        if (string.IsNullOrEmpty(mediaType) || media is null)
             return null;
 
         return new OppoMagnetarPlayStateStreamingEvent(
@@ -686,15 +687,15 @@ public sealed class MagnetarClient(string hostName, string macAddress, ILogger<M
             CurrTime: GetText(data, "curr_time") ?? "",
             TotalTime: GetText(data, "total_time") ?? "",
             RepeatMode: GetText(data, "repeat_mode") ?? "",
-            TrackTitle: GetText(data, "track_title"),
-            DiscArtist: GetText(data, "disc_artist"),
-            DiscTitle: GetText(data, "disc_title"),
-            FileName: GetText(data, "file_name"),
-            Artist: GetText(data, "artist"),
-            Title: GetText(data, "title"),
-            Hdr: GetText(data, "hdr"),
-            FourK: GetText(data, "four_k"),
-            FrameRate: GetText(data, "frame_rate"));
+            TrackTitle: GetText(media, "track_title"),
+            DiscArtist: GetText(media, "disc_artist"),
+            DiscTitle: GetText(media, "disc_title"),
+            FileName: GetText(media, "file_name"),
+            Artist: GetText(media, "artist"),
+            Title: GetText(media, "title"),
+            Hdr: GetText(media, "hdr"),
+            FourK: GetText(media, "four_k"),
+            FrameRate: GetText(media, "frame_rate"));
     }
 
     private static OppoVolumeStreamingEvent ParseVolumeUpdate(XElement data)
