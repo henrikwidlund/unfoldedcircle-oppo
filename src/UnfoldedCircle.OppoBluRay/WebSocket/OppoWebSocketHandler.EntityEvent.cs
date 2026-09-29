@@ -335,7 +335,15 @@ public partial class OppoWebSocketHandler
     {
         var snapshot = new ClientSnapshot();
         if (!await oppoClientHolder.Client.IsConnectedAsync())
+        {
+            // A Magnetar player that is not reachable can also mean it is off
+            // as the player only responds to WoL packets in deep sleep.
+            // Set it to off to ensure that the player can be operated normally when it
+            // is just sleeping.
+            if (oppoClientHolder.ClientKey.Model == OppoModel.Magnetar)
+                snapshot.State = State.Off;
             return snapshot;
+        }
 
         var powerStatusResponse = await oppoClientHolder.Client.QueryPowerStatusAsync(cancellationToken);
         snapshot.State = MapPowerState(powerStatusResponse.Result);
