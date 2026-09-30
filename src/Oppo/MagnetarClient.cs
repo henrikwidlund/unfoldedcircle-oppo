@@ -413,8 +413,9 @@ public sealed class MagnetarClient(string hostName, string macAddress, ILogger<M
         => ValueTask.FromResult(new OppoResult<ushort> { Success = false });
     public ValueTask<OppoResult<VolumeInfo>> QueryVolumeAsync(CancellationToken cancellationToken = default)
         => ValueTask.FromResult(new OppoResult<VolumeInfo> { Success = false });
+    // Magnetar doesn't support querying, we track status based on commands we send and updates pushed in XML
     public ValueTask<OppoResult<PowerState>> QueryPowerStatusAsync(CancellationToken cancellationToken = default)
-        => ValueTask.FromResult(new OppoResult<PowerState> { Success = false });
+        => ValueTask.FromResult(new OppoResult<PowerState> { Success = true, Result = _lastPowerState });
     public ValueTask<OppoResult<PlaybackStatus>> QueryPlaybackStatusAsync(CancellationToken cancellationToken = default)
         => ValueTask.FromResult(new OppoResult<PlaybackStatus> { Success = false });
     public ValueTask<OppoResult<HDMIResolution>> QueryHDMIResolutionAsync(CancellationToken cancellationToken = default)
@@ -566,7 +567,12 @@ public sealed class MagnetarClient(string hostName, string macAddress, ILogger<M
                 {
                     var evt = TryParsePushMessage(messageXml);
                     if (evt is not null)
+                    {
+                        // The player has no explicit power-off push (see ParsePlayState) - but
+                        // receiving any push at all over the persistent connection proves it is on.
+                        _lastPowerState = PowerState.On;
                         PublishStreamingEvent(evt);
+                    }
                 }
 
                 // No complete message found and the unconsumed remainder (e.g. an opening tag with no
@@ -656,17 +662,25 @@ public sealed class MagnetarClient(string hostName, string macAddress, ILogger<M
                 return null;
             }
 
+            if (_logger.IsEnabled(LogLevel.Trace))
+                _logger.ReceivedMagnetarPushMessage(Encoding.UTF8.GetString(rented, 0, length));
+
             var operation = root.Element("operation");
             var data = operation?.Element("data");
             if (data is null)
                 return null;
 
-            return (string?)operation!.Element("cmd") switch
+            OppoStreamingEvent? streamingEvent = (string?)operation!.Element("cmd") switch
             {
                 "UpdatePlayState" => ParsePlayState(data),
                 "UpdateVolume" => ParseVolumeUpdate(data),
                 _ => null
             };
+
+            if (streamingEvent is not null && _logger.IsEnabled(LogLevel.Debug))
+                _logger.ParsedMagnetarPushEvent(streamingEvent.ToString() ?? string.Empty);
+
+            return streamingEvent;
         }
         finally
         {

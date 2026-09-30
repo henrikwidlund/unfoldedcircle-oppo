@@ -341,7 +341,10 @@ public partial class OppoWebSocketHandler
             // Set it to off to ensure that the player can be operated normally when it
             // is just sleeping.
             if (oppoClientHolder.ClientKey.Model == OppoModel.Magnetar)
+            {
+                _logger.MagnetarUnreachableReportingOff(oppoClientHolder.Client.HostName);
                 snapshot.State = State.Off;
+            }
             return snapshot;
         }
 

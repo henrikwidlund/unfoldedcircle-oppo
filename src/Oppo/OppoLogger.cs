@@ -87,4 +87,10 @@ internal static partial class OppoLogger
 
     [LoggerMessage(EventId = 29, Level = LogLevel.Debug, Message = "Magnetar streaming connection lost")]
     public static partial void MagnetarStreamingConnectionLost(this ILogger logger, Exception? exception);
+
+    [LoggerMessage(EventId = 30, Level = LogLevel.Trace, Message = "Received Magnetar push message '{Xml}'")]
+    public static partial void ReceivedMagnetarPushMessage(this ILogger logger, string xml);
+
+    [LoggerMessage(EventId = 31, Level = LogLevel.Debug, Message = "Parsed Magnetar push event: {Event}")]
+    public static partial void ParsedMagnetarPushEvent(this ILogger logger, string @event);
 }
