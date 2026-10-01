@@ -34,6 +34,9 @@ internal static partial class IntegrationLogger
     [LoggerMessage(EventId = 30, Level = LogLevel.Debug, Message = "Magnetar client for {Host} is unreachable, reporting state Off")]
     public static partial void MagnetarUnreachableReportingOff(this ILogger logger, string host);
 
+    [LoggerMessage(EventId = 31, Level = LogLevel.Information, Message = "{EntityId} Position {Position}s is past duration {Duration}s, rebuilding snapshot")]
+    public static partial void PositionPastDurationRebuilding(this ILogger logger, string entityId, uint position, uint duration);
+
     // WebSocket - Configuration logging
     [LoggerMessage(EventId = 14, Level = LogLevel.Information, Message = "Adding configuration for entity_id '{EntityId}'")]
     public static partial void AddingConfiguration(this ILogger logger, string entityId);

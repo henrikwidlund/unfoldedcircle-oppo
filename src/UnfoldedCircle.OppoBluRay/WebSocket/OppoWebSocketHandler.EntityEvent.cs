@@ -30,6 +30,7 @@ public partial class OppoWebSocketHandler
     // Threshold to not query movie data if we most likely are in a title screen
     // that doesn't allow for querying that info.
     private const ushort ShortMoveThresholdSeconds = 300;
+    private static readonly TimeSpan PositionPastDurationRebuildInterval = TimeSpan.FromSeconds(30);
     protected override async Task HandleEventUpdatesAsync(System.Net.WebSockets.WebSocket socket,
         string wsId,
         SubscribedEntitiesHolder subscribedEntitiesHolder,
@@ -1037,6 +1038,22 @@ public partial class OppoWebSocketHandler
             return MediaPlayerUpdateType.Nothing;
 
         var elapsedChanged = UpdateProgress(context.Snapshot, playbackProgressEvent);
+
+        // Some discs make the player report a duration that doesn't match the title being played, without a
+        // title change to trigger a rebuild. The position then runs past the duration until everything is
+        // re-queried. Rebuild when that happens, throttled in case the player keeps reporting inconsistent values.
+        if (context.Snapshot is { ElapsedResponse.Result: var elapsed, MediaDuration: { } duration }
+            && elapsed > duration
+            && DateTimeOffset.UtcNow - context.LastPositionPastDurationRebuildUtc >= PositionPastDurationRebuildInterval)
+        {
+            _logger.PositionPastDurationRebuilding(context.ClientHolder.ClientKey.EntityId, elapsed, duration);
+            context.LastPositionPastDurationRebuildUtc = DateTimeOffset.UtcNow;
+            await RebuildSnapshotAndRefreshHdrTimestampAsync(context, cancellationToken);
+            context.Snapshot.LastProgressTitle = playbackProgressEvent.Title;
+            context.Snapshot.LastProgressChapter = playbackProgressEvent.Chapter;
+            return MediaPlayerUpdateType.Full;
+        }
+
         return elapsedChanged ? MediaPlayerUpdateType.DeltaProgress : MediaPlayerUpdateType.Nothing;
     }
 
@@ -1684,6 +1701,7 @@ public partial class OppoWebSocketHandler
         public ClientSnapshot Snapshot { get; set; } = new();
         public Task? StreamingTask { get; private set; }
         public DateTimeOffset LastHdrRefreshUtc { get; set; } = DateTimeOffset.MinValue;
+        public DateTimeOffset LastPositionPastDurationRebuildUtc { get; set; } = DateTimeOffset.MinValue;
 
         public bool SetSubscribedEntities(HashSet<SubscribedEntity> subscribedEntities)
         {
