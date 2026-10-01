@@ -93,4 +93,10 @@ internal static partial class OppoLogger
 
     [LoggerMessage(EventId = 31, Level = LogLevel.Debug, Message = "Parsed Magnetar push event: {Event}")]
     public static partial void ParsedMagnetarPushEvent(this ILogger logger, string @event);
+
+    [LoggerMessage(EventId = 32, Level = LogLevel.Warning, Message = "{Caller} - Player unreachable while trying to wake it, command aborted.")]
+    public static partial void PlayerUnreachableBeforeCommand(this ILogger logger, string? caller);
+
+    [LoggerMessage(EventId = 33, Level = LogLevel.Information, Message = "Player did not report as on within {Seconds}s after acknowledging power on, assuming it is on.")]
+    public static partial void PlayerNotReportedOnAfterPowerOn(this ILogger logger, double seconds);
 }
