@@ -1,5 +1,6 @@
 using System.Buffers;
 using System.ComponentModel.DataAnnotations;
+using System.Diagnostics;
 using System.IO.Pipelines;
 using System.Net.Sockets;
 using System.Runtime.CompilerServices;
@@ -41,57 +42,123 @@ public sealed class OppoClient(string hostName, OppoModel model, ILogger<OppoCli
     private Channel<OppoStreamingEvent>? _streamingChannel;
     private static readonly CommandCode PauseCommandCode = new(((uint)'P' << 16) | ((uint)'A' << 8) | (byte)'U');
     private static readonly CommandCode PlayCommandCode = new(((uint)'P' << 16) | ((uint)'L' << 8) | (byte)'A');
+    private static readonly TimeSpan PowerOnWaitTimeout = TimeSpan.FromSeconds(5);
+    private readonly SemaphoreSlim _powerOnSemaphore = new(1, 1);
+    private static readonly TimeSpan PowerOnPollInterval = TimeSpan.FromMilliseconds(500);
+    private volatile PowerState _powerState = PowerState.Unknown;
 
     internal bool IsDisposed { get; private set; }
 
     public async ValueTask<OppoResult<PowerState>> PowerToggleAsync(CancellationToken cancellationToken = default)
     {
-        var result = await SendCommand(
-            _is20XModel ? Oppo20XCommand.PowerToggle : Oppo10XCommand.PowerToggle,
-            cancellationToken);
+        var startTime = Stopwatch.GetTimestamp();
+        if (!await _powerOnSemaphore.WaitAsyncWithoutCancellationException(_logger, Timeout.InfiniteTimeSpan, cancellationToken))
+            return false;
 
-        return result.Success switch
+        try
         {
-            false => false,
-            _ => new OppoResult<PowerState>
+            var result = await SendCommand(
+                _is20XModel ? Oppo20XCommand.PowerToggle : Oppo10XCommand.PowerToggle,
+                cancellationToken,
+                false);
+
+            return result.Success switch
             {
-                Success = true,
-                Result = result.Response switch
+                false => false,
+                _ => result.Response switch
                 {
-                    OkOn => PowerState.On,
-                    OkOff => PowerState.Off,
-                    _ => LogError(result.Response, PowerState.Unknown)
+                    OkOn => await WaitUntilPoweredOnAsync(startTime, cancellationToken),
+                    OkOff => new OppoResult<PowerState> { Success = true, Result = _powerState = PowerState.Off },
+                    _ => new OppoResult<PowerState> { Success = true, Result = _powerState = LogError(result.Response, PowerState.Unknown) }
                 }
-            }
-        };
+            };
+        }
+        finally
+        {
+            _powerOnSemaphore.Release();
+        }
     }
 
     public async ValueTask<OppoResult<PowerState>> PowerOnAsync(CancellationToken cancellationToken = default)
     {
+        var startTime = Stopwatch.GetTimestamp();
+        if (!await _powerOnSemaphore.WaitAsyncWithoutCancellationException(_logger, Timeout.InfiniteTimeSpan, cancellationToken))
+            return false;
+
+        try
+        {
+            return await PowerOnCoreAsync(startTime, cancellationToken);
+        }
+        finally
+        {
+            _powerOnSemaphore.Release();
+        }
+    }
+
+    /// <summary>
+    /// Must be called while holding <see cref="_powerOnSemaphore"/>.
+    /// </summary>
+    private async ValueTask<OppoResult<PowerState>> PowerOnCoreAsync(long startTime, CancellationToken cancellationToken)
+    {
         var result = await SendCommand(
             _is20XModel ? Oppo20XCommand.PowerOn : Oppo10XCommand.PowerOn,
-            cancellationToken);
+            cancellationToken,
+            false);
 
         return result.Success switch
         {
             false => false,
-            _ => new OppoResult<PowerState>
+            _ => result.Response switch
             {
-                Success = true,
-                Result = result.Response switch
-                {
-                    OkOn => PowerState.On,
-                    _ => LogError(result.Response, PowerState.Unknown)
-                }
+                OkOn => await WaitUntilPoweredOnAsync(startTime, cancellationToken),
+                _ => new OppoResult<PowerState> { Success = true, Result = _powerState = LogError(result.Response, PowerState.Unknown) }
             }
         };
+    }
+
+    /// <summary>
+    /// The player acknowledges power on immediately, before it has actually powered on.
+    /// Poll the power status until the player reports on, for at most <see cref="PowerOnWaitTimeout"/> since <paramref name="startTime"/>.
+    /// If it does not report as on in time, it is assumed to be on (best effort), as the power on was acknowledged.
+    /// Must be called while holding <see cref="_powerOnSemaphore"/>.
+    /// </summary>
+    private async ValueTask<OppoResult<PowerState>> WaitUntilPoweredOnAsync(long startTime, CancellationToken cancellationToken)
+    {
+        var remaining = PowerOnWaitTimeout - Stopwatch.GetElapsedTime(startTime);
+        if (remaining > TimeSpan.Zero)
+        {
+            // Bound each poll by the remaining time as well, so a hanging query cannot overrun the wait
+            using var pollCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            pollCancellationTokenSource.CancelAfter(remaining);
+            try
+            {
+                while (true)
+                {
+                    await Task.Delay(PowerOnPollInterval, pollCancellationTokenSource.Token);
+                    if (await QueryPowerStatusAsync(pollCancellationTokenSource.Token) is { Result: PowerState.On })
+                        return new OppoResult<PowerState> { Success = true, Result = PowerState.On };
+                    pollCancellationTokenSource.Token.ThrowIfCancellationRequested();
+                }
+            }
+            catch (OperationCanceledException) when (pollCancellationTokenSource.IsCancellationRequested)
+            {
+                // Timed out or canceled, handled below
+            }
+        }
+
+        if (cancellationToken.IsCancellationRequested)
+            return false;
+
+        _logger.PlayerNotReportedOnAfterPowerOn(PowerOnWaitTimeout.TotalSeconds);
+        return new OppoResult<PowerState> { Success = true, Result = _powerState = PowerState.On };
     }
 
     public async ValueTask<OppoResult<PowerState>> PowerOffAsync(CancellationToken cancellationToken = default)
     {
         var result = await SendCommand(
             _is20XModel ? Oppo20XCommand.PowerOff : Oppo10XCommand.PowerOff,
-            cancellationToken);
+            cancellationToken,
+            false);
 
         return result.Success switch
         {
@@ -101,8 +168,8 @@ public sealed class OppoClient(string hostName, OppoModel model, ILogger<OppoCli
                 Success = true,
                 Result = result.Response switch
                 {
-                    OkOff => PowerState.Off,
-                    _ => LogError(result.Response, PowerState.Unknown)
+                    OkOff => _powerState = PowerState.Off,
+                    _ => _powerState = LogError(result.Response, PowerState.Unknown)
                 }
             }
         };
@@ -519,7 +586,7 @@ public sealed class OppoClient(string hostName, OppoModel model, ILogger<OppoCli
         _is20XModel && (await SendCommand(Oppo20XCommand.GaplessPlay, cancellationToken)).Success;
 
     public async ValueTask<bool> NoopAsync(CancellationToken cancellationToken = default) =>
-        (await SendCommand(_is20XModel ? Oppo20XCommand.Noop : Oppo10XCommand.Noop, cancellationToken)).Success;
+        (await SendCommand(_is20XModel ? Oppo20XCommand.Noop : Oppo10XCommand.Noop, cancellationToken, false)).Success;
 
     public async ValueTask<bool> InputAsync(CancellationToken cancellationToken = default) =>
         (await SendCommand(_is20XModel ? Oppo20XCommand.Input : Oppo10XCommand.Input, cancellationToken)).Success;
@@ -581,7 +648,7 @@ public sealed class OppoClient(string hostName, OppoModel model, ILogger<OppoCli
 
     public async ValueTask<OppoResult<VolumeInfo>> QueryVolumeAsync(CancellationToken cancellationToken = default)
     {
-        var result = await SendCommand(_is20XModel ? Oppo20XQueryCommand.QueryVolume : Oppo10XQueryCommand.QueryVolume, cancellationToken);
+        var result = await SendCommand(_is20XModel ? Oppo20XQueryCommand.QueryVolume : Oppo10XQueryCommand.QueryVolume, cancellationToken, false);
 
         if (!result.Success)
             return false;
@@ -609,7 +676,7 @@ public sealed class OppoClient(string hostName, OppoModel model, ILogger<OppoCli
     public async ValueTask<OppoResult<PowerState>> QueryPowerStatusAsync(CancellationToken cancellationToken = default)
     {
         var command = _is20XModel ? Oppo20XQueryCommand.QueryPowerStatus : Oppo10XQueryCommand.QueryPowerStatus;
-        var result = await SendCommand(command, cancellationToken);
+        var result = await SendCommand(command, cancellationToken, false);
 
         return result.Success switch
         {
@@ -619,9 +686,9 @@ public sealed class OppoClient(string hostName, OppoModel model, ILogger<OppoCli
                 Success = true,
                 Result = result.Response switch
                 {
-                    OkOn => PowerState.On,
-                    OkOff => PowerState.Off,
-                    _ => LogError(result.Response, PowerState.Unknown)
+                    OkOn => _powerState = PowerState.On,
+                    OkOff => _powerState = PowerState.Off,
+                    _ => _powerState = LogError(result.Response, PowerState.Unknown)
                 }
             }
         };
@@ -630,7 +697,7 @@ public sealed class OppoClient(string hostName, OppoModel model, ILogger<OppoCli
     public async ValueTask<OppoResult<PlaybackStatus>> QueryPlaybackStatusAsync(CancellationToken cancellationToken = default)
     {
         var command = _is20XModel ? Oppo20XQueryCommand.QueryPlaybackStatus : Oppo10XQueryCommand.QueryPlaybackStatus;
-        var result = await SendCommand(command, cancellationToken);
+        var result = await SendCommand(command, cancellationToken, false);
 
         return result.Success switch
         {
@@ -669,7 +736,7 @@ public sealed class OppoClient(string hostName, OppoModel model, ILogger<OppoCli
     public async ValueTask<OppoResult<HDMIResolution>> QueryHDMIResolutionAsync(CancellationToken cancellationToken = default)
     {
         var result = await SendCommand(_is20XModel ? Oppo20XQueryCommand.QueryHDMIResolution : Oppo10XQueryCommand.QueryHDMIResolution,
-            cancellationToken);
+            cancellationToken, false);
 
         return result.Success switch
         {
@@ -732,7 +799,7 @@ public sealed class OppoClient(string hostName, OppoModel model, ILogger<OppoCli
     public async ValueTask<OppoResult<DiscType>> QueryDiscTypeAsync(CancellationToken cancellationToken = default)
     {
         var command = _is20XModel ? Oppo20XQueryCommand.QueryDiscType : Oppo10XQueryCommand.QueryDiscType;
-        var result = await SendCommand(command, cancellationToken);
+        var result = await SendCommand(command, cancellationToken, false);
 
         return result.Success switch
         {
@@ -762,7 +829,7 @@ public sealed class OppoClient(string hostName, OppoModel model, ILogger<OppoCli
 
     public async ValueTask<OppoResult<string>> QueryAudioTypeAsync(CancellationToken cancellationToken = default)
     {
-        var result = await SendCommand(_is20XModel ? Oppo20XQueryCommand.QueryAudioType : Oppo10XQueryCommand.QueryAudioType, cancellationToken);
+        var result = await SendCommand(_is20XModel ? Oppo20XQueryCommand.QueryAudioType : Oppo10XQueryCommand.QueryAudioType, cancellationToken, false);
 
         return result.Success switch
         {
@@ -778,7 +845,7 @@ public sealed class OppoClient(string hostName, OppoModel model, ILogger<OppoCli
     public async ValueTask<OppoResult<string>> QuerySubtitleTypeAsync(CancellationToken cancellationToken = default)
     {
         var result = await SendCommand(_is20XModel ? Oppo20XQueryCommand.QuerySubtitleType : Oppo10XQueryCommand.QuerySubtitleType,
-            cancellationToken);
+            cancellationToken, false);
 
         return result.Success switch
         {
@@ -796,7 +863,7 @@ public sealed class OppoClient(string hostName, OppoModel model, ILogger<OppoCli
         if (!_is20XModel)
             return false;
 
-        var result = await SendCommand(Oppo20XQueryCommand.QueryThreeDStatus, cancellationToken);
+        var result = await SendCommand(Oppo20XQueryCommand.QueryThreeDStatus, cancellationToken, false);
 
         return result.Success switch
         {
@@ -819,7 +886,7 @@ public sealed class OppoClient(string hostName, OppoModel model, ILogger<OppoCli
         if (!_is20XModel)
             return false;
 
-        var result = await SendCommand(Oppo20XQueryCommand.QueryHDRStatus, cancellationToken);
+        var result = await SendCommand(Oppo20XQueryCommand.QueryHDRStatus, cancellationToken, false);
 
         return result.Success switch
         {
@@ -843,7 +910,7 @@ public sealed class OppoClient(string hostName, OppoModel model, ILogger<OppoCli
         if (!_is20XModel)
             return false;
 
-        var result = await SendCommand(Oppo20XQueryCommand.QueryAspectRatio, cancellationToken);
+        var result = await SendCommand(Oppo20XQueryCommand.QueryAspectRatio, cancellationToken, false);
 
         return result.Success switch
         {
@@ -874,7 +941,7 @@ public sealed class OppoClient(string hostName, OppoModel model, ILogger<OppoCli
     public async ValueTask<OppoResult<CurrentRepeatMode>> QueryRepeatModeAsync(CancellationToken cancellationToken = default)
     {
         var command = _is20XModel ? Oppo20XQueryCommand.QueryRepeatMode : Oppo10XQueryCommand.QueryRepeatMode;
-        var result = await SendCommand(command, cancellationToken);
+        var result = await SendCommand(command, cancellationToken, false);
 
         return result.Success switch
         {
@@ -903,7 +970,7 @@ public sealed class OppoClient(string hostName, OppoModel model, ILogger<OppoCli
             return false;
 
         var result = await SendCommand(_is20XModel ? Oppo20XQueryCommand.QueryInputSource : Oppo10XQueryCommand.QueryInputSource,
-            cancellationToken);
+            cancellationToken, false);
 
         return result.Success switch
         {
@@ -1023,7 +1090,7 @@ public sealed class OppoClient(string hostName, OppoModel model, ILogger<OppoCli
         if (!_is20XModel)
             return false;
 
-        var result = await SendCommand(Oppo20XQueryCommand.QueryCDDBNumber, cancellationToken);
+        var result = await SendCommand(Oppo20XQueryCommand.QueryCDDBNumber, cancellationToken, false);
 
         return result.Success switch
         {
@@ -1041,7 +1108,7 @@ public sealed class OppoClient(string hostName, OppoModel model, ILogger<OppoCli
         if (!_is20XModel)
             return false;
 
-        var result = await SendCommand(Oppo20XQueryCommand.QueryTrackName, cancellationToken);
+        var result = await SendCommand(Oppo20XQueryCommand.QueryTrackName, cancellationToken, false);
 
         return result.Success switch
         {
@@ -1059,7 +1126,7 @@ public sealed class OppoClient(string hostName, OppoModel model, ILogger<OppoCli
         if (!_is20XModel)
             return false;
 
-        var result = await SendCommand(Oppo20XQueryCommand.QueryTrackAlbum, cancellationToken);
+        var result = await SendCommand(Oppo20XQueryCommand.QueryTrackAlbum, cancellationToken, false);
 
         return result.Success switch
         {
@@ -1077,7 +1144,7 @@ public sealed class OppoClient(string hostName, OppoModel model, ILogger<OppoCli
         if (!_is20XModel)
             return false;
 
-        var result = await SendCommand(Oppo20XQueryCommand.QueryTrackPerformer, cancellationToken);
+        var result = await SendCommand(Oppo20XQueryCommand.QueryTrackPerformer, cancellationToken, false);
 
         return result.Success switch
         {
@@ -1094,7 +1161,7 @@ public sealed class OppoClient(string hostName, OppoModel model, ILogger<OppoCli
     {
         var command = _is20XModel ? Oppo20XQueryCommand.QueryVerboseMode : Oppo10XQueryCommand.QueryVerboseMode;
 
-        var result = await SendCommand(command, cancellationToken);
+        var result = await SendCommand(command, cancellationToken, false);
         return result.Success switch
         {
             false => false,
@@ -1124,7 +1191,7 @@ public sealed class OppoClient(string hostName, OppoModel model, ILogger<OppoCli
             _ => throw new ArgumentOutOfRangeException(nameof(verboseMode), verboseMode, "Unknown verbose mode")
         };
 
-        var result = await SendCommand(command, cancellationToken);
+        var result = await SendCommand(command, cancellationToken, false);
         return result.Success switch
         {
             false => false,
@@ -1171,7 +1238,12 @@ public sealed class OppoClient(string hostName, OppoModel model, ILogger<OppoCli
             EnsureReaderLoopStarted();
 
             await foreach (var evt in channel.Reader.ReadAllAsync(cancellationToken))
+            {
+                if (evt is OppoPowerStateStreamingEvent powerStateEvent)
+                    _powerState = powerStateEvent.PowerState;
+
                 yield return evt;
+            }
         }
         finally
         {
@@ -1191,8 +1263,15 @@ public sealed class OppoClient(string hostName, OppoModel model, ILogger<OppoCli
 
     public string HostName => _hostName;
 
-    private async ValueTask<OppoResultCore> SendCommand(byte[] command, CancellationToken cancellationToken, [CallerMemberName] string? caller = null)
+    private async ValueTask<OppoResultCore> SendCommand(byte[] command, CancellationToken cancellationToken, bool wakePlayerBeforeCommand = true, [CallerMemberName] string? caller = null)
     {
+        if (wakePlayerBeforeCommand && !await TryWakePlayerAsync(cancellationToken))
+        {
+            if (!cancellationToken.IsCancellationRequested)
+                _logger.PlayerUnreachableBeforeCommand(caller);
+            return OppoResultCore.FalseResult;
+        }
+
         using var lease = await _rateLimiter.AcquireAsyncWithoutCancellationException(_logger, cancellationToken, caller);
         if (!lease.IsAcquired)
         {
@@ -1225,6 +1304,45 @@ public sealed class OppoClient(string hostName, OppoModel model, ILogger<OppoCli
         finally
         {
             _semaphore.Release();
+        }
+    }
+
+    /// <summary>
+    /// Best effort: some commands produce an error while the player is off, so try to wake it first.
+    /// The whole wake is bounded by <see cref="PowerOnWaitTimeout"/>, so the command itself still fits within the request timeout.
+    /// Returns <see langword="false"/> only if the player did not respond at all, or the request was canceled.
+    /// </summary>
+    private async ValueTask<bool> TryWakePlayerAsync(CancellationToken cancellationToken)
+    {
+        if (_powerState == PowerState.On)
+            return true;
+
+        var startTime = Stopwatch.GetTimestamp();
+
+        // If the state is unknown, query it first to avoid an unnecessary wake.
+        if (_powerState == PowerState.Unknown && !(await QueryPowerStatusAsync(cancellationToken)).Success)
+            return false;
+
+        if (_powerState == PowerState.On)
+            return true;
+
+        // Another power on may already be in progress, wait for it to finish.
+        // If it does not finish in time, send the command anyway.
+        var remaining = PowerOnWaitTimeout - Stopwatch.GetElapsedTime(startTime);
+        if (remaining <= TimeSpan.Zero
+            || !await _powerOnSemaphore.WaitAsyncWithoutCancellationException(_logger, remaining, cancellationToken))
+            return !cancellationToken.IsCancellationRequested;
+
+        try
+        {
+            if (_powerState == PowerState.On)
+                return true;
+
+            return (await PowerOnCoreAsync(startTime, cancellationToken)).Success;
+        }
+        finally
+        {
+            _powerOnSemaphore.Release();
         }
     }
 
@@ -2009,7 +2127,7 @@ public sealed class OppoClient(string hostName, OppoModel model, ILogger<OppoCli
 
     private async ValueTask<OppoResult<uint>> QueryTimeAsync(byte[] command, CancellationToken cancellationToken)
     {
-        var result = await SendCommand(command, cancellationToken);
+        var result = await SendCommand(command, cancellationToken, false);
 
         return result.Success switch
         {
@@ -2066,6 +2184,7 @@ public sealed class OppoClient(string hostName, OppoModel model, ILogger<OppoCli
 
         _tcpClient.Dispose();
         _semaphore.Dispose();
+        _powerOnSemaphore.Dispose();
         _rateLimiter.Dispose();
         IsDisposed = true;
     }

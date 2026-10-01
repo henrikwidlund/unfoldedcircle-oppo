@@ -1,5 +1,3 @@
-using System.Diagnostics;
-
 using Oppo;
 
 using UnfoldedCircle.Models.Events;
@@ -320,24 +318,19 @@ public partial class OppoWebSocketHandler
 
     private static async ValueTask<EntityCommandResult> HandleMediaPlayerPowerToggle(OppoClientHolder oppoClientHolder, CancellationToken commandCancellationToken)
     {
-        var startTime = Stopwatch.GetTimestamp();
-        var poweredOnHere = false;
-        do
+        // media player power toggle sends play_pause, power the device on first if needed
+        if (await oppoClientHolder.Client.QueryPowerStatusAsync(commandCancellationToken) is { Result: PowerState.On })
         {
-            // media player power toggle sends play_pause, power the device on first if needed
-            if (await oppoClientHolder.Client.QueryPowerStatusAsync(commandCancellationToken) is { Result: PowerState.On })
-            {
-                await SendPlayOrPause(oppoClientHolder, commandCancellationToken);
+            await SendPlayOrPause(oppoClientHolder, commandCancellationToken);
+            return EntityCommandResult.Other;
+        }
 
-                return poweredOnHere ? EntityCommandResult.PowerOn : EntityCommandResult.Other;
-            }
+        // Power on waits for the player to report on before returning
+        if (await HandlePowerOnAsync(oppoClientHolder, commandCancellationToken) is not { Result: PowerState.On })
+            return EntityCommandResult.Failure;
 
-            await oppoClientHolder.Client.PowerOnAsync(commandCancellationToken);
-            poweredOnHere = true;
-            await Task.Delay(1000, commandCancellationToken);
-        } while (Stopwatch.GetElapsedTime(startTime) < TimeSpan.FromSeconds(10));
-
-        return EntityCommandResult.Failure;
+        await SendPlayOrPause(oppoClientHolder, commandCancellationToken);
+        return EntityCommandResult.PowerOn;
     }
 
     protected override async ValueTask<EntityCommandResult> OnRemoteCommandAsync(System.Net.WebSockets.WebSocket socket,
