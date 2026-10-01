@@ -696,6 +696,12 @@ public partial class OppoWebSocketHandler
                 await ApplyMagnetarPlayStateStreamingEventAsync(context, playStateEvent, cancellationToken);
                 return MediaPlayerUpdateType.Full;
 
+            case OppoMagnetarPowerOffStreamingEvent:
+                // Synthetic - see OppoMagnetarPowerOffStreamingEvent. Same reset as the real
+                // OppoPowerStateStreamingEvent { PowerState.Off } case above.
+                context.Snapshot = new ClientSnapshot { State = State.Off };
+                return MediaPlayerUpdateType.Full;
+
             default:
                 return MediaPlayerUpdateType.Nothing;
         }

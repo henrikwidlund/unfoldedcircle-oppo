@@ -568,9 +568,11 @@ public sealed class MagnetarClient(string hostName, string macAddress, ILogger<M
                     var evt = TryParsePushMessage(messageXml);
                     if (evt is not null)
                     {
-                        // The player has no explicit power-off push (see ParsePlayState) - but
-                        // receiving any push at all over the persistent connection proves it is on.
-                        _lastPowerState = PowerState.On;
+                        // The real player has no explicit power-off push (see ParsePlayState) - but
+                        // receiving any real push at all over the persistent connection proves it is
+                        // on. OppoMagnetarPowerOffStreamingEvent is the one exception: it never comes
+                        // from the player itself, only from oppo-multiplexer synthesizing it.
+                        _lastPowerState = evt is OppoMagnetarPowerOffStreamingEvent ? PowerState.Off : PowerState.On;
                         PublishStreamingEvent(evt);
                     }
                 }
@@ -666,11 +668,19 @@ public sealed class MagnetarClient(string hostName, string macAddress, ILogger<M
                 _logger.ReceivedMagnetarPushMessage(Encoding.UTF8.GetString(rented, 0, length));
 
             var operation = root.Element("operation");
+            var cmd = (string?)operation?.Element("cmd");
+            if (string.Equals(cmd, "SyntheticPowerOff", StringComparison.Ordinal))
+            {
+                // No <data> element on this one - it's not a real player message (see
+                // OppoMagnetarPowerOffStreamingEvent).
+                return new OppoMagnetarPowerOffStreamingEvent();
+            }
+
             var data = operation?.Element("data");
             if (data is null)
                 return null;
 
-            OppoStreamingEvent? streamingEvent = (string?)operation!.Element("cmd") switch
+            OppoStreamingEvent? streamingEvent = cmd switch
             {
                 "UpdatePlayState" => ParsePlayState(data),
                 "UpdateVolume" => ParseVolumeUpdate(data),
