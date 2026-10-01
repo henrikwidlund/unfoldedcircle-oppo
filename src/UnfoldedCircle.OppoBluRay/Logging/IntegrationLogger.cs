@@ -31,6 +31,9 @@ internal static partial class IntegrationLogger
     [LoggerMessage(EventId = 12, Level = LogLevel.Debug, Message = "{WSId} Starting events for {DeviceId}")]
     public static partial void StartingEventsForDevice(this ILogger logger, string wsId, string deviceId);
 
+    [LoggerMessage(EventId = 30, Level = LogLevel.Debug, Message = "Magnetar client for {Host} is unreachable, reporting state Off")]
+    public static partial void MagnetarUnreachableReportingOff(this ILogger logger, string host);
+
     // WebSocket - Configuration logging
     [LoggerMessage(EventId = 14, Level = LogLevel.Information, Message = "Adding configuration for entity_id '{EntityId}'")]
     public static partial void AddingConfiguration(this ILogger logger, string entityId);

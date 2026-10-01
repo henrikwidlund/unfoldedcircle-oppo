@@ -341,7 +341,10 @@ public partial class OppoWebSocketHandler
             // Set it to off to ensure that the player can be operated normally when it
             // is just sleeping.
             if (oppoClientHolder.ClientKey.Model == OppoModel.Magnetar)
+            {
+                _logger.MagnetarUnreachableReportingOff(oppoClientHolder.Client.HostName);
                 snapshot.State = State.Off;
+            }
             return snapshot;
         }
 
@@ -691,6 +694,12 @@ public partial class OppoWebSocketHandler
 
             case OppoMagnetarPlayStateStreamingEvent playStateEvent:
                 await ApplyMagnetarPlayStateStreamingEventAsync(context, playStateEvent, cancellationToken);
+                return MediaPlayerUpdateType.Full;
+
+            case OppoMagnetarPowerOffStreamingEvent:
+                // Synthetic - see OppoMagnetarPowerOffStreamingEvent. Same reset as the real
+                // OppoPowerStateStreamingEvent { PowerState.Off } case above.
+                context.Snapshot = new ClientSnapshot { State = State.Off };
                 return MediaPlayerUpdateType.Full;
 
             default:

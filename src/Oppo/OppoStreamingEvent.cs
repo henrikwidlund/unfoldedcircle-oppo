@@ -76,3 +76,13 @@ public sealed record OppoMagnetarPlayStateStreamingEvent(
     string? FourK,
     string? FrameRate)
     : OppoStreamingEvent;
+
+/// <summary>
+/// Synthetic power-off marker - not something the real player ever sends (it has no power-off push
+/// at all, it just stops sending anything). Only ever produced when running through oppo-multiplexer:
+/// the proxy synthesizes a <c>SyntheticPowerOff</c> cmd on backend disconnect so a client can tell
+/// "player is off" apart from "proxy is still here, player just isn't talking" - its own socket to the
+/// proxy never drops just because the proxy's connection to the real player did.
+/// </summary>
+public sealed record OppoMagnetarPowerOffStreamingEvent
+    : OppoStreamingEvent;
