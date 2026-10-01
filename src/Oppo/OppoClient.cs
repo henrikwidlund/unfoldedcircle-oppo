@@ -177,13 +177,17 @@ public sealed class OppoClient(string hostName, OppoModel model, ILogger<OppoCli
 
     public async ValueTask<OppoResult<TrayState>> EjectToggleAsync(CancellationToken cancellationToken = default)
     {
+        // UDP-205 replies ER OVERTIME to this command even though it executes it.
+        // Retrying would toggle the tray back, so disable retry and treat ER OVERTIME as success.
         var result = await SendCommand(
             _is20XModel ? Oppo20XCommand.EjectToggle : Oppo10XCommand.EjectToggle,
-            cancellationToken);
+            cancellationToken,
+            noRetry: true);
 
-        return result.Success switch
+        return result switch
         {
-            false => false,
+            { ShouldRetry: true } => new OppoResult<TrayState> { Success = true, Result = TrayState.Unknown },
+            { Success: false } => false,
             _ => new OppoResult<TrayState>
             {
                 Success = true,
@@ -1263,7 +1267,7 @@ public sealed class OppoClient(string hostName, OppoModel model, ILogger<OppoCli
 
     public string HostName => _hostName;
 
-    private async ValueTask<OppoResultCore> SendCommand(byte[] command, CancellationToken cancellationToken, bool wakePlayerBeforeCommand = true, [CallerMemberName] string? caller = null)
+    private async ValueTask<OppoResultCore> SendCommand(byte[] command, CancellationToken cancellationToken, bool wakePlayerBeforeCommand = true, bool noRetry = false, [CallerMemberName] string? caller = null)
     {
         if (wakePlayerBeforeCommand && !await TryWakePlayerAsync(cancellationToken))
         {
@@ -1285,7 +1289,7 @@ public sealed class OppoClient(string hostName, OppoModel model, ILogger<OppoCli
         try
         {
             var result = await SendCommandCore(command, cancellationToken, caller);
-            if (!result.ShouldRetry)
+            if (!result.ShouldRetry || noRetry)
                 return result;
 
             _logger.RetryingAfterOvertime(caller);
