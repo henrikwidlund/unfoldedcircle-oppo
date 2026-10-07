@@ -62,9 +62,8 @@ public sealed class MagnetarClient(string hostName, string macAddress, ILogger<M
         {
             try
             {
-                var result = await SendCommand("#POW", cancellationToken, cancellationTokenSource?.Token);
-                if (!result.Success)
-                    return false;
+                if (!await SendCommand("#POW", cancellationToken, cancellationTokenSource?.Token))
+                    return OppoResult.Failure;
 
                 _lastPowerState = _lastPowerState switch
                 {
@@ -72,7 +71,7 @@ public sealed class MagnetarClient(string hostName, string macAddress, ILogger<M
                     PowerState.On => PowerState.Off,
                     _ => _lastPowerState
                 };
-                return new OppoResult<PowerState> { Success = true, Result = _lastPowerState };
+                return _lastPowerState;
             }
             catch (Exception e)
             {
@@ -85,11 +84,11 @@ public sealed class MagnetarClient(string hostName, string macAddress, ILogger<M
                         _ => _lastPowerState
                     };
 
-                    return new OppoResult<PowerState> { Success = true, Result = _lastPowerState };
+                    return _lastPowerState;
                 }
 
                 _logger.FailedToSendCommandException(e);
-                return false;
+                return OppoResult.Failure;
             }
         }
     }
@@ -101,304 +100,198 @@ public sealed class MagnetarClient(string hostName, string macAddress, ILogger<M
         cancellationTokenSource.CancelAfter(_timeout);
         try
         {
-            var result = await SendCommand("#PON", cancellationToken, cancellationTokenSource.Token);
-            if (!result.Success)
-                return false;
+            if (!await SendCommand("#PON", cancellationToken, cancellationTokenSource.Token))
+                return OppoResult.Failure;
 
             _lastPowerState = PowerState.On;
-            return new OppoResult<PowerState> { Success = true, Result = PowerState.On };
+            return PowerState.On;
         }
         catch (Exception e)
         {
             if (e is OperationCanceledException && cancellationTokenSource.IsCancellationRequested)
             {
                 _lastPowerState = PowerState.On;
-                return new OppoResult<PowerState> { Success = true, Result = PowerState.On };
+                return PowerState.On;
             }
 
             _logger.FailedToSendCommandException(e);
-            return false;
+            return OppoResult.Failure;
         }
     }
 
     public async ValueTask<OppoResult<PowerState>> PowerOffAsync(CancellationToken cancellationToken = default)
     {
-        var result = await SendCommand("#POF", cancellationToken);
-        if (!result.Success)
-            return false;
+        if (!await SendCommand("#POF", cancellationToken))
+            return OppoResult.Failure;
 
         _lastPowerState = PowerState.Off;
-        return new OppoResult<PowerState>
-        {
-            Success = true,
-            Result = PowerState.Off
-        };
+        return PowerState.Off;
     }
 
     public async ValueTask<OppoResult<TrayState>> EjectToggleAsync(CancellationToken cancellationToken = default)
     {
-        var result = await SendCommand("#EJT", cancellationToken);
-        return result.Success;
+        return await SendCommand("#EJT", cancellationToken) ? OppoResult.NoResult : OppoResult.Failure;
     }
 
-    public async ValueTask<bool> PlayAsync(CancellationToken cancellationToken = default)
-    {
-        var result = await SendCommand("#PLA", cancellationToken);
-        return result.Success;
-    }
+    public ValueTask<bool> PlayAsync(CancellationToken cancellationToken = default) =>
+        SendCommand("#PLA", cancellationToken);
 
-    public async ValueTask<bool> StopAsync(CancellationToken cancellationToken = default)
-    {
-        var result = await SendCommand("#STP", cancellationToken);
-        return result.Success;
-    }
+    public ValueTask<bool> StopAsync(CancellationToken cancellationToken = default) =>
+        SendCommand("#STP", cancellationToken);
 
-    public async ValueTask<bool> PauseAsync(CancellationToken cancellationToken = default)
-    {
-        var result = await SendCommand("#PAU", cancellationToken);
-        return result.Success;
-    }
+    public ValueTask<bool> PauseAsync(CancellationToken cancellationToken = default) =>
+        SendCommand("#PAU", cancellationToken);
 
-    public async ValueTask<bool> NextAsync(CancellationToken cancellationToken = default)
-    {
-        var result = await SendCommand("#NXT", cancellationToken);
-        return result.Success;
-    }
+    public ValueTask<bool> NextAsync(CancellationToken cancellationToken = default) =>
+        SendCommand("#NXT", cancellationToken);
 
-    public async ValueTask<bool> PreviousAsync(CancellationToken cancellationToken = default)
-    {
-        var result = await SendCommand("#PRE", cancellationToken);
-        return result.Success;
-    }
+    public ValueTask<bool> PreviousAsync(CancellationToken cancellationToken = default) =>
+        SendCommand("#PRE", cancellationToken);
 
-    public async ValueTask<bool> UpArrowAsync(CancellationToken cancellationToken = default)
-    {
-        var result = await SendCommand("#NUP", cancellationToken);
-        return result.Success;
-    }
+    public ValueTask<bool> UpArrowAsync(CancellationToken cancellationToken = default) =>
+        SendCommand("#NUP", cancellationToken);
 
-    public async ValueTask<bool> DownArrowAsync(CancellationToken cancellationToken = default)
-    {
-        var result = await SendCommand("#NDN", cancellationToken);
-        return result.Success;
-    }
+    public ValueTask<bool> DownArrowAsync(CancellationToken cancellationToken = default) =>
+        SendCommand("#NDN", cancellationToken);
 
-    public async ValueTask<bool> LeftArrowAsync(CancellationToken cancellationToken = default)
-    {
-        var result = await SendCommand("#NLT", cancellationToken);
-        return result.Success;
-    }
+    public ValueTask<bool> LeftArrowAsync(CancellationToken cancellationToken = default) =>
+        SendCommand("#NLT", cancellationToken);
 
-    public async ValueTask<bool> RightArrowAsync(CancellationToken cancellationToken = default)
-    {
-        var result = await SendCommand("#NRT", cancellationToken);
-        return result.Success;
-    }
+    public ValueTask<bool> RightArrowAsync(CancellationToken cancellationToken = default) =>
+        SendCommand("#NRT", cancellationToken);
 
-    public async ValueTask<bool> EnterAsync(CancellationToken cancellationToken = default)
-    {
-        var result = await SendCommand("#SEL", cancellationToken);
-        return result.Success;
-    }
+    public ValueTask<bool> EnterAsync(CancellationToken cancellationToken = default) =>
+        SendCommand("#SEL", cancellationToken);
 
-    public async ValueTask<bool> HomeAsync(CancellationToken cancellationToken = default)
-    {
-        var result = await SendCommand("#HOM", cancellationToken);
-        return result.Success;
-    }
+    public ValueTask<bool> HomeAsync(CancellationToken cancellationToken = default) =>
+        SendCommand("#HOM", cancellationToken);
 
-    public async ValueTask<bool> SetupAsync(CancellationToken cancellationToken = default)
-    {
-        var result = await SendCommand("#SET", cancellationToken);
-        return result.Success;
-    }
+    public ValueTask<bool> SetupAsync(CancellationToken cancellationToken = default) =>
+        SendCommand("#SET", cancellationToken);
 
-    public async ValueTask<bool> ReturnAsync(CancellationToken cancellationToken = default)
-    {
-        var result = await SendCommand("#RET", cancellationToken);
-        return result.Success;
-    }
+    public ValueTask<bool> ReturnAsync(CancellationToken cancellationToken = default) =>
+        SendCommand("#RET", cancellationToken);
 
     public async ValueTask<bool> NumericInputAsync(ushort number, CancellationToken cancellationToken = default)
     {
-        if (number > 9) return false;
-        var result = await SendCommand($"#NU{number}", cancellationToken);
-        return result.Success;
+        return number <= 9 && await SendCommand($"#NU{number}", cancellationToken);
     }
 
     public async ValueTask<OppoResult<DimmerState>> DimmerAsync(CancellationToken cancellationToken = default)
     {
-        var result = await SendCommand("#DIM", cancellationToken);
-        return result.Success;
+        return await SendCommand("#DIM", cancellationToken) ? OppoResult.NoResult : OppoResult.Failure;
     }
 
     public async ValueTask<OppoResult<PureAudioState>> PureAudioToggleAsync(CancellationToken cancellationToken = default)
     {
-        var result = await SendCommand("#PUR", cancellationToken);
-        return result.Success;
+        return await SendCommand("#PUR", cancellationToken) ? OppoResult.NoResult : OppoResult.Failure;
     }
 
-    public async ValueTask<OppoResult<ushort?>> VolumeUpAsync(CancellationToken cancellationToken = default)
+    public async ValueTask<OppoResult<ushort>> VolumeUpAsync(CancellationToken cancellationToken = default)
     {
-        var result = await SendCommand("#VUP", cancellationToken);
-        return result.Success;
+        return await SendCommand("#VUP", cancellationToken) ? OppoResult.NoResult : OppoResult.Failure;
     }
 
-    public async ValueTask<OppoResult<ushort?>> VolumeDownAsync(CancellationToken cancellationToken = default)
+    public async ValueTask<OppoResult<ushort>> VolumeDownAsync(CancellationToken cancellationToken = default)
     {
-        var result = await SendCommand("#VDN", cancellationToken);
-        return result.Success;
+        return await SendCommand("#VDN", cancellationToken) ? OppoResult.NoResult : OppoResult.Failure;
     }
 
     public async ValueTask<OppoResult<MuteState>> MuteToggleAsync(CancellationToken cancellationToken = default)
     {
-        var result = await SendCommand("#MUT", cancellationToken);
-        return result.Success;
+        return await SendCommand("#MUT", cancellationToken) ? OppoResult.NoResult : OppoResult.Failure;
     }
 
-    public async ValueTask<bool> ClearAsync(CancellationToken cancellationToken = default)
-    {
-        var result = await SendCommand("#CLR", cancellationToken);
-        return result.Success;
-    }
+    public ValueTask<bool> ClearAsync(CancellationToken cancellationToken = default) =>
+        SendCommand("#CLR", cancellationToken);
 
-    public async ValueTask<bool> GoToAsync(CancellationToken cancellationToken = default)
-    {
-        var result = await SendCommand("#GOT", cancellationToken);
-        return result.Success;
-    }
+    public ValueTask<bool> GoToAsync(CancellationToken cancellationToken = default) =>
+        SendCommand("#GOT", cancellationToken);
 
     public ValueTask<bool> PageUpAsync(CancellationToken cancellationToken = default) => ValueTask.FromResult(false);
     public ValueTask<bool> PageDownAsync(CancellationToken cancellationToken = default) => ValueTask.FromResult(false);
 
-    public async ValueTask<bool> InfoToggleAsync(CancellationToken cancellationToken = default)
+    public ValueTask<bool> InfoToggleAsync(CancellationToken cancellationToken = default) =>
+        SendCommand("#OSD", cancellationToken);
+
+    public ValueTask<bool> TopMenuAsync(CancellationToken cancellationToken = default) =>
+        SendCommand("#TTL", cancellationToken);
+
+    public ValueTask<bool> PopUpMenuAsync(CancellationToken cancellationToken = default) =>
+        SendCommand("#MNU", cancellationToken);
+
+    public ValueTask<bool> RedAsync(CancellationToken cancellationToken = default) =>
+        SendCommand("#RED", cancellationToken);
+
+    public ValueTask<bool> GreenAsync(CancellationToken cancellationToken = default) =>
+        SendCommand("#GRN", cancellationToken);
+
+    public ValueTask<bool> BlueAsync(CancellationToken cancellationToken = default) =>
+        SendCommand("#BLU", cancellationToken);
+
+    public ValueTask<bool> YellowAsync(CancellationToken cancellationToken = default) =>
+        SendCommand("#YLW", cancellationToken);
+
+    public async ValueTask<OppoResult<ushort>> ReverseAsync(CancellationToken cancellationToken = default)
     {
-        var result = await SendCommand("#OSD", cancellationToken);
-        return result.Success;
+        return await SendCommand("#REV", cancellationToken) ? OppoResult.NoResult : OppoResult.Failure;
     }
 
-    public async ValueTask<bool> TopMenuAsync(CancellationToken cancellationToken = default)
+    public async ValueTask<OppoResult<ushort>> ForwardAsync(CancellationToken cancellationToken = default)
     {
-        var result = await SendCommand("#TTL", cancellationToken);
-        return result.Success;
+        return await SendCommand("#FWD", cancellationToken) ? OppoResult.NoResult : OppoResult.Failure;
     }
 
-    public async ValueTask<bool> PopUpMenuAsync(CancellationToken cancellationToken = default)
-    {
-        var result = await SendCommand("#MNU", cancellationToken);
-        return result.Success;
-    }
+    public ValueTask<bool> AudioAsync(CancellationToken cancellationToken = default) =>
+        SendCommand("#AUD", cancellationToken);
 
-    public async ValueTask<bool> RedAsync(CancellationToken cancellationToken = default)
-    {
-        var result = await SendCommand("#RED", cancellationToken);
-        return result.Success;
-    }
-
-    public async ValueTask<bool> GreenAsync(CancellationToken cancellationToken = default)
-    {
-        var result = await SendCommand("#GRN", cancellationToken);
-        return result.Success;
-    }
-
-    public async ValueTask<bool> BlueAsync(CancellationToken cancellationToken = default)
-    {
-        var result = await SendCommand("#BLU", cancellationToken);
-        return result.Success;
-    }
-
-    public async ValueTask<bool> YellowAsync(CancellationToken cancellationToken = default)
-    {
-        var result = await SendCommand("#YLW", cancellationToken);
-        return result.Success;
-    }
-
-    public async ValueTask<OppoResult<ushort?>> ReverseAsync(CancellationToken cancellationToken = default)
-    {
-        var result = await SendCommand("#REV", cancellationToken);
-        return result.Success;
-    }
-
-    public async ValueTask<OppoResult<ushort?>> ForwardAsync(CancellationToken cancellationToken = default)
-    {
-        var result = await SendCommand("#FWD", cancellationToken);
-        return result.Success;
-    }
-
-    public async ValueTask<bool> AudioAsync(CancellationToken cancellationToken = default)
-    {
-        var result = await SendCommand("#AUD", cancellationToken);
-        return result.Success;
-    }
-
-    public async ValueTask<bool> SubtitleAsync(CancellationToken cancellationToken = default)
-    {
-        var result = await SendCommand("#SUB", cancellationToken);
-        return result.Success;
-    }
+    public ValueTask<bool> SubtitleAsync(CancellationToken cancellationToken = default) =>
+        SendCommand("#SUB", cancellationToken);
 
     public async ValueTask<OppoResult<string>> AngleAsync(CancellationToken cancellationToken = default)
     {
-        var result = await SendCommand("#ANG", cancellationToken);
-        return result.Success;
+        return await SendCommand("#ANG", cancellationToken) ? OppoResult.NoResult : OppoResult.Failure;
     }
 
     public async ValueTask<OppoResult<string>> ZoomAsync(CancellationToken cancellationToken = default)
     {
-        var result = await SendCommand("#ZOM", cancellationToken);
-        return result.Success;
+        return await SendCommand("#ZOM", cancellationToken) ? OppoResult.NoResult : OppoResult.Failure;
     }
 
     public async ValueTask<OppoResult<string>> SecondaryAudioProgramAsync(CancellationToken cancellationToken = default)
     {
-        var result = await SendCommand("#SAP", cancellationToken);
-        return result.Success;
+        return await SendCommand("#SAP", cancellationToken) ? OppoResult.NoResult : OppoResult.Failure;
     }
 
     public async ValueTask<OppoResult<ABReplayState>> ABReplayAsync(CancellationToken cancellationToken = default)
     {
-        var result = await SendCommand("#ATB", cancellationToken);
-        return result.Success;
+        return await SendCommand("#ATB", cancellationToken) ? OppoResult.NoResult : OppoResult.Failure;
     }
 
     public async ValueTask<OppoResult<RepeatState>> RepeatAsync(CancellationToken cancellationToken = default)
     {
-        var result = await SendCommand("#RPT", cancellationToken);
-        return result.Success;
+        return await SendCommand("#RPT", cancellationToken) ? OppoResult.NoResult : OppoResult.Failure;
     }
 
     public async ValueTask<OppoResult<string>> PictureInPictureAsync(CancellationToken cancellationToken = default)
     {
-        var result = await SendCommand("#PIP", cancellationToken);
-        return result.Success;
+        return await SendCommand("#PIP", cancellationToken) ? OppoResult.NoResult : OppoResult.Failure;
     }
 
-    public async ValueTask<bool> ResolutionAsync(CancellationToken cancellationToken = default)
-    {
-        var result = await SendCommand("#HDM", cancellationToken);
-        return result.Success;
-    }
+    public ValueTask<bool> ResolutionAsync(CancellationToken cancellationToken = default) =>
+        SendCommand("#HDM", cancellationToken);
 
-    public async ValueTask<bool> SubtitleHoldAsync(CancellationToken cancellationToken = default)
-    {
-        var result = await SendCommand("#SUH", cancellationToken);
-        return result.Success;
-    }
+    public ValueTask<bool> SubtitleHoldAsync(CancellationToken cancellationToken = default) =>
+        SendCommand("#SUH", cancellationToken);
 
-    public async ValueTask<bool> OptionAsync(CancellationToken cancellationToken = default)
-    {
-        var result = await SendCommand("#OPT", cancellationToken);
-        return result.Success;
-    }
+    public ValueTask<bool> OptionAsync(CancellationToken cancellationToken = default) =>
+        SendCommand("#OPT", cancellationToken);
 
     public ValueTask<bool> ThreeDAsync(CancellationToken cancellationToken = default) => ValueTask.FromResult(false);
     public ValueTask<bool> PictureAdjustmentAsync(CancellationToken cancellationToken = default) => ValueTask.FromResult(false);
 
-    public async ValueTask<bool> HDRAsync(CancellationToken cancellationToken = default)
-    {
-        var result = await SendCommand("#HDR", cancellationToken);
-        return result.Success;
-    }
+    public ValueTask<bool> HDRAsync(CancellationToken cancellationToken = default) =>
+        SendCommand("#HDR", cancellationToken);
 
     public ValueTask<bool> InfoHoldAsync(CancellationToken cancellationToken = default) => ValueTask.FromResult(false);
     public ValueTask<bool> ResolutionHoldAsync(CancellationToken cancellationToken = default) => ValueTask.FromResult(false);
@@ -408,60 +301,60 @@ public sealed class MagnetarClient(string hostName, string macAddress, ILogger<M
     public ValueTask<bool> InputAsync(CancellationToken cancellationToken = default) => ValueTask.FromResult(false);
 
     public ValueTask<OppoResult<RepeatMode>> SetRepeatAsync(RepeatMode mode, CancellationToken cancellationToken = default)
-        => ValueTask.FromResult(new OppoResult<RepeatMode> { Success = false });
+        => ValueTask.FromResult(new OppoResult<RepeatMode>(OppoResult.Failure));
     public ValueTask<OppoResult<ushort>> SetVolumeAsync(ushort volume, CancellationToken cancellationToken = default)
-        => ValueTask.FromResult(new OppoResult<ushort> { Success = false });
+        => ValueTask.FromResult(new OppoResult<ushort>(OppoResult.Failure));
     public ValueTask<OppoResult<VolumeInfo>> QueryVolumeAsync(CancellationToken cancellationToken = default)
-        => ValueTask.FromResult(new OppoResult<VolumeInfo> { Success = false });
+        => ValueTask.FromResult(new OppoResult<VolumeInfo>(OppoResult.Failure));
     // Magnetar doesn't support querying, we track status based on commands we send and updates pushed in XML
     public ValueTask<OppoResult<PowerState>> QueryPowerStatusAsync(CancellationToken cancellationToken = default)
-        => ValueTask.FromResult(new OppoResult<PowerState> { Success = true, Result = _lastPowerState });
+        => ValueTask.FromResult(new OppoResult<PowerState>(_lastPowerState));
     public ValueTask<OppoResult<PlaybackStatus>> QueryPlaybackStatusAsync(CancellationToken cancellationToken = default)
-        => ValueTask.FromResult(new OppoResult<PlaybackStatus> { Success = false });
+        => ValueTask.FromResult(new OppoResult<PlaybackStatus>(OppoResult.Failure));
     public ValueTask<OppoResult<HDMIResolution>> QueryHDMIResolutionAsync(CancellationToken cancellationToken = default)
-        => ValueTask.FromResult(new OppoResult<HDMIResolution> { Success = false });
+        => ValueTask.FromResult(new OppoResult<HDMIResolution>(OppoResult.Failure));
     public ValueTask<OppoResult<uint>> QueryTrackOrTitleElapsedTimeAsync(CancellationToken cancellationToken = default)
-        => ValueTask.FromResult(new OppoResult<uint> { Success = false });
+        => ValueTask.FromResult(new OppoResult<uint>(OppoResult.Failure));
     public ValueTask<OppoResult<uint>> QueryTrackOrTitleRemainingTimeAsync(CancellationToken cancellationToken = default)
-        => ValueTask.FromResult(new OppoResult<uint> { Success = false });
+        => ValueTask.FromResult(new OppoResult<uint>(OppoResult.Failure));
     public ValueTask<OppoResult<uint>> QueryChapterElapsedTimeAsync(CancellationToken cancellationToken = default)
-        => ValueTask.FromResult(new OppoResult<uint> { Success = false });
+        => ValueTask.FromResult(new OppoResult<uint>(OppoResult.Failure));
     public ValueTask<OppoResult<uint>> QueryChapterRemainingTimeAsync(CancellationToken cancellationToken = default)
-        => ValueTask.FromResult(new OppoResult<uint> { Success = false });
+        => ValueTask.FromResult(new OppoResult<uint>(OppoResult.Failure));
     public ValueTask<OppoResult<uint>> QueryTotalElapsedTimeAsync(CancellationToken cancellationToken = default)
-        => ValueTask.FromResult(new OppoResult<uint> { Success = false });
+        => ValueTask.FromResult(new OppoResult<uint>(OppoResult.Failure));
     public ValueTask<OppoResult<uint>> QueryTotalRemainingTimeAsync(CancellationToken cancellationToken = default)
-        => ValueTask.FromResult(new OppoResult<uint> { Success = false });
+        => ValueTask.FromResult(new OppoResult<uint>(OppoResult.Failure));
     public ValueTask<OppoResult<DiscType>> QueryDiscTypeAsync(CancellationToken cancellationToken = default)
-        => ValueTask.FromResult(new OppoResult<DiscType> { Success = false });
+        => ValueTask.FromResult(new OppoResult<DiscType>(OppoResult.Failure));
     public ValueTask<OppoResult<string>> QueryAudioTypeAsync(CancellationToken cancellationToken = default)
-        => ValueTask.FromResult(new OppoResult<string> { Success = false });
+        => ValueTask.FromResult(new OppoResult<string>(OppoResult.Failure));
     public ValueTask<OppoResult<string>> QuerySubtitleTypeAsync(CancellationToken cancellationToken = default)
-        => ValueTask.FromResult(new OppoResult<string> { Success = false });
+        => ValueTask.FromResult(new OppoResult<string>(OppoResult.Failure));
     public ValueTask<OppoResult<bool>> QueryThreeDStatusAsync(CancellationToken cancellationToken = default)
-        => ValueTask.FromResult(new OppoResult<bool> { Success = false });
+        => ValueTask.FromResult(new OppoResult<bool>(OppoResult.Failure));
     public ValueTask<OppoResult<HDRStatus>> QueryHDRStatusAsync(CancellationToken cancellationToken = default)
-        => ValueTask.FromResult(new OppoResult<HDRStatus> { Success = false });
+        => ValueTask.FromResult(new OppoResult<HDRStatus>(OppoResult.Failure));
     public ValueTask<OppoResult<AspectRatio>> QueryAspectRatioAsync(CancellationToken cancellationToken = default)
-        => ValueTask.FromResult(new OppoResult<AspectRatio> { Success = false });
+        => ValueTask.FromResult(new OppoResult<AspectRatio>(OppoResult.Failure));
     public ValueTask<OppoResult<CurrentRepeatMode>> QueryRepeatModeAsync(CancellationToken cancellationToken = default)
-        => ValueTask.FromResult(new OppoResult<CurrentRepeatMode> { Success = false });
+        => ValueTask.FromResult(new OppoResult<CurrentRepeatMode>(OppoResult.Failure));
     public ValueTask<OppoResult<InputSource>> QueryInputSourceAsync(CancellationToken cancellationToken = default)
-        => ValueTask.FromResult(new OppoResult<InputSource> { Success = false });
+        => ValueTask.FromResult(new OppoResult<InputSource>(OppoResult.Failure));
     public ValueTask<OppoResult<InputSource>> SetInputSourceAsync(InputSource inputSource, CancellationToken cancellationToken = default)
-        => ValueTask.FromResult(new OppoResult<InputSource> { Success = false });
+        => ValueTask.FromResult(new OppoResult<InputSource>(OppoResult.Failure));
     public ValueTask<OppoResult<string>> QueryCDDBNumberAsync(CancellationToken cancellationToken = default)
-        => ValueTask.FromResult(new OppoResult<string> { Success = false });
+        => ValueTask.FromResult(new OppoResult<string>(OppoResult.Failure));
     public ValueTask<OppoResult<string>> QueryTrackNameAsync(CancellationToken cancellationToken = default)
-        => ValueTask.FromResult(new OppoResult<string> { Success = false });
+        => ValueTask.FromResult(new OppoResult<string>(OppoResult.Failure));
     public ValueTask<OppoResult<string>> QueryTrackAlbumAsync(CancellationToken cancellationToken = default)
-        => ValueTask.FromResult(new OppoResult<string> { Success = false });
+        => ValueTask.FromResult(new OppoResult<string>(OppoResult.Failure));
     public ValueTask<OppoResult<string>> QueryTrackPerformerAsync(CancellationToken cancellationToken = default)
-        => ValueTask.FromResult(new OppoResult<string> { Success = false });
+        => ValueTask.FromResult(new OppoResult<string>(OppoResult.Failure));
     public ValueTask<OppoResult<VerboseMode>> QueryVerboseMode(CancellationToken cancellationToken = default)
-        => ValueTask.FromResult(new OppoResult<VerboseMode> { Success = false });
+        => ValueTask.FromResult(new OppoResult<VerboseMode>(OppoResult.Failure));
     public ValueTask<OppoResult<VerboseMode>> SetVerboseMode(VerboseMode verboseMode, CancellationToken cancellationToken = default)
-        => ValueTask.FromResult(new OppoResult<VerboseMode> { Success = false });
+        => ValueTask.FromResult(new OppoResult<VerboseMode>(OppoResult.Failure));
 
     public bool SupportsStreamingUpdates => true;
 
@@ -518,8 +411,7 @@ public sealed class MagnetarClient(string hostName, string macAddress, ILogger<M
     {
         if (!_identifySent)
         {
-            var identifyResult = await SendCommand("#APP", cancellationToken);
-            _identifySent = identifyResult.Success;
+            _identifySent = await SendCommand("#APP", cancellationToken);
         }
 
         if (_readerTask is { IsCompleted: false })
@@ -749,17 +641,17 @@ public sealed class MagnetarClient(string hostName, string macAddress, ILogger<M
 
     private static readonly byte[] CarriageReturnLineFeed = "\r\n"u8.ToArray();
 
-    private async ValueTask<OppoResultCore> SendCommand(string command, CancellationToken cancellationToken, CancellationToken? commandCancellationToken = null, [CallerMemberName] string? caller = null)
+    private async ValueTask<bool> SendCommand(string command, CancellationToken cancellationToken, CancellationToken? commandCancellationToken = null, [CallerMemberName] string? caller = null)
     {
         using var lease = await _rateLimiter.AcquireAsyncWithoutCancellationException(_logger, cancellationToken, caller);
         if (!lease.IsAcquired)
         {
             _logger.FailedToAcquireRateLimitLease(caller);
-            return OppoResultCore.FalseResult;
+            return false;
         }
 
         if (!await _semaphore.WaitAsyncWithoutCancellationException(_logger, _timeout, cancellationToken, caller))
-            return OppoResultCore.FalseResult;
+            return false;
 
         try
         {
@@ -773,7 +665,7 @@ public sealed class MagnetarClient(string hostName, string macAddress, ILogger<M
             await networkStream.WriteAsync(Encoding.ASCII.GetBytes(command), commandCancellationToken ?? cancellationToken);
             await networkStream.WriteAsync(CarriageReturnLineFeed, commandCancellationToken ?? cancellationToken);
 
-            return OppoResultCore.SuccessResult("ack");
+            return true;
         }
         catch (Exception e)
         {
@@ -782,7 +674,7 @@ public sealed class MagnetarClient(string hostName, string macAddress, ILogger<M
                 throw;
 
             _logger.FailedToSendCommandException(e);
-            return OppoResultCore.FalseResult;
+            return false;
         }
         finally
         {

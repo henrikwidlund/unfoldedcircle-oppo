@@ -80,10 +80,7 @@ internal static class ConnectHelper
         ILogger logger,
         TimeSpan? timeout)
     {
-        if (tcpClient.Connected)
-            return true;
-
-        return await DoConnect(true);
+        return tcpClient.Connected || await DoConnect(true);
 
         async ValueTask<bool> DoConnect(bool allowRetry)
         {

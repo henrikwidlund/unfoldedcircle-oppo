@@ -8,7 +8,7 @@ namespace UnfoldedCircle.OppoBluRay.OppoEntity;
 
 [EnumJsonConverter<OppoCommandId>(CaseSensitive = false, PropertyName = "cmd_id")]
 [JsonConverter(typeof(OppoCommandIdJsonConverter))]
-public enum OppoCommandId : sbyte
+public enum OppoCommandId : byte
 {
     /// <summary>
     /// Switch on media player.

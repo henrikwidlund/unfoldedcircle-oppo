@@ -5,7 +5,7 @@ using NetEscapades.EnumGenerators;
 namespace UnfoldedCircle.OppoBluRay.Configuration;
 
 [EnumExtensions(MetadataSource = MetadataSource.DisplayAttribute)]
-internal enum OppoSensorType : sbyte
+internal enum OppoSensorType : byte
 {
     [Display(Name = "Disc Type")]
     DiscType = 1,

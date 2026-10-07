@@ -27,7 +27,7 @@ jobs:
           pr-mode: true
           args: |
             --baseline qodana.sarif.json
-            --linter "jetbrains/qodana-cdnet:2026.1"
+            --linter "jetbrains/qodana-cdnet:2026.2"
             --within-docker false
           use-caches: true
         env:

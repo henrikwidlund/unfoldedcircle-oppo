@@ -45,7 +45,7 @@ public partial class OppoWebSocketHandler(
         => ValueTask.FromResult(DeviceState.Connected);
 
     protected override async ValueTask<IReadOnlyCollection<AvailableEntity>> OnGetAvailableEntitiesAsync(GetAvailableEntitiesMsg payload, string wsId, CancellationToken cancellationToken)
-        => GetAvailableEntities(await GetEntitiesAsync(wsId, payload.MsgData.Filter?.DeviceId, cancellationToken), payload).ToArray();
+        => [.. GetAvailableEntities(await GetEntitiesAsync(wsId, payload.MsgData.Filter?.DeviceId, cancellationToken), payload)];
 
     protected override async ValueTask OnSubscribeEventsAsync(System.Net.WebSockets.WebSocket socket,
         SubscribeEventsMsg payload,
@@ -220,7 +220,7 @@ public partial class OppoWebSocketHandler(
         var entities = await GetEntitiesAsync(wsId, payload.MsgData?.DeviceId, cancellationToken);
         return entities is null
             ? []
-            : OppoResponsePayloadHelpers.GetEntityStates(entities.Select(static x => new EntityIdDeviceId(x.EntityId, x.DeviceId, x.Model))).ToArray();
+            : [.. OppoResponsePayloadHelpers.GetEntityStates(entities.Select(static x => new EntityIdDeviceId(x.EntityId, x.DeviceId, x.Model)))];
     }
 
     protected override ValueTask<SetupDriverUserDataResult> OnSetupDriverUserDataConfirmAsync(System.Net.WebSockets.WebSocket socket, SetDriverUserDataMsg payload, string wsId, CancellationToken cancellationToken)
@@ -296,9 +296,9 @@ public partial class OppoWebSocketHandler(
         var settingsPage = CreateSettingsPage(configurationItem, configuration.GlobalConfiguration.MaxMessageHandlingWaitTimeInSeconds ?? 9.5);
         return settingsPage with
         {
-            Settings = settingsPage.Settings.Where(static x =>
+            Settings = [.. settingsPage.Settings.Where(static x =>
                 !x.Id.Equals(OppoConstants.IpAddressKey, StringComparison.OrdinalIgnoreCase) &&
-                !x.Id.Equals(OppoConstants.EntityName, StringComparison.OrdinalIgnoreCase)).ToArray()
+                !x.Id.Equals(OppoConstants.EntityName, StringComparison.OrdinalIgnoreCase))]
         };
     }
 

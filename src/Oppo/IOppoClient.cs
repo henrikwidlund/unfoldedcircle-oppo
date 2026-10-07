@@ -40,12 +40,12 @@ public interface IOppoClient : IDisposable
     /// <summary>
     /// Increase volume
     /// </summary>
-    ValueTask<OppoResult<ushort?>> VolumeUpAsync(CancellationToken cancellationToken = default);
+    ValueTask<OppoResult<ushort>> VolumeUpAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Decrease volume
     /// </summary>
-    ValueTask<OppoResult<ushort?>> VolumeDownAsync(CancellationToken cancellationToken = default);
+    ValueTask<OppoResult<ushort>> VolumeDownAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Mute audio
@@ -175,12 +175,12 @@ public interface IOppoClient : IDisposable
     /// <summary>
     /// Fast reverse play
     /// </summary>
-    ValueTask<OppoResult<ushort?>> ReverseAsync(CancellationToken cancellationToken = default);
+    ValueTask<OppoResult<ushort>> ReverseAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Fast forward play
     /// </summary>
-    ValueTask<OppoResult<ushort?>> ForwardAsync(CancellationToken cancellationToken = default);
+    ValueTask<OppoResult<ushort>> ForwardAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Skip to next

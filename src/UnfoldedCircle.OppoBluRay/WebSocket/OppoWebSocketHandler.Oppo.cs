@@ -54,14 +54,13 @@ public partial class OppoWebSocketHandler
             return null;
         }
 
-        return configuration.Entities
+        return [.. configuration.Entities
             .Select(static entity => new OppoClientKey(entity.Host, entity.Model, entity.UseMediaEvents,
                 entity.UseStreamingEvents,
-                entity.EntityId, entity.DeviceId, entity.MacAddress))
-            .ToArray();
+                entity.EntityId, entity.DeviceId, entity.MacAddress))];
     }
 
-    internal enum IdentifierType : sbyte
+    internal enum IdentifierType : byte
     {
         DeviceId,
         EntityId
@@ -74,10 +73,7 @@ public partial class OppoWebSocketHandler
         CancellationToken cancellationToken)
     {
         var oppoClientKey = await TryGetOppoClientKeyAsync(wsId, identifierType, identifier, cancellationToken);
-        if (oppoClientKey is null)
-            return null;
-
-        return await TryGetOppoClientHolderAsync(oppoClientKey.Value, cancellationToken);
+        return oppoClientKey is null ? null : await TryGetOppoClientHolderAsync(oppoClientKey.Value, cancellationToken);
     }
 
     private async Task<OppoClientHolder?> TryGetOppoClientHolderAsync(

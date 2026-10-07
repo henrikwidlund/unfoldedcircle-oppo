@@ -312,9 +312,9 @@ public partial class OppoWebSocketHandler
                 context.Snapshot,
                 MediaPlayerUpdateType.Full,
                 cancellationToken);
-            context.LastHdrRefreshUtc = context.Snapshot.HdrStatusResponse is null
-                ? DateTimeOffset.MinValue
-                : DateTimeOffset.UtcNow;
+            context.LastHdrRefreshUtc = context.Snapshot.HdrStatusQueried
+                ? DateTimeOffset.UtcNow
+                : DateTimeOffset.MinValue;
 
             // If the player is already on when the streaming subscription starts, the player will not emit
             // a power-on event to bootstrap verbose mode. Set it here so unsolicited updates start flowing.
@@ -350,12 +350,12 @@ public partial class OppoWebSocketHandler
         }
 
         var powerStatusResponse = await oppoClientHolder.Client.QueryPowerStatusAsync(cancellationToken);
-        snapshot.State = MapPowerState(powerStatusResponse.Result);
+        snapshot.State = MapPowerState(powerStatusResponse);
 
         if (oppoClientHolder.ClientKey.Model == OppoModel.Magnetar || !oppoClientHolder.ClientKey.UseMediaEvents)
             return snapshot;
 
-        if (powerStatusResponse is { Result: PowerState.On })
+        if (powerStatusResponse is PowerState.On)
             await PopulatePoweredOnSnapshotAsync(oppoClientHolder, snapshot, cancellationToken);
 
         return snapshot;
@@ -366,29 +366,27 @@ public partial class OppoWebSocketHandler
         ClientSnapshot snapshot,
         CancellationToken cancellationToken)
     {
-        snapshot.VolumeResponse = await oppoClientHolder.Client.QueryVolumeAsync(cancellationToken);
-        snapshot.InputSourceResponse = await oppoClientHolder.Client.QueryInputSourceAsync(cancellationToken);
-        snapshot.DiscTypeResponse = await oppoClientHolder.Client.QueryDiscTypeAsync(cancellationToken);
-        snapshot.HdmiResolutionResponse = await oppoClientHolder.Client.QueryHDMIResolutionAsync(cancellationToken);
+        snapshot.Volume = (await oppoClientHolder.Client.QueryVolumeAsync(cancellationToken)).ValueOrNull();
+        snapshot.InputSource = (await oppoClientHolder.Client.QueryInputSourceAsync(cancellationToken)).ValueOrNull();
+        snapshot.DiscType = (await oppoClientHolder.Client.QueryDiscTypeAsync(cancellationToken)).ValueOrNull();
+        snapshot.HdmiResolution = (await oppoClientHolder.Client.QueryHDMIResolutionAsync(cancellationToken)).ValueOrNull();
 
         var playbackStatusResponse = await oppoClientHolder.Client.QueryPlaybackStatusAsync(cancellationToken);
-        snapshot.State = playbackStatusResponse.Success
-            ? MapPlaybackState(playbackStatusResponse.Result)
-            : State.Unknown;
+        snapshot.State = MapPlaybackState(playbackStatusResponse);
 
-        snapshot.IsMovie = snapshot.DiscTypeResponse is { Success: true, Result: DiscType.BlueRayMovie or DiscType.DVDVideo or DiscType.UltraHDBluRay };
+        snapshot.IsMovie = snapshot.DiscType is DiscType.BlueRayMovie or DiscType.DVDVideo or DiscType.UltraHDBluRay;
         snapshot.CoverUri = GetCoverUri(oppoClientHolder, snapshot);
 
-        if (playbackStatusResponse is not { Success: true, Result: PlaybackStatus.Play or PlaybackStatus.Pause }
-            || snapshot.DiscTypeResponse is not { Success: true, Result: not (DiscType.Unknown or DiscType.UnknownDisc or DiscType.DataDisc) })
+        if (playbackStatusResponse is not PlaybackStatus.Play and not PlaybackStatus.Pause
+            || snapshot.DiscType is not (not null and not (DiscType.Unknown or DiscType.UnknownDisc or DiscType.DataDisc)))
             return;
 
         await PopulateActivePlaybackSnapshotAsync(oppoClientHolder, snapshot, cancellationToken);
     }
 
     private static Uri GetCoverUri(OppoClientHolder oppoClientHolder, ClientSnapshot snapshot) =>
-        (IsActivePlaybackState(snapshot.State) && snapshot.DiscTypeResponse is { Success: true } discTypeResponse
-            ? DefaultArtwork.GetIconUri(discTypeResponse.Result)
+        (IsActivePlaybackState(snapshot.State) && snapshot.DiscType is { } discType
+            ? DefaultArtwork.GetIconUri(discType)
             : null) ?? DefaultArtwork.GetBrandIconUri(oppoClientHolder.ClientKey.Model);
 
     private async ValueTask PopulateActivePlaybackSnapshotAsync(
@@ -402,7 +400,7 @@ public partial class OppoWebSocketHandler
         await TryPopulateAlbumCoverAsync(snapshot, cancellationToken);
 
         // if we're at 0, then we're at a title screen, and querying details will produce errors and lock up the player
-        if (snapshot.ElapsedResponse is not { Success: true, Result: > 0 } || snapshot.RemainingResponse is not { Success: true, Result: > 0 })
+        if (snapshot.Elapsed is not > 0u || snapshot.Remaining is not > 0u)
             return;
 
         await PopulatePlaybackSensorsAsync(oppoClientHolder, snapshot, cancellationToken);
@@ -415,29 +413,29 @@ public partial class OppoWebSocketHandler
     {
         if (snapshot.IsMovie)
         {
-            snapshot.ElapsedResponse = await oppoClientHolder.Client.QueryTotalElapsedTimeAsync(cancellationToken);
+            snapshot.Elapsed = (await oppoClientHolder.Client.QueryTotalElapsedTimeAsync(cancellationToken)).ValueOrNull();
 
-            if (snapshot.ElapsedResponse is { Success: true })
+            if (snapshot.Elapsed is null)
             {
-                snapshot.RemainingResponse = await oppoClientHolder.Client.QueryTotalRemainingTimeAsync(cancellationToken);
-                snapshot.MediaDuration = GetMediaDuration(snapshot.ElapsedResponse, snapshot.RemainingResponse);
+                snapshot.Remaining = (await oppoClientHolder.Client.QueryTotalRemainingTimeAsync(cancellationToken)).ValueOrNull();
+                snapshot.MediaDuration = GetMediaDuration(snapshot.Elapsed, snapshot.Remaining);
             }
 
             return;
         }
 
-        snapshot.ElapsedResponse = await oppoClientHolder.Client.QueryTrackOrTitleElapsedTimeAsync(cancellationToken);
-        if (snapshot.ElapsedResponse is not { Success: true })
+        snapshot.Elapsed = (await oppoClientHolder.Client.QueryTrackOrTitleElapsedTimeAsync(cancellationToken)).ValueOrNull();
+        if (snapshot.Elapsed is null)
             return;
 
-        snapshot.RemainingResponse = await oppoClientHolder.Client.QueryTrackOrTitleRemainingTimeAsync(cancellationToken);
-        snapshot.MediaDuration = GetMediaDuration(snapshot.ElapsedResponse, snapshot.RemainingResponse);
+        snapshot.Remaining = (await oppoClientHolder.Client.QueryTrackOrTitleRemainingTimeAsync(cancellationToken)).ValueOrNull();
+        snapshot.MediaDuration = GetMediaDuration(snapshot.Elapsed, snapshot.Remaining);
 
         if (oppoClientHolder.ClientKey.Model is OppoModel.UDP203 or OppoModel.UDP205)
         {
-            snapshot.TrackResponse = await oppoClientHolder.Client.QueryTrackNameAsync(cancellationToken);
-            snapshot.Album = (await oppoClientHolder.Client.QueryTrackAlbumAsync(cancellationToken)).Result;
-            snapshot.Performer = (await oppoClientHolder.Client.QueryTrackPerformerAsync(cancellationToken)).Result;
+            snapshot.Track = (await oppoClientHolder.Client.QueryTrackNameAsync(cancellationToken)).ValueOrNull();
+            snapshot.Album = (await oppoClientHolder.Client.QueryTrackAlbumAsync(cancellationToken)).ValueOrNull();
+            snapshot.Performer = (await oppoClientHolder.Client.QueryTrackPerformerAsync(cancellationToken)).ValueOrNull();
             return;
         }
 
@@ -448,7 +446,7 @@ public partial class OppoWebSocketHandler
         if (musicInfo is null)
             return;
 
-        snapshot.TrackResponse = new OppoResult<string> { Success = true, Result = musicInfo.Title };
+        snapshot.Track = musicInfo.Title;
         snapshot.Album = musicInfo.Album;
         snapshot.Performer = musicInfo.Artist;
     }
@@ -458,7 +456,7 @@ public partial class OppoWebSocketHandler
         // snapshot.CoverUri already holds the disc-type fallback icon set by the caller; only overwrite it
         // if we can look up and find real album art.
         if (snapshot.IsMovie || (string.IsNullOrWhiteSpace(snapshot.Performer)
-            || (string.IsNullOrWhiteSpace(snapshot.Album) && string.IsNullOrWhiteSpace(snapshot.TrackResponse?.Result))))
+            || (string.IsNullOrWhiteSpace(snapshot.Album) && string.IsNullOrWhiteSpace(snapshot.Track))))
             return;
 
         if (snapshot.Album?.StartsWith(snapshot.Performer, StringComparison.OrdinalIgnoreCase) is true
@@ -467,7 +465,7 @@ public partial class OppoWebSocketHandler
             snapshot.Album = snapshot.Album.AsSpan()[(snapshot.Performer.Length + 3)..].ToString();
         }
 
-        var albumCoverUri = await _albumCoverService.GetAlbumCoverAsync(snapshot.Performer, snapshot.Album, snapshot.TrackResponse?.Result, cancellationToken);
+        var albumCoverUri = await _albumCoverService.GetAlbumCoverAsync(snapshot.Performer, snapshot.Album, snapshot.Track, cancellationToken);
         if (albumCoverUri is not null)
             snapshot.CoverUri = albumCoverUri;
     }
@@ -477,7 +475,7 @@ public partial class OppoWebSocketHandler
         ClientSnapshot snapshot,
         CancellationToken cancellationToken)
     {
-        snapshot.AudioTypeResponse = await oppoClientHolder.Client.QueryAudioTypeAsync(cancellationToken);
+        snapshot.AudioType = (await oppoClientHolder.Client.QueryAudioTypeAsync(cancellationToken)).ValueOrNull();
         if (!snapshot.IsMovie)
             return;
 
@@ -486,20 +484,25 @@ public partial class OppoWebSocketHandler
         if (snapshot.MediaDuration is <= ShortMoveThresholdSeconds)
             return;
 
-        snapshot.SubtitleTypeResponse = await oppoClientHolder.Client.QuerySubtitleTypeAsync(cancellationToken);
+        snapshot.SubtitleType = (await oppoClientHolder.Client.QuerySubtitleTypeAsync(cancellationToken)).ValueOrNull();
 
         if (oppoClientHolder.ClientKey.Model is not (OppoModel.UDP203 or OppoModel.UDP205))
             return;
 
-        // 3D is only possible on BD movies
-        if (snapshot.DiscTypeResponse is { Success: true, Result: DiscType.BlueRayMovie })
-            snapshot.ThreeDStatusResponse = await oppoClientHolder.Client.QueryThreeDStatusAsync(cancellationToken);
+        switch (snapshot.DiscType)
+        {
+            // 3D is only possible on BD movies
+            case DiscType.BlueRayMovie:
+                snapshot.ThreeDStatus = (await oppoClientHolder.Client.QueryThreeDStatusAsync(cancellationToken)).ValueOrNull();
+                break;
+            // HDR is only possible on Ultra HD movies
+            case DiscType.UltraHDBluRay:
+                snapshot.HdrStatus = (await oppoClientHolder.Client.QueryHDRStatusAsync(cancellationToken)).ValueOrNull();
+                snapshot.HdrStatusQueried = true;
+                break;
+        }
 
-        // HDR is only possible on Ultra HD movies
-        if (snapshot.DiscTypeResponse is { Success: true, Result: DiscType.UltraHDBluRay })
-            snapshot.HdrStatusResponse = await oppoClientHolder.Client.QueryHDRStatusAsync(cancellationToken);
-
-        snapshot.AspectRatioResponse = await oppoClientHolder.Client.QueryAspectRatioAsync(cancellationToken);
+        snapshot.AspectRatio = (await oppoClientHolder.Client.QueryAspectRatioAsync(cancellationToken)).ValueOrNull();
     }
 
     private async Task PublishSnapshotAsync(System.Net.WebSockets.WebSocket socket,
@@ -547,14 +550,14 @@ public partial class OppoWebSocketHandler
 
                 case MediaPlayerUpdateType.DeltaProgress:
                     mediaPlayerTask = SendMediaPlayerEventAsync(socket, wsId, oppoClientHolder,
-                        new DeltaMediaPlayerStateChangedEventMessageDataAttributes { MediaPosition = snapshot.ElapsedResponse?.Result }, cancellationToken);
+                        new DeltaMediaPlayerStateChangedEventMessageDataAttributes { MediaPosition = snapshot.Elapsed }, cancellationToken);
                     break;
                 case MediaPlayerUpdateType.DeltaVolume:
                     mediaPlayerTask = SendMediaPlayerEventAsync(socket, wsId, oppoClientHolder,
                         new DeltaMediaPlayerStateChangedEventMessageDataAttributes
                         {
-                            Volume = snapshot.VolumeResponse?.Result.Volume,
-                            Muted = snapshot.VolumeResponse?.Result.Muted
+                            Volume = snapshot.Volume?.Volume,
+                            Muted = snapshot.Volume?.Muted
                         }, cancellationToken);
                     break;
             }
@@ -567,18 +570,18 @@ public partial class OppoWebSocketHandler
                 : Task.CompletedTask,
             hasSensor
                 ? SendSensorEventAsync(socket, wsId, oppoClientHolder, subscribedEntities,
-                    snapshot.InputSourceResponse?.Result,
-                    snapshot.DiscTypeResponse?.Result,
-                    snapshot.HdmiResolutionResponse?.Result,
-                    snapshot.AudioTypeResponse?.Result,
-                    snapshot.SubtitleTypeResponse?.Result,
-                    snapshot.ThreeDStatusResponse?.Result,
-                    snapshot.HdrStatusResponse?.Result,
-                    snapshot.AspectRatioResponse?.Result,
+                    snapshot.InputSource,
+                    snapshot.DiscType,
+                    snapshot.HdmiResolution,
+                    snapshot.AudioType,
+                    snapshot.SubtitleType,
+                    snapshot.ThreeDStatus,
+                    snapshot.HdrStatus,
+                    snapshot.AspectRatio,
                     cancellationToken)
                 : Task.CompletedTask,
             hasSelect
-                ? SendSelectEventAsync(socket, wsId, oppoClientHolder, snapshot.InputSourceResponse?.Result, cancellationToken)
+                ? SendSelectEventAsync(socket, wsId, oppoClientHolder, snapshot.InputSource, cancellationToken)
                 : Task.CompletedTask);
     }
 
@@ -623,7 +626,7 @@ public partial class OppoWebSocketHandler
         }
     }
 
-    private enum MediaPlayerUpdateType : sbyte
+    private enum MediaPlayerUpdateType : byte
     {
         Full,
         DeltaState,
@@ -735,29 +738,16 @@ public partial class OppoWebSocketHandler
 
         var discType = MapMagnetarMediaTypeToDiscType(mediaTypeKey);
         snapshot.CoverUri = (discType is { } dt ? DefaultArtwork.GetIconUri(dt) : null) ?? DefaultArtwork.GetBrandIconUri(OppoModel.Magnetar);
-        snapshot.DiscTypeResponse = discType is { } discTypeResult
-            ? new OppoResult<DiscType> { Success = true, Result = discTypeResult }
-            : null;
+        snapshot.DiscType = discType;
 
-        snapshot.HdmiResolutionResponse = MapMagnetarResolution(playStateEvent.FourK, playStateEvent.FrameRate) is { } resolution
-            ? new OppoResult<HDMIResolution> { Success = true, Result = resolution }
-            : null;
-        snapshot.HdrStatusResponse = MapMagnetarHdr(playStateEvent.Hdr) is { } hdrStatus
-            ? new OppoResult<HDRStatus> { Success = true, Result = hdrStatus }
-            : null;
+        snapshot.HdmiResolution = MapMagnetarResolution(playStateEvent.FourK, playStateEvent.FrameRate);
+        snapshot.HdrStatus = MapMagnetarHdr(playStateEvent.Hdr);
 
-        snapshot.TrackResponse = new OppoResult<string>
-        {
-            Success = true,
-            Result = playStateEvent.TrackTitle ?? playStateEvent.Title ?? playStateEvent.FileName
-        };
+        snapshot.Track = playStateEvent.TrackTitle ?? playStateEvent.Title ?? playStateEvent.FileName;
         snapshot.Performer = playStateEvent.DiscArtist ?? playStateEvent.Artist;
         snapshot.Album = playStateEvent.DiscTitle;
 
-        var elapsedSeconds = ParseHhMmSs(playStateEvent.CurrTime);
-        snapshot.ElapsedResponse = elapsedSeconds is { } elapsed
-            ? new OppoResult<uint> { Success = true, Result = elapsed }
-            : null;
+        snapshot.Elapsed = ParseHhMmSs(playStateEvent.CurrTime);
         snapshot.MediaDuration = ParseHhMmSs(playStateEvent.TotalTime);
 
         (snapshot.RepeatMode, snapshot.Shuffle) = MapMagnetarRepeatMode(playStateEvent.RepeatMode);
@@ -892,51 +882,31 @@ public partial class OppoWebSocketHandler
     private static void ApplyVolumeStreamingEvent(ClientSnapshot snapshot, OppoVolumeStreamingEvent volumeEvent)
     {
         // Volume is self-contained – update directly from event
-        snapshot.VolumeResponse = new OppoResult<VolumeInfo>
-        {
-            Success = true,
-            Result = volumeEvent.VolumeInfo
-        };
+        snapshot.Volume = volumeEvent.VolumeInfo;
     }
 
     private static void ApplyAudioTypeStreamingEvent(ClientSnapshot snapshot, OppoAudioTypeStreamingEvent audioTypeEvent)
     {
         // Audio type is self-contained – update directly from event
-        snapshot.AudioTypeResponse = new OppoResult<string>
-        {
-            Success = true,
-            Result = audioTypeEvent.AudioType
-        };
+        snapshot.AudioType = audioTypeEvent.AudioType;
     }
 
     private static void ApplySubtitleTypeStreamingEvent(ClientSnapshot snapshot, OppoSubtitleTypeStreamingEvent subtitleTypeEvent)
     {
         // Subtitle type is self-contained – update directly from event
-        snapshot.SubtitleTypeResponse = new OppoResult<string>
-        {
-            Success = true,
-            Result = subtitleTypeEvent.SubtitleType
-        };
+        snapshot.SubtitleType = subtitleTypeEvent.SubtitleType;
     }
 
     private static void ApplyThreeDStatusStreamingEvent(ClientSnapshot snapshot, OppoThreeDStatusStreamingEvent threeDStatusEvent)
     {
         // 3D status is self-contained – update directly from event
-        snapshot.ThreeDStatusResponse = new OppoResult<bool>
-        {
-            Success = true,
-            Result = threeDStatusEvent.Is3D
-        };
+        snapshot.ThreeDStatus = threeDStatusEvent.Is3D;
     }
 
     private static void ApplyAspectRatioStreamingEvent(ClientSnapshot snapshot, OppoAspectRatioStreamingEvent aspectRatioEvent)
     {
         // Aspect ratio is self-contained – update directly from event
-        snapshot.AspectRatioResponse = new OppoResult<AspectRatio>
-        {
-            Success = true,
-            Result = aspectRatioEvent.AspectRatio
-        };
+        snapshot.AspectRatio = aspectRatioEvent.AspectRatio;
     }
 
     private async ValueTask<MediaPlayerUpdateType> HandlePlaybackStatusStreamingEventAsync(
@@ -964,9 +934,9 @@ public partial class OppoWebSocketHandler
         if (!isNowActive)
         {
             // Stopped or navigated away - clear playback-specific stale UI fields.
-            context.Snapshot.ElapsedResponse = null;
-            context.Snapshot.RemainingResponse = null;
-            context.Snapshot.TrackResponse = null;
+            context.Snapshot.Elapsed = null;
+            context.Snapshot.Remaining = null;
+            context.Snapshot.Track = null;
             context.Snapshot.Album = null;
             context.Snapshot.Performer = null;
             context.Snapshot.CoverUri = GetCoverUri(context.ClientHolder, context.Snapshot);
@@ -987,20 +957,16 @@ public partial class OppoWebSocketHandler
         CancellationToken cancellationToken)
     {
         // Resolution is self-contained – update directly from event
-        context.Snapshot.HdmiResolutionResponse = new OppoResult<HDMIResolution>
-        {
-            Success = true,
-            Result = resolutionEvent.Resolution
-        };
+        context.Snapshot.HdmiResolution = resolutionEvent.Resolution;
 
         if (ShouldQueryHdrStatus(context) && context.HasHdrSensorSubscription())
         {
-            context.Snapshot.HdrStatusResponse = await context.ClientHolder.Client.QueryHDRStatusAsync(cancellationToken);
+            context.Snapshot.HdrStatus = (await context.ClientHolder.Client.QueryHDRStatusAsync(cancellationToken)).ValueOrNull();
             context.LastHdrRefreshUtc = DateTimeOffset.UtcNow;
         }
         else
         {
-            context.Snapshot.HdrStatusResponse = null;
+            context.Snapshot.HdrStatus = null;
         }
     }
 
@@ -1042,7 +1008,7 @@ public partial class OppoWebSocketHandler
         // Some discs make the player report a duration that doesn't match the title being played, without a
         // title change to trigger a rebuild. The position then runs past the duration until everything is
         // re-queried. Rebuild when that happens, throttled in case the player keeps reporting inconsistent values.
-        if (context.Snapshot is { ElapsedResponse.Result: var elapsed, MediaDuration: { } duration }
+        if (context.Snapshot is { Elapsed: { } elapsed, MediaDuration: { } duration }
             && elapsed > duration
             && DateTimeOffset.UtcNow - context.LastPositionPastDurationRebuildUtc >= PositionPastDurationRebuildInterval)
         {
@@ -1142,7 +1108,7 @@ public partial class OppoWebSocketHandler
             if (!ShouldPollHdr(context))
                 return;
 
-            context.Snapshot.HdrStatusResponse = await context.ClientHolder.Client.QueryHDRStatusAsync(cancellationToken);
+            context.Snapshot.HdrStatus = (await context.ClientHolder.Client.QueryHDRStatusAsync(cancellationToken)).ValueOrNull();
             context.LastHdrRefreshUtc = DateTimeOffset.UtcNow;
 
             await PublishSnapshotAsync(socket,
@@ -1164,7 +1130,7 @@ public partial class OppoWebSocketHandler
         CancellationToken cancellationToken)
     {
         context.Snapshot = await BuildSnapshotAsync(context.ClientHolder, cancellationToken);
-        if (context.Snapshot.HdrStatusResponse is not null)
+        if (context.Snapshot.HdrStatusQueried)
             context.LastHdrRefreshUtc = DateTimeOffset.UtcNow;
     }
 
@@ -1192,7 +1158,7 @@ public partial class OppoWebSocketHandler
                 // Player is ready to receive SVM 3 after 1s
                 await Task.Delay(1000, cancellationToken);
                 var result = await context.ClientHolder.Client.SetVerboseMode(VerboseMode.DetailedStatus, cancellationToken);
-                if (result.Success)
+                if (result is not OppoFailure)
                     context.Snapshot.VerboseModeSet = true;
             }
             catch (OperationCanceledException)
@@ -1217,13 +1183,13 @@ public partial class OppoWebSocketHandler
                // Movies shorter than or equal to 300 seconds are most likely a title screen.
                // Avoid querying HDR status as it could lock up the player if it is not in a state where it is available.
                && context.Snapshot.MediaDuration is > ShortMoveThresholdSeconds
-               && context.Snapshot is { DiscTypeResponse: { Success: true, Result: DiscType.UltraHDBluRay }, HdmiResolutionResponse.Result: HDMIResolution.RUltraHDp24 or HDMIResolution.RUltraHDp50 or HDMIResolution.RUltraHDp60 };
+               && context.Snapshot is { DiscType: DiscType.UltraHDBluRay, HdmiResolution: HDMIResolution.RUltraHDp24 or HDMIResolution.RUltraHDp50 or HDMIResolution.RUltraHDp60 };
     }
 
     private static bool IsActivePlaybackState(State state) =>
         state is State.Playing or State.Paused or State.Buffering;
 
-    private static State MapPowerState(PowerState powerState) =>
+    private static State MapPowerState(OppoResult<PowerState> powerState) =>
         powerState switch
         {
             PowerState.On => State.On,
@@ -1231,7 +1197,7 @@ public partial class OppoWebSocketHandler
             _ => State.Unknown
         };
 
-    private static State MapPlaybackState(PlaybackStatus playbackStatus) =>
+    private static State MapPlaybackState(OppoResult<PlaybackStatus> playbackStatus) =>
         playbackStatus switch
         {
             PlaybackStatus.Unknown => State.Unknown,
@@ -1240,6 +1206,7 @@ public partial class OppoWebSocketHandler
             PlaybackStatus.FastForward or PlaybackStatus.FastRewind
                 or PlaybackStatus.SlowForward or PlaybackStatus.SlowRewind
                 or PlaybackStatus.Step or PlaybackStatus.DiscMenu => State.Buffering,
+            OppoFailure => State.Unknown,
             _ => State.On
         };
 
@@ -1276,22 +1243,14 @@ public partial class OppoWebSocketHandler
             case OppoTimeCodeType.TotalElapsed:
             case OppoTimeCodeType.TitleElapsed:
             case OppoTimeCodeType.ChapterElapsed:
-                var previousElapsed = snapshot.ElapsedResponse?.Result;
-                snapshot.ElapsedResponse = new OppoResult<uint>
-                {
-                    Success = true,
-                    Result = playbackProgressEvent.Seconds
-                };
+                var previousElapsed = snapshot.Elapsed;
+                snapshot.Elapsed = playbackProgressEvent.Seconds;
                 return previousElapsed != playbackProgressEvent.Seconds;
 
             case OppoTimeCodeType.TotalRemaining:
             case OppoTimeCodeType.TitleRemaining:
             case OppoTimeCodeType.ChapterRemaining:
-                snapshot.RemainingResponse = new OppoResult<uint>
-                {
-                    Success = true,
-                    Result = playbackProgressEvent.Seconds
-                };
+                snapshot.Remaining = playbackProgressEvent.Seconds;
                 return false;
 
             default:
@@ -1299,33 +1258,31 @@ public partial class OppoWebSocketHandler
         }
     }
 
-    private static uint? GetMediaDuration(OppoResult<uint>? elapsedResponse, OppoResult<uint>? remainingResponse) =>
-        elapsedResponse is { Success: true } elapsed && remainingResponse is { Success: true } remaining
-            ? elapsed.Result + remaining.Result
-            : null;
+    private static uint? GetMediaDuration(uint? elapsed, uint? remaining) =>
+        elapsed + remaining;
 
     private static MediaPlayerStateChangedEventMessageDataAttributes BuildFullMediaPlayerState(ClientSnapshot snapshot)
     {
         return new MediaPlayerStateChangedEventMessageDataAttributes
         {
             State = snapshot.State,
-            MediaType = snapshot.MediaTypeOverride ?? snapshot.DiscTypeResponse?.Result switch
+            MediaType = snapshot.MediaTypeOverride ?? snapshot.DiscType switch
             {
                 DiscType.BlueRayMovie or DiscType.DVDVideo or DiscType.UltraHDBluRay => MediaType.Movie,
                 DiscType.DVDAudio or DiscType.SACD or DiscType.CDDiscAudio => MediaType.Music,
                 _ => null
             },
-            MediaPosition = snapshot.ElapsedResponse?.Result,
+            MediaPosition = snapshot.Elapsed,
             MediaDuration = snapshot.MediaDuration,
-            MediaTitle = ReplaceStarWithEllipsis(snapshot.TrackResponse?.Result),
+            MediaTitle = ReplaceStarWithEllipsis(snapshot.Track),
             MediaAlbum = ReplaceStarWithEllipsis(snapshot.Album),
             MediaArtist = ReplaceStarWithEllipsis(snapshot.Performer),
             MediaImageUrl = snapshot.CoverUri,
             Repeat = snapshot.RepeatMode,
             Shuffle = snapshot.Shuffle,
-            Source = GetInputSource(snapshot.InputSourceResponse),
-            Volume = snapshot.VolumeResponse?.Result.Volume,
-            Muted = snapshot.VolumeResponse?.Result.Muted
+            Source = GetInputSource(snapshot.InputSource),
+            Volume = snapshot.Volume?.Volume,
+            Muted = snapshot.Volume?.Muted
         };
     }
 
@@ -1346,11 +1303,6 @@ public partial class OppoWebSocketHandler
 
     private static string? ReplaceStarWithEllipsis(string? input) =>
         string.IsNullOrWhiteSpace(input) ? input : input.Replace('*', '…');
-
-    private static string? GetInputSource(OppoResult<InputSource>? inputSourceResponse) =>
-        inputSourceResponse is not { Success: true }
-            ? null
-            : GetInputSource(inputSourceResponse.Value.Result);
 
     private static string? GetInputSource(InputSource? inputSource) =>
         inputSource switch
@@ -1451,7 +1403,7 @@ public partial class OppoWebSocketHandler
             if (task is null)
                 continue;
 
-            (tasks ??= new List<Task>(subscribedEntities.Count)).Add(task);
+            (tasks ??= [with(subscribedEntities.Count)]).Add(task);
         }
 
         return tasks is null ? Task.CompletedTask : Task.WhenAll(tasks);
@@ -1706,7 +1658,7 @@ public partial class OppoWebSocketHandler
         public bool SetSubscribedEntities(HashSet<SubscribedEntity> subscribedEntities)
         {
             var previous = _subscribedEntities;
-            _subscribedEntities = subscribedEntities.ToArray();
+            _subscribedEntities = [.. subscribedEntities];
 
             // Fast path: more entries than before means new subscriptions
             if (_subscribedEntities.Length > previous.Length)
@@ -1774,39 +1726,44 @@ public partial class OppoWebSocketHandler
         public ushort? LastProgressChapter { get; set; }
         public uint? MediaDuration { get; set; }
 
-        public OppoResult<VolumeInfo>? VolumeResponse { get; set; }
-        public OppoResult<InputSource>? InputSourceResponse { get; set; }
-        public OppoResult<DiscType>? DiscTypeResponse { get; set; }
+        public VolumeInfo? Volume { get; set; }
+        public InputSource? InputSource { get; set; }
+        public DiscType? DiscType { get; set; }
         public MediaType? MediaTypeOverride { get; set; }
-        public OppoResult<uint>? ElapsedResponse { get; set; }
-        public OppoResult<uint>? RemainingResponse { get; set; }
-        public OppoResult<string>? TrackResponse { get; set; }
+        public uint? Elapsed { get; set; }
+        public uint? Remaining { get; set; }
+        public string? Track { get; set; }
         public string? Album { get; set; }
         public string? Performer { get; set; }
         public Uri? CoverUri { get; set; }
         public bool? Shuffle { get; set; }
         public Models.Shared.RepeatMode? RepeatMode { get; set; }
-        public OppoResult<HDMIResolution>? HdmiResolutionResponse { get; set; }
-        public OppoResult<string>? AudioTypeResponse { get; set; }
-        public OppoResult<string>? SubtitleTypeResponse { get; set; }
-        public OppoResult<bool>? ThreeDStatusResponse { get; set; }
-        public OppoResult<HDRStatus>? HdrStatusResponse { get; set; }
-        public OppoResult<AspectRatio>? AspectRatioResponse { get; set; }
+        public HDMIResolution? HdmiResolution { get; set; }
+        public string? AudioType { get; set; }
+        public string? SubtitleType { get; set; }
+        public bool? ThreeDStatus { get; set; }
+        public HDRStatus? HdrStatus { get; set; }
+
+        /// <summary>
+        /// Whether <see cref="BuildSnapshotAsync"/> queried HDR status, even if the query failed.
+        /// Only read right after building the snapshot, to start the HDR poll throttle, as HDR queries can lock up the player.
+        /// </summary>
+        public bool HdrStatusQueried { get; set; }
+        public AspectRatio? AspectRatio { get; set; }
     }
 
     private static (Models.Shared.RepeatMode? RepeatMode, bool? shuffle) GetRepeatMode(OppoResult<CurrentRepeatMode> repeatModeResponse) =>
-        !repeatModeResponse
-            ? (null, null)
-            : repeatModeResponse.Result switch
-            {
-                CurrentRepeatMode.Off => (Models.Shared.RepeatMode.Off, false),
-                CurrentRepeatMode.RepeatOne => (Models.Shared.RepeatMode.One, false),
-                CurrentRepeatMode.RepeatChapter => (Models.Shared.RepeatMode.One, false),
-                CurrentRepeatMode.RepeatAll => (Models.Shared.RepeatMode.All, false),
-                CurrentRepeatMode.RepeatTitle => (Models.Shared.RepeatMode.One, false),
-                CurrentRepeatMode.Shuffle or CurrentRepeatMode.Random => (Models.Shared.RepeatMode.Off, true),
-                _ => (Models.Shared.RepeatMode.Off, false)
-            };
+        repeatModeResponse switch
+        {
+            OppoFailure => (null, null),
+            CurrentRepeatMode.Off => (Models.Shared.RepeatMode.Off, false),
+            CurrentRepeatMode.RepeatOne => (Models.Shared.RepeatMode.One, false),
+            CurrentRepeatMode.RepeatChapter => (Models.Shared.RepeatMode.One, false),
+            CurrentRepeatMode.RepeatAll => (Models.Shared.RepeatMode.All, false),
+            CurrentRepeatMode.RepeatTitle => (Models.Shared.RepeatMode.One, false),
+            CurrentRepeatMode.Shuffle or CurrentRepeatMode.Random => (Models.Shared.RepeatMode.Off, true),
+            _ => (Models.Shared.RepeatMode.Off, false)
+        };
 
     private static List<uint> GetDigits(uint number)
     {

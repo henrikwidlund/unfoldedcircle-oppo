@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net10.0</TargetFramework>
+        <TargetFramework>net11.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <RuntimeIdentifier Condition="'$(BuildForLinuxArm)' == 'true'">linux-arm64</RuntimeIdentifier>
@@ -10,17 +10,17 @@
         <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
         <IsAotCompatible>true</IsAotCompatible>
         <RuntimeIdentifiers>linux-x64;linux-arm64;osx-arm64;osx-x64;win-x64;win-arm64</RuntimeIdentifiers>
+        <Features>runtime-async=on</Features>
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Meziantou.Analyzer" Version="3.0.231">
+        <PackageReference Include="Meziantou.Analyzer" Version="3.0.294">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Microsoft.DotNet.ILCompiler" Version="10.0.12" />
-        <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.12" />
+        <PackageReference Include="Microsoft.DotNet.ILCompiler" Version="11.0.0-rc.1.26425.128" />
         <PackageReference Include="NetEscapades.EnumGenerators.Interceptors" Version="1.0.0-beta21" />
-        <PackageReference Include="System.Threading.RateLimiting" Version="10.0.12" />
+        <PackageReference Include="System.Threading.RateLimiting" Version="11.0.0-rc.1.26425.128" />
     </ItemGroup>
 
 </Project>
