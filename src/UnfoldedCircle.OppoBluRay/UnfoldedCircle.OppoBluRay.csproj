@@ -16,6 +16,12 @@
         <Features>runtime-async=on</Features>
     </PropertyGroup>
 
+    <!-- .NET 11 links with Apple's classic linker (-ld_classic) on Xcode 15 and 16, which fails for osx-x64 on an
+         unaligned pointer in .NET's own System.Net.Security.Native. The default linker handles it fine. -->
+    <PropertyGroup Condition="'$(RuntimeIdentifier)' == 'osx-x64'">
+        <UseLdClassicXCodeLinker>false</UseLdClassicXCodeLinker>
+    </PropertyGroup>
+
     <PropertyGroup Condition="'$(PublishAot)' != 'true'">
         <PublishSingleFile>true</PublishSingleFile>
         <PublishTrimmed>true</PublishTrimmed>
