@@ -58,10 +58,10 @@
         </PackageReference>
         <PackageReference Include="Microsoft.DotNet.ILCompiler" Version="11.0.0-rc.1.26425.128" />
         <PackageReference Include="NetEscapades.EnumGenerators.Interceptors" Version="1.0.0-beta21" />
-        <PackageReference Include="Theodicean.SourceGenerators" Version="0.0.15" PrivateAssets="all" ExcludeAssets="runtime">
+        <PackageReference Include="Theodicean.SourceGenerators" Version="0.0.17" PrivateAssets="all" ExcludeAssets="runtime">
             <IncludeAssets>compile; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Theodicean.UnfoldedCircle.Server" Version="0.0.19" />
+        <PackageReference Include="Theodicean.UnfoldedCircle.Server" Version="0.0.20-pre001" />
     </ItemGroup>
 
 </Project>

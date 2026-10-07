@@ -467,7 +467,7 @@ public partial class OppoWebSocketHandler
         CancellationToken commandCancellationToken)
     {
         return await TryGetOppoClientHolderAsync(wsId, payload.MsgData.EntityId, IdentifierType.EntityId, commandCancellationToken) is not { } oppoClientHolder
-            ? new SelectCommandResult(EntityCommandResult.Failure, string.Empty)
+            ? SelectFailedResult
             : await TrySetInputSourceAsync(oppoClientHolder, option, commandCancellationToken);
     }
 
@@ -479,13 +479,15 @@ public partial class OppoWebSocketHandler
         CancellationToken commandCancellationToken)
     {
         if (await TryGetOppoClientHolderAsync(wsId, payload.MsgData.EntityId, IdentifierType.EntityId, commandCancellationToken) is not { } oppoClientHolder)
-            return new SelectCommandResult(EntityCommandResult.Failure, string.Empty);
+            return SelectFailedResult;
 
         var sourceList = OppoEntitySettings.SourceList[oppoClientHolder.ClientKey.Model];
         return sourceList.Length == 0
-            ? new SelectCommandResult(EntityCommandResult.Failure, string.Empty)
+            ? SelectFailedResult
             : await TrySetInputSourceAsync(oppoClientHolder, first ? sourceList[0] : sourceList[^1], commandCancellationToken);
     }
+
+    private static readonly SelectFailed SelectFailedResult = new();
 
     protected override async ValueTask<SelectCommandResult> OnSelectNextPreviousCommandAsync(System.Net.WebSockets.WebSocket socket,
         SelectEntityCommandMsgData payload,
@@ -496,11 +498,11 @@ public partial class OppoWebSocketHandler
         CancellationToken commandCancellationToken)
     {
         if (await TryGetOppoClientHolderAsync(wsId, payload.MsgData.EntityId, IdentifierType.EntityId, commandCancellationToken) is not { } oppoClientHolder)
-            return new SelectCommandResult(EntityCommandResult.Failure, string.Empty);
+            return SelectFailedResult;
 
         var sourceList = OppoEntitySettings.SourceList[oppoClientHolder.ClientKey.Model];
         if (sourceList.Length == 0)
-            return new SelectCommandResult(EntityCommandResult.Failure, string.Empty);
+            return SelectFailedResult;
 
         var currentSource = await oppoClientHolder.Client.QueryInputSourceAsync(commandCancellationToken);
         var currentIndex = Array.IndexOf(sourceList, GetInputSource(currentSource.ValueOrNull()));
@@ -519,16 +521,16 @@ public partial class OppoWebSocketHandler
     private static async ValueTask<SelectCommandResult> TrySetInputSourceAsync(OppoClientHolder oppoClientHolder, string option, CancellationToken cancellationToken)
     {
         if (!OppoEntitySettings.SourceMap.TryGetValue(option, out var inputSource))
-            return new SelectCommandResult(EntityCommandResult.Failure, string.Empty);
+            return SelectFailedResult;
 
         // Sending input source is only allowed if the unit is on - avoid locking up the driver by only sending it when the unit is ready
         var currentPowerState = await oppoClientHolder.Client.QueryPowerStatusAsync(cancellationToken);
         if (currentPowerState is not PowerState.On)
-            return new SelectCommandResult(EntityCommandResult.Failure, string.Empty);
+            return SelectFailedResult;
 
         var result = await oppoClientHolder.Client.SetInputSourceAsync(inputSource, cancellationToken);
         return result is not OppoFailure
-            ? new SelectCommandResult(EntityCommandResult.Other, option)
-            : new SelectCommandResult(EntityCommandResult.Failure, string.Empty);
+            ? new SelectSucceeded(option)
+            : SelectFailedResult;
     }
 }
