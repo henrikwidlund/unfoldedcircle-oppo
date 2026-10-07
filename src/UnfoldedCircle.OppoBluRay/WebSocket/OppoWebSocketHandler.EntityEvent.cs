@@ -378,7 +378,7 @@ public partial class OppoWebSocketHandler
         snapshot.CoverUri = GetCoverUri(oppoClientHolder, snapshot);
 
         if (playbackStatusResponse is not PlaybackStatus.Play and not PlaybackStatus.Pause
-            || snapshot.DiscType is not (DiscType and not (DiscType.Unknown or DiscType.UnknownDisc or DiscType.DataDisc)))
+            || snapshot.DiscType is not (not null and not (DiscType.Unknown or DiscType.UnknownDisc or DiscType.DataDisc)))
             return;
 
         await PopulateActivePlaybackSnapshotAsync(oppoClientHolder, snapshot, cancellationToken);
