@@ -1403,7 +1403,7 @@ public partial class OppoWebSocketHandler
             if (task is null)
                 continue;
 
-            (tasks ??= new List<Task>(subscribedEntities.Count)).Add(task);
+            (tasks ??= [with(subscribedEntities.Count)]).Add(task);
         }
 
         return tasks is null ? Task.CompletedTask : Task.WhenAll(tasks);
