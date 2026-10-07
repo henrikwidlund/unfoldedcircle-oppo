@@ -34,7 +34,7 @@ public partial class OppoWebSocketHandler
 
         if (powerState is not null)
         {
-            return powerState.Value.Result switch
+            return powerState.Value switch
             {
                 PowerState.On => EntityCommandResult.PowerOn,
                 PowerState.Off => EntityCommandResult.PowerOff,
@@ -187,7 +187,7 @@ public partial class OppoWebSocketHandler
                 {
                     // Sending input source is only allowed if the unit is on - avoid locking up the driver by only sending it when the unit is ready
                     var currentPowerState = await oppoClientHolder.Client.QueryPowerStatusAsync(commandCancellationToken);
-                    if (currentPowerState is { Result: PowerState.On })
+                    if (currentPowerState is PowerState.On)
                         await oppoClientHolder.Client.SetInputSourceAsync(source, commandCancellationToken);
                 }
                 else
@@ -319,14 +319,14 @@ public partial class OppoWebSocketHandler
     private static async ValueTask<EntityCommandResult> HandleMediaPlayerPowerToggle(OppoClientHolder oppoClientHolder, CancellationToken commandCancellationToken)
     {
         // media player power toggle sends play_pause, power the device on first if needed
-        if (await oppoClientHolder.Client.QueryPowerStatusAsync(commandCancellationToken) is { Result: PowerState.On })
+        if (await oppoClientHolder.Client.QueryPowerStatusAsync(commandCancellationToken) is PowerState.On)
         {
             await SendPlayOrPause(oppoClientHolder, commandCancellationToken);
             return EntityCommandResult.Other;
         }
 
         // Power on waits for the player to report on before returning
-        if (await HandlePowerOnAsync(oppoClientHolder, commandCancellationToken) is not { Result: PowerState.On })
+        if (await HandlePowerOnAsync(oppoClientHolder, commandCancellationToken) is not PowerState.On)
             return EntityCommandResult.Failure;
 
         await SendPlayOrPause(oppoClientHolder, commandCancellationToken);
@@ -358,7 +358,7 @@ public partial class OppoWebSocketHandler
 
         if (powerState is not null)
         {
-            return powerState.Value.Result switch
+            return powerState.Value switch
             {
                 PowerState.On => EntityCommandResult.PowerOn,
                 PowerState.Off => EntityCommandResult.PowerOff,
@@ -373,12 +373,12 @@ public partial class OppoWebSocketHandler
             _ when command.Equals(RemoteButtonConstants.Menu, StringComparison.OrdinalIgnoreCase) => await client.TopMenuAsync(commandCancellationToken),
             _ when command.Equals(RemoteButtonConstants.Previous, StringComparison.OrdinalIgnoreCase) => await client.PreviousAsync(commandCancellationToken),
             _ when command.Equals(RemoteButtonConstants.Next, StringComparison.OrdinalIgnoreCase) => await client.NextAsync(commandCancellationToken),
-            _ when command.Equals(MediaPlayerCommandIdConstants.FastForward, StringComparison.OrdinalIgnoreCase) => (bool)await client.ForwardAsync(commandCancellationToken),
-            _ when command.Equals(MediaPlayerCommandIdConstants.Rewind, StringComparison.OrdinalIgnoreCase) => (bool)await client.ReverseAsync(commandCancellationToken),
-            _ when command.Equals(RemoteButtonConstants.VolumeUp, StringComparison.OrdinalIgnoreCase) => (bool)await client.VolumeUpAsync(commandCancellationToken),
-            _ when command.Equals(RemoteButtonConstants.VolumeDown, StringComparison.OrdinalIgnoreCase) => (bool)await client.VolumeDownAsync(commandCancellationToken),
-            _ when command.Equals(RemoteButtonConstants.Mute, StringComparison.OrdinalIgnoreCase) => (bool)await client.MuteToggleAsync(commandCancellationToken),
-            _ when command.Equals(MediaPlayerCommandIdConstants.Repeat, StringComparison.OrdinalIgnoreCase) => (bool)await client.RepeatAsync(commandCancellationToken),
+            _ when command.Equals(MediaPlayerCommandIdConstants.FastForward, StringComparison.OrdinalIgnoreCase) => await client.ForwardAsync(commandCancellationToken) is not OppoFailure,
+            _ when command.Equals(MediaPlayerCommandIdConstants.Rewind, StringComparison.OrdinalIgnoreCase) => await client.ReverseAsync(commandCancellationToken) is not OppoFailure,
+            _ when command.Equals(RemoteButtonConstants.VolumeUp, StringComparison.OrdinalIgnoreCase) => await client.VolumeUpAsync(commandCancellationToken) is not OppoFailure,
+            _ when command.Equals(RemoteButtonConstants.VolumeDown, StringComparison.OrdinalIgnoreCase) => await client.VolumeDownAsync(commandCancellationToken) is not OppoFailure,
+            _ when command.Equals(RemoteButtonConstants.Mute, StringComparison.OrdinalIgnoreCase) => await client.MuteToggleAsync(commandCancellationToken) is not OppoFailure,
+            _ when command.Equals(MediaPlayerCommandIdConstants.Repeat, StringComparison.OrdinalIgnoreCase) => await client.RepeatAsync(commandCancellationToken) is not OppoFailure,
             _ when command.Equals(RemoteButtonConstants.ChannelUp, StringComparison.OrdinalIgnoreCase) => await client.PageUpAsync(commandCancellationToken),
             _ when command.Equals(RemoteButtonConstants.ChannelDown, StringComparison.OrdinalIgnoreCase) => await client.PageDownAsync(commandCancellationToken),
             _ when command.Equals(RemoteButtonConstants.DpadUp, StringComparison.OrdinalIgnoreCase) => await client.UpArrowAsync(commandCancellationToken),
@@ -404,21 +404,21 @@ public partial class OppoWebSocketHandler
             _ when command.Equals(MediaPlayerCommandIdConstants.ContextMenu, StringComparison.OrdinalIgnoreCase) => await client.TopMenuAsync(commandCancellationToken),
             _ when command.Equals(MediaPlayerCommandIdConstants.Info, StringComparison.OrdinalIgnoreCase) => await client.InfoToggleAsync(commandCancellationToken),
             _ when command.Equals(RemoteButtonConstants.Back, StringComparison.OrdinalIgnoreCase) => await client.ReturnAsync(commandCancellationToken),
-            _ when command.Equals(MediaPlayerCommandIdConstants.Eject, StringComparison.OrdinalIgnoreCase) => (bool)await client.EjectToggleAsync(commandCancellationToken),
+            _ when command.Equals(MediaPlayerCommandIdConstants.Eject, StringComparison.OrdinalIgnoreCase) => await client.EjectToggleAsync(commandCancellationToken) is not OppoFailure,
             _ when command.Equals(MediaPlayerCommandIdConstants.Subtitle, StringComparison.OrdinalIgnoreCase) => await client.SubtitleAsync(commandCancellationToken),
             _ when command.Equals(MediaPlayerCommandIdConstants.Settings, StringComparison.OrdinalIgnoreCase) => await client.SetupAsync(commandCancellationToken),
-            _ when command.Equals(EntitySettingsConstants.Dimmer, StringComparison.OrdinalIgnoreCase) => (bool)await client.DimmerAsync(commandCancellationToken),
-            _ when command.Equals(EntitySettingsConstants.PureAudioToggle, StringComparison.OrdinalIgnoreCase) => (bool)await client.PureAudioToggleAsync(commandCancellationToken),
+            _ when command.Equals(EntitySettingsConstants.Dimmer, StringComparison.OrdinalIgnoreCase) => await client.DimmerAsync(commandCancellationToken) is not OppoFailure,
+            _ when command.Equals(EntitySettingsConstants.PureAudioToggle, StringComparison.OrdinalIgnoreCase) => await client.PureAudioToggleAsync(commandCancellationToken) is not OppoFailure,
             _ when command.Equals(EntitySettingsConstants.Clear, StringComparison.OrdinalIgnoreCase) => await client.ClearAsync(commandCancellationToken),
             _ when command.Equals(EntitySettingsConstants.TopMenu, StringComparison.OrdinalIgnoreCase) => await client.TopMenuAsync(commandCancellationToken),
             _ when command.Equals(EntitySettingsConstants.PopUpMenu, StringComparison.OrdinalIgnoreCase) => await client.PopUpMenuAsync(commandCancellationToken),
             _ when command.Equals(EntitySettingsConstants.Pause, StringComparison.OrdinalIgnoreCase) => await SendPauseIfNotPaused(oppoClientHolder, commandCancellationToken),
             _ when command.Equals(EntitySettingsConstants.Play, StringComparison.OrdinalIgnoreCase) => await SendPlayIfNotPlaying(oppoClientHolder, commandCancellationToken),
-            _ when command.Equals(EntitySettingsConstants.Angle, StringComparison.OrdinalIgnoreCase) => (bool)await client.AngleAsync(commandCancellationToken),
-            _ when command.Equals(EntitySettingsConstants.Zoom, StringComparison.OrdinalIgnoreCase) => (bool)await client.ZoomAsync(commandCancellationToken),
-            _ when command.Equals(EntitySettingsConstants.SecondaryAudioProgram, StringComparison.OrdinalIgnoreCase) => (bool)await client.SecondaryAudioProgramAsync(commandCancellationToken),
-            _ when command.Equals(EntitySettingsConstants.AbReplay, StringComparison.OrdinalIgnoreCase) => (bool)await client.ABReplayAsync(commandCancellationToken),
-            _ when command.Equals(EntitySettingsConstants.PictureInPicture, StringComparison.OrdinalIgnoreCase) => (bool)await client.PictureInPictureAsync(commandCancellationToken),
+            _ when command.Equals(EntitySettingsConstants.Angle, StringComparison.OrdinalIgnoreCase) => await client.AngleAsync(commandCancellationToken) is not OppoFailure,
+            _ when command.Equals(EntitySettingsConstants.Zoom, StringComparison.OrdinalIgnoreCase) => await client.ZoomAsync(commandCancellationToken) is not OppoFailure,
+            _ when command.Equals(EntitySettingsConstants.SecondaryAudioProgram, StringComparison.OrdinalIgnoreCase) => await client.SecondaryAudioProgramAsync(commandCancellationToken) is not OppoFailure,
+            _ when command.Equals(EntitySettingsConstants.AbReplay, StringComparison.OrdinalIgnoreCase) => await client.ABReplayAsync(commandCancellationToken) is not OppoFailure,
+            _ when command.Equals(EntitySettingsConstants.PictureInPicture, StringComparison.OrdinalIgnoreCase) => await client.PictureInPictureAsync(commandCancellationToken) is not OppoFailure,
             _ when command.Equals(EntitySettingsConstants.Resolution, StringComparison.OrdinalIgnoreCase) => await client.ResolutionAsync(commandCancellationToken),
             _ when command.Equals(EntitySettingsConstants.SubtitleHold, StringComparison.OrdinalIgnoreCase) => await client.SubtitleHoldAsync(commandCancellationToken),
             _ when command.Equals(EntitySettingsConstants.Option, StringComparison.OrdinalIgnoreCase) => await client.OptionAsync(commandCancellationToken),
@@ -431,7 +431,7 @@ public partial class OppoWebSocketHandler
             _ when command.Equals(EntitySettingsConstants.GaplessPlay, StringComparison.OrdinalIgnoreCase) => await client.GaplessPlayAsync(commandCancellationToken),
             _ when command.Equals(EntitySettingsConstants.InfoToggle, StringComparison.OrdinalIgnoreCase) => await client.InfoToggleAsync(commandCancellationToken),
             _ when command.Equals(MediaPlayerCommandIdConstants.AudioTrack, StringComparison.OrdinalIgnoreCase) => await client.AudioAsync(commandCancellationToken),
-            _ when command.Equals(MediaPlayerCommandIdConstants.OpenClose, StringComparison.OrdinalIgnoreCase) => (bool)await client.EjectToggleAsync(commandCancellationToken),
+            _ when command.Equals(MediaPlayerCommandIdConstants.OpenClose, StringComparison.OrdinalIgnoreCase) => await client.EjectToggleAsync(commandCancellationToken) is not OppoFailure,
 
             _ => false
         };
@@ -444,7 +444,7 @@ public partial class OppoWebSocketHandler
     {
         var powerStateResponse = await oppoClientHolder.Client.PowerOnAsync(cancellationToken);
         // Power commands can be flaky, so we try twice
-        if (powerStateResponse is not { Result: PowerState.On })
+        if (powerStateResponse is not PowerState.On)
             powerStateResponse = await oppoClientHolder.Client.PowerOnAsync(cancellationToken);
         return powerStateResponse;
     }
@@ -453,7 +453,7 @@ public partial class OppoWebSocketHandler
     {
         // Power commands can be flaky, so we try twice
         var powerStateResponse = await oppoClientHolder.Client.PowerOffAsync(cancellationToken);
-        if (powerStateResponse is not { Result: PowerState.Off })
+        if (powerStateResponse is not PowerState.Off)
             powerStateResponse = await oppoClientHolder.Client.PowerOffAsync(cancellationToken);
 
         return powerStateResponse;
@@ -466,10 +466,9 @@ public partial class OppoWebSocketHandler
         CancellationTokenWrapper cancellationTokenWrapper,
         CancellationToken commandCancellationToken)
     {
-        if (await TryGetOppoClientHolderAsync(wsId, payload.MsgData.EntityId, IdentifierType.EntityId, commandCancellationToken) is not { } oppoClientHolder)
-            return new SelectCommandResult(EntityCommandResult.Failure, string.Empty);
-
-        return await TrySetInputSourceAsync(oppoClientHolder, option, commandCancellationToken);
+        return await TryGetOppoClientHolderAsync(wsId, payload.MsgData.EntityId, IdentifierType.EntityId, commandCancellationToken) is not { } oppoClientHolder
+            ? new SelectCommandResult(EntityCommandResult.Failure, string.Empty)
+            : await TrySetInputSourceAsync(oppoClientHolder, option, commandCancellationToken);
     }
 
     protected override async ValueTask<SelectCommandResult> OnSelectFirstLastCommandAsync(System.Net.WebSockets.WebSocket socket,
@@ -483,10 +482,9 @@ public partial class OppoWebSocketHandler
             return new SelectCommandResult(EntityCommandResult.Failure, string.Empty);
 
         var sourceList = OppoEntitySettings.SourceList[oppoClientHolder.ClientKey.Model];
-        if (sourceList.Length == 0)
-            return new SelectCommandResult(EntityCommandResult.Failure, string.Empty);
-
-        return await TrySetInputSourceAsync(oppoClientHolder, first ? sourceList[0] : sourceList[^1], commandCancellationToken);
+        return sourceList.Length == 0
+            ? new SelectCommandResult(EntityCommandResult.Failure, string.Empty)
+            : await TrySetInputSourceAsync(oppoClientHolder, first ? sourceList[0] : sourceList[^1], commandCancellationToken);
     }
 
     protected override async ValueTask<SelectCommandResult> OnSelectNextPreviousCommandAsync(System.Net.WebSockets.WebSocket socket,
@@ -505,7 +503,7 @@ public partial class OppoWebSocketHandler
             return new SelectCommandResult(EntityCommandResult.Failure, string.Empty);
 
         var currentSource = await oppoClientHolder.Client.QueryInputSourceAsync(commandCancellationToken);
-        var currentIndex = Array.IndexOf(sourceList, GetInputSource(currentSource));
+        var currentIndex = Array.IndexOf(sourceList, GetInputSource(currentSource.ValueOrNull()));
 
         int nextIndex;
         if (currentIndex < 0)
@@ -525,11 +523,11 @@ public partial class OppoWebSocketHandler
 
         // Sending input source is only allowed if the unit is on - avoid locking up the driver by only sending it when the unit is ready
         var currentPowerState = await oppoClientHolder.Client.QueryPowerStatusAsync(cancellationToken);
-        if (currentPowerState is not { Result: PowerState.On })
+        if (currentPowerState is not PowerState.On)
             return new SelectCommandResult(EntityCommandResult.Failure, string.Empty);
 
         var result = await oppoClientHolder.Client.SetInputSourceAsync(inputSource, cancellationToken);
-        return result is { Success: true }
+        return result is not OppoFailure
             ? new SelectCommandResult(EntityCommandResult.Other, option)
             : new SelectCommandResult(EntityCommandResult.Failure, string.Empty);
     }

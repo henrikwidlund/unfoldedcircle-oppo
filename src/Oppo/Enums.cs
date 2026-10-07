@@ -4,21 +4,21 @@ using NetEscapades.EnumGenerators;
 
 namespace Oppo;
 
-public enum PowerState : sbyte
+public enum PowerState : byte
 {
     On = 1,
     Off,
     Unknown
 }
 
-public enum TrayState : sbyte
+public enum TrayState : byte
 {
     Open = 1,
     Closed,
     Unknown
 }
 
-public enum DimmerState : sbyte
+public enum DimmerState : byte
 {
     On = 1,
     Dim,
@@ -26,14 +26,14 @@ public enum DimmerState : sbyte
     Unknown
 }
 
-public enum PureAudioState : sbyte
+public enum PureAudioState : byte
 {
     On = 1,
     Off,
     Unknown
 }
 
-public enum MuteState : sbyte
+public enum MuteState : byte
 {
     On = 1,
     Off,
@@ -41,7 +41,7 @@ public enum MuteState : sbyte
 }
 
 // ReSharper disable InconsistentNaming
-public enum ABReplayState : sbyte
+public enum ABReplayState : byte
 {
     A = 1,
     AB,
@@ -50,7 +50,7 @@ public enum ABReplayState : sbyte
 }
 // ReSharper restore InconsistentNaming
 
-public enum RepeatState : sbyte
+public enum RepeatState : byte
 {
     RepeatChapter = 1,
     RepeatTitle,
@@ -58,7 +58,7 @@ public enum RepeatState : sbyte
     Unknown
 }
 
-public enum RepeatMode : sbyte
+public enum RepeatMode : byte
 {
     /// <summary>
     /// Only used if return value is unknown. Do not use this value to set the repeat mode.
@@ -96,7 +96,7 @@ public enum RepeatMode : sbyte
     Random
 }
 
-public enum PlaybackStatus : sbyte
+public enum PlaybackStatus : byte
 {
     Unknown,
     Play,
@@ -121,7 +121,7 @@ public enum PlaybackStatus : sbyte
 }
 
 [EnumExtensions(MetadataSource = MetadataSource.DisplayAttribute)]
-public enum DiscType : sbyte
+public enum DiscType : byte
 {
     Unknown = 1,
 
@@ -159,7 +159,7 @@ public enum DiscType : sbyte
     // ReSharper restore InconsistentNaming
 }
 
-public enum CurrentRepeatMode : sbyte
+public enum CurrentRepeatMode : byte
 {
     Unknown,
     Off,
@@ -171,7 +171,7 @@ public enum CurrentRepeatMode : sbyte
     Random
 }
 
-public enum OppoModel : sbyte
+public enum OppoModel : byte
 {
     // ReSharper disable InconsistentNaming
     BDP83,
@@ -202,7 +202,7 @@ public static class OppoModelExtensions
 }
 
 [EnumExtensions(MetadataSource = MetadataSource.DisplayAttribute)]
-public enum InputSource : sbyte
+public enum InputSource : byte
 {
     // ReSharper disable InconsistentNaming
     Unknown,
@@ -241,7 +241,7 @@ public enum InputSource : sbyte
     // ReSharper restore InconsistentNaming
 }
 
-public enum VerboseMode : sbyte
+public enum VerboseMode : byte
 {
     Unknown,
 
@@ -267,7 +267,7 @@ public enum VerboseMode : sbyte
 }
 
 [EnumExtensions(MetadataSource = MetadataSource.DisplayAttribute)]
-public enum HDMIResolution : sbyte
+public enum HDMIResolution : byte
 {
     // ReSharper disable InconsistentNaming
     Unknown,
@@ -333,7 +333,7 @@ public enum HDMIResolution : sbyte
 }
 
 [EnumExtensions(MetadataSource = MetadataSource.DisplayAttribute)]
-public enum HDRStatus : sbyte
+public enum HDRStatus : byte
 {
     Unknown,
 
@@ -348,7 +348,7 @@ public enum HDRStatus : sbyte
 }
 
 [EnumExtensions(MetadataSource = MetadataSource.DisplayAttribute)]
-public enum AspectRatio : sbyte
+public enum AspectRatio : byte
 {
     // ReSharper disable InconsistentNaming
     Unknown,

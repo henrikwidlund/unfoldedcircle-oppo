@@ -1,6 +1,6 @@
 namespace Oppo;
 
-public enum OppoTimeCodeType : sbyte
+public enum OppoTimeCodeType : byte
 {
     Unknown = 1,
     TotalElapsed,
@@ -11,7 +11,7 @@ public enum OppoTimeCodeType : sbyte
     ChapterRemaining
 }
 
-public abstract record OppoStreamingEvent;
+public closed record OppoStreamingEvent;
 
 public sealed record OppoUnknownStreamingEvent
     : OppoStreamingEvent;

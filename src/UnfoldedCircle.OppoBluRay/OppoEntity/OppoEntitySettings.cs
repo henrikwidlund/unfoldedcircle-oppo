@@ -75,6 +75,7 @@ public static class OppoEntitySettings
 
     public static readonly FrozenSet<string> MediaPlayerSimpleCommands =
     [
+        with(StringComparer.OrdinalIgnoreCase),
         EntitySettingsConstants.Dimmer,
         EntitySettingsConstants.PureAudioToggle,
         EntitySettingsConstants.Clear,
@@ -102,6 +103,7 @@ public static class OppoEntitySettings
 
     public static readonly FrozenSet<string> MagnetarMediaPlayerSimpleCommands =
     [
+        with(StringComparer.OrdinalIgnoreCase),
         EntitySettingsConstants.Dimmer,
         EntitySettingsConstants.PureAudioToggle,
         EntitySettingsConstants.Clear,
@@ -122,6 +124,7 @@ public static class OppoEntitySettings
     ];
 
     private static readonly FrozenSet<string> RemoteSimpleCommands = [
+        with(StringComparer.OrdinalIgnoreCase),
         MediaPlayerCommandIdConstants.PlayPause,
         RemoteButtonConstants.Stop,
         RemoteButtonConstants.Previous,
@@ -189,6 +192,7 @@ public static class OppoEntitySettings
     ];
 
     private static readonly FrozenSet<string> MagnetarRemoteSimpleCommands = [
+        with(StringComparer.OrdinalIgnoreCase),
         MediaPlayerCommandIdConstants.PlayPause,
         RemoteButtonConstants.Stop,
         RemoteButtonConstants.Previous,

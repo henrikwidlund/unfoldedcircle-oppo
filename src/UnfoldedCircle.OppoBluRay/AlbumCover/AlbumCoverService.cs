@@ -139,7 +139,7 @@ internal sealed class AlbumCoverService(
     {
         value = value.ToLowerInvariant();
 
-        if (!value.EndsWith('*'))
+        if (!value.EndsWith('*', StringComparison.Ordinal))
             return $"\"{EscapeLucene(value)}\"";
 
         if (value.EndsWith(" *", StringComparison.Ordinal))

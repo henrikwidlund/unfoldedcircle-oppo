@@ -61,7 +61,7 @@ This repository contains the server code for hosting an Oppo/Magnetar Blu-ray in
 
 ### Development
 
-- [dotnet 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0).
+- [dotnet 11 SDK](https://dotnet.microsoft.com/download/dotnet/11.0).
 - or [Docker](https://www.docker.com/get-started).
 
 ## Installing on the remote
