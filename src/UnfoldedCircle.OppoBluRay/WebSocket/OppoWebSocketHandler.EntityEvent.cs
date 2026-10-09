@@ -415,7 +415,7 @@ public partial class OppoWebSocketHandler
         {
             snapshot.Elapsed = (await oppoClientHolder.Client.QueryTotalElapsedTimeAsync(cancellationToken)).ValueOrNull();
 
-            if (snapshot.Elapsed is null)
+            if (snapshot.Elapsed is not null)
             {
                 snapshot.Remaining = (await oppoClientHolder.Client.QueryTotalRemainingTimeAsync(cancellationToken)).ValueOrNull();
                 snapshot.MediaDuration = GetMediaDuration(snapshot.Elapsed, snapshot.Remaining);
