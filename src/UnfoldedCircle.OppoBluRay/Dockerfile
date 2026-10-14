@@ -1,9 +1,9 @@
-FROM mcr.microsoft.com/dotnet/aspnet:11.0.0-rc.1-resolute-chiseled@sha256:af930df2f1e6da76666d818c5922534cc7f2a4077adfae27e7c81c28a6406d29 AS base
+FROM mcr.microsoft.com/dotnet/aspnet:11.0.0-rc.2-resolute-chiseled@sha256:f502def1917cec1c8e401a65b5866704dd51ca99857f139ff11bf7f7685d7fa0 AS base
 USER $APP_UID
 WORKDIR /app
 EXPOSE 9001
 
-FROM mcr.microsoft.com/dotnet/sdk:11.0.100-rc.1-resolute@sha256:d0a39ca4acefe992f26030f8fb8c60e1b14ac088822cb3fdfbe536ecf843a675 AS build
+FROM mcr.microsoft.com/dotnet/sdk:11.0.100-rc.2-resolute@sha256:bfabf51e74c5a7cf2fc4eac852145db86f4867d475257d809518d6a2b0fe71e1 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 COPY [".editorconfig", "."]

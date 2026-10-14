@@ -58,16 +58,16 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Meziantou.Analyzer" Version="3.0.294">
+        <PackageReference Include="Meziantou.Analyzer" Version="3.0.303">
           <PrivateAssets>all</PrivateAssets>
           <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Microsoft.DotNet.ILCompiler" Version="11.0.0-rc.1.26425.128" />
+        <PackageReference Include="Microsoft.DotNet.ILCompiler" Version="11.0.0-rc.2.26504.105" />
         <PackageReference Include="NetEscapades.EnumGenerators.Interceptors" Version="1.0.0-beta21" />
         <PackageReference Include="Theodicean.SourceGenerators" Version="0.0.17" PrivateAssets="all" ExcludeAssets="runtime">
             <IncludeAssets>compile; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Theodicean.UnfoldedCircle.Server" Version="0.0.20-pre001" />
+        <PackageReference Include="Theodicean.UnfoldedCircle.Server" Version="0.0.20-pre005" />
     </ItemGroup>
 
 </Project>
