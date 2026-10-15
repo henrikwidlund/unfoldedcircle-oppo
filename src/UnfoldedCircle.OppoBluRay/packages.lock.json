@@ -29,20 +29,14 @@
           "NetEscapades.EnumGenerators": "1.0.0-beta21"
         }
       },
-      "Theodicean.SourceGenerators": {
-        "type": "Direct",
-        "requested": "[0.0.17, )",
-        "resolved": "0.0.17",
-        "contentHash": "hvdU1JEzf4adGSzvnSxNdCqHPGViLuSJvnnnbRzb8HeHLcX1p1IqFRbLy55hUKY5gczllveXBzYjUpPV/G9g/A=="
-      },
       "Theodicean.UnfoldedCircle.Server": {
         "type": "Direct",
-        "requested": "[0.0.20-pre005, )",
-        "resolved": "0.0.20-pre005",
-        "contentHash": "e6/vgALhYSMejsd8eiYwpylYaNrEM9iO9+8ABU8HXbC/LGiIn8keJNh0hdG1A+OJeXxirYaakjqpkH0M/8DwqA==",
+        "requested": "[0.0.20-pre006, )",
+        "resolved": "0.0.20-pre006",
+        "contentHash": "IQEfzgcIlDdSmfyBDgAosFjh0oSsZ8oi5MSTe3P7zsEWTXGnhhUHEchOprgBbZxCCsoazpK/Nf7/4E4jzOQMqQ==",
         "dependencies": {
           "Theodicean.Makaretu.Dns.Multicast": "0.0.20-pre02",
-          "Theodicean.UnfoldedCircle.Models": "0.0.20-pre005"
+          "Theodicean.UnfoldedCircle.Models": "0.0.20-pre006"
         }
       },
       "NetEscapades.EnumGenerators": {
@@ -83,8 +77,8 @@
       },
       "Theodicean.UnfoldedCircle.Models": {
         "type": "Transitive",
-        "resolved": "0.0.20-pre005",
-        "contentHash": "PozJ8roLLhUyR3fuaSavYdSV2oko6jaQXv9ICpW2zrbYMCNrlwuJGfl/W6isiR5OGeiiP4s9dDCe3C4CtcpU7A=="
+        "resolved": "0.0.20-pre006",
+        "contentHash": "tIuXjPuPWA4kWXuqgTFO5+a9NRc1doef7k4L0FhqkBRANQCAGgplZhO38PFICd8FJAyngXhNyYKWs/RK/auq1g=="
       },
       "oppo": {
         "type": "Project",

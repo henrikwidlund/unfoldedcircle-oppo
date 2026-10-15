@@ -1,362 +1,359 @@
-using System.ComponentModel.DataAnnotations;
-
-using Theodicean.SourceGenerators;
-
+using UnfoldedCircle.Models;
 using UnfoldedCircle.Models.Sync;
 
 namespace UnfoldedCircle.OppoBluRay.OppoEntity;
 
-[EnumJsonConverter<OppoCommandId>(CaseSensitive = false, PropertyName = "cmd_id")]
-[JsonConverter(typeof(OppoCommandIdJsonConverter))]
+[JsonConverter(typeof(StrictEnumConverter<OppoCommandId>))]
 public enum OppoCommandId : byte
 {
     /// <summary>
     /// Switch on media player.
     /// </summary>
-    [Display(Name = MediaPlayerCommandIdConstants.On)]
+    [JsonStringEnumMemberName(MediaPlayerCommandIdConstants.On)]
     On = 1,
 
     /// <summary>
     /// Switch off media player.
     /// </summary>
-    [Display(Name = MediaPlayerCommandIdConstants.Off)]
+    [JsonStringEnumMemberName(MediaPlayerCommandIdConstants.Off)]
     Off,
 
     /// <summary>
     /// Toggle the current power state, either from on -> off or from off -> on.
     /// </summary>
-    [Display(Name = MediaPlayerCommandIdConstants.Toggle)]
+    [JsonStringEnumMemberName(MediaPlayerCommandIdConstants.Toggle)]
     Toggle,
 
     /// <summary>
     /// Toggle play / pause.
     /// </summary>
-    [Display(Name = MediaPlayerCommandIdConstants.PlayPause)]
+    [JsonStringEnumMemberName(MediaPlayerCommandIdConstants.PlayPause)]
     PlayPause,
 
     /// <summary>
     /// Stop playback.
     /// </summary>
-    [Display(Name = MediaPlayerCommandIdConstants.Stop)]
+    [JsonStringEnumMemberName(MediaPlayerCommandIdConstants.Stop)]
     Stop,
 
     /// <summary>
     /// Go back to previous track.
     /// </summary>
-    [Display(Name = MediaPlayerCommandIdConstants.Previous)]
+    [JsonStringEnumMemberName(MediaPlayerCommandIdConstants.Previous)]
     Previous,
 
     /// <summary>
     /// Skip to next track.
     /// </summary>
-    [Display(Name = MediaPlayerCommandIdConstants.Next)]
+    [JsonStringEnumMemberName(MediaPlayerCommandIdConstants.Next)]
     Next,
 
     /// <summary>
     /// Fast forward current track.
     /// </summary>
-    [Display(Name = MediaPlayerCommandIdConstants.FastForward)]
+    [JsonStringEnumMemberName(MediaPlayerCommandIdConstants.FastForward)]
     FastForward,
 
     /// <summary>
     /// Rewind current track.
     /// </summary>
-    [Display(Name = MediaPlayerCommandIdConstants.Rewind)]
+    [JsonStringEnumMemberName(MediaPlayerCommandIdConstants.Rewind)]
     Rewind,
 
     /// <summary>
     /// Seek to given position in current track. Position is given in seconds.
     /// </summary>
     /// <remarks>Parameters: media_position</remarks>
-    [Display(Name = MediaPlayerCommandIdConstants.Seek)]
+    [JsonStringEnumMemberName(MediaPlayerCommandIdConstants.Seek)]
     Seek,
 
     /// <summary>
     /// Set volume to given level.
     /// </summary>
     /// <remarks>Parameters: volume</remarks>
-    [Display(Name = MediaPlayerCommandIdConstants.Volume)]
+    [JsonStringEnumMemberName(MediaPlayerCommandIdConstants.Volume)]
     Volume,
 
     /// <summary>
     /// Increase volume.
     /// </summary>
-    [Display(Name = MediaPlayerCommandIdConstants.VolumeUp)]
+    [JsonStringEnumMemberName(MediaPlayerCommandIdConstants.VolumeUp)]
     VolumeUp,
 
     /// <summary>
     /// Decrease volume.
     /// </summary>
-    [Display(Name = MediaPlayerCommandIdConstants.VolumeDown)]
+    [JsonStringEnumMemberName(MediaPlayerCommandIdConstants.VolumeDown)]
     VolumeDown,
 
     /// <summary>
     /// Toggle mute state.
     /// </summary>
-    [Display(Name = MediaPlayerCommandIdConstants.MuteToggle)]
+    [JsonStringEnumMemberName(MediaPlayerCommandIdConstants.MuteToggle)]
     MuteToggle,
 
     /// <summary>
     /// Mute volume.
     /// </summary>
-    [Display(Name = MediaPlayerCommandIdConstants.Mute)]
+    [JsonStringEnumMemberName(MediaPlayerCommandIdConstants.Mute)]
     Mute,
 
     /// <summary>
     /// Unmute volume.
     /// </summary>
-    [Display(Name = MediaPlayerCommandIdConstants.Unmute)]
+    [JsonStringEnumMemberName(MediaPlayerCommandIdConstants.Unmute)]
     Unmute,
 
     /// <summary>
     /// Repeat track or playlist.
     /// </summary>
     /// <remarks>Parameters: repeat</remarks>
-    [Display(Name = MediaPlayerCommandIdConstants.Repeat)]
+    [JsonStringEnumMemberName(MediaPlayerCommandIdConstants.Repeat)]
     Repeat,
 
     /// <summary>
     /// Shuffle playlist or start random playback.
     /// </summary>
     /// <remarks>Parameters: shuffle</remarks>
-    [Display(Name = MediaPlayerCommandIdConstants.Shuffle)]
+    [JsonStringEnumMemberName(MediaPlayerCommandIdConstants.Shuffle)]
     Shuffle,
 
     /// <summary>
     /// Channel up.
     /// </summary>
-    [Display(Name = MediaPlayerCommandIdConstants.ChannelUp)]
+    [JsonStringEnumMemberName(MediaPlayerCommandIdConstants.ChannelUp)]
     ChannelUp,
 
     /// <summary>
     /// Channel down.
     /// </summary>
-    [Display(Name = MediaPlayerCommandIdConstants.ChannelDown)]
+    [JsonStringEnumMemberName(MediaPlayerCommandIdConstants.ChannelDown)]
     ChannelDown,
 
     /// <summary>
     /// Directional pad up.
     /// </summary>
-    [Display(Name = MediaPlayerCommandIdConstants.CursorUp)]
+    [JsonStringEnumMemberName(MediaPlayerCommandIdConstants.CursorUp)]
     CursorUp,
 
     /// <summary>
     /// Directional pad down.
     /// </summary>
-    [Display(Name = MediaPlayerCommandIdConstants.CursorDown)]
+    [JsonStringEnumMemberName(MediaPlayerCommandIdConstants.CursorDown)]
     CursorDown,
 
     /// <summary>
     /// Directional pad left.
     /// </summary>
-    [Display(Name = MediaPlayerCommandIdConstants.CursorLeft)]
+    [JsonStringEnumMemberName(MediaPlayerCommandIdConstants.CursorLeft)]
     CursorLeft,
 
     /// <summary>
     /// Directional pad right.
     /// </summary>
-    [Display(Name = MediaPlayerCommandIdConstants.CursorRight)]
+    [JsonStringEnumMemberName(MediaPlayerCommandIdConstants.CursorRight)]
     CursorRight,
 
     /// <summary>
     /// Directional pad enter.
     /// </summary>
-    [Display(Name = MediaPlayerCommandIdConstants.CursorEnter)]
+    [JsonStringEnumMemberName(MediaPlayerCommandIdConstants.CursorEnter)]
     CursorEnter,
 
     /// <summary>
     /// Number pad digit 0.
     /// </summary>
-    [Display(Name = MediaPlayerCommandIdConstants.Digit0)]
+    [JsonStringEnumMemberName(MediaPlayerCommandIdConstants.Digit0)]
     Digit0,
 
     /// <summary>
     /// Number pad digit 1.
     /// </summary>
-    [Display(Name = MediaPlayerCommandIdConstants.Digit1)]
+    [JsonStringEnumMemberName(MediaPlayerCommandIdConstants.Digit1)]
     Digit1,
 
     /// <summary>
     /// Number pad digit 2.
     /// </summary>
-    [Display(Name = MediaPlayerCommandIdConstants.Digit2)]
+    [JsonStringEnumMemberName(MediaPlayerCommandIdConstants.Digit2)]
     Digit2,
 
     /// <summary>
     /// Number pad digit 3.
     /// </summary>
-    [Display(Name = MediaPlayerCommandIdConstants.Digit3)]
+    [JsonStringEnumMemberName(MediaPlayerCommandIdConstants.Digit3)]
     Digit3,
 
     /// <summary>
     /// Number pad digit 4.
     /// </summary>
-    [Display(Name = MediaPlayerCommandIdConstants.Digit4)]
+    [JsonStringEnumMemberName(MediaPlayerCommandIdConstants.Digit4)]
     Digit4,
 
     /// <summary>
     /// Number pad digit 5.
     /// </summary>
-    [Display(Name = MediaPlayerCommandIdConstants.Digit5)]
+    [JsonStringEnumMemberName(MediaPlayerCommandIdConstants.Digit5)]
     Digit5,
 
     /// <summary>
     /// Number pad digit 6.
     /// </summary>
-    [Display(Name = MediaPlayerCommandIdConstants.Digit6)]
+    [JsonStringEnumMemberName(MediaPlayerCommandIdConstants.Digit6)]
     Digit6,
 
     /// <summary>
     /// Number pad digit 7.
     /// </summary>
-    [Display(Name = MediaPlayerCommandIdConstants.Digit7)]
+    [JsonStringEnumMemberName(MediaPlayerCommandIdConstants.Digit7)]
     Digit7,
 
     /// <summary>
     /// Number pad digit 8.
     /// </summary>
-    [Display(Name = MediaPlayerCommandIdConstants.Digit8)]
+    [JsonStringEnumMemberName(MediaPlayerCommandIdConstants.Digit8)]
     Digit8,
 
     /// <summary>
     /// Number pad digit 9.
     /// </summary>
-    [Display(Name = MediaPlayerCommandIdConstants.Digit9)]
+    [JsonStringEnumMemberName(MediaPlayerCommandIdConstants.Digit9)]
     Digit9,
 
     /// <summary>
     /// Function red.
     /// </summary>
-    [Display(Name = MediaPlayerCommandIdConstants.FunctionRed)]
+    [JsonStringEnumMemberName(MediaPlayerCommandIdConstants.FunctionRed)]
     FunctionRed,
 
     /// <summary>
     /// Function green.
     /// </summary>
-    [Display(Name = MediaPlayerCommandIdConstants.FunctionGreen)]
+    [JsonStringEnumMemberName(MediaPlayerCommandIdConstants.FunctionGreen)]
     FunctionGreen,
 
     /// <summary>
     /// Function yellow.
     /// </summary>
-    [Display(Name = MediaPlayerCommandIdConstants.FunctionYellow)]
+    [JsonStringEnumMemberName(MediaPlayerCommandIdConstants.FunctionYellow)]
     FunctionYellow,
 
     /// <summary>
     /// Function blue.
     /// </summary>
-    [Display(Name = MediaPlayerCommandIdConstants.FunctionBlue)]
+    [JsonStringEnumMemberName(MediaPlayerCommandIdConstants.FunctionBlue)]
     FunctionBlue,
 
     /// <summary>
     /// Home menu
     /// </summary>
-    [Display(Name = MediaPlayerCommandIdConstants.Home)]
+    [JsonStringEnumMemberName(MediaPlayerCommandIdConstants.Home)]
     Home,
 
     /// <summary>
     /// Menu
     /// </summary>
-    [Display(Name = MediaPlayerCommandIdConstants.Menu)]
+    [JsonStringEnumMemberName(MediaPlayerCommandIdConstants.Menu)]
     Menu,
 
     /// <summary>
     /// Context menu
     /// </summary>
-    [Display(Name = MediaPlayerCommandIdConstants.ContextMenu)]
+    [JsonStringEnumMemberName(MediaPlayerCommandIdConstants.ContextMenu)]
     ContextMenu,
 
     /// <summary>
     /// Program guide menu.
     /// </summary>
-    [Display(Name = MediaPlayerCommandIdConstants.Guide)]
+    [JsonStringEnumMemberName(MediaPlayerCommandIdConstants.Guide)]
     Guide,
 
     /// <summary>
     /// Information menu / what's playing.
     /// </summary>
-    [Display(Name = MediaPlayerCommandIdConstants.Info)]
+    [JsonStringEnumMemberName(MediaPlayerCommandIdConstants.Info)]
     Info,
 
     /// <summary>
     /// Back / exit function for menu navigation (to exit menu, guide, info).
     /// </summary>
-    [Display(Name = MediaPlayerCommandIdConstants.Back)]
+    [JsonStringEnumMemberName(MediaPlayerCommandIdConstants.Back)]
     Back,
 
     /// <summary>
     /// Select an input source from the available sources.
     /// </summary>
     /// <remarks>Parameters: source</remarks>
-    [Display(Name = MediaPlayerCommandIdConstants.SelectSource)]
+    [JsonStringEnumMemberName(MediaPlayerCommandIdConstants.SelectSource)]
     SelectSource,
 
     /// <summary>
     /// Select a sound mode from the available modes.
     /// </summary>
     /// <remarks>Parameters: mode</remarks>
-    [Display(Name = MediaPlayerCommandIdConstants.SelectSoundMode)]
+    [JsonStringEnumMemberName(MediaPlayerCommandIdConstants.SelectSoundMode)]
     SelectSoundMode,
 
     /// <summary>
     /// Start, stop or open recording menu (device dependant).
     /// </summary>
-    [Display(Name = MediaPlayerCommandIdConstants.Record)]
+    [JsonStringEnumMemberName(MediaPlayerCommandIdConstants.Record)]
     Record,
 
     /// <summary>
     /// Open recordings.
     /// </summary>
-    [Display(Name = MediaPlayerCommandIdConstants.MyRecordings)]
+    [JsonStringEnumMemberName(MediaPlayerCommandIdConstants.MyRecordings)]
     MyRecordings,
 
     /// <summary>
     /// Switch to live view.
     /// </summary>
-    [Display(Name = MediaPlayerCommandIdConstants.Live)]
+    [JsonStringEnumMemberName(MediaPlayerCommandIdConstants.Live)]
     Live,
 
     /// <summary>
     /// Eject media.
     /// </summary>
-    [Display(Name = MediaPlayerCommandIdConstants.Eject)]
+    [JsonStringEnumMemberName(MediaPlayerCommandIdConstants.Eject)]
     Eject,
 
     /// <summary>
     /// Open or close.
     /// </summary>
-    [Display(Name = MediaPlayerCommandIdConstants.OpenClose)]
+    [JsonStringEnumMemberName(MediaPlayerCommandIdConstants.OpenClose)]
     OpenClose,
 
     /// <summary>
     /// Switch or select audio track.
     /// </summary>
-    [Display(Name = MediaPlayerCommandIdConstants.AudioTrack)]
+    [JsonStringEnumMemberName(MediaPlayerCommandIdConstants.AudioTrack)]
     AudioTrack,
 
     /// <summary>
     /// Switch or select subtitle.
     /// </summary>
-    [Display(Name = MediaPlayerCommandIdConstants.Subtitle)]
+    [JsonStringEnumMemberName(MediaPlayerCommandIdConstants.Subtitle)]
     Subtitle,
 
     /// <summary>
     /// Settings menu
     /// </summary>
-    [Display(Name = MediaPlayerCommandIdConstants.Settings)]
+    [JsonStringEnumMemberName(MediaPlayerCommandIdConstants.Settings)]
     Settings,
 
-    [Display(Name = MediaPlayerCommandIdConstants.Search)]
+    [JsonStringEnumMemberName(MediaPlayerCommandIdConstants.Search)]
     Search,
 
     Dimmer,
 
-    [Display(Name = EntitySettingsConstants.PureAudioToggle)]
+    [JsonStringEnumMemberName(EntitySettingsConstants.PureAudioToggle)]
     PureAudioToggle,
 
+    [JsonStringEnumMemberName(EntitySettingsConstants.Clear)]
     Clear,
 
-    [Display(Name = EntitySettingsConstants.PopUpMenu)]
+    [JsonStringEnumMemberName(EntitySettingsConstants.PopUpMenu)]
     PopUpMenu,
 
     Pause,
@@ -364,42 +361,40 @@ public enum OppoCommandId : byte
     Angle,
     Zoom,
 
-    [Display(Name = EntitySettingsConstants.SecondaryAudioProgram)]
+    [JsonStringEnumMemberName(EntitySettingsConstants.SecondaryAudioProgram)]
     SecondaryAudioProgram,
 
-    [Display(Name = EntitySettingsConstants.AbReplay)]
+    [JsonStringEnumMemberName(EntitySettingsConstants.AbReplay)]
     AbReplay,
 
-    [Display(Name = EntitySettingsConstants.PictureInPicture)]
+    [JsonStringEnumMemberName(EntitySettingsConstants.PictureInPicture)]
     PictureInPicture,
 
     Resolution,
 
-    [Display(Name = EntitySettingsConstants.SubtitleHold)]
+    [JsonStringEnumMemberName(EntitySettingsConstants.SubtitleHold)]
     SubtitleHold,
 
     Option,
 
-    [Display(Name = EntitySettingsConstants.ThreeD)]
+    [JsonStringEnumMemberName(EntitySettingsConstants.ThreeD)]
     ThreeD,
 
-    [Display(Name = EntitySettingsConstants.PictureAdjustment)]
+    [JsonStringEnumMemberName(EntitySettingsConstants.PictureAdjustment)]
     PictureAdjustment,
 
+    [JsonStringEnumMemberName(EntitySettingsConstants.Hdr)]
     Hdr,
 
-    [Display(Name = EntitySettingsConstants.InfoHold)]
+    [JsonStringEnumMemberName(EntitySettingsConstants.InfoHold)]
     InfoHold,
 
-    [Display(Name = EntitySettingsConstants.ResolutionHold)]
+    [JsonStringEnumMemberName(EntitySettingsConstants.ResolutionHold)]
     ResolutionHold,
 
-    [Display(Name = EntitySettingsConstants.AvSync)]
+    [JsonStringEnumMemberName(EntitySettingsConstants.AvSync)]
     AvSync,
 
-    [Display(Name = EntitySettingsConstants.GaplessPlay)]
+    [JsonStringEnumMemberName(EntitySettingsConstants.GaplessPlay)]
     GaplessPlay
 }
-
-// ReSharper disable once RedundantExtendsListEntry For some reason code won't compile without adding this explicit inheritance on this specific converter - all other work
-public partial class OppoCommandIdJsonConverter : JsonConverter<OppoCommandId>;
