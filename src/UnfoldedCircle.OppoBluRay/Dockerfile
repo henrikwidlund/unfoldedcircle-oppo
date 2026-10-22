@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/aspnet:11.0.0-rc.2-resolute-chiseled@sha256:f502def1917cec1c8e401a65b5866704dd51ca99857f139ff11bf7f7685d7fa0 AS base
+FROM mcr.microsoft.com/dotnet/aspnet:11.0.0-rc.2-resolute-chiseled@sha256:33bcb72d4d7cf3588b0e525cdf17033229e80596912e8e21dc82500ecc1baa5e AS base
 USER $APP_UID
 WORKDIR /app
 EXPOSE 9001
