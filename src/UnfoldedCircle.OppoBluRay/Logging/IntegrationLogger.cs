@@ -84,4 +84,7 @@ internal static partial class IntegrationLogger
 
     [LoggerMessage(EventId = 29, Level = LogLevel.Trace, Message = "Discovery: {Source} reported {Host} model={Model} at {ElapsedMs}ms")]
     public static partial void DiscoveredPlayer(this ILogger logger, DiscoverySource source, string host, OppoModel? model, long elapsedMs);
+
+    [LoggerMessage(EventId = 32, Level = LogLevel.Debug, Message = "Skipping connect to entity ID '{EntityId}' during back-off.")]
+    public static partial void SkippingConnectDuringBackoff(this ILogger logger, string entityId);
 }

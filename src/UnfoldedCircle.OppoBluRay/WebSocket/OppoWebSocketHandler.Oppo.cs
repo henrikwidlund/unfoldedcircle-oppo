@@ -1,3 +1,7 @@
+using System.Collections.Concurrent;
+using System.Diagnostics;
+using System.Runtime.InteropServices;
+
 using Oppo;
 
 using UnfoldedCircle.OppoBluRay.Configuration;
@@ -66,26 +70,87 @@ public partial class OppoWebSocketHandler
         EntityId
     }
 
+    private static readonly TimeSpan MinConnectBackoff = TimeSpan.FromSeconds(5);
+    private static readonly TimeSpan MaxConnectBackoff = TimeSpan.FromMinutes(2);
+    private readonly ConcurrentDictionary<OppoClientKey, ConnectBackoff> _connectBackoffs = new();
+
+    private bool IsInConnectBackoff(in OppoClientKey oppoClientKey) =>
+        _connectBackoffs.TryGetValue(oppoClientKey, out var backoff)
+        && Stopwatch.GetElapsedTime(backoff.FailedTimestamp) < backoff.Delay;
+
+    private void RecordConnectResult(in OppoClientKey oppoClientKey, bool connected)
+    {
+        if (connected)
+        {
+            _connectBackoffs.TryRemove(oppoClientKey, out _);
+            return;
+        }
+
+        _connectBackoffs.AddOrUpdate(oppoClientKey,
+            static _ => new ConnectBackoff(Stopwatch.GetTimestamp(), MinConnectBackoff),
+            static (_, backoff) => new ConnectBackoff(Stopwatch.GetTimestamp(),
+                TimeSpan.FromTicks(Math.Min(backoff.Delay.Ticks * 2, MaxConnectBackoff.Ticks))));
+    }
+
+    /// <summary>
+    /// Connects only if not in back-off. Used by polling for already known clients.
+    /// </summary>
+    private async ValueTask<bool> IsConnectedWithBackoffAsync(OppoClientHolder oppoClientHolder)
+    {
+        if (IsInConnectBackoff(oppoClientHolder.ClientKey))
+            return false;
+
+        var connected = await oppoClientHolder.Client.IsConnectedAsync();
+        RecordConnectResult(oppoClientHolder.ClientKey, connected);
+        return connected;
+    }
+
     private async Task<OppoClientHolder?> TryGetOppoClientHolderAsync(
         string wsId,
         string? identifier,
         IdentifierType identifierType,
+        bool isBackground,
         CancellationToken cancellationToken)
     {
         var oppoClientKey = await TryGetOppoClientKeyAsync(wsId, identifierType, identifier, cancellationToken);
-        return oppoClientKey is null ? null : await TryGetOppoClientHolderAsync(oppoClientKey.Value, cancellationToken);
+        return oppoClientKey is null ? null : await TryGetOppoClientHolderAsync(oppoClientKey.Value, isBackground, cancellationToken);
     }
 
+    /// <param name="oppoClientKey"></param>
+    /// <param name="isBackground">
+    /// True for polling: skipped during back-off, no reconnect with a new client.
+    /// False for user actions: clears back-off so polling resumes right away.
+    /// </param>
+    /// <param name="cancellationToken"></param>
     private async Task<OppoClientHolder?> TryGetOppoClientHolderAsync(
         OppoClientKey oppoClientKey,
+        bool isBackground,
         CancellationToken cancellationToken)
     {
+        if (!isBackground)
+            _connectBackoffs.TryRemove(oppoClientKey, out _);
+        else if (IsInConnectBackoff(oppoClientKey))
+        {
+            _logger.SkippingConnectDuringBackoff(oppoClientKey.EntityId);
+            return null;
+        }
+
         var oppoClient = await _oppoClientFactory.TryGetOrCreateClient(oppoClientKey, cancellationToken);
         if (oppoClient is null)
             return null;
 
         if (await oppoClient.IsConnectedAsync())
+        {
+            RecordConnectResult(oppoClientKey, true);
             return new OppoClientHolder(oppoClient, oppoClientKey);
+        }
+
+        if (isBackground)
+        {
+            // Return the unconnected client so polling can still report state (e.g. Magnetar as Off).
+            RecordConnectResult(oppoClientKey, false);
+            return new OppoClientHolder(oppoClient, oppoClientKey);
+        }
 
         _oppoClientFactory.TryDisposeClient(oppoClientKey);
         oppoClient = await _oppoClientFactory.TryGetOrCreateClient(oppoClientKey, cancellationToken);
@@ -174,4 +239,7 @@ public partial class OppoWebSocketHandler
     }
 
     private sealed record OppoClientHolder(IOppoClient Client, in OppoClientKey ClientKey);
+
+    [StructLayout(LayoutKind.Auto)]
+    private readonly record struct ConnectBackoff(long FailedTimestamp, TimeSpan Delay);
 }

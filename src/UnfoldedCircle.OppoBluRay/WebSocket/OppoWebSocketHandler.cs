@@ -38,6 +38,7 @@ public partial class OppoWebSocketHandler(
     private readonly IAlbumCoverService _albumCoverService = albumCoverService;
     private readonly OppoHttpMetadataClient _httpMetadataClient = httpMetadataClient;
     private readonly DiscoveryService _discoveryService = discoveryService;
+    private volatile bool _isInStandby;
 
     protected override FrozenSet<EntityType> SupportedEntityTypes { get; } = [EntityType.MediaPlayer, EntityType.Remote, EntityType.Sensor, EntityType.Select];
 
@@ -552,7 +553,7 @@ public partial class OppoWebSocketHandler(
             : OppoModel.UDP203;
 
     private async ValueTask<SetupDriverUserDataResult> GetSetupResultForClient(string wsId, string entityId, CancellationToken cancellationToken) =>
-        await TryGetOppoClientHolderAsync(wsId, entityId, IdentifierType.EntityId, cancellationToken) is { } oppoClientHolder
+        await TryGetOppoClientHolderAsync(wsId, entityId, IdentifierType.EntityId, false, cancellationToken) is { } oppoClientHolder
         && await oppoClientHolder.Client.IsConnectedAsync()
             ? SetupDriverUserDataResult.Finalized
             : SetupDriverUserDataResult.Error;
@@ -650,12 +651,16 @@ public partial class OppoWebSocketHandler(
 
     protected override ValueTask OnEnterStandbyAsync(EnterStandbyEvent payload, string wsId, CancellationToken cancellationToken)
     {
+        _isInStandby = true;
         _oppoClientFactory.TryDisposeAllClients();
         return ValueTask.CompletedTask;
     }
 
     protected override ValueTask OnExitStandbyAsync(ExitStandbyEvent payload, string wsId, CancellationToken cancellationToken)
-        => ValueTask.CompletedTask;
+    {
+        _isInStandby = false;
+        return ValueTask.CompletedTask;
+    }
 
     protected override ValueTask<EntityCommandResult> OnClimateHvacModeCommandAsync(System.Net.WebSockets.WebSocket socket,
         ClimateEntityCommandMsgData payload,
@@ -682,6 +687,6 @@ public partial class OppoWebSocketHandler(
         => ValueTask.FromResult(EntityCommandResult.Other);
 
     protected override async ValueTask<bool> IsEntityReachableAsync(string wsId, string entityId, CancellationToken cancellationToken) =>
-        await TryGetOppoClientHolderAsync(wsId, entityId, IdentifierType.EntityId, cancellationToken) is { } oppoClientHolder
+        await TryGetOppoClientHolderAsync(wsId, entityId, IdentifierType.EntityId, false, cancellationToken) is { } oppoClientHolder
         && await oppoClientHolder.Client.IsConnectedAsync();
 }

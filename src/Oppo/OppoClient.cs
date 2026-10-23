@@ -12,7 +12,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Oppo;
 
-public sealed class OppoClient(string hostName, OppoModel model, ILogger<OppoClient> logger) : IOppoClient
+public sealed class OppoClient(string hostName, OppoModel model, ILogger<OppoClient> logger) : IOppoClient, ITcpConnection
 {
     private readonly string _hostName = hostName;
     private readonly OppoModel _model = model;
@@ -29,6 +29,7 @@ public sealed class OppoClient(string hostName, OppoModel model, ILogger<OppoCli
     };
 
     private TcpClient _tcpClient = ConnectHelper.CreateTcpClient();
+    private bool _tcpClientUsed;
     private readonly SemaphoreSlim _semaphore = new(1, 1);
     private readonly TimeSpan _timeout = TimeSpan.FromSeconds(3);
 
@@ -1120,7 +1121,22 @@ public sealed class OppoClient(string hostName, OppoModel model, ILogger<OppoCli
     }
 
     public ValueTask<bool> IsConnectedAsync(TimeSpan? timeout = null)
-        => ConnectHelper.IsConnectedAsync(_tcpClient, HostName, _port, _semaphore, _logger, timeout);
+        => ConnectHelper.IsConnectedAsync(this, HostName, _port, _semaphore, _logger, timeout);
+
+    TcpClient ITcpConnection.TcpClient => _tcpClient;
+
+    void ITcpConnection.PrepareTcpClientForConnect()
+    {
+        if (!_tcpClientUsed)
+        {
+            _tcpClientUsed = true;
+            return;
+        }
+
+        _tcpClient.Close();
+        StopReaderLoop();
+        _tcpClient = ConnectHelper.CreateTcpClient();
+    }
 
     public string HostName { get; } = hostName;
 
@@ -1227,13 +1243,13 @@ public sealed class OppoClient(string hostName, OppoModel model, ILogger<OppoCli
                 Interlocked.Exchange(ref _failedResponseCount, 0);
                 _logger.TooManyFailedResponses(caller);
 
+                // Connect below replaces the closed client
                 _tcpClient.Close();
                 StopReaderLoop();
-                _tcpClient = ConnectHelper.CreateTcpClient();
             }
 
             // Connect without semaphore - we already acquired lock
-            await ConnectHelper.IsConnectedNoLockAsync(_tcpClient, _hostName, _port, _logger);
+            await ConnectHelper.IsConnectedNoLockAsync(this, _hostName, _port, _logger);
 
             EnsureReaderLoopStarted();
 
