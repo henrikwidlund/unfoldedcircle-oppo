@@ -12,7 +12,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Oppo;
 
-public sealed class MagnetarClient(string hostName, string macAddress, ILogger<MagnetarClient> logger) : IOppoClient
+public sealed class MagnetarClient(string hostName, string macAddress, ILogger<MagnetarClient> logger) : IOppoClient, ITcpConnection
 {
     private const int Port = 8102;
 
@@ -29,7 +29,8 @@ public sealed class MagnetarClient(string hostName, string macAddress, ILogger<M
     private readonly IPAddress _ipAddress = IPAddress.Parse(hostName);
     private readonly string _macAddress = macAddress;
 
-    private readonly TcpClient _tcpClient = ConnectHelper.CreateTcpClient();
+    private TcpClient _tcpClient = ConnectHelper.CreateTcpClient();
+    private bool _tcpClientUsed;
     private readonly SemaphoreSlim _semaphore = new(1, 1);
     private readonly TimeSpan _timeout = TimeSpan.FromSeconds(3);
     private readonly TokenBucketRateLimiter _rateLimiter = ConnectHelper.CreateRateLimiter();
@@ -400,7 +401,33 @@ public sealed class MagnetarClient(string hostName, string macAddress, ILogger<M
     }
 
     public ValueTask<bool> IsConnectedAsync(TimeSpan? timeout = null)
-        => ConnectHelper.IsConnectedAsync(_tcpClient, _hostName, Port, _semaphore, _logger, timeout);
+        => ConnectHelper.IsConnectedAsync(this, _hostName, Port, _semaphore, _logger, timeout);
+
+    TcpClient ITcpConnection.TcpClient => _tcpClient;
+
+    void ITcpConnection.PrepareTcpClientForConnect()
+    {
+        if (!_tcpClientUsed)
+        {
+            _tcpClientUsed = true;
+            return;
+        }
+
+        CancellationTokenSource? readerCts;
+        lock (_streamingSync)
+        {
+            readerCts = _readerCts;
+            _readerCts = null;
+            _readerTask = null;
+        }
+
+        readerCts?.Cancel();
+        readerCts?.Dispose();
+        _tcpClient.Dispose();
+        _tcpClient = ConnectHelper.CreateTcpClient();
+        // Push updates must be enabled again on the new connection.
+        _identifySent = false;
+    }
 
     /// <summary>
     /// Identifies as an app (undocumented <c>#APP</c> command) so the player starts pushing
@@ -659,7 +686,7 @@ public sealed class MagnetarClient(string hostName, string macAddress, ILogger<M
                 _logger.SendingCommand(command);
 
             // Connect without semaphore - we already acquired lock
-            await ConnectHelper.IsConnectedNoLockAsync(_tcpClient, _hostName, Port, _logger);
+            await ConnectHelper.IsConnectedNoLockAsync(this, _hostName, Port, _logger);
 
             var networkStream = _tcpClient.GetStream();
             await networkStream.WriteAsync(Encoding.ASCII.GetBytes(command), commandCancellationToken ?? cancellationToken);

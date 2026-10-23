@@ -5,6 +5,20 @@ using Microsoft.Extensions.Logging;
 
 namespace Oppo;
 
+/// <summary>
+/// A client that owns a replaceable <see cref="System.Net.Sockets.TcpClient"/>.
+/// </summary>
+internal interface ITcpConnection
+{
+    TcpClient TcpClient { get; }
+
+    /// <summary>
+    /// Called before each connect attempt. Replaces <see cref="TcpClient"/> if it was used before.
+    /// Caller must hold the client semaphore.
+    /// </summary>
+    void PrepareTcpClientForConnect();
+}
+
 internal static class ConnectHelper
 {
     internal static TcpClient CreateTcpClient()
@@ -35,23 +49,23 @@ internal static class ConnectHelper
     }
 
     public static async ValueTask<bool> IsConnectedAsync(
-        TcpClient tcpClient,
+        ITcpConnection connection,
         string hostName,
         int port,
         SemaphoreSlim semaphore,
         ILogger logger,
         TimeSpan? timeout = null)
     {
-        if (tcpClient.Connected)
+        if (connection.TcpClient.Connected)
             return true;
 
         var acquired = await semaphore.WaitAsync(timeout ?? TimeSpan.FromSeconds(5));
         if (!acquired)
-            return tcpClient.Connected;
+            return connection.TcpClient.Connected;
 
         try
         {
-            return await ConnectIfNeededAsync(tcpClient, hostName, port, logger, timeout);
+            return await ConnectIfNeededAsync(connection, hostName, port, logger, timeout);
         }
         finally
         {
@@ -66,24 +80,27 @@ internal static class ConnectHelper
     /// SemaphoreSlim has no concept of a reentrant owner.
     /// </summary>
     internal static ValueTask<bool> IsConnectedNoLockAsync(
-        TcpClient tcpClient,
+        ITcpConnection connection,
         string hostName,
         int port,
         ILogger logger,
         TimeSpan? timeout = null)
-        => ConnectIfNeededAsync(tcpClient, hostName, port, logger, timeout);
+        => ConnectIfNeededAsync(connection, hostName, port, logger, timeout);
 
     private static async ValueTask<bool> ConnectIfNeededAsync(
-        TcpClient tcpClient,
+        ITcpConnection connection,
         string hostName,
         int port,
         ILogger logger,
         TimeSpan? timeout)
     {
-        return tcpClient.Connected || await DoConnect(true);
+        return connection.TcpClient.Connected || await DoConnect(true);
 
         async ValueTask<bool> DoConnect(bool allowRetry)
         {
+            // A TcpClient cannot connect again after a dropped connection or a timed out connect.
+            connection.PrepareTcpClientForConnect();
+            var tcpClient = connection.TcpClient;
             try
             {
                 using var cancellationTokenSource = new CancellationTokenSource(timeout ?? TimeSpan.FromSeconds(3));
@@ -106,7 +123,7 @@ internal static class ConnectHelper
                 logger.FailedToConnectToOppoPlayer(hostName, port, e);
             }
 
-            return tcpClient.Connected;
+            return connection.TcpClient.Connected;
         }
     }
 

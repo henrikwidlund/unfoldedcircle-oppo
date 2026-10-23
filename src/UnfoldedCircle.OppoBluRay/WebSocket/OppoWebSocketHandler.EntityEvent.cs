@@ -47,6 +47,10 @@ public partial class OppoWebSocketHandler
         {
             do
             {
+                // Polling would reconnect the clients dropped on standby.
+                if (_isInStandby)
+                    continue;
+
                 await ProcessSubscribedEntitiesAsync(
                     socket,
                     wsId,
@@ -185,10 +189,13 @@ public partial class OppoWebSocketHandler
         if (oppoClientHolder is null)
         {
             _logger.TryingToGetOppoClientHolder(wsId);
-            oppoClientHolder = await TryGetOppoClientHolderAsync(wsId, subscribedEntity.Key, IdentifierType.EntityId, cancellationToken);
+            var oppoClientKey = await TryGetOppoClientKeyAsync(wsId, IdentifierType.EntityId, subscribedEntity.Key, cancellationToken);
+            oppoClientHolder = oppoClientKey is null ? null : await TryGetOppoClientHolderAsync(oppoClientKey.Value, true, cancellationToken);
             if (oppoClientHolder is null)
             {
-                _logger.CouldNotFindOppoClientForEntityId(wsId, subscribedEntity.Key);
+                // Skipped during back-off is expected
+                if (oppoClientKey is null || !IsInConnectBackoff(oppoClientKey.Value))
+                    _logger.CouldNotFindOppoClientForEntityId(wsId, subscribedEntity.Key);
                 return;
             }
 
@@ -280,10 +287,12 @@ public partial class OppoWebSocketHandler
 
         _logger.TryingToGetOppoClientHolder(wsId);
 
-        var oppoClientHolder = await TryGetOppoClientHolderAsync(oppoClientKey.Value, cancellationToken);
+        var oppoClientHolder = await TryGetOppoClientHolderAsync(oppoClientKey.Value, true, cancellationToken);
         if (oppoClientHolder is null)
         {
-            _logger.CouldNotFindOppoClientForEntityId(wsId, entityId);
+            // Skipped during back-off is expected
+            if (!IsInConnectBackoff(oppoClientKey.Value))
+                _logger.CouldNotFindOppoClientForEntityId(wsId, entityId);
             return null;
         }
 
@@ -335,7 +344,7 @@ public partial class OppoWebSocketHandler
     private async ValueTask<ClientSnapshot> BuildSnapshotAsync(OppoClientHolder oppoClientHolder, CancellationToken cancellationToken)
     {
         var snapshot = new ClientSnapshot();
-        if (!await oppoClientHolder.Client.IsConnectedAsync())
+        if (!await IsConnectedWithBackoffAsync(oppoClientHolder))
         {
             // A Magnetar player that is not reachable can also mean it is off
             // as the player only responds to WoL packets in deep sleep.
