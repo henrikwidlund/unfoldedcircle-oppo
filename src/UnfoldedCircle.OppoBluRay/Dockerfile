@@ -3,7 +3,7 @@ USER $APP_UID
 WORKDIR /app
 EXPOSE 9001
 
-FROM mcr.microsoft.com/dotnet/sdk:11.0.100-rc.2-resolute@sha256:e2438fd800a09d2d761aefe4edd30675c8f1db8958e4423c0844cc9a0240e60f AS build
+FROM mcr.microsoft.com/dotnet/sdk:11.0.100-rc.2-resolute@sha256:db7d1f28c0805ea69fe43f73e54cffd2a0689a0c637a6078328e27c5aab2314a AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 COPY [".editorconfig", "."]
