@@ -4,10 +4,12 @@ using Oppo;
 
 using UnfoldedCircle.Models.Events;
 using UnfoldedCircle.Models.Shared;
+using UnfoldedCircle.Models.Sync;
 using UnfoldedCircle.OppoBluRay.AlbumCover;
 using UnfoldedCircle.OppoBluRay.Configuration;
 using UnfoldedCircle.OppoBluRay.Logging;
 using UnfoldedCircle.OppoBluRay.OppoEntity;
+using UnfoldedCircle.Server.Extensions;
 using UnfoldedCircle.Server.Response;
 using UnfoldedCircle.Server.WebSocket;
 
@@ -17,6 +19,7 @@ public partial class OppoWebSocketHandler
 {
     private static readonly ConcurrentDictionary<OppoClientKey, MediaPlayerStateChangedEventMessageDataAttributesBase> PreviousMediaStatesMap = new();
     private static readonly ConcurrentDictionary<OppoClientKey, State> PreviousRemoteStatesMap = new();
+    private static readonly ConcurrentDictionary<OppoClientKey, State> PreviousPlayerStatesMap = new();
     private static readonly ConcurrentDictionary<OppoClientKey, InputSource?> PreviousSensorInputSourcesMap = new();
     private static readonly ConcurrentDictionary<OppoClientKey, InputSource?> PreviousSelectInputSourcesMap = new();
     private static readonly ConcurrentDictionary<OppoClientKey, DiscType?> PreviousSensorDiscTypesMap = new();
@@ -523,6 +526,7 @@ public partial class OppoWebSocketHandler
         CancellationToken cancellationToken)
     {
         (bool hasMediaPlayer, bool hasRemote, bool hasSensor, bool hasSelect) = GetSubscriptionFlags(subscribedEntities);
+        PreviousPlayerStatesMap[oppoClientHolder.ClientKey] = snapshot.State;
 
         if (oppoClientHolder is { ClientKey.UseMediaEvents: false })
         {
@@ -1299,6 +1303,7 @@ public partial class OppoWebSocketHandler
     {
         PreviousMediaStatesMap.TryRemove(clientKey, out _);
         PreviousRemoteStatesMap.TryRemove(clientKey, out _);
+        PreviousPlayerStatesMap.TryRemove(clientKey, out _);
         PreviousSensorInputSourcesMap.TryRemove(clientKey, out _);
         PreviousSelectInputSourcesMap.TryRemove(clientKey, out _);
         PreviousSensorDiscTypesMap.TryRemove(clientKey, out _);
@@ -1309,6 +1314,104 @@ public partial class OppoWebSocketHandler
         PreviousSensorHDRStatusMap.TryRemove(clientKey, out _);
         PreviousSensorAspectRatiosMap.TryRemove(clientKey, out _);
     }
+
+    private static RemoteState GetRemoteState(State state) =>
+        state switch
+        {
+            State.Buffering or State.Playing or State.Paused or State.On => RemoteState.On,
+            State.Off => RemoteState.Off,
+            _ => RemoteState.Unknown
+        };
+
+    private static string GetThreeDValue(bool? threeD) =>
+        threeD switch
+        {
+            null => string.Empty,
+            true => "3D",
+            _ => "2D"
+        };
+
+    /// <summary>
+    /// Last sent states. Entities without a known state are not included.
+    /// </summary>
+    private static IEnumerable<EntityStateChanged> GetEntityStates(List<OppoConfigurationItem> entities)
+    {
+        foreach (var entity in entities)
+        {
+            var clientKey = new OppoClientKey(entity.Host, entity.Model, entity.UseMediaEvents,
+                entity.UseStreamingEvents,
+                entity.EntityId, entity.DeviceId, entity.MacAddress);
+            var sourceList = OppoEntitySettings.SourceList[entity.Model];
+
+            if (PreviousPlayerStatesMap.TryGetValue(clientKey, out var state))
+            {
+                yield return new RemoteEntityStateChanged
+                {
+                    EntityId = entity.EntityId.GetIdentifier(EntityType.Remote),
+                    EntityType = EntityType.Remote,
+                    Attributes = new RemoteStateChangedEventMessageDataAttributes { State = GetRemoteState(state) },
+                    DeviceId = entity.DeviceId.GetNullableIdentifier(EntityType.Remote)
+                };
+
+                yield return new MediaPlayerEntityStateChanged
+                {
+                    EntityId = entity.EntityId.GetIdentifier(EntityType.MediaPlayer),
+                    EntityType = EntityType.MediaPlayer,
+                    Attributes = new DeltaMediaPlayerStateChangedEventMessageDataAttributes
+                    {
+                        State = state,
+                        SourceList = sourceList.Length > 0 ? sourceList : null
+                    },
+                    DeviceId = entity.DeviceId.GetNullableIdentifier(EntityType.MediaPlayer)
+                };
+            }
+
+            foreach (var oppoSensorType in SensorHelpers.GetOppoSensorTypes(entity.Model))
+            {
+                if (GetPreviousSensorValue(clientKey, oppoSensorType) is not { } value)
+                    continue;
+
+                var suffix = oppoSensorType.ToStringFast();
+                yield return new SensorEntityStateChanged<string>
+                {
+                    EntityId = entity.EntityId.GetIdentifier(EntityType.Sensor, suffix),
+                    EntityType = EntityType.Sensor,
+                    Attributes = new SensorStateChangedEventMessageDataAttributes<string> { State = SensorState.On, Value = value },
+                    DeviceId = entity.DeviceId.GetNullableIdentifier(EntityType.Sensor, suffix)
+                };
+            }
+
+            if (sourceList.Length > 0 && PreviousSelectInputSourcesMap.TryGetValue(clientKey, out var inputSource))
+            {
+                yield return new SelectEntityStateChanged
+                {
+                    EntityId = entity.EntityId.GetIdentifier(EntityType.Select, OppoConstants.InputSourceSelectSuffix),
+                    EntityType = EntityType.Select,
+                    Attributes = new SelectStateChangedEventMessageDataAttributes
+                    {
+                        State = SelectState.On,
+                        CurrentOption = GetInputSource(inputSource),
+                        Options = sourceList
+                    },
+                    DeviceId = entity.DeviceId.GetNullableIdentifier(EntityType.Select, OppoConstants.InputSourceSelectSuffix)
+                };
+            }
+        }
+    }
+
+    private static string? GetPreviousSensorValue(OppoClientKey clientKey, OppoSensorType sensorType) =>
+        sensorType switch
+        {
+            OppoSensorType.DiscType => PreviousSensorDiscTypesMap.TryGetValue(clientKey, out var discType) ? discType?.ToStringFast(true) ?? string.Empty : null,
+            OppoSensorType.InputSource => PreviousSensorInputSourcesMap.TryGetValue(clientKey, out var inputSource) ? inputSource?.ToStringFast(true) ?? string.Empty : null,
+            OppoSensorType.HDMIResolution => PreviousSensorHDMIResolutionsMap.TryGetValue(clientKey, out var hdmiResolution) ? hdmiResolution?.ToStringFast(true) ?? string.Empty : null,
+            OppoSensorType.AudioType => PreviousSensorAudioTypesMap.TryGetValue(clientKey, out var audioType) ? audioType ?? string.Empty : null,
+            OppoSensorType.SubtitleType => PreviousSensorSubtitleTypesMap.TryGetValue(clientKey, out var subtitleType) ? subtitleType ?? string.Empty : null,
+            OppoSensorType.ThreeDStatus => PreviousSensorThreeDsMap.TryGetValue(clientKey, out var threeD) ? GetThreeDValue(threeD) : null,
+            OppoSensorType.HDRStatus => PreviousSensorHDRStatusMap.TryGetValue(clientKey, out var hdrStatus) ? hdrStatus?.ToStringFast(true) ?? string.Empty : null,
+            OppoSensorType.AspectRatio => PreviousSensorAspectRatiosMap.TryGetValue(clientKey, out var aspectRatio) ? aspectRatio?.ToStringFast(true) ?? string.Empty : null,
+            _ => null
+        };
 
     private static string? ReplaceStarWithEllipsis(string? input) =>
         string.IsNullOrWhiteSpace(input) ? input : input.Replace('*', '…');
@@ -1362,15 +1465,7 @@ public partial class OppoWebSocketHandler
         PreviousRemoteStatesMap[oppoClientHolder.ClientKey] = state;
         return SendMessageAsync(socket,
             ResponsePayloadHelpers.CreateRemoteStateChangedResponsePayload(
-                new RemoteStateChangedEventMessageDataAttributes
-                {
-                    State = state switch
-                    {
-                        State.Buffering or State.Playing or State.Paused or State.On => RemoteState.On,
-                        State.Off => RemoteState.Off,
-                        _ => RemoteState.Unknown
-                    }
-                },
+                new RemoteStateChangedEventMessageDataAttributes { State = GetRemoteState(state) },
                 oppoClientHolder.ClientKey.EntityId),
             wsId,
             cancellationToken);
@@ -1578,12 +1673,7 @@ public partial class OppoWebSocketHandler
                 new SensorStateChangedEventMessageDataAttributes<string>
                 {
                     State = SensorState.On,
-                    Value = threeD switch
-                    {
-                        null => string.Empty,
-                        true => "3D",
-                        _ => "2D"
-                    }
+                    Value = GetThreeDValue(threeD)
                 },
                 oppoClientHolder.ClientKey.EntityId,
                 nameof(OppoSensorType.ThreeDStatus)),
