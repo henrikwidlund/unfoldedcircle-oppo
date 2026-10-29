@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Net.Sockets;
 using System.Threading.RateLimiting;
 
@@ -21,6 +22,11 @@ internal interface ITcpConnection
 
 internal static class ConnectHelper
 {
+    private static readonly TimeSpan DefaultConnectTimeout = TimeSpan.FromSeconds(3);
+    private static readonly TimeSpan FirstAttemptTimeout = TimeSpan.FromMilliseconds(500);
+    private static readonly TimeSpan NetworkUnreachableRetryDelay = TimeSpan.FromMilliseconds(50);
+    private static readonly TimeSpan SocketErrorRetryDelay = TimeSpan.FromMilliseconds(500);
+
     internal static TcpClient CreateTcpClient()
     {
         var tcpClient = new TcpClient { NoDelay = true };
@@ -94,37 +100,56 @@ internal static class ConnectHelper
         ILogger logger,
         TimeSpan? timeout)
     {
-        return connection.TcpClient.Connected || await DoConnect(true);
+        if (connection.TcpClient.Connected)
+            return true;
 
-        async ValueTask<bool> DoConnect(bool allowRetry)
+        var startTimestamp = Stopwatch.GetTimestamp();
+        var connectTimeout = timeout ?? DefaultConnectTimeout;
+        var isFirstAttempt = true;
+        var socketErrorRetried = false;
+        SocketException? networkUnreachable = null;
+        while (connectTimeout - Stopwatch.GetElapsedTime(startTimestamp) is var remaining && remaining > TimeSpan.Zero)
         {
             // A TcpClient cannot connect again after a dropped connection or a timed out connect.
             connection.PrepareTcpClientForConnect();
             var tcpClient = connection.TcpClient;
             try
             {
-                using var cancellationTokenSource = new CancellationTokenSource(timeout ?? TimeSpan.FromSeconds(3));
+                // The OS sends a lost SYN again only after 1 s. A new attempt after a short time is faster.
+                using var cancellationTokenSource = new CancellationTokenSource(
+                    isFirstAttempt && remaining > FirstAttemptTimeout ? FirstAttemptTimeout : remaining);
+                isFirstAttempt = false;
                 await tcpClient.ConnectAsync(hostName, port, cancellationTokenSource.Token);
                 return tcpClient.Connected;
             }
             catch (OperationCanceledException)
             {
-                // nothing to do here, ignore
+                // Attempt timed out, try again if there is time left
             }
-            catch (SocketException) when (allowRetry)
+            catch (SocketException e) when (e.SocketErrorCode == SocketError.NetworkUnreachable)
+            {
+                // Right after wake-up the network is not ready for a short time
+                networkUnreachable = e;
+                await Task.Delay(NetworkUnreachableRetryDelay);
+            }
+            catch (SocketException) when (!socketErrorRetried)
             {
                 // Network stack might not be ready, wait a bit and try one more time
+                socketErrorRetried = true;
                 logger.RetryingConnectionAfterSocketException(hostName, port);
-                await Task.Delay(500);
-                return await DoConnect(false);
+                await Task.Delay(SocketErrorRetryDelay);
             }
             catch (Exception e)
             {
                 logger.FailedToConnectToOppoPlayer(hostName, port, e);
+                return connection.TcpClient.Connected;
             }
-
-            return connection.TcpClient.Connected;
         }
+
+        if (networkUnreachable is not null)
+            logger.FailedToConnectToOppoPlayer(hostName, port, networkUnreachable);
+
+        return connection.TcpClient.Connected;
     }
 
     internal static TokenBucketRateLimiter CreateRateLimiter() => new(new TokenBucketRateLimiterOptions
