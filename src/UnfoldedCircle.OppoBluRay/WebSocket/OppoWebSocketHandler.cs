@@ -15,7 +15,6 @@ using UnfoldedCircle.OppoBluRay.Json;
 using UnfoldedCircle.OppoBluRay.Logging;
 using UnfoldedCircle.OppoBluRay.Metadata;
 using UnfoldedCircle.OppoBluRay.OppoEntity;
-using UnfoldedCircle.OppoBluRay.Response;
 using UnfoldedCircle.Server.Configuration;
 using UnfoldedCircle.Server.DependencyInjection;
 using UnfoldedCircle.Server.Extensions;
@@ -221,7 +220,7 @@ public partial class OppoWebSocketHandler(
         var entities = await GetEntitiesAsync(wsId, payload.MsgData?.DeviceId, cancellationToken);
         return entities is null
             ? []
-            : [.. OppoResponsePayloadHelpers.GetEntityStates(entities.Select(static x => new EntityIdDeviceId(x.EntityId, x.DeviceId, x.Model)))];
+            : [.. GetEntityStates(entities)];
     }
 
     protected override ValueTask<SetupDriverUserDataResult> OnSetupDriverUserDataConfirmAsync(System.Net.WebSockets.WebSocket socket, SetDriverUserDataMsg payload, string wsId, CancellationToken cancellationToken)
