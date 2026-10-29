@@ -19,7 +19,10 @@ public partial class OppoWebSocketHandler
 {
     private static readonly ConcurrentDictionary<OppoClientKey, MediaPlayerStateChangedEventMessageDataAttributesBase> PreviousMediaStatesMap = new();
     private static readonly ConcurrentDictionary<OppoClientKey, State> PreviousRemoteStatesMap = new();
-    private static readonly ConcurrentDictionary<OppoClientKey, State> PreviousPlayerStatesMap = new();
+    // Last sent values, kept through standby for get_entity_states
+    private static readonly ConcurrentDictionary<OppoClientKey, State> LastPlayerStatesMap = new();
+    private static readonly ConcurrentDictionary<OppoClientKey, InputSource?> LastSelectInputSourcesMap = new();
+    private static readonly ConcurrentDictionary<(OppoClientKey, OppoSensorType), string> LastSensorValuesMap = new();
     private static readonly ConcurrentDictionary<OppoClientKey, InputSource?> PreviousSensorInputSourcesMap = new();
     private static readonly ConcurrentDictionary<OppoClientKey, InputSource?> PreviousSelectInputSourcesMap = new();
     private static readonly ConcurrentDictionary<OppoClientKey, DiscType?> PreviousSensorDiscTypesMap = new();
@@ -526,7 +529,7 @@ public partial class OppoWebSocketHandler
         CancellationToken cancellationToken)
     {
         (bool hasMediaPlayer, bool hasRemote, bool hasSensor, bool hasSelect) = GetSubscriptionFlags(subscribedEntities);
-        PreviousPlayerStatesMap[oppoClientHolder.ClientKey] = snapshot.State;
+        LastPlayerStatesMap[oppoClientHolder.ClientKey] = snapshot.State;
 
         if (oppoClientHolder is { ClientKey.UseMediaEvents: false })
         {
@@ -1303,7 +1306,6 @@ public partial class OppoWebSocketHandler
     {
         PreviousMediaStatesMap.TryRemove(clientKey, out _);
         PreviousRemoteStatesMap.TryRemove(clientKey, out _);
-        PreviousPlayerStatesMap.TryRemove(clientKey, out _);
         PreviousSensorInputSourcesMap.TryRemove(clientKey, out _);
         PreviousSelectInputSourcesMap.TryRemove(clientKey, out _);
         PreviousSensorDiscTypesMap.TryRemove(clientKey, out _);
@@ -1332,7 +1334,7 @@ public partial class OppoWebSocketHandler
         };
 
     /// <summary>
-    /// Last sent states. Entities without a known state are not included.
+    /// Last sent states, also from before standby. Entities without a known state are not included.
     /// </summary>
     private static IEnumerable<EntityStateChanged> GetEntityStates(List<OppoConfigurationItem> entities)
     {
@@ -1343,7 +1345,7 @@ public partial class OppoWebSocketHandler
                 entity.EntityId, entity.DeviceId, entity.MacAddress);
             var sourceList = OppoEntitySettings.SourceList[entity.Model];
 
-            if (PreviousPlayerStatesMap.TryGetValue(clientKey, out var state))
+            if (LastPlayerStatesMap.TryGetValue(clientKey, out var state))
             {
                 yield return new RemoteEntityStateChanged
                 {
@@ -1368,7 +1370,7 @@ public partial class OppoWebSocketHandler
 
             foreach (var oppoSensorType in SensorHelpers.GetOppoSensorTypes(entity.Model))
             {
-                if (GetPreviousSensorValue(clientKey, oppoSensorType) is not { } value)
+                if (!LastSensorValuesMap.TryGetValue((clientKey, oppoSensorType), out var value))
                     continue;
 
                 var suffix = oppoSensorType.ToStringFast();
@@ -1381,7 +1383,7 @@ public partial class OppoWebSocketHandler
                 };
             }
 
-            if (sourceList.Length > 0 && PreviousSelectInputSourcesMap.TryGetValue(clientKey, out var inputSource))
+            if (sourceList.Length > 0 && LastSelectInputSourcesMap.TryGetValue(clientKey, out var inputSource))
             {
                 yield return new SelectEntityStateChanged
                 {
@@ -1398,20 +1400,6 @@ public partial class OppoWebSocketHandler
             }
         }
     }
-
-    private static string? GetPreviousSensorValue(OppoClientKey clientKey, OppoSensorType sensorType) =>
-        sensorType switch
-        {
-            OppoSensorType.DiscType => PreviousSensorDiscTypesMap.TryGetValue(clientKey, out var discType) ? discType?.ToStringFast(true) ?? string.Empty : null,
-            OppoSensorType.InputSource => PreviousSensorInputSourcesMap.TryGetValue(clientKey, out var inputSource) ? inputSource?.ToStringFast(true) ?? string.Empty : null,
-            OppoSensorType.HDMIResolution => PreviousSensorHDMIResolutionsMap.TryGetValue(clientKey, out var hdmiResolution) ? hdmiResolution?.ToStringFast(true) ?? string.Empty : null,
-            OppoSensorType.AudioType => PreviousSensorAudioTypesMap.TryGetValue(clientKey, out var audioType) ? audioType ?? string.Empty : null,
-            OppoSensorType.SubtitleType => PreviousSensorSubtitleTypesMap.TryGetValue(clientKey, out var subtitleType) ? subtitleType ?? string.Empty : null,
-            OppoSensorType.ThreeDStatus => PreviousSensorThreeDsMap.TryGetValue(clientKey, out var threeD) ? GetThreeDValue(threeD) : null,
-            OppoSensorType.HDRStatus => PreviousSensorHDRStatusMap.TryGetValue(clientKey, out var hdrStatus) ? hdrStatus?.ToStringFast(true) ?? string.Empty : null,
-            OppoSensorType.AspectRatio => PreviousSensorAspectRatiosMap.TryGetValue(clientKey, out var aspectRatio) ? aspectRatio?.ToStringFast(true) ?? string.Empty : null,
-            _ => null
-        };
 
     private static string? ReplaceStarWithEllipsis(string? input) =>
         string.IsNullOrWhiteSpace(input) ? input : input.Replace('*', '…');
@@ -1524,12 +1512,14 @@ public partial class OppoWebSocketHandler
             return Task.CompletedTask;
 
         PreviousSensorDiscTypesMap[oppoClientHolder.ClientKey] = discType;
+        var value = discType?.ToStringFast(true) ?? string.Empty;
+        LastSensorValuesMap[(oppoClientHolder.ClientKey, OppoSensorType.DiscType)] = value;
         return SendMessageAsync(socket,
             ResponsePayloadHelpers.CreateSensorStateChangedPayload(
                 new SensorStateChangedEventMessageDataAttributes<string>
                 {
                     State = SensorState.On,
-                    Value = discType?.ToStringFast(true) ?? string.Empty
+                    Value = value
                 },
                 oppoClientHolder.ClientKey.EntityId,
                 nameof(OppoSensorType.DiscType)),
@@ -1548,12 +1538,14 @@ public partial class OppoWebSocketHandler
             return Task.CompletedTask;
 
         PreviousSensorInputSourcesMap[oppoClientHolder.ClientKey] = inputSource;
+        var value = inputSource?.ToStringFast(true) ?? string.Empty;
+        LastSensorValuesMap[(oppoClientHolder.ClientKey, OppoSensorType.InputSource)] = value;
         return SendMessageAsync(socket,
             ResponsePayloadHelpers.CreateSensorStateChangedPayload(
                 new SensorStateChangedEventMessageDataAttributes<string>
                 {
                     State = SensorState.On,
-                    Value = inputSource?.ToStringFast(true) ?? string.Empty
+                    Value = value
                 },
                 oppoClientHolder.ClientKey.EntityId,
                 nameof(OppoSensorType.InputSource)),
@@ -1572,6 +1564,7 @@ public partial class OppoWebSocketHandler
             return Task.CompletedTask;
 
         PreviousSelectInputSourcesMap[oppoClientHolder.ClientKey] = inputSource;
+        LastSelectInputSourcesMap[oppoClientHolder.ClientKey] = inputSource;
         return SendMessageAsync(socket,
             ResponsePayloadHelpers.CreateSelectStateChangedPayload(
                 new SelectStateChangedEventMessageDataAttributes
@@ -1596,12 +1589,14 @@ public partial class OppoWebSocketHandler
             return Task.CompletedTask;
 
         PreviousSensorHDMIResolutionsMap[oppoClientHolder.ClientKey] = hdmiResolution;
+        var value = hdmiResolution?.ToStringFast(true) ?? string.Empty;
+        LastSensorValuesMap[(oppoClientHolder.ClientKey, OppoSensorType.HDMIResolution)] = value;
         return SendMessageAsync(socket,
             ResponsePayloadHelpers.CreateSensorStateChangedPayload(
                 new SensorStateChangedEventMessageDataAttributes<string>
                 {
                     State = SensorState.On,
-                    Value = hdmiResolution?.ToStringFast(true) ?? string.Empty
+                    Value = value
                 },
                 oppoClientHolder.ClientKey.EntityId,
                 nameof(OppoSensorType.HDMIResolution)),
@@ -1620,12 +1615,14 @@ public partial class OppoWebSocketHandler
             return Task.CompletedTask;
 
         PreviousSensorAudioTypesMap[oppoClientHolder.ClientKey] = audioType;
+        var value = audioType ?? string.Empty;
+        LastSensorValuesMap[(oppoClientHolder.ClientKey, OppoSensorType.AudioType)] = value;
         return SendMessageAsync(socket,
             ResponsePayloadHelpers.CreateSensorStateChangedPayload(
                 new SensorStateChangedEventMessageDataAttributes<string>
                 {
                     State = SensorState.On,
-                    Value = audioType ?? string.Empty
+                    Value = value
                 },
                 oppoClientHolder.ClientKey.EntityId,
                 nameof(OppoSensorType.AudioType)),
@@ -1644,12 +1641,14 @@ public partial class OppoWebSocketHandler
             return Task.CompletedTask;
 
         PreviousSensorSubtitleTypesMap[oppoClientHolder.ClientKey] = subtitleType;
+        var value = subtitleType ?? string.Empty;
+        LastSensorValuesMap[(oppoClientHolder.ClientKey, OppoSensorType.SubtitleType)] = value;
         return SendMessageAsync(socket,
             ResponsePayloadHelpers.CreateSensorStateChangedPayload(
                 new SensorStateChangedEventMessageDataAttributes<string>
                 {
                     State = SensorState.On,
-                    Value = subtitleType ?? string.Empty
+                    Value = value
                 },
                 oppoClientHolder.ClientKey.EntityId,
                 nameof(OppoSensorType.SubtitleType)),
@@ -1668,12 +1667,14 @@ public partial class OppoWebSocketHandler
             return Task.CompletedTask;
 
         PreviousSensorThreeDsMap[oppoClientHolder.ClientKey] = threeD;
+        var value = GetThreeDValue(threeD);
+        LastSensorValuesMap[(oppoClientHolder.ClientKey, OppoSensorType.ThreeDStatus)] = value;
         return SendMessageAsync(socket,
             ResponsePayloadHelpers.CreateSensorStateChangedPayload(
                 new SensorStateChangedEventMessageDataAttributes<string>
                 {
                     State = SensorState.On,
-                    Value = GetThreeDValue(threeD)
+                    Value = value
                 },
                 oppoClientHolder.ClientKey.EntityId,
                 nameof(OppoSensorType.ThreeDStatus)),
@@ -1692,12 +1693,14 @@ public partial class OppoWebSocketHandler
             return Task.CompletedTask;
 
         PreviousSensorHDRStatusMap[oppoClientHolder.ClientKey] = hdrStatus;
+        var value = hdrStatus?.ToStringFast(true) ?? string.Empty;
+        LastSensorValuesMap[(oppoClientHolder.ClientKey, OppoSensorType.HDRStatus)] = value;
         return SendMessageAsync(socket,
             ResponsePayloadHelpers.CreateSensorStateChangedPayload(
                 new SensorStateChangedEventMessageDataAttributes<string>
                 {
                     State = SensorState.On,
-                    Value = hdrStatus?.ToStringFast(true) ?? string.Empty
+                    Value = value
                 },
                 oppoClientHolder.ClientKey.EntityId,
                 nameof(OppoSensorType.HDRStatus)),
@@ -1716,12 +1719,14 @@ public partial class OppoWebSocketHandler
             return Task.CompletedTask;
 
         PreviousSensorAspectRatiosMap[oppoClientHolder.ClientKey] = aspectRatio;
+        var value = aspectRatio?.ToStringFast(true) ?? string.Empty;
+        LastSensorValuesMap[(oppoClientHolder.ClientKey, OppoSensorType.AspectRatio)] = value;
         return SendMessageAsync(socket,
             ResponsePayloadHelpers.CreateSensorStateChangedPayload(
                 new SensorStateChangedEventMessageDataAttributes<string>
                 {
                     State = SensorState.On,
-                    Value = aspectRatio?.ToStringFast(true) ?? string.Empty
+                    Value = value
                 },
                 oppoClientHolder.ClientKey.EntityId,
                 nameof(OppoSensorType.AspectRatio)),
