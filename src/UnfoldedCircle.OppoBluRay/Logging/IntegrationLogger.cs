@@ -37,6 +37,9 @@ internal static partial class IntegrationLogger
     [LoggerMessage(EventId = 31, Level = LogLevel.Information, Message = "{EntityId} Position {Position}s is past duration {Duration}s, rebuilding snapshot")]
     public static partial void PositionPastDurationRebuilding(this ILogger logger, string entityId, uint position, uint duration);
 
+    [LoggerMessage(EventId = 33, Level = LogLevel.Information, Message = "{EntityId} Position {Position}s has no duration, rebuilding snapshot")]
+    public static partial void PositionWithoutDurationRebuilding(this ILogger logger, string entityId, uint position);
+
     // WebSocket - Configuration logging
     [LoggerMessage(EventId = 14, Level = LogLevel.Information, Message = "Adding configuration for entity_id '{EntityId}'")]
     public static partial void AddingConfiguration(this ILogger logger, string entityId);

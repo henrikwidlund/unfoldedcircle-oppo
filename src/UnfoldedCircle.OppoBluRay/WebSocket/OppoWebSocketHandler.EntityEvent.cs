@@ -1024,11 +1024,16 @@ public partial class OppoWebSocketHandler
         // Some discs make the player report a duration that doesn't match the title being played, without a
         // title change to trigger a rebuild. The position then runs past the duration until everything is
         // re-queried. Rebuild when that happens, throttled in case the player keeps reporting inconsistent values.
-        if (context.Snapshot is { Elapsed: { } elapsed, MediaDuration: { } duration }
-            && elapsed > duration
+        // A rebuild during a disc menu gets no duration, and the player may send no status event when playback
+        // starts. Rebuild also when the position moves without a duration.
+        if (context.Snapshot is { Elapsed: > 0u and var elapsed, MediaDuration: var duration }
+            && (duration is null || elapsed > duration)
             && DateTimeOffset.UtcNow - context.LastPositionPastDurationRebuildUtc >= PositionPastDurationRebuildInterval)
         {
-            _logger.PositionPastDurationRebuilding(context.ClientHolder.ClientKey.EntityId, elapsed, duration);
+            if (duration is { } knownDuration)
+                _logger.PositionPastDurationRebuilding(context.ClientHolder.ClientKey.EntityId, elapsed, knownDuration);
+            else
+                _logger.PositionWithoutDurationRebuilding(context.ClientHolder.ClientKey.EntityId, elapsed);
             context.LastPositionPastDurationRebuildUtc = DateTimeOffset.UtcNow;
             await RebuildSnapshotAndRefreshHdrTimestampAsync(context, cancellationToken);
             context.Snapshot.LastProgressTitle = playbackProgressEvent.Title;
