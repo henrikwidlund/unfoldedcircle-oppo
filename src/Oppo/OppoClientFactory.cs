@@ -40,7 +40,8 @@ public sealed class OppoClientFactory(ILoggerFactory loggerFactory, ILogger<Oppo
                 else
                 {
                     _oppoClientLogger ??= _loggerFactory.CreateLogger<OppoClient>();
-                    client = new OppoClient(oppoClientKey.HostName, oppoClientKey.Model, _oppoClientLogger);
+                    client = new OppoClient(oppoClientKey.HostName, oppoClientKey.Model, _oppoClientLogger,
+                        oppoClientKey.ControlPort);
                     await client.IsConnectedAsync();
                 }
 

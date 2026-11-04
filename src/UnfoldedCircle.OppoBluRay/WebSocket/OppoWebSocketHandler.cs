@@ -1,5 +1,6 @@
 using System.Collections.Frozen;
 using System.Diagnostics;
+using System.Globalization;
 
 using Microsoft.Extensions.Options;
 
@@ -285,19 +286,25 @@ public partial class OppoWebSocketHandler(
             await cancellationTokenSource.CancelAsync();
         }
 
-        return discoveredPlayers.Count > 0
-            ? CreateDiscoveredPlayersSettingsPage(discoveredPlayers)
-            : CreateSettingsPage(null, timeoutSeconds);
+        // Always the chooser: a serial-bridged player is not on the network, so it is never discovered.
+        return CreateDiscoveredPlayersSettingsPage(discoveredPlayers);
     }
 
     protected override async ValueTask<SettingsPage> CreateReconfigureEntitySettingsPageAsync(OppoConfigurationItem configurationItem, CancellationToken cancellationToken)
     {
         var configuration = await _configurationService.GetConfigurationAsync(cancellationToken);
-        var settingsPage = CreateSettingsPage(configurationItem, configuration.GlobalConfiguration.MaxMessageHandlingWaitTimeInSeconds ?? 9.5);
+        var maxMessageHandlingWaitTimeInSeconds = configuration.GlobalConfiguration.MaxMessageHandlingWaitTimeInSeconds ?? 9.5;
+        var settingsPage = configurationItem.UseSerialBridge
+            ? CreateSerialBridgeSettingsPage(configurationItem, maxMessageHandlingWaitTimeInSeconds)
+            : CreateSettingsPage(configurationItem, maxMessageHandlingWaitTimeInSeconds);
         return settingsPage with
         {
+            // The address identifies the entity, so it cannot be changed here.
             Settings = [.. settingsPage.Settings.Where(static x =>
                 !x.Id.Equals(OppoConstants.IpAddressKey, StringComparison.OrdinalIgnoreCase) &&
+                !x.Id.Equals(OppoConstants.SerialBridgeInfoKey, StringComparison.OrdinalIgnoreCase) &&
+                !x.Id.Equals(OppoConstants.SerialBridgeHostKey, StringComparison.OrdinalIgnoreCase) &&
+                !x.Id.Equals(OppoConstants.SerialBridgePortKey, StringComparison.OrdinalIgnoreCase) &&
                 !x.Id.Equals(OppoConstants.EntityName, StringComparison.OrdinalIgnoreCase))]
         };
     }
@@ -307,18 +314,7 @@ public partial class OppoWebSocketHandler(
         {
             Title = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { ["en"] = configurationItem == null ? "Add a new device" : "Reconfigure device" },
             Settings = [
-                new Setting
-                {
-                    Id = OppoConstants.EntityName,
-                    Field = new SettingTypeText
-                    {
-                        Text = new ValueRegex
-                        {
-                            Value = discoveredPlayer?.DisplayName
-                        }
-                    },
-                    Label = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { ["en"] = "Enter the name of the player (optional)" }
-                },
+                CreateEntityNameSetting(discoveredPlayer?.DisplayName),
                 new Setting
                 {
                     Id = OppoConstants.IpAddressKey,
@@ -344,96 +340,167 @@ public partial class OppoWebSocketHandler(
                     },
                     Label = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { ["en"] = "Enter the MAC address of the player (required for Magnetar)" }
                 },
+                CreateModelSetting(configurationItem?.Model.ToStringFast() ?? discoveredPlayer?.Model?.ToStringFast(), includeMagnetar: true),
+                CreateUseMediaEventsSetting(configurationItem?.UseMediaEvents ?? true),
+                CreateUseStreamingEventsSetting(configurationItem?.UseStreamingEvents ?? true),
+                CreateMaxMessageHandlingWaitTimeSetting(maxMessageHandlingWaitTimeInSeconds)
+            ]
+        };
+
+    private static SettingsPage CreateSerialBridgeSettingsPage(OppoConfigurationItem? configurationItem, double maxMessageHandlingWaitTimeInSeconds) =>
+        new()
+        {
+            Title = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { ["en"] = configurationItem == null ? "Connect over RS-232" : "Reconfigure device" },
+            Settings = [
                 new Setting
                 {
-                    Id = OppoConstants.OppoModelKey,
-                    Field = new SettingTypeDropdown
+                    Id = OppoConstants.SerialBridgeInfoKey,
+                    Field = new SettingTypeLabel
                     {
-                        Dropdown = new SettingTypeDropdownInner
+                        Label = new SettingTypeLabelItem
                         {
-                            Items = [
-                                new SettingTypeDropdownItem
-                                {
-                                    Label = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { ["en"] = GetOppoModelName(OppoModel.BDP83) },
-                                    Value = nameof(OppoModel.BDP83)
-                                },
-                                new SettingTypeDropdownItem
-                                {
-                                    Label = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { ["en"] = GetOppoModelName(OppoModel.BDP9X) },
-                                    Value = nameof(OppoModel.BDP9X)
-                                },
-                                new SettingTypeDropdownItem
-                                {
-                                    Label = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { ["en"] = GetOppoModelName(OppoModel.BDP10X) },
-                                    Value = nameof(OppoModel.BDP10X)
-                                },
-                                new SettingTypeDropdownItem
-                                {
-                                    Label = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { ["en"] = GetOppoModelName(OppoModel.UDP203) },
-                                    Value = nameof(OppoModel.UDP203)
-                                },
-                                new SettingTypeDropdownItem
-                                {
-                                    Label = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { ["en"] = GetOppoModelName(OppoModel.UDP205) },
-                                    Value = nameof(OppoModel.UDP205)
-                                },
-                                new SettingTypeDropdownItem
-                                {
-                                    Label = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { ["en"] = GetOppoModelName(OppoModel.Magnetar) },
-                                    Value = nameof(OppoModel.Magnetar)
-                                }
-                            ],
-                            Value = configurationItem?.Model.ToStringFast() ?? discoveredPlayer?.Model?.ToStringFast()
+                            Value = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+                            {
+                                ["en"] = "The player is controlled over its RS-232 port, through a device that bridges that port to TCP. " +
+                                         "This has been tested with an Unfolded Circle Dock 3; other serial-to-TCP bridges may also work. " +
+                                         "Make sure your Dock 3 or bridge has a stable IP address. If that address changes the player has " +
+                                         "to be removed and added again. The integration\'s README covers cabling and dock settings."
+                            }
                         }
                     },
-                    Label = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { ["en"] = "Select the model of your player (mandatory)" }
+                    Label = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { ["en"] = "Serial connection" }
+                },
+                CreateEntityNameSetting(null),
+                new Setting
+                {
+                    Id = OppoConstants.SerialBridgeHostKey,
+                    Field = new SettingTypeText
+                    {
+                        Text = new ValueRegex
+                        {
+                            RegEx = OppoConstants.HostNameRegex,
+                            Value = configurationItem?.Host
+                        }
+                    },
+                    Label = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { ["en"] = "Enter the address of the serial bridge or UC dock, not of the player (mandatory)" }
                 },
                 new Setting
                 {
-                    Id = OppoConstants.UseMediaEventsKey,
-                    Field = new SettingTypeCheckbox
-                    {
-                        Checkbox = new SettingTypeCheckboxInner
-                        {
-                            Value = configurationItem?.UseMediaEvents ?? true
-                        }
-                    },
-                    Label = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { ["en"] = "Use Media Events?" }
-                },
-                new Setting
-                {
-                    Id = OppoConstants.UseStreamingEventsKey,
-                    Field = new SettingTypeCheckbox
-                    {
-                        Checkbox = new SettingTypeCheckboxInner
-                        {
-                            Value = configurationItem?.UseStreamingEvents ?? true
-                        }
-                    },
-                    Label = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { ["en"] = "Use Streaming Events? (required for Magnetar metadata)" }
-                },
-                new Setting
-                {
-                    Id = OppoConstants.MaxMessageHandlingWaitTimeInSecondsKey,
+                    Id = OppoConstants.SerialBridgePortKey,
                     Field = new SettingTypeNumber
                     {
                         Number = new SettingTypeNumberInner
                         {
-                            Value = maxMessageHandlingWaitTimeInSeconds,
-                            Min = 0.1,
-                            Max = 9.5,
-                            Decimals = 1
+                            Value = configurationItem?.ControlPort ?? OppoConstants.DefaultSerialBridgePort,
+                            Min = 1,
+                            Max = ushort.MaxValue,
+                            Decimals = 0
                         }
                     },
-                    Label = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { ["en"] = "Enter the max wait time for a message to be processed (global setting)" }
-                }
+                    Label = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { ["en"] = "Enter the TCP port the bridge exposes for that serial port (Dock 3: use 5000, its second port)" }
+                },
+                CreateModelSetting(configurationItem?.Model.ToStringFast(), includeMagnetar: false),
+                CreateUseMediaEventsSetting(configurationItem?.UseMediaEvents ?? true),
+                CreateUseStreamingEventsSetting(configurationItem?.UseStreamingEvents ?? true),
+                CreateMaxMessageHandlingWaitTimeSetting(maxMessageHandlingWaitTimeInSeconds)
             ]
+        };
+
+    // The IP and serial-bridge pages differ only in how the player is addressed - everything else they ask
+    // for is the same, so those settings live here rather than being written out twice and drifting apart.
+    private static Setting CreateEntityNameSetting(string? value) =>
+        new()
+        {
+            Id = OppoConstants.EntityName,
+            Field = new SettingTypeText
+            {
+                Text = new ValueRegex
+                {
+                    Value = value
+                }
+            },
+            Label = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { ["en"] = "Enter the name of the player (optional)" }
+        };
+
+    // Magnetar is excluded: it speaks its own protocol on its own port, not the shared RS-232 command set.
+    private static readonly OppoModel[] SerialCapableModels =
+        [OppoModel.BDP83, OppoModel.BDP9X, OppoModel.BDP10X, OppoModel.UDP203, OppoModel.UDP205];
+
+    private static readonly OppoModel[] AllModels = [.. SerialCapableModels, OppoModel.Magnetar];
+
+    private static Setting CreateModelSetting(string? value, bool includeMagnetar) =>
+        new()
+        {
+            Id = OppoConstants.OppoModelKey,
+            Field = new SettingTypeDropdown
+            {
+                Dropdown = new SettingTypeDropdownInner
+                {
+                    Items = [
+                        .. (includeMagnetar ? AllModels : SerialCapableModels).Select(static model => new SettingTypeDropdownItem
+                        {
+                            Label = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { ["en"] = GetOppoModelName(model) },
+                            Value = model.ToStringFast()
+                        })
+                    ],
+                    Value = value
+                }
+            },
+            Label = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { ["en"] = "Select the model of your player (mandatory)" }
+        };
+
+    private static Setting CreateUseMediaEventsSetting(bool value) =>
+        new()
+        {
+            Id = OppoConstants.UseMediaEventsKey,
+            Field = new SettingTypeCheckbox
+            {
+                Checkbox = new SettingTypeCheckboxInner
+                {
+                    Value = value
+                }
+            },
+            Label = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { ["en"] = "Use Media Events?" }
+        };
+
+    private static Setting CreateUseStreamingEventsSetting(bool value) =>
+        new()
+        {
+            Id = OppoConstants.UseStreamingEventsKey,
+            Field = new SettingTypeCheckbox
+            {
+                Checkbox = new SettingTypeCheckboxInner
+                {
+                    Value = value
+                }
+            },
+            Label = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { ["en"] = "Use Streaming Events? (required for Magnetar metadata)" }
+        };
+
+    private static Setting CreateMaxMessageHandlingWaitTimeSetting(double value) =>
+        new()
+        {
+            Id = OppoConstants.MaxMessageHandlingWaitTimeInSecondsKey,
+            Field = new SettingTypeNumber
+            {
+                Number = new SettingTypeNumberInner
+                {
+                    Value = value,
+                    Min = 0.1,
+                    Max = 9.5,
+                    Decimals = 1
+                }
+            },
+            Label = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { ["en"] = "Enter the max wait time for a message to be processed (global setting)" }
         };
 
     private static SettingsPage CreateDiscoveredPlayersSettingsPage(List<PlayerInfo> discoveredPlayers) =>
         new()
         {
-            Title = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { ["en"] = "Select discovered player" },
+            Title = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+            {
+                ["en"] = discoveredPlayers.Count > 0 ? "Select discovered player" : "No players discovered"
+            },
             Settings = [
                 new Setting
                 {
@@ -454,14 +521,24 @@ public partial class OppoWebSocketHandler(
                                 }),
                                 new SettingTypeDropdownItem
                                 {
-                                    Label = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { ["en"] = "Enter manually" },
+                                    Label = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { ["en"] = "Enter the player's IP address manually" },
                                     Value = OppoConstants.ManualEntryValue
+                                },
+                                new SettingTypeDropdownItem
+                                {
+                                    Label = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { ["en"] = "Connect over RS-232 through a serial bridge" },
+                                    Value = OppoConstants.SerialBridgeEntryValue
                                 }
                             ],
-                            Value = EncodeDiscoveredPlayer(discoveredPlayers[0])
+                            Value = discoveredPlayers.Count > 0 ? EncodeDiscoveredPlayer(discoveredPlayers[0]) : OppoConstants.ManualEntryValue
                         }
                     },
-                    Label = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { ["en"] = "Discovered players (or choose to enter one manually)" }
+                    Label = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+                    {
+                        ["en"] = discoveredPlayers.Count > 0
+                            ? "Discovered players, or how to add one that was not found"
+                            : "Nothing answered discovery - a player that is off, on another subnet, or on RS-232 will not. Choose how to add it."
+                    }
                 }
             ]
         };
@@ -551,6 +628,14 @@ public partial class OppoWebSocketHandler(
             }
             : OppoModel.UDP203;
 
+    // A number field arrives as text and may carry a decimal part, so parse wide and narrow afterwards.
+    private static ushort? GetSerialBridgePort(Dictionary<string, string> msgDataSetupData) =>
+        msgDataSetupData.TryGetValue(OppoConstants.SerialBridgePortKey, out var rawPort)
+        && double.TryParse(rawPort, NumberStyles.Float, CultureInfo.InvariantCulture, out var parsedPort)
+        && parsedPort is >= 1 and <= ushort.MaxValue
+            ? (ushort)parsedPort
+            : null;
+
     private async ValueTask<SetupDriverUserDataResult> GetSetupResultForClient(string wsId, string entityId, CancellationToken cancellationToken) =>
         await TryGetOppoClientHolderAsync(wsId, entityId, IdentifierType.EntityId, false, cancellationToken) is { } oppoClientHolder
         && await oppoClientHolder.Client.IsConnectedAsync()
@@ -577,6 +662,16 @@ public partial class OppoWebSocketHandler(
         {
             var globalConfiguration = await _configurationService.GetConfigurationAsync(cancellationToken);
             var timeoutSeconds = globalConfiguration.GlobalConfiguration.MaxMessageHandlingWaitTimeInSeconds ?? 9.5;
+
+            if (discoveredPlayerValue.Equals(OppoConstants.SerialBridgeEntryValue, StringComparison.OrdinalIgnoreCase))
+            {
+                await SendMessageAsync(socket,
+                    ResponsePayloadHelpers.CreateDeviceSetupChangeUserInputPayload(CreateSerialBridgeSettingsPage(null, timeoutSeconds)),
+                    wsId,
+                    cancellationToken);
+                return SetupDriverUserDataResult.Handled;
+            }
+
             var discoveredPlayer = discoveredPlayerValue.Equals(OppoConstants.ManualEntryValue, StringComparison.OrdinalIgnoreCase)
                 ? null
                 : DecodeDiscoveredPlayer(discoveredPlayerValue);
@@ -590,9 +685,19 @@ public partial class OppoWebSocketHandler(
 
         var configuration = await _configurationService.GetConfigurationAsync(cancellationToken);
         var driverMetadata = await _configurationService.GetDriverMetadataAsync(cancellationToken);
-        var host = payload.MsgData.InputValues[OppoConstants.IpAddressKey];
+
+        // The serial page submits a bridge address and port where the IP page submits the player's address.
+        var useSerialBridge = payload.MsgData.InputValues.TryGetValue(OppoConstants.SerialBridgeHostKey, out var serialBridgeHost)
+                              && !string.IsNullOrWhiteSpace(serialBridgeHost);
+        var host = useSerialBridge ? serialBridgeHost!.Trim() : payload.MsgData.InputValues[OppoConstants.IpAddressKey];
+        var controlPort = useSerialBridge
+            ? GetSerialBridgePort(payload.MsgData.InputValues) ?? OppoConstants.DefaultSerialBridgePort
+            : (ushort?)null;
+
+        // One bridge can carry several players on different ports, so there the port is part of the identity.
+        var entityId = controlPort is { } port ? $"{host}:{port.ToString(CultureInfo.InvariantCulture)}" : host;
         var oppoModel = GetOppoModel(payload.MsgData.InputValues);
-        var entityName = payload.MsgData.InputValues.GetStringValueOrDefault(OppoConstants.EntityName, $"{driverMetadata.Name["en"]} ({GetOppoModelName(oppoModel)}) - {host}");
+        var entityName = payload.MsgData.InputValues.GetStringValueOrDefault(OppoConstants.EntityName, $"{driverMetadata.Name["en"]} ({GetOppoModelName(oppoModel)}) - {entityId}");
         var macAddress = payload.MsgData.InputValues.GetStringValueOrDefault(OppoConstants.MacAddressKey, string.Empty);
         bool? useMediaEvents = payload.MsgData.InputValues.TryGetValue(OppoConstants.UseMediaEventsKey, out var useMediaEventsValue)
             ? useMediaEventsValue.Equals(bool.TrueString, StringComparison.OrdinalIgnoreCase)
@@ -601,32 +706,36 @@ public partial class OppoWebSocketHandler(
             ? useStreamingEventsValue.Equals(bool.TrueString, StringComparison.OrdinalIgnoreCase)
             : null;
 
-        var entity = configuration.Entities.FirstOrDefault(x => x.EntityId.Equals(host, StringComparison.OrdinalIgnoreCase));
+        var entity = configuration.Entities.FirstOrDefault(x => x.EntityId.Equals(entityId, StringComparison.OrdinalIgnoreCase));
         if (entity is null)
         {
-            _logger.AddingConfiguration(host);
+            _logger.AddingConfiguration(entityId);
             entity = new OppoConfigurationItem
             {
                 Host = host,
                 Model = oppoModel,
-                DeviceId = host,
+                DeviceId = entityId,
                 EntityName = entityName,
-                EntityId = host,
+                EntityId = entityId,
                 UseMediaEvents = useMediaEvents ?? false,
                 UseStreamingEvents = useStreamingEvents ?? false,
-                MacAddress = macAddress
+                MacAddress = macAddress,
+                UseSerialBridge = useSerialBridge,
+                ControlPort = controlPort
             };
         }
         else
         {
-            _logger.UpdatingConfiguration(host);
+            _logger.UpdatingConfiguration(entityId);
             configuration.Entities.Remove(entity);
             entity = entity with
             {
                 Host = host,
                 UseMediaEvents = useMediaEvents ?? entity.UseMediaEvents,
                 EntityName = entityName,
-                Model = oppoModel
+                Model = oppoModel,
+                UseSerialBridge = useSerialBridge,
+                ControlPort = controlPort
             };
         }
 

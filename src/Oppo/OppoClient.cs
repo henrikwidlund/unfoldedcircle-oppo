@@ -12,7 +12,8 @@ using Microsoft.Extensions.Logging;
 
 namespace Oppo;
 
-public sealed class OppoClient(string hostName, OppoModel model, ILogger<OppoClient> logger) : IOppoClient, ITcpConnection
+public sealed class OppoClient(string hostName, OppoModel model, ILogger<OppoClient> logger,
+    ushort? controlPort = null) : IOppoClient, ITcpConnection
 {
     private readonly string _hostName = hostName;
     private readonly OppoModel _model = model;
@@ -20,7 +21,9 @@ public sealed class OppoClient(string hostName, OppoModel model, ILogger<OppoCli
     private readonly TokenBucketRateLimiter _rateLimiter = ConnectHelper.CreateRateLimiter();
 
     private readonly bool _is20XModel = model is OppoModel.UDP203 or OppoModel.UDP205;
-    private readonly ushort _port = model switch
+
+    // A bridge listens on a port of its own (e.g. 4999/5000 on a UC Dock 3), unrelated to the model's own.
+    private readonly ushort _port = controlPort ?? model switch
     {
         OppoModel.BDP83 => 19999,
         OppoModel.BDP9X or OppoModel.BDP10X => 48360,
