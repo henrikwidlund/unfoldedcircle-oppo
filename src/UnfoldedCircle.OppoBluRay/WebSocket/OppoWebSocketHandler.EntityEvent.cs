@@ -1353,7 +1353,8 @@ public partial class OppoWebSocketHandler
         {
             var clientKey = new OppoClientKey(entity.Host, entity.Model, entity.UseMediaEvents,
                 entity.UseStreamingEvents,
-                entity.EntityId, entity.DeviceId, entity.MacAddress);
+                entity.EntityId, entity.DeviceId, entity.MacAddress,
+                entity.ControlPort, entity.UseSerialBridge);
             var sourceList = OppoEntitySettings.SourceList[entity.Model];
 
             if (LastPlayerStatesMap.TryGetValue(clientKey, out var state))

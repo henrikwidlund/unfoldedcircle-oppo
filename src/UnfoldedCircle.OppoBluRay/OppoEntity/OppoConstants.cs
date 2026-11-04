@@ -32,8 +32,10 @@ internal static class OppoConstants
     internal const string MacAddressRegex = "^([0-9a-fA-F]{2}[:-]){5}([0-9a-fA-F]{2})$|^$";
 
     // Looser than IpAddressRegex: a bridge is as often addressed by name (a dock's mDNS name, DHCP
-    // hostname) as by literal address.
-    internal const string HostNameRegex = @"^(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?)(?:\.[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?)*\.?$|^[0-9A-Fa-f:]+$";
+    // hostname) as by literal address. Labels of digits make this accept IPv4 too. IPv6 literals are
+    // not accepted: the entity id is host:port, which has no unambiguous reading for one. Address a
+    // bridge on an IPv6-only network by name.
+    internal const string HostNameRegex = @"^(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?)(?:\.[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?)*\.?$";
 
     internal static class InputSource
     {
