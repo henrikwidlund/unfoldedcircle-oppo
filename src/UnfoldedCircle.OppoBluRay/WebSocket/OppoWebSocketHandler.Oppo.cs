@@ -41,7 +41,8 @@ public partial class OppoWebSocketHandler
         if (entity is not null)
             return new OppoClientKey(entity.Host, entity.Model, entity.UseMediaEvents,
                 entity.UseStreamingEvents,
-                entity.EntityId, entity.DeviceId, entity.MacAddress);
+                entity.EntityId, entity.DeviceId, entity.MacAddress,
+                entity.ControlPort, entity.UseSerialBridge);
 
         _logger.NoConfigurationFoundForIdentifier(wsId, localIdentifier ?? default, identifierType);
         return null;
@@ -61,7 +62,8 @@ public partial class OppoWebSocketHandler
         return [.. configuration.Entities
             .Select(static entity => new OppoClientKey(entity.Host, entity.Model, entity.UseMediaEvents,
                 entity.UseStreamingEvents,
-                entity.EntityId, entity.DeviceId, entity.MacAddress))];
+                entity.EntityId, entity.DeviceId, entity.MacAddress,
+                entity.ControlPort, entity.UseSerialBridge))];
     }
 
     internal enum IdentifierType : byte

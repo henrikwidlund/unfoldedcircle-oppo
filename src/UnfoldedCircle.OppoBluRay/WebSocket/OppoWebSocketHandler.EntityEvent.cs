@@ -454,6 +454,12 @@ public partial class OppoWebSocketHandler
             return;
         }
 
+        // That API lives on the player's own IP. Behind a serial bridge HostName is the bridge, and the
+        // player may have no network presence at all, so there is nothing to ask - skip it rather than
+        // time out on every poll.
+        if (oppoClientHolder.ClientKey.UseSerialBridge)
+            return;
+
         // Pre-20X players have no telnet equivalent for track/album/artist, but expose the same info
         // via their own HTTP-436 JSON API - confirmed on BDP-103/105, unconfirmed on BDP-83/93/95 (fails
         // silently there, leaving the snapshot's disc-type fallback icon/no metadata in place).
@@ -1347,7 +1353,8 @@ public partial class OppoWebSocketHandler
         {
             var clientKey = new OppoClientKey(entity.Host, entity.Model, entity.UseMediaEvents,
                 entity.UseStreamingEvents,
-                entity.EntityId, entity.DeviceId, entity.MacAddress);
+                entity.EntityId, entity.DeviceId, entity.MacAddress,
+                entity.ControlPort, entity.UseSerialBridge);
             var sourceList = OppoEntitySettings.SourceList[entity.Model];
 
             if (LastPlayerStatesMap.TryGetValue(clientKey, out var state))
