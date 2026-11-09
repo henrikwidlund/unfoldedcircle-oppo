@@ -304,16 +304,24 @@ public partial class OppoWebSocketHandler
         return oppoClientHolder.Client.PauseAsync(cancellationToken);
     }
 
-    private static ValueTask<bool> SendPlayOrPause(OppoClientHolder oppoClientHolder, CancellationToken cancellationToken)
+    private static async ValueTask<bool> SendPlayOrPause(OppoClientHolder oppoClientHolder, CancellationToken cancellationToken)
     {
+        if ((await oppoClientHolder.Client.QueryPlaybackStatusAsync(cancellationToken)).TryGetValue(out PlaybackStatus playbackStatus))
+        {
+            return playbackStatus is PlaybackStatus.Play
+                ? await oppoClientHolder.Client.PauseAsync(cancellationToken)
+                : await oppoClientHolder.Client.PlayAsync(cancellationToken);
+        }
+
+        // Player did not report status (e.g. Magnetar), use last known state
         if (PreviousRemoteStatesMap.TryGetValue(oppoClientHolder.ClientKey, out var previousState))
         {
             return previousState == State.Playing
-                ? oppoClientHolder.Client.PauseAsync(cancellationToken)
-                : oppoClientHolder.Client.PlayAsync(cancellationToken);
+                ? await oppoClientHolder.Client.PauseAsync(cancellationToken)
+                : await oppoClientHolder.Client.PlayAsync(cancellationToken);
         }
 
-        return oppoClientHolder.Client.PauseAsync(cancellationToken);
+        return await oppoClientHolder.Client.PauseAsync(cancellationToken);
     }
 
     private static async ValueTask<EntityCommandResult> HandleMediaPlayerPowerToggle(OppoClientHolder oppoClientHolder, CancellationToken commandCancellationToken)
