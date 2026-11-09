@@ -658,7 +658,10 @@ public partial class OppoWebSocketHandler(
         // Submission of the discovery-chooser page (see CreateNewEntitySettingsPageAsync):
         // swap in the full settings page, pre-filled from the chosen player,
         // and stay on this same setup step for its submission.
-        if (payload.MsgData.InputValues!.TryGetValue(OppoConstants.DiscoveredPlayerKey, out var discoveredPlayerValue))
+        // The remote keeps the chooser value in the settings page submission, so the page is
+        // only the chooser when the settings fields are missing.
+        if (!payload.MsgData.InputValues!.ContainsKey(OppoConstants.IpAddressKey)
+            && payload.MsgData.InputValues.TryGetValue(OppoConstants.DiscoveredPlayerKey, out var discoveredPlayerValue))
         {
             var globalConfiguration = await _configurationService.GetConfigurationAsync(cancellationToken);
             var timeoutSeconds = globalConfiguration.GlobalConfiguration.MaxMessageHandlingWaitTimeInSeconds ?? 9.5;
