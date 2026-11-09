@@ -59,6 +59,8 @@ This repository contains the server code for hosting an Oppo/Magnetar Blu-ray in
 
 \* Server port can be adjusted by specifying the desired port with the `UC_INTEGRATION_HTTP_PORT` environment variable. Port can't be controlled when running on the remote.
 
+A player connected over RS-232 instead is reached on whatever port its serial bridge listens on - see [Connecting over RS-232](#connecting-over-rs-232).
+
 ### Development
 
 - [dotnet 11 SDK](https://dotnet.microsoft.com/download/dotnet/11.0).
@@ -73,6 +75,84 @@ This repository contains the server code for hosting an Oppo/Magnetar Blu-ray in
 5. Choose the file in step 1 (`unfolded-circle-oppo-[version]-remote.tar.gz`)
 6. Make sure that your device is turned on
 7. Click on the newly installed integration and follow the on-screen instructions
+
+## Connecting over RS-232
+
+Every supported Oppo also accepts the same commands on its RS-232 port, so a player can be controlled
+without any network connection at all. The driver speaks TCP, so the serial port has to be bridged to TCP
+by something on the network.
+
+This has been tested with **an Unfolded Circle Dock 3**, with a port set to `RS232` (port 1 is TCP 4999,
+port 2 is TCP 5000). The driver asks nothing of the bridge beyond a TCP port that passes bytes through
+unchanged, so other serial device servers - a Global Cache IP2SL or iTach, a USR-TCP232, `ser2net` on a
+Linux box with a USB-serial adapter - should work the same way. None of those has been tried, so if you
+use one, the wiring and port numbers below are a starting point rather than a recipe.
+
+Set the bridge to **9600 baud, 8 data bits, no parity, 1 stop bit, no flow control**. These are fixed on
+the player and cannot be changed.
+
+Wiring depends on the bridge. The player's connector is a **female DB9 wired as a DCE**, and only three
+pins are used:
+
+| Player pin | Signal                |
+|-----------:|-----------------------|
+| 2          | TXD - player sends    |
+| 3          | RXD - player receives |
+| 5          | GND                   |
+
+- **A bridge with its own DB9** (iTach, IP2SL, USR-TCP232, a PC serial port) takes a plain
+  straight-through DB9 cable. Do *not* use a null modem cable - the player is already a DCE.
+- **A Dock 3** has 3.5 mm TRS jacks rather than a DB9, so it needs a TRS-to-DB9 cable. [The dock's RS232
+  pinout](https://support.unfoldedcircle.com/hc/en-us/articles/20028572717084-Dock-3-3-5-mm-jack-pinout)
+  is tip = TX, ring = RX, sleeve = GND, so the cable crosses:
+
+  | 3.5 mm jack (dock) | Male DB9 (to the player) |
+  |--------------------|--------------------------|
+  | Tip - dock TX      | pin 3 - player RxD       |
+  | Ring - dock RX     | pin 2 - player TxD       |
+  | Sleeve - GND       | pin 5 - GND              |
+
+  The StarTech `9M351M-RS232-CABLE` (male DB9 to 3.5 mm, 1 m) is wired this way off the shelf and mates
+  directly with the player's female connector. Generic "3.5 mm to DB9" cables are not wired to any one
+  standard and some use the opposite convention, so check the datasheet or buzz it out with a multimeter.
+  Getting it backwards breaks nothing - the player simply never answers, and swapping tip and ring fixes it.
+
+Two Dock 3 notes, both from [the Denon RS-232 integration](https://github.com/run51/uc-integration-denon-rs232),
+which drives a DCE RS-232 device from a dock over exactly this cable:
+
+- Do not hot-plug. Connect the cable before powering the dock, or it may brown out.
+- If every command comes back to you unchanged, the plug is not seated all the way in and the dock is
+  hearing its own transmit.
+
+A Dock 3 port must also be set to `RS232` mode, and its TCP server enabled separately - that is a distinct
+checkbox, off by default, and until it is on nothing listens on 4999 or 5000. Both are set in the dock's own
+web interface rather than on the Remote, which as of dock firmware 0.10.5 does not offer the RS232 mode.
+
+**Use port 2 (TCP 5000).** Port 1 carries the dock's own boot messages on its transmit line, which the
+player reads as commands.
+
+To configure it, start setup as usual and choose **Connect over RS-232 through a serial bridge** instead of
+a discovered player, then enter the bridge's address and port.
+
+Give the bridge a **fixed address** first - a DHCP reservation on your router, or a static IP. The address
+is part of the player's identity here, and reconfiguring deliberately does not let you change it, so a
+bridge that moves to a new address means removing the player and adding it again. Everything after that behaves the same:
+the RS-232 and IP command sets are identical.
+
+What differs:
+
+- Discovery does not find a serial-only player - it has nothing to answer on.
+- Wake-on-LAN and the Magnetar protocol need a network path to the player, so Magnetar is not offered here.
+- Track/album/artist on BDP-83/93/95/10X comes from the player's own HTTP API, which a serial-only player
+  does not expose. The 20X series reads this over the control connection and is unaffected.
+- Most bridges accept several TCP clients at once and forward bytes from all of them onto one UART, which
+  interleaves commands. A Dock 3 takes up to 8 clients per port and broadcasts everything the player says
+  to all of them. Point only one controller at a given serial port.
+
+A connected bridge does not by itself prove the player is there - the TCP connection terminates at the
+bridge, which stays up whether or not the player behind it does. Nothing extra is done about that: every
+poll queries power status anyway, so a player that has stopped answering shows up as unknown on the next
+poll, and commands report their own failure.
 
 ## Configuration
 
