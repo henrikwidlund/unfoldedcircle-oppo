@@ -58,13 +58,13 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Meziantou.Analyzer" Version="3.0.317">
+        <PackageReference Include="Meziantou.Analyzer" Version="3.0.324">
           <PrivateAssets>all</PrivateAssets>
           <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Microsoft.DotNet.ILCompiler" Version="11.0.0-rc.3.26522.148" />
+        <PackageReference Include="Microsoft.DotNet.ILCompiler" Version="11.0.0" />
         <PackageReference Include="NetEscapades.EnumGenerators.Interceptors" Version="1.0.0-beta21" />
-        <PackageReference Include="Theodicean.UnfoldedCircle.Server" Version="0.0.20-pre009" />
+        <PackageReference Include="Theodicean.UnfoldedCircle.Server" Version="0.0.20" />
     </ItemGroup>
 
 </Project>
